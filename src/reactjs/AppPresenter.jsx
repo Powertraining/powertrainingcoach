@@ -105,7 +105,7 @@ function makeMockPlan(input) {
 
 const AppPresenter = observer(function AppPresenter(props) {
   const navigate = useNavigate();
-  const [step, setStep] = useState(STEPS.START);
+  const [step, setStepInternal] = useState(STEPS.START);
   const [plan, setPlan] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -120,6 +120,18 @@ const AppPresenter = observer(function AppPresenter(props) {
   const [plansLoading, setPlansLoading] = useState(false);
   const [plansError, setPlansError] = useState(null);
   const [currentFilters, setCurrentFilters] = useState(null);
+
+  // Wrapper for setStep that also pushes to browser history
+  function setStep(newStep) {
+    // Push new history entry with the step as state
+    window.history.pushState({ step: newStep }, '', window.location.href);
+    setStepInternal(newStep);
+  }
+
+  // Navigate back using browser history
+  function goBack() {
+    window.history.back();
+  }
 
   function computeTotalDays(currentPlan) {
     if (!currentPlan?.weeks) return 0;
@@ -139,6 +151,13 @@ const AppPresenter = observer(function AppPresenter(props) {
       );
   }
 
+  function toCompletedDaysSet(source) {
+    if (!source) return new Set();
+    if (source instanceof Set) return new Set(source);
+    if (Array.isArray(source)) return new Set(source);
+    return new Set();
+  }
+
   useEffect(() => {
     function handleGoHome() {
       setStep(STEPS.START);
@@ -153,6 +172,25 @@ const AppPresenter = observer(function AppPresenter(props) {
     return () => window.removeEventListener("app:go-home", handleGoHome);
   }, []);
 
+  // Handle browser back/forward button - restore step from history state
+  useEffect(() => {
+    function handlePopState(event) {
+      if (event.state && event.state.step) {
+        // Restore the step from history state without pushing new entry
+        setStepInternal(event.state.step);
+      }
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Initialize history state with current step on mount
+  useEffect(() => {
+    // Replace current history entry with step state on initial mount
+    window.history.replaceState({ step: step }, '', window.location.href);
+  }, []);
+
   // Load plan from model on mount or when model.trainingPlan changes
   useEffect(() => {
     if (props.model.trainingPlan) {
@@ -160,12 +198,20 @@ const AppPresenter = observer(function AppPresenter(props) {
       setStep(STEPS.OVERVIEW);
       const totalDays = computeTotalDays(props.model.trainingPlan);
       setTotalDays(totalDays);
-      setCompletedDays(new Set());
+      const syncedCompleted = toCompletedDaysSet(props.model.completedDays);
+      setCompletedDays(syncedCompleted);
+      if (!Array.isArray(props.model.completedDays)) {
+        props.model.completedDays = Array.from(syncedCompleted);
+      }
     } else {
+      setPlan(null);
       setTotalDays(0);
       setCompletedDays(new Set());
+      if (props.model.completedDays?.length) {
+        props.model.completedDays = [];
+      }
     }
-  }, [props.model.trainingPlan]);
+  }, [props.model.trainingPlan, props.model.completedDays]);
 
   if (!props.model.user) {
     return (
@@ -276,6 +322,7 @@ const AppPresenter = observer(function AppPresenter(props) {
         if (result.data.success && result.data.plan) {
           // Save plan to model (which triggers Firestore persistence)
           props.model.trainingPlan = result.data.plan;
+            props.model.completedDays = [];
           setPlan(result.data.plan);
           
           // Set days finished based on weeks in plan
@@ -292,6 +339,7 @@ const AppPresenter = observer(function AppPresenter(props) {
         console.log("Using mock training plan (no subscription)");
         const mock = makeMockPlan(enrichedInput);
         setPlan(mock);
+        props.model.completedDays = [];
         const totalMockDays = computeTotalDays(mock);
         setTotalDays(totalMockDays);
         setCompletedDays(new Set());
@@ -328,6 +376,7 @@ const AppPresenter = observer(function AppPresenter(props) {
     setCompletedDays((prev) => {
       const alreadyDone = prev.has(key);
       const next = alreadyDone ? new Set(prev) : new Set(prev).add(key);
+      props.model.completedDays = Array.from(next);
       const remaining = Math.max(totalDays - next.size, 0);
       console.log("Days remaining in batch:", remaining);
 
@@ -368,7 +417,7 @@ const AppPresenter = observer(function AppPresenter(props) {
         value={props.model.primaryCombatSport}
         onChange={(sport) => { props.model.primaryCombatSport = sport; }}
         onLogoClick={() => setStep(STEPS.START)}
-        onBack={() => setStep(STEPS.START)}
+        onBack={goBack}
         onContinue={() => setStep(STEPS.Q_FREQ)}
       />
     ),
@@ -377,7 +426,7 @@ const AppPresenter = observer(function AppPresenter(props) {
       <QuestionnaireFrequencyView
         value={props.model.sessionsPerWeek}
         onChange={(freq) => { props.model.sessionsPerWeek = freq; }}
-        onBack={() => setStep(STEPS.Q_SPORT)}
+        onBack={goBack}
         onLogoClick={() => setStep(STEPS.START)}
         onContinue={() => setStep(STEPS.INPUT)}
       />
@@ -386,7 +435,7 @@ const AppPresenter = observer(function AppPresenter(props) {
     [STEPS.INPUT]: () => (
       <InputFormView
         onSubmit={handleFetchPlans}
-        onBack={() => setStep(STEPS.Q_FREQ)}
+        onBack={goBack}
         subscription={props.model.subscription}
         daysRemaining={props.model.getDaysRemainingInSubscription?.() || 0}
         onPaymentClick={() => setStep(STEPS.SUBSCRIPTION)}
@@ -396,7 +445,18 @@ const AppPresenter = observer(function AppPresenter(props) {
     [STEPS.SUBSCRIPTION]: () => (
       <SubscriptionPresenter
         model={props.model}
+        onBack={goBack}
+      />
+    ),
+
+    [STEPS.PLAN_SELECTION]: () => (
+      <PlanSelectionView
+        planPreviews={planPreviews}
+        loading={plansLoading}
+        error={plansError}
+        onSelectPlan={handleSelectPlan}
         onBack={() => setStep(STEPS.INPUT)}
+        onRetry={handleRetryFetchPlans}
       />
     ),
 
@@ -415,7 +475,7 @@ const AppPresenter = observer(function AppPresenter(props) {
       <ProgramOverviewView
         plan={plan}
         onSelectDay={handleSelectDayACB}
-        onBack={() => setStep(STEPS.INPUT)}
+        onBack={goBack}
         currentDay={currentDayPointer}
         completedDays={completedDays}
         finishedPlan={props.finishedPlan}
@@ -427,7 +487,7 @@ const AppPresenter = observer(function AppPresenter(props) {
         week={selectedDay?.week}
         day={selectedDay?.day}
         exercises={selectedDay?.exercises}
-        onBack={() => { setSelectedDay(null); setStep(STEPS.OVERVIEW); }}
+        onBack={() => { setSelectedDay(null); goBack(); }}
         onFinish={finishedDayACB}
       />
     ),

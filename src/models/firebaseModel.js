@@ -17,6 +17,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.subscription,
       model.subscriptionEndDate,
       model.trainingPlan,
+      model.completedDays,
       model.trainingPlanBatch,
       model.completedWeeks,
     ];
@@ -43,6 +44,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         subscription: model.subscription,
         subscriptionEndDate: model.subscriptionEndDate,
         trainingPlan: model.trainingPlan,
+        completedDays: Array.from(model.completedDays || []),
         trainingPlanBatch: model.trainingPlanBatch,
         completedWeeks: model.completedWeeks,
       };
@@ -67,8 +69,6 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
 
   async function onAuthStateChangedACB(user) {
     console.log('[firebaseModel.onAuthStateChangedACB] Auth state changed, user:', user?.uid || null);
-    const previousSubscription = model.subscription;
-    const previousEndDate = model.subscriptionEndDate;
     
     model.user = user;
 
@@ -84,54 +84,37 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
           model.sessionsPerWeek = result.data.sessionsPerWeek || 3;
           // Load training plan and batch info
           model.trainingPlan = result.data.trainingPlan || null;
+          model.completedDays = result.data.completedDays || [];
           model.trainingPlanBatch = result.data.trainingPlanBatch || 1;
           model.completedWeeks = result.data.completedWeeks || 0;
           console.log('[firebaseModel.onAuthStateChangedACB] ✅ Loaded questionnaire & training plan:', {
             primaryCombatSport: model.primaryCombatSport,
             sessionsPerWeek: model.sessionsPerWeek,
             trainingPlan: model.trainingPlan ? 'exists' : 'null',
+            completedDays: model.completedDays?.length || 0,
             trainingPlanBatch: model.trainingPlanBatch,
             completedWeeks: model.completedWeeks,
           });
           
-          // Only override subscription data if it exists in Firestore
-          // This preserves subscription data that was just set in this session
-          if (result.data.subscription !== undefined && result.data.subscription !== null) {
-            model.subscription = result.data.subscription;
-            model.subscriptionEndDate = result.data.subscriptionEndDate || null;
-            console.log('[firebaseModel.onAuthStateChangedACB] ✅ Loaded subscription data from Firestore:', {
-              subscription: model.subscription,
-              subscriptionEndDate: model.subscriptionEndDate
-            });
-          } else if (previousSubscription !== null && previousSubscription !== undefined) {
-            // Keep the subscription data that was set in this session
-            console.log('[firebaseModel.onAuthStateChangedACB] ℹ️ Preserving subscription data from current session:', {
-              subscription: previousSubscription,
-              subscriptionEndDate: previousEndDate
-            });
-          } else {
-            // No subscription in Firestore and none in current session
-            model.subscription = null;
-            model.subscriptionEndDate = null;
-            console.log('[firebaseModel.onAuthStateChangedACB] No subscription data');
-          }
+          // Load subscription data from Firestore (always use user's own data)
+          model.subscription = result.data.subscription || false;
+          model.subscriptionEndDate = result.data.subscriptionEndDate || null;
+          console.log('[firebaseModel.onAuthStateChangedACB] ✅ Loaded subscription data from Firestore:', {
+            subscription: model.subscription,
+            subscriptionEndDate: model.subscriptionEndDate
+          });
         } else {
-          // New user or no document yet
-          model.questionnaire = model.questionnaire || {};
+          // New user or no document yet - reset to defaults
+          model.questionnaire = {};
+          model.primaryCombatSport = "";
+          model.sessionsPerWeek = 3;
           model.trainingPlan = null;
+          model.completedDays = [];
           model.trainingPlanBatch = 1;
           model.completedWeeks = 0;
-          // Preserve subscription data if it was set in this session
-          if (previousSubscription !== null && previousSubscription !== undefined) {
-            console.log('[firebaseModel.onAuthStateChangedACB] ℹ️ Preserving subscription data for new user:', {
-              subscription: previousSubscription,
-              subscriptionEndDate: previousEndDate
-            });
-          } else {
-            model.subscription = null;
-            model.subscriptionEndDate = null;
-            console.log('[firebaseModel.onAuthStateChangedACB] New user, no subscription data');
-          }
+          model.subscription = false;
+          model.subscriptionEndDate = null;
+          console.log('[firebaseModel.onAuthStateChangedACB] New user, initialized with defaults');
         }
       } catch (error) {
         console.error('[firebaseModel.onAuthStateChangedACB] Error loading user data:', error);
@@ -140,11 +123,17 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       }
     } else {
       // logged out -> reset to null
-      console.log('[firebaseModel.onAuthStateChangedACB] User logged out, resetting subscription data');
+      console.log('[firebaseModel.onAuthStateChangedACB] User logged out, resetting all user data');
       model.questionnaire = null;
       model.trainingPlan = null;
+      model.completedDays = [];
       model.trainingPlanBatch = 1;
       model.completedWeeks = 0;
+      // Reset subscription data on logout to prevent it from persisting to next user
+      model.subscription = false;
+      model.subscriptionEndDate = null;
+      model.primaryCombatSport = "";
+      model.sessionsPerWeek = 3;
     }
   }
 
