@@ -25,6 +25,8 @@ export const model = {
   sessionsPerWeek: 3, // Number of sessions per week from questionnaire
   
   trainingPlan: null,
+  // Stores completed day identifiers as ['1-1', '1-2'] for persistence
+  completedDays: [],
   trainingPlanBatch: 1, // Tracks which 8-week batch user is on (1, 2, 3, etc.)
   completedWeeks: 0, // Tracks total weeks completed across all batches
 
@@ -320,6 +322,7 @@ export const model = {
     this.completedWeeks += weeksCompleted;
     this.trainingPlanBatch += 1;
     this.trainingPlan = null; // Clear current plan so new one can be generated
+    this.completedDays = [];
     console.log(
       '[CombatModel.completeCurrentBatch] Batch complete. ' +
       `New batch: ${this.trainingPlanBatch}, ` +
@@ -334,6 +337,7 @@ export const model = {
     this.trainingPlanBatch = 1;
     this.completedWeeks = 0;
     this.trainingPlan = null;
+    this.completedDays = [];
     console.log('[CombatModel.resetTrainingProgress] Progress reset');
   },
 

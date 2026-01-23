@@ -6,7 +6,6 @@ import SubscriptionPlanView from '/src/views/SubscriptionPlanView.jsx';
 import PaymentSuccessView from '/src/views/PaymentSuccessView.jsx';
 import MessageView from '/src/views/MessageView.jsx';
 import { observer } from "mobx-react-lite";
-import { saveUserData } from '/src/models/dbService.js';
 
 const Subscription =  observer(function Subscription(props) {
   const location = useLocation();
@@ -42,28 +41,20 @@ const Subscription =  observer(function Subscription(props) {
       setPlanType(plan || '');
       
       // Update the model subscription with the plan end date
-      if (plan && props.model.user && props.model.user.uid) {
-        console.log('[SubscriptionPresenter] User is ready, updating subscription');
+      // Persistence is handled automatically by MobX reaction in firebaseModel.js
+      if (plan && props.model.user && props.model.user.uid && props.model.ready) {
+        console.log('[SubscriptionPresenter] User is ready, updating subscription via model');
         props.model.setSubscriptionWithPlan(plan);
-        console.log("✅ Subscription updated in model:", {
+        console.log("✅ Subscription updated in model (will be persisted via MobX reaction):", {
           subscription: true,
           subscriptionEndDate: props.model.subscriptionEndDate,
           plan: plan,
           userId: props.model.user.uid
         });
-        
-        // Directly save to Firestore immediately to bypass the race condition
-        saveUserData(props.model.user.uid, {
-          subscription: true,
-          subscriptionEndDate: props.model.subscriptionEndDate,
-        }).then(() => {
-          console.log('[SubscriptionPresenter] ✅ Subscription saved directly to Firestore');
-        }).catch(error => {
-          console.error('[SubscriptionPresenter] ❌ Error saving subscription:', error);
-        });
       } else if (plan && !props.model.user) {
-        console.log('[SubscriptionPresenter] ⚠️ User not available yet, will retry');
-        // User not available, will retry when props change
+        console.log('[SubscriptionPresenter] ⚠️ User not available yet, will retry when props change');
+      } else if (plan && !props.model.ready) {
+        console.log('[SubscriptionPresenter] ⚠️ Model not ready yet, will retry when props change');
       }
     }
 

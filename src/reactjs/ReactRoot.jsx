@@ -18,29 +18,37 @@ function makeRouter(model) {
             children: [
                 {
                     path: "/signup",
-                    element: model.user ? <Navigate to="/" replace /> : <SignUp model={model} /> /* avoid someone to go to /signup page when he has been already sign up.*/
+                    element: model.user ? <Navigate to="/app" replace /> : <SignUp model={model} /> /* avoid someone to go to /signup page when he has been already sign up.*/
                 },
                 {
                     path: "/login",
-                    element: model.user ? <Navigate to="/" replace /> : <Login model={model} />
+                    element: model.user ? <Navigate to="/app" replace /> : <Login model={model} />
                 },
                 {
                     path: "/subscription",
-                    element: model.isSubscribed() ? <Navigate to="/" replace /> : <Subscription model={model} />
+                    element: model.isSubscribed() ? <Navigate to="/app" replace /> : <Subscription model={model} />
                 },
                 {
                     path: "/myProfile",
-                    element: model.user ? <MyProfile model={model} /> : <Navigate to="/" replace />
+                    element: model.user ? <MyProfile model={model} /> : <Navigate to="/login" replace />
                 },
                 {
                     path: "/feedback",
-                    element: (model.user && model.finishedWorkout === 3) ? <FeedBack model={model} /> : <Navigate to="/" replace />
+                    element: (model.user && model.finishedWorkout === 3) ? <FeedBack model={model} /> : <Navigate to="/app" replace />
                 },
                 {
                     path: "/overview",
-                    element: model.user ? <AppPresenter model={model} overviewMode={true} /> : <Navigate to="/" replace />
+                    element: model.user ? <AppPresenter model={model} overviewMode={true} /> : <Navigate to="/login" replace />
                 },
-                { index: true, element: < AppPresenter model={model} /> }
+                {
+                    path: "/questionnaire",
+                    element: model.user ? <AppPresenter model={model} questionnaireMode={true} /> : <Navigate to="/login" replace />
+                },
+                {
+                    path: "/app",
+                    element: model.user ? <AppPresenter model={model} /> : <Navigate to="/login" replace />
+                },
+                { index: true, element: model.user ? <Navigate to="/app" replace /> : <Login model={model} /> }
             ]
         }
     ]);
