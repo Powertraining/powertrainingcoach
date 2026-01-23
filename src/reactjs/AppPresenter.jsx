@@ -8,10 +8,16 @@ import LoadingView from "../views/LoadingView.jsx";
 import ErrorView from "../views/ErrorView.jsx";
 import QuestionnaireSportView from "../views/QuestionnaireSportView.jsx";
 import QuestionnaireFrequencyView from "../views/QuestionnaireFrequencyView.jsx";
+import PlanSelectionView from "../views/PlanSelectionView.jsx";
 import { Subscription as SubscriptionPresenter } from "./SubscriptionPresenter.jsx";
 import { observer } from "mobx-react-lite";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import AuthGateView from "../views/AuthGateView.jsx";
+import { 
+  fetchBaseTrainingPlans, 
+  filterTrainingPlans, 
+  extractFirstWeekPreview 
+} from "../models/trainingPlanService.js";
 
 const STEPS = Object.freeze({
   START: "start",
@@ -19,6 +25,7 @@ const STEPS = Object.freeze({
   Q_FREQ: "questionnaireFrequency",
   INPUT: "input",
   SUBSCRIPTION: "subscription",
+  PLAN_SELECTION: "planSelection",
   OVERVIEW: "overview",
   DAY_DETAIL: "dayDetail",
 });
@@ -107,6 +114,13 @@ const AppPresenter = observer(function AppPresenter(props) {
   const [totalDays, setTotalDays] = useState(0);
   const [completedDays, setCompletedDays] = useState(new Set());
 
+  // State for plan selection
+  const [planPreviews, setPlanPreviews] = useState([]);
+  const [allFetchedPlans, setAllFetchedPlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [plansError, setPlansError] = useState(null);
+  const [currentFilters, setCurrentFilters] = useState(null);
+
   function computeTotalDays(currentPlan) {
     if (!currentPlan?.weeks) return 0;
     return currentPlan.weeks.reduce((acc, week) => acc + (week.days?.length || 0), 0);
@@ -160,6 +174,80 @@ const AppPresenter = observer(function AppPresenter(props) {
         onSignup={() => navigate("/signup")}
       />
     );
+  }
+
+  /**
+   * Fetch and filter training plans from Firebase Storage, then navigate to selection
+   */
+  async function handleFetchPlans(input) {
+    setPlansLoading(true);
+    setPlansError(null);
+    
+    // Store the filters for later use when selecting a plan
+    const filters = {
+      ...input,
+      primaryCombatSport: props.model.primaryCombatSport,
+      sessionsPerWeek: props.model.sessionsPerWeek,
+    };
+    setCurrentFilters(filters);
+    
+    try {
+      console.log("Fetching base training plans from Firebase Storage...");
+      const plans = await fetchBaseTrainingPlans();
+      setAllFetchedPlans(plans);
+      
+      console.log("Filtering plans with criteria:", filters);
+      const filtered = filterTrainingPlans(plans, filters);
+      
+      console.log(`Found ${filtered.length} matching plans`);
+      const previews = filtered.map(extractFirstWeekPreview);
+      setPlanPreviews(previews);
+      
+      setStep(STEPS.PLAN_SELECTION);
+    } catch (e) {
+      console.error("Error fetching training plans:", e);
+      setPlansError(`Could not load training plans: ${e.message}`);
+      setStep(STEPS.PLAN_SELECTION); // Go to selection view to show error
+    } finally {
+      setPlansLoading(false);
+    }
+  }
+
+  /**
+   * Handle user selecting a training plan
+   */
+  function handleSelectPlan(planId) {
+    const selectedPlan = allFetchedPlans.find((p) => p.id === planId);
+    
+    if (!selectedPlan) {
+      console.error("Selected plan not found:", planId);
+      setPlansError("Selected plan not found. Please try again.");
+      return;
+    }
+    
+    console.log("User selected plan:", selectedPlan.name || planId);
+    
+    // Save plan to model (which triggers Firestore persistence)
+    props.model.trainingPlan = selectedPlan;
+    setPlan(selectedPlan);
+    
+    // Set days finished based on weeks in plan
+    const days = computeTotalDays(selectedPlan);
+    setTotalDays(days);
+    setCompletedDays(new Set());
+    
+    setStep(STEPS.OVERVIEW);
+  }
+
+  /**
+   * Retry fetching plans after an error
+   */
+  function handleRetryFetchPlans() {
+    if (currentFilters) {
+      handleFetchPlans(currentFilters);
+    } else {
+      setStep(STEPS.INPUT);
+    }
   }
 
   async function handleGenerate(input, oldPlan = props.model.trainingPlan) {
@@ -297,7 +385,7 @@ const AppPresenter = observer(function AppPresenter(props) {
 
     [STEPS.INPUT]: () => (
       <InputFormView
-        onSubmit={handleGenerate}
+        onSubmit={handleFetchPlans}
         onBack={() => setStep(STEPS.Q_FREQ)}
         subscription={props.model.subscription}
         daysRemaining={props.model.getDaysRemainingInSubscription?.() || 0}
@@ -309,6 +397,17 @@ const AppPresenter = observer(function AppPresenter(props) {
       <SubscriptionPresenter
         model={props.model}
         onBack={() => setStep(STEPS.INPUT)}
+      />
+    ),
+
+    [STEPS.PLAN_SELECTION]: () => (
+      <PlanSelectionView
+        planPreviews={planPreviews}
+        loading={plansLoading}
+        error={plansError}
+        onSelectPlan={handleSelectPlan}
+        onBack={() => setStep(STEPS.INPUT)}
+        onRetry={handleRetryFetchPlans}
       />
     ),
 

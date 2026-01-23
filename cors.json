@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["http://localhost:8080", "http://localhost:3000", "https://powertrainingcoach.web.app", "https://powertrainingcoach.firebaseapp.com"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]

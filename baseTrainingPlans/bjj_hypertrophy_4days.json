@@ -1,0 +1,301 @@
+{
+  "name": "BJJ Hypertrophy Builder",
+  "description": "A 4-day program designed for BJJ practitioners focusing on building muscle mass while maintaining grappling-specific conditioning and grip strength.",
+  "sport": ["BJJ", "Wrestling", "Judo", "MMA"],
+  "sessionsPerWeek": 4,
+  "goal": ["hypertrophy"],
+  "experience": ["intermediate", "advanced"],
+  "summary": "4-day BJJ-focused hypertrophy program for building functional muscle mass.",
+  "weeks": [
+    {
+      "week": 1,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "name": "Hip Escape Drills",
+              "sets": "3",
+              "reps": "20 each side",
+              "notes": "Warm-up movement, focus on hip mobility"
+            },
+            {
+              "name": "Barbell Squat",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Moderate weight, focus on time under tension"
+            },
+            {
+              "name": "Romanian Deadlift",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Slow eccentric, squeeze glutes at top"
+            },
+            {
+              "name": "Leg Press",
+              "sets": "3",
+              "reps": "12",
+              "notes": "Full range of motion"
+            },
+            {
+              "name": "Farmer's Walk",
+              "sets": "4",
+              "reps": "40m",
+              "notes": "Heavy weight, grip training"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "name": "Arm Drags",
+              "sets": "3",
+              "reps": "10 each side",
+              "notes": "Partner or solo drill, explosive pull"
+            },
+            {
+              "name": "Bench Press",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Control the weight, full range"
+            },
+            {
+              "name": "Weighted Dips",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Add weight progressively"
+            },
+            {
+              "name": "Overhead Tricep Extension",
+              "sets": "3",
+              "reps": "12",
+              "notes": "Full stretch at bottom"
+            },
+            {
+              "name": "Cable Crossover",
+              "sets": "3",
+              "reps": "15",
+              "notes": "Squeeze chest at peak contraction"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "name": "Technical Stand-up Drill",
+              "sets": "3",
+              "reps": "10 each side",
+              "notes": "Warm-up, maintain good posture"
+            },
+            {
+              "name": "Weighted Pull-ups",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Full dead hang, controlled pull"
+            },
+            {
+              "name": "Barbell Row",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Squeeze shoulder blades together"
+            },
+            {
+              "name": "Lat Pulldown",
+              "sets": "3",
+              "reps": "12",
+              "notes": "Wide grip, stretch at top"
+            },
+            {
+              "name": "Gi Pull-ups",
+              "sets": "3",
+              "reps": "max",
+              "notes": "Hang gi over bar, grip strength focus"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "exercises": [
+            {
+              "name": "Bridge Drills",
+              "sets": "3",
+              "reps": "10 each direction",
+              "notes": "Neck bridges and hip bridges"
+            },
+            {
+              "name": "Shoulder Press",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Strict form, no leg drive"
+            },
+            {
+              "name": "Lateral Raises",
+              "sets": "4",
+              "reps": "12",
+              "notes": "Control the weight, no swinging"
+            },
+            {
+              "name": "Face Pulls",
+              "sets": "4",
+              "reps": "15",
+              "notes": "External rotation at end"
+            },
+            {
+              "name": "Wrist Curls",
+              "sets": "3",
+              "reps": "15",
+              "notes": "Both flexion and extension"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "name": "Guard Retention Drills",
+              "sets": "3",
+              "reps": "2 min",
+              "notes": "Solo hip movement practice"
+            },
+            {
+              "name": "Front Squat",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Elbows high, core engaged"
+            },
+            {
+              "name": "Sumo Deadlift",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Hip dominant, wide stance"
+            },
+            {
+              "name": "Walking Lunges",
+              "sets": "3",
+              "reps": "12 each leg",
+              "notes": "Hold dumbbells at sides"
+            },
+            {
+              "name": "Plate Pinch Carry",
+              "sets": "4",
+              "reps": "30s",
+              "notes": "Grip two plates together"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "name": "Pummeling Drills",
+              "sets": "3",
+              "reps": "2 min",
+              "notes": "Partner or shadow pummeling"
+            },
+            {
+              "name": "Incline Bench Press",
+              "sets": "4",
+              "reps": "10",
+              "notes": "45 degree angle"
+            },
+            {
+              "name": "Close Grip Bench",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Elbows tucked, tricep focus"
+            },
+            {
+              "name": "Dumbbell Flyes",
+              "sets": "3",
+              "reps": "12",
+              "notes": "Deep stretch, control weight"
+            },
+            {
+              "name": "Skull Crushers",
+              "sets": "3",
+              "reps": "12",
+              "notes": "EZ bar or dumbbells"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "name": "Sprawl Drills",
+              "sets": "3",
+              "reps": "15",
+              "notes": "Explosive hip drop"
+            },
+            {
+              "name": "Deadlift",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Conventional stance"
+            },
+            {
+              "name": "Chin-ups",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Supinated grip, bicep engagement"
+            },
+            {
+              "name": "Cable Row",
+              "sets": "4",
+              "reps": "12",
+              "notes": "Squeeze at contraction"
+            },
+            {
+              "name": "Towel Pull-ups",
+              "sets": "3",
+              "reps": "max",
+              "notes": "Towel over bar for grip work"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "exercises": [
+            {
+              "name": "Neck Circles",
+              "sets": "2",
+              "reps": "10 each direction",
+              "notes": "Gentle warm-up for neck"
+            },
+            {
+              "name": "Arnold Press",
+              "sets": "4",
+              "reps": "10",
+              "notes": "Rotation through movement"
+            },
+            {
+              "name": "Upright Rows",
+              "sets": "3",
+              "reps": "12",
+              "notes": "Wide grip, don't go too high"
+            },
+            {
+              "name": "Reverse Flyes",
+              "sets": "4",
+              "reps": "12",
+              "notes": "Rear delt focus"
+            },
+            {
+              "name": "Hammer Curls",
+              "sets": "3",
+              "reps": "12",
+              "notes": "Grip strength and forearms"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

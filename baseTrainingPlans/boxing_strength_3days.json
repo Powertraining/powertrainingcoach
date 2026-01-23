@@ -1,0 +1,231 @@
+{
+  "name": "Boxing Strength Foundation",
+  "description": "A foundational strength program designed for boxers focusing on building power and conditioning while maintaining boxing-specific movements.",
+  "sport": ["Boxing", "MMA", "Muay Thai / Kickboxing"],
+  "sessionsPerWeek": 3,
+  "goal": ["strength", "power"],
+  "experience": ["beginner", "intermediate"],
+  "summary": "3-day boxing-focused strength program building power and explosiveness.",
+  "weeks": [
+    {
+      "week": 1,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "name": "Shadowboxing Warm-up",
+              "sets": "3",
+              "reps": "3 min",
+              "notes": "Light footwork, focus on form and breathing"
+            },
+            {
+              "name": "Barbell Back Squat",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Focus on explosive drive up, 70-75% 1RM"
+            },
+            {
+              "name": "Dumbbell Bench Press",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Control the negative, explode up"
+            },
+            {
+              "name": "Bent Over Rows",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Squeeze shoulder blades at top"
+            },
+            {
+              "name": "Medicine Ball Slams",
+              "sets": "3",
+              "reps": "10",
+              "notes": "Full extension overhead, explosive slam"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "name": "Jump Rope",
+              "sets": "3",
+              "reps": "3 min",
+              "notes": "Vary between single and double unders"
+            },
+            {
+              "name": "Deadlift",
+              "sets": "4",
+              "reps": "5",
+              "notes": "Maintain neutral spine, 75% 1RM"
+            },
+            {
+              "name": "Push Press",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Use legs to drive, punch through ceiling"
+            },
+            {
+              "name": "Pull-ups",
+              "sets": "4",
+              "reps": "max",
+              "notes": "Full range of motion, controlled descent"
+            },
+            {
+              "name": "Heavy Bag Rounds",
+              "sets": "5",
+              "reps": "2 min",
+              "notes": "Focus on power punches, 30s rest between"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "name": "Dynamic Stretching",
+              "sets": "1",
+              "reps": "10 min",
+              "notes": "Leg swings, arm circles, hip rotations"
+            },
+            {
+              "name": "Front Squat",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Keep elbows high, core tight"
+            },
+            {
+              "name": "Landmine Press",
+              "sets": "3",
+              "reps": "8 each arm",
+              "notes": "Simulate punching motion"
+            },
+            {
+              "name": "Romanian Deadlift",
+              "sets": "3",
+              "reps": "10",
+              "notes": "Feel hamstring stretch, hip hinge"
+            },
+            {
+              "name": "Plank Circuit",
+              "sets": "3",
+              "reps": "45s each",
+              "notes": "Front, left side, right side"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "name": "Shadowboxing Warm-up",
+              "sets": "3",
+              "reps": "3 min",
+              "notes": "Add more combinations, increase pace"
+            },
+            {
+              "name": "Barbell Back Squat",
+              "sets": "4",
+              "reps": "5",
+              "notes": "Increase weight by 5-10lbs from week 1"
+            },
+            {
+              "name": "Incline Dumbbell Press",
+              "sets": "4",
+              "reps": "8",
+              "notes": "45 degree angle, full range of motion"
+            },
+            {
+              "name": "Chest Supported Rows",
+              "sets": "4",
+              "reps": "10",
+              "notes": "No momentum, strict form"
+            },
+            {
+              "name": "Box Jumps",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Step down, reset between reps"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "name": "Jump Rope",
+              "sets": "4",
+              "reps": "3 min",
+              "notes": "Increase intensity, add boxer skip"
+            },
+            {
+              "name": "Trap Bar Deadlift",
+              "sets": "4",
+              "reps": "5",
+              "notes": "Explosive hip extension"
+            },
+            {
+              "name": "Standing Military Press",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Strict form, no leg drive"
+            },
+            {
+              "name": "Weighted Pull-ups",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Add weight if bodyweight is easy"
+            },
+            {
+              "name": "Heavy Bag Power Rounds",
+              "sets": "6",
+              "reps": "2 min",
+              "notes": "All power shots, max effort"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "name": "Mobility Flow",
+              "sets": "1",
+              "reps": "10 min",
+              "notes": "Hip circles, thoracic rotations"
+            },
+            {
+              "name": "Bulgarian Split Squat",
+              "sets": "3",
+              "reps": "8 each leg",
+              "notes": "Keep torso upright, control descent"
+            },
+            {
+              "name": "Single Arm Dumbbell Press",
+              "sets": "3",
+              "reps": "10 each arm",
+              "notes": "Engage core to prevent rotation"
+            },
+            {
+              "name": "Good Mornings",
+              "sets": "3",
+              "reps": "10",
+              "notes": "Light weight, feel hamstring stretch"
+            },
+            {
+              "name": "Ab Wheel Rollouts",
+              "sets": "3",
+              "reps": "12",
+              "notes": "Full extension, controlled return"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

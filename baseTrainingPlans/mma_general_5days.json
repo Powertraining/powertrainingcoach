@@ -1,0 +1,371 @@
+{
+  "name": "MMA Complete Fighter",
+  "description": "A comprehensive 5-day program for MMA fighters covering all aspects of combat training including strength, power, conditioning, and sport-specific movements.",
+  "sport": ["MMA", "Boxing", "Muay Thai / Kickboxing", "Wrestling", "BJJ", "Judo"],
+  "sessionsPerWeek": 5,
+  "goal": ["strength", "power", "hypertrophy"],
+  "experience": ["all"],
+  "summary": "Complete 5-day MMA program balancing strength, power, and conditioning.",
+  "weeks": [
+    {
+      "week": 1,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "name": "Dynamic Warm-up",
+              "sets": "1",
+              "reps": "10 min",
+              "notes": "Jogging, high knees, butt kicks, leg swings"
+            },
+            {
+              "name": "Back Squat",
+              "sets": "5",
+              "reps": "5",
+              "notes": "Heavy, focus on strength"
+            },
+            {
+              "name": "Romanian Deadlift",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Hamstring focus"
+            },
+            {
+              "name": "Bulgarian Split Squat",
+              "sets": "3",
+              "reps": "10 each",
+              "notes": "Balance and single-leg strength"
+            },
+            {
+              "name": "Core Circuit",
+              "sets": "3",
+              "reps": "1 min",
+              "notes": "Plank, dead bug, Russian twist"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "name": "Shadowboxing",
+              "sets": "4",
+              "reps": "3 min",
+              "notes": "Mix combinations, work all ranges"
+            },
+            {
+              "name": "Heavy Bag Work",
+              "sets": "5",
+              "reps": "3 min",
+              "notes": "Strikes and clinch work"
+            },
+            {
+              "name": "Pad Work",
+              "sets": "4",
+              "reps": "3 min",
+              "notes": "With partner, reactive combinations"
+            },
+            {
+              "name": "Ground and Pound Drill",
+              "sets": "3",
+              "reps": "2 min",
+              "notes": "Position transitions with strikes"
+            },
+            {
+              "name": "Conditioning Intervals",
+              "sets": "6",
+              "reps": "30s on / 30s off",
+              "notes": "Burpees, sprawls, or battle ropes"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "name": "Band Pull-aparts",
+              "sets": "3",
+              "reps": "15",
+              "notes": "Shoulder warm-up"
+            },
+            {
+              "name": "Bench Press",
+              "sets": "5",
+              "reps": "5",
+              "notes": "Heavy pushing strength"
+            },
+            {
+              "name": "Weighted Pull-ups",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Add weight progressively"
+            },
+            {
+              "name": "Dumbbell Row",
+              "sets": "4",
+              "reps": "10 each",
+              "notes": "Single arm, squeeze at top"
+            },
+            {
+              "name": "Face Pulls",
+              "sets": "3",
+              "reps": "15",
+              "notes": "Rear delt and rotator cuff health"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "exercises": [
+            {
+              "name": "Wrestling Warm-up",
+              "sets": "1",
+              "reps": "10 min",
+              "notes": "Hip escapes, sprawls, shots"
+            },
+            {
+              "name": "Takedown Drilling",
+              "sets": "5",
+              "reps": "5 each",
+              "notes": "Singles, doubles, body lock"
+            },
+            {
+              "name": "Positional Sparring",
+              "sets": "6",
+              "reps": "3 min",
+              "notes": "Start from various positions"
+            },
+            {
+              "name": "Submission Drilling",
+              "sets": "4",
+              "reps": "5 each",
+              "notes": "Work chains of attacks"
+            },
+            {
+              "name": "Live Rolling",
+              "sets": "3",
+              "reps": "5 min",
+              "notes": "Light to moderate intensity"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "exercises": [
+            {
+              "name": "Med Ball Throws",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Chest pass, overhead, rotational"
+            },
+            {
+              "name": "Power Clean",
+              "sets": "5",
+              "reps": "3",
+              "notes": "Explosive hip extension"
+            },
+            {
+              "name": "Push Press",
+              "sets": "4",
+              "reps": "5",
+              "notes": "Use legs to drive weight up"
+            },
+            {
+              "name": "Box Jumps",
+              "sets": "4",
+              "reps": "5",
+              "notes": "Explosive, step down"
+            },
+            {
+              "name": "Sled Push/Pull",
+              "sets": "4",
+              "reps": "40m",
+              "notes": "Conditioning and leg drive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "name": "Movement Flow",
+              "sets": "1",
+              "reps": "8 min",
+              "notes": "Animal movements, hip circles"
+            },
+            {
+              "name": "Front Squat",
+              "sets": "5",
+              "reps": "5",
+              "notes": "Core engagement, elbows high"
+            },
+            {
+              "name": "Sumo Deadlift",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Hip dominant lift"
+            },
+            {
+              "name": "Step-ups",
+              "sets": "3",
+              "reps": "10 each",
+              "notes": "Weighted, controlled descent"
+            },
+            {
+              "name": "Anti-rotation Press",
+              "sets": "3",
+              "reps": "10 each",
+              "notes": "Pallof press variation"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "name": "Technical Sparring",
+              "sets": "6",
+              "reps": "3 min",
+              "notes": "Focus on defense and counters"
+            },
+            {
+              "name": "Kick Combinations",
+              "sets": "4",
+              "reps": "3 min",
+              "notes": "Bag work, mix high and low"
+            },
+            {
+              "name": "Clinch Work",
+              "sets": "4",
+              "reps": "3 min",
+              "notes": "Knees, elbows, sweeps"
+            },
+            {
+              "name": "Wall Work",
+              "sets": "3",
+              "reps": "3 min",
+              "notes": "Cage/wall positioning"
+            },
+            {
+              "name": "HIIT Finisher",
+              "sets": "4",
+              "reps": "1 min on / 1 min off",
+              "notes": "Max effort cardio"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "name": "Shoulder Warm-up",
+              "sets": "2",
+              "reps": "10 each",
+              "notes": "Arm circles, band work"
+            },
+            {
+              "name": "Incline Bench Press",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Upper chest focus"
+            },
+            {
+              "name": "Chin-ups",
+              "sets": "4",
+              "reps": "8",
+              "notes": "Bicep engagement"
+            },
+            {
+              "name": "Landmine Row",
+              "sets": "4",
+              "reps": "10 each",
+              "notes": "Single arm pulling"
+            },
+            {
+              "name": "Farmer's Carry",
+              "sets": "3",
+              "reps": "40m",
+              "notes": "Heavy, grip and core"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "exercises": [
+            {
+              "name": "Flow Rolling",
+              "sets": "2",
+              "reps": "5 min",
+              "notes": "Warm-up, light pace"
+            },
+            {
+              "name": "Scramble Drilling",
+              "sets": "5",
+              "reps": "2 min",
+              "notes": "Work out of bad positions"
+            },
+            {
+              "name": "Guard Passing",
+              "sets": "5",
+              "reps": "3 min",
+              "notes": "Specific passing chains"
+            },
+            {
+              "name": "Back Takes",
+              "sets": "4",
+              "reps": "5 each",
+              "notes": "Various entries to back"
+            },
+            {
+              "name": "Competitive Rounds",
+              "sets": "4",
+              "reps": "5 min",
+              "notes": "Higher intensity rolling"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "exercises": [
+            {
+              "name": "Plyometric Warm-up",
+              "sets": "2",
+              "reps": "5 each",
+              "notes": "Pogos, broad jumps, bounds"
+            },
+            {
+              "name": "Hang Clean",
+              "sets": "5",
+              "reps": "3",
+              "notes": "Power development"
+            },
+            {
+              "name": "Overhead Press",
+              "sets": "4",
+              "reps": "6",
+              "notes": "Strict form"
+            },
+            {
+              "name": "Depth Jumps",
+              "sets": "3",
+              "reps": "5",
+              "notes": "Reactive power training"
+            },
+            {
+              "name": "Prowler Sprint",
+              "sets": "6",
+              "reps": "20m",
+              "notes": "Max effort, full recovery"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

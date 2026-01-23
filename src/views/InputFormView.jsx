@@ -198,7 +198,7 @@ export default function InputFormView({ onSubmit, onBack, useApi, onToggleUseApi
                                     }}
                                     disabled={!subscription}
                                 >
-                                    {subscription ? 'Generate Program' : 'Subscribe to Generate'}
+                                    {subscription ? 'Find Training Plans' : 'Subscribe to Continue'}
                                 </button>
                             </div>
                         </div>
