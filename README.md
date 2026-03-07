@@ -1,13 +1,7 @@
 # PowerTrainingCoach
 
-## Team Members
-- **Melvin Emanuel Trösch**, 202914: Project Coordination, API (OpenAI, Stripe)
-- **William Max Antoine Weber**, 203801: Views and Presenters
-- **Ilyes Rouibi**, 202995: Firebase (Authentication, Storage, Persistence, Deployment)
-- **Lucas Bourgos**, 185631: Views and Presenters
-
 ## Overview
-PowerTrainingCoach is a web application that generates personalized, AI-powered training programs for combat athletes. Users complete a questionnaire about their sport, goals, and schedule, then receive a detailed periodized plan complete with exercises, sets/reps, coaching notes, and embedded YouTube tutorial videos.
+PowerTrainingCoach is a web application that generates personalized, AI-powered training programs based on coach-reviewed plans for combat athletes. Users complete a questionnaire about their sport, goals, and schedule, then receive a detailed periodized plan complete with exercises, sets/reps and coaching notes. The app stands out from similar apps by being more tailored and specialized for combat sports.
 
 ## Setup Instructions
 
@@ -22,8 +16,8 @@ PowerTrainingCoach is a web application that generates personalized, AI-powered 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd lburgos-rouibi-trosch-wmaweber-HT25-Project
+   git clone [<repository-url>](https://github.com/FCBFAN05/powertrainingcoach.git)
+   cd powertrainingcoach
    ```
 
 2. **Install dependencies**
@@ -40,9 +34,9 @@ PowerTrainingCoach is a web application that generates personalized, AI-powered 
 
 4. **Run the development server**
    ```bash
-   npm run dev
+   npm run expo
    ```
-   The application will be available at `http://localhost:8080`
+   Follow the instructions in the terminal to view the desired version of the app.
 
 ### Building for Production
 
