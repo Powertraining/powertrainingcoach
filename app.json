@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "PowerTrainingCoach",
+    "slug": "powertrainingcoach",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./app/assets/logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./app/assets/login-bg.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.powertrainingcoach.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./app/assets/logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.powertrainingcoach.app"
+    },
+    "web": {
+      "favicon": "./app/assets/logo.png",
+      "bundler": "metro"
+    },
+    "scheme": "powertrainingcoach",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
