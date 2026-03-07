@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import SubscriptionPlanView from '/src/views/SubscriptionPlanView.jsx';
-import PaymentSuccessView from '/src/views/PaymentSuccessView.jsx';
-import MessageView from '/src/views/MessageView.jsx';
+import SubscriptionPlanView from '../screens/SubscriptionPlanView.jsx';
+import PaymentSuccessView from '../screens/PaymentSuccessView.jsx';
+import MessageView from '../screens/MessageView.jsx';
 import { observer } from "mobx-react-lite";
 
 const Subscription =  observer(function Subscription(props) {

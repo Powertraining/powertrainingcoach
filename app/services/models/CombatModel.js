@@ -1,5 +1,5 @@
-import { resolvePromise } from "../resolvePromise.js";
-import { generatePlan } from "../generatePlan.js";
+import { resolvePromise } from "../../core/resolvePromise.js";
+import { generatePlan } from "../../core/generatePlan.js";
 
 import {
   loginWithEmailPassword,

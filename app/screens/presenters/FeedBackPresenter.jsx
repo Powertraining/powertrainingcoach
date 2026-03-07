@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
-import { FeedBackView } from "/src/views/FeedBackView.jsx";
+import { FeedBackView } from "../screens/FeedBackView.jsx";
 
 const FeedBack = observer(function FeedBack(props) {
   const model = props.model;

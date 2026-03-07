@@ -1,7 +1,7 @@
 // src/reactjs/LoginPresenter.jsx
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
-import { LoginView } from "/src/views/LoginView.jsx";
+import { LoginView } from "../screens/LoginView.jsx";
 import { useState } from "react";
 
 const Login = observer(function Login(props) {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { observer } from "mobx-react-lite";
-import { SignUpView } from "/src/views/SignUpView.jsx";
+import { SignUpView } from "../screens/SignUpView.jsx";
 
 const SignUp = observer(function SignUp(props) {
   const model = props.model;

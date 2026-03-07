@@ -39,13 +39,13 @@ admin.initializeApp({
 const bucket = admin.storage().bucket();
 
 async function uploadPlans() {
-  const plansDir = path.join(__dirname, '..', 'baseTrainingPlans');
+  const plansDir = path.join(__dirname, '..', 'app/data/baseTrainingPlans');
   
   // Get all JSON files
   const files = fs.readdirSync(plansDir).filter(f => f.endsWith('.json'));
   
   if (files.length === 0) {
-    console.log('No training plan files found in baseTrainingPlans/');
+    console.log('No training plan files found in app/data/baseTrainingPlans/');
     return;
   }
 

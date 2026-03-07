@@ -1,9 +1,9 @@
 import { createRoot } from "react-dom/client";
 
-import { reactiveModel } from "./models/mobxReactiveModel.js";
+import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 window.reactiveModel = reactiveModel; // window.reactiveModel -> rends accessible partout, même depuis la console du navigateur.
 
-import { ReactRoot } from "./reactjs/ReactRoot.jsx";
+import { ReactRoot } from "../screens/presenters/ReactRoot.jsx";
 
 
 

@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import StartView from "../views/StartView.jsx";
-import InputFormView from "../views/InputFormView.jsx";
-import ProgramOverviewView from "../views/ProgramOverviewView.jsx";
-import DayDetailView from "../views/DayDetailView.jsx";
-import LoadingView from "../views/LoadingView.jsx";
-import ErrorView from "../views/ErrorView.jsx";
-import QuestionnaireSportView from "../views/QuestionnaireSportView.jsx";
-import QuestionnaireFrequencyView from "../views/QuestionnaireFrequencyView.jsx";
-import PlanSelectionView from "../views/PlanSelectionView.jsx";
+import StartView from "../screens/StartView.jsx";
+import InputFormView from "../screens/InputFormView.jsx";
+import ProgramOverviewView from "../screens/ProgramOverviewView.jsx";
+import DayDetailView from "../screens/DayDetailView.jsx";
+import LoadingView from "../screens/LoadingView.jsx";
+import ErrorView from "../screens/ErrorView.jsx";
+import QuestionnaireSportView from "../screens/QuestionnaireSportView.jsx";
+import QuestionnaireFrequencyView from "../screens/QuestionnaireFrequencyView.jsx";
+import PlanSelectionView from "../screens/PlanSelectionView.jsx";
 import { Subscription as SubscriptionPresenter } from "./SubscriptionPresenter.jsx";
 import { observer } from "mobx-react-lite";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import AuthGateView from "../views/AuthGateView.jsx";
+import AuthGateView from "../screens/AuthGateView.jsx";
 import { 
   fetchBaseTrainingPlans, 
   filterTrainingPlans, 
   extractFirstWeekPreview 
-} from "../models/trainingPlanService.js";
+} from "../../services/models/trainingPlanService.js";
 
 const STEPS = Object.freeze({
   START: "start",

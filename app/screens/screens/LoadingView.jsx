@@ -1,4 +1,4 @@
-import loadingGif from '../assets/Loading.gif';
+import loadingGif from '../../assets/Loading.gif';
 // source image: https://lottiefiles.com/free-animation/loading-animation-blue-VNMY2Tu4UQ
 export default function LoadingView() {
     return (

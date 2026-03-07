@@ -1,6 +1,6 @@
 // src/views/UpBarView.jsx
-import "/src/style.css";
-import logo from "/src/assets/logo.png";
+import "../../theme/style.css";
+import logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 
 export function UpBarView(props) {

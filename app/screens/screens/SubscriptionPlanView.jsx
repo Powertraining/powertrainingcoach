@@ -1,5 +1,5 @@
 // Code taken from Stripe's official docs: https://stripe.com/docs/billing/subscriptions/checkout
-import { createCheckoutSession } from '../utils/stripeClient.js';
+import { createCheckoutSession } from '../../services/utils/stripeClient.js';
 import { useState } from 'react';
 
 export default function subscriptionPlanView() {

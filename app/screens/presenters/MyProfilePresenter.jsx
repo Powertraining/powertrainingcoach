@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
-import { MyProfileView } from "/src/views/MyProfileView.jsx";
+import { MyProfileView } from "../screens/MyProfileView.jsx";
 
 const MyProfile = observer(function MyProfile(props) {
   const navigate = useNavigate();

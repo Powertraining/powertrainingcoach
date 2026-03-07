@@ -1,7 +1,7 @@
 // src/reactjs/UpBarPresenter.jsx
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
-import { UpBarView } from "/src/views/UpBarView.jsx";
+import { UpBarView } from "../screens/UpBarView.jsx";
 
 const UpBar = observer(function UpBar(props) {
     const model = props.model;

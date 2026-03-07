@@ -1,5 +1,5 @@
 // Code taken from Stripe's official docs: https://stripe.com/docs/billing/subscriptions/checkout
-import { createPortalSession } from '/src/utils/stripeClient.js';
+import { createPortalSession } from '../../services/utils/stripeClient.js';
 
 export default function PaymentSuccessView({ sessionId }){
   const handleManageBilling = async () => {
