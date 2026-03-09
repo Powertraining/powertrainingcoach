@@ -1,108 +1,169 @@
-import "/src/style.css";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 
 export function MyProfileView(props) {
-  function usernameChangedACB(evt) {
-    props.onUsernameChange(evt.target.value);
-  }
-  function passwordChangedACB(evt) {
-    props.onPasswordChange(evt.target.value);
-  }
-
   return (
-    <div className="profile-page">
-      <h2 className="profile-title">My Profile</h2>
+    <View>
+      <Text>My Profile</Text>
 
-      <form className="profile-form" onSubmit={props.onSave}>
-        <div className="profile-row">
-          <label htmlFor="profile-username" className="profile-label">Username:</label>
-          <input
-            id="profile-username"
-            className="profile-input"
-            type="text"
-            value={props.username}
-            placeholder={props.usernamePlaceholder}
-            onChange={usernameChangedACB}
-            disabled={props.isSubmitting}
+      <View>
+        <Text>Username:</Text>
+        <TextInput
+          value={props.username}
+          placeholder={props.usernamePlaceholder}
+          onChangeText={props.onUsernameChange}
+          editable={!props.isSubmitting}
+        />
+      </View>
+
+      <View>
+        <Text>E-mail:</Text>
+        <TextInput
+          value={props.email}
+          placeholder={props.emailPlaceholder}
+          editable={false}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
+
+      {!props.hidePassword && (
+        <View>
+          <Text>Password:</Text>
+          <TextInput
+            value={props.password}
+            onChangeText={props.onPasswordChange}
+            editable={!props.isSubmitting}
+            secureTextEntry
+            placeholder="••••••••"
           />
-        </div>
+        </View>
+      )}
 
-        <div className="profile-row">
-          <label htmlFor="profile-email" className="profile-label">E-mail:</label>
-          <input
-            id="profile-email"
-            className="profile-input profile-input--readonly"
-            type="email"
-            value={props.email}
-            placeholder={props.emailPlaceholder}
-            disabled
-            readOnly
-          />
-        </div>
+      {props.error && <Text>{props.error}</Text>}
 
-        {!props.hidePassword && (
-          <div className="profile-row">
-            <label htmlFor="profile-password" className="profile-label">Password:</label>
-            <input
-              id="profile-password"
-              className="profile-input"
-              type="password"
-              value={props.password}
-              onChange={passwordChangedACB}
-              disabled={props.isSubmitting}
-              placeholder="••••••••"
-            />
-          </div>
-        )}
+      <TouchableOpacity
+        onPress={props.onSave}
+        disabled={props.isSubmitting || !props.canSave}
+      >
+        <Text>{props.isSubmitting ? "Saving..." : "Save changes"}</Text>
+      </TouchableOpacity>
 
+      <TouchableOpacity onPress={props.onCancel} disabled={props.isSubmitting}>
+        <Text>Cancel</Text>
+      </TouchableOpacity>
 
-        {props.error && <p className="profile-error">{props.error}</p>}
-
-        <div className="profile-actions">
-          <button
-            className="profile-save"
-            type="submit"
-            disabled={props.isSubmitting || !props.canSave}
-          >
-            {props.isSubmitting ? "Saving..." : "Save changes"}
-          </button>
-
-          <button
-            className="profile-cancel"
-            type="button"
-            onClick={props.onCancel}
-            disabled={props.isSubmitting}
-          >
-            Cancel
-          </button>
-        </div>
-        {/* could be implemented in the future 
-        <div className="profile-subscription">
-          <span className="profile-subscription-label">Subscription:</span>
-          <span className="profile-subscription-value">{props.subscriptionText}</span>
-        </div>
-        
-        <div className="profile-subscription-actions">
-          <button
-            className="profile-change-subscription"
-            type="button"
-            onClick={props.onChangeSubscription}
-            disabled={props.isSubmitting}
-          >
-            Change Subscription
-          </button>
-        </div>*/}
-
-        <div className="profile-logout-actions">
-          <button
-            className="profile-logout"
-            type="button"
-            onClick={props.onLogout}
-            disabled={props.isSubmitting}
-          >
-            Logout
-          </button>
-        </div>
-      </form>
-    </div>
+      <TouchableOpacity onPress={props.onLogout} disabled={props.isSubmitting}>
+        <Text>Logout</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
+
+// import "/src/style.css";
+
+// export function MyProfileView(props) {
+//   function usernameChangedACB(evt) {
+//     props.onUsernameChange(evt.target.value);
+//   }
+//   function passwordChangedACB(evt) {
+//     props.onPasswordChange(evt.target.value);
+//   }
+
+//   return (
+//     <div className="profile-page">
+//       <h2 className="profile-title">My Profile</h2>
+
+//       <form className="profile-form" onSubmit={props.onSave}>
+//         <div className="profile-row">
+//           <label htmlFor="profile-username" className="profile-label">Username:</label>
+//           <input
+//             id="profile-username"
+//             className="profile-input"
+//             type="text"
+//             value={props.username}
+//             placeholder={props.usernamePlaceholder}
+//             onChange={usernameChangedACB}
+//             disabled={props.isSubmitting}
+//           />
+//         </div>
+
+//         <div className="profile-row">
+//           <label htmlFor="profile-email" className="profile-label">E-mail:</label>
+//           <input
+//             id="profile-email"
+//             className="profile-input profile-input--readonly"
+//             type="email"
+//             value={props.email}
+//             placeholder={props.emailPlaceholder}
+//             disabled
+//             readOnly
+//           />
+//         </div>
+
+//         {!props.hidePassword && (
+//           <div className="profile-row">
+//             <label htmlFor="profile-password" className="profile-label">Password:</label>
+//             <input
+//               id="profile-password"
+//               className="profile-input"
+//               type="password"
+//               value={props.password}
+//               onChange={passwordChangedACB}
+//               disabled={props.isSubmitting}
+//               placeholder="••••••••"
+//             />
+//           </div>
+//         )}
+
+
+//         {props.error && <p className="profile-error">{props.error}</p>}
+
+//         <div className="profile-actions">
+//           <button
+//             className="profile-save"
+//             type="submit"
+//             disabled={props.isSubmitting || !props.canSave}
+//           >
+//             {props.isSubmitting ? "Saving..." : "Save changes"}
+//           </button>
+
+//           <button
+//             className="profile-cancel"
+//             type="button"
+//             onClick={props.onCancel}
+//             disabled={props.isSubmitting}
+//           >
+//             Cancel
+//           </button>
+//         </div>
+//         {/* could be implemented in the future 
+//         <div className="profile-subscription">
+//           <span className="profile-subscription-label">Subscription:</span>
+//           <span className="profile-subscription-value">{props.subscriptionText}</span>
+//         </div>
+        
+//         <div className="profile-subscription-actions">
+//           <button
+//             className="profile-change-subscription"
+//             type="button"
+//             onClick={props.onChangeSubscription}
+//             disabled={props.isSubmitting}
+//           >
+//             Change Subscription
+//           </button>
+//         </div>*/}
+
+//         <div className="profile-logout-actions">
+//           <button
+//             className="profile-logout"
+//             type="button"
+//             onClick={props.onLogout}
+//             disabled={props.isSubmitting}
+//           >
+//             Logout
+//           </button>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// }
