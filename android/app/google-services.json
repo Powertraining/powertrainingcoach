@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "410162189255",
+    "project_id": "power-training-coach",
+    "storage_bucket": "power-training-coach.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:410162189255:android:e3dbe8ae36db52d8bcffe2",
+        "android_client_info": {
+          "package_name": "com.powertraining.coach"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0Py3PDwc9r2vhpOXYrpjS_Mf_5N42MlQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
