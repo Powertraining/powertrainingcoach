@@ -4,6 +4,11 @@
     "slug": "powertrainingcoach",
     "version": "1.0.0",
     "orientation": "portrait",
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    },
     "icon": "./app/assets/logo.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -23,7 +28,8 @@
         "foregroundImage": "./app/assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.powertrainingcoach.app"
+      "package": "com.powertraining.coach",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./app/assets/logo.png",

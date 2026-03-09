@@ -1,4 +1,7 @@
 {
+    "name": "powertrainingcoach",
+    "version": "1.0.0",
+    "main": "expo-router/entry",
     "type": "module",
     "scripts": {
         "start": "npx expo start",
