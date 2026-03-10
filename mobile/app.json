@@ -1,5 +1,9 @@
 {
   "expo": {
+    "scheme": "powertrainingcoachapp",
+    "experiments": {
+    "typedRoutes": true
+  },
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
@@ -24,12 +28,16 @@
       "package": "com.powertrainingcoachapp.mobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
         "projectId": "996f88cb-a3b9-40cb-a631-12a0fbd4ce15"
       }
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
