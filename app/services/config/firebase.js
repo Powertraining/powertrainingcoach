@@ -4,6 +4,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAnalytics } from "firebase/analytics";
 
 // TODO: Add SDKs for Firebase products that you want to use
 
@@ -12,22 +13,28 @@ import { getStorage } from "firebase/storage";
 // Your web app's Firebase configuration
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCCUUW_GS8Qx_0_kSOcmgjsFx-ao0HXqPQ",
 
-  authDomain: "powertrainingcoach.firebaseapp.com",
+  apiKey: "AIzaSyB45vz0PNa6GiZN34TROf9B-M_eUvM4G2U",
 
-  projectId: "powertrainingcoach",
+  authDomain: "power-training-coach.firebaseapp.com",
 
-  storageBucket: "powertrainingcoach.firebasestorage.app",
+  projectId: "power-training-coach",
 
-  messagingSenderId: "751284866254",
+  storageBucket: "power-training-coach.firebasestorage.app",
 
-  appId: "1:751284866254:web:bbfd9662871005cc98d49f",
+  messagingSenderId: "410162189255",
+
+  appId: "1:410162189255:web:023105817d8ceddbbcffe2",
+
+  measurementId: "G-MMN29XQ5C5"
+
 };
+
 
 // Initialize Firebase
 
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // Initialize Firebase Services
 
