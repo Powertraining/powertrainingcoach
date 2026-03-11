@@ -28,8 +28,7 @@
       "package": "com.powertrainingcoachapp.mobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
