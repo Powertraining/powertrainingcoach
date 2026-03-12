@@ -1,1 +1,46 @@
-node_modules
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+web-build/
+build/
+out/
+
+# Expo
+.expo/
+expo-env.d.ts
+
+# Firebase
+.firebase/
+
+# Environment variables
+.env*.local
+
+# IDE and editor
+.vscode/settings.json
+.DS_Store
+*.pem
+
+# Debug logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# TypeScript
+*.tsbuildinfo
+
+# Certificates and keys
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Metro
+.metro-health-check*
+
+# Native
+.kotlin/
