@@ -1,4 +1,45 @@
 # Plyometrics and Loaded Jumps
+## Plyometric Exercise Selection
+
+### Bilateral (two-leg)
+Countermovement jump (CMJ)
+Squat jump (SJ)
+Drop jump (DJ)
+Depth jump (DJ to rebound)
+Repeated pogo jumps (ankle hops)
+Straight-leg bounds (bilateral)
+Tuck jumps
+Split-squat jump (switch jump)
+Broad jump (standing long jump)
+Repeated broad jumps
+Vertical jump to stick (land-and-hold)
+Hurdle hops (in-place)
+Hurdle hops (forward)
+Box jump (jump up)
+Jump down + rebound (low box)
+Lateral line hops (two-leg)
+Med-ball overhead slam + jump (contrast plyo)
+
+### Unilateral (single-leg)
+Single-leg pogo hops (in-place)
+Single-leg pogo hops (forward)
+Single-leg drop jump (low height)
+Single-leg hop to stick
+Single-leg repeated hops (same leg)
+Alternating bounds (running bounds)
+Single-leg broad jump
+Triple hop (same leg)
+Crossover hop (same leg)
+Lateral skater hops
+Single-leg hurdle hops (low)
+Split stance jump (front-leg dominant)
+Step-off + rebound (single-leg)
+Curved bounds (arc bounds)
+Single-leg box jump (low)
+Single-leg lateral line hops
+Hop into sprint (single-leg hop then accelerate)
+Single Leg Depth Jump
+
 ## Back Squat Jumps and Trap-Bar Jumps or Loaded Jumps
 For back squat jumps and trap bar jumps, and similar loaded jumps, primary method = % of body mass (BM) for the external load (bar + plates).
 Use these ballpark zones, then fine-tune with a quick test (below):

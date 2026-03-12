@@ -21,7 +21,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.powertrainingcoach.app"
+      "bundleIdentifier": "com.powertraining.coach"
     },
     "android": {
       "adaptiveIcon": {
