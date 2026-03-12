@@ -1,13 +1,12 @@
 // src/reactjs/UpBarPresenter.jsx
 import { observer } from "mobx-react-lite";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "expo-router";
 import { UpBarView } from "../screens/UpBarView.jsx";
 
 const UpBar = observer(function UpBar(props) {
     const model = props.model;
-    const path = props.path;
     const isAuthenticated = model.user;
-    const navigate = useNavigate();
+    const router = useRouter();
 
     function openMenuACB() {
         console.log("Open profile navigation module");
@@ -16,18 +15,15 @@ const UpBar = observer(function UpBar(props) {
     function handleLogoClickACB() {
         // If training plan exists, navigate to overview; otherwise go home
         if (model.trainingPlan) {
-            window.location.hash = "#/overview";
+            router.push("/app/overview");
         } else {
-            // Signal AppPresenter to reset to start view
-            window.dispatchEvent(new Event("app:go-home"));
-            navigate("/");
+            router.push("/app");
         }
     }
 
     return (
         <UpBarView
             isAuthenticated={isAuthenticated}
-            path={path}
             onOpenMenu={openMenuACB}
             onLogoClick={handleLogoClickACB}
         />

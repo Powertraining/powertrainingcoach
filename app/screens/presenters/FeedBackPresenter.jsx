@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { observer } from "mobx-react-lite";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "expo-router";
 import { FeedBackView } from "../screens/FeedBackView.jsx";
 
 const FeedBack = observer(function FeedBack(props) {
   const model = props.model;
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // Local UI state (allowed by your course instructor)
   const [rating, setRating] = useState(0);        // 0..10
@@ -42,7 +42,7 @@ const FeedBack = observer(function FeedBack(props) {
 
       // Redirect if you want (or remove if you prefer to stay on the page)
       props.model.setFinishedWorkout(0);
-      navigate("/");
+      router.push("/app");
 
     } catch (e) {
       console.error(e);

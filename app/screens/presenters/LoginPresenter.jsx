@@ -1,12 +1,12 @@
 // src/reactjs/LoginPresenter.jsx
 import { observer } from "mobx-react-lite";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "expo-router";
 import { LoginView } from "../screens/LoginView.jsx";
 import { useState } from "react";
 
 const Login = observer(function Login(props) {
     const model = props.model;
-    const navigate = useNavigate();
+    const router = useRouter();
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
 
@@ -28,7 +28,7 @@ const Login = observer(function Login(props) {
             // the presenter doesn't need to know how we login. It just ask the model to do so.
             await model.submitLogin(identifier, password);
 
-            navigate("/");
+            router.push("/app");
 
         } catch (e) {
             console.error(e);
@@ -48,7 +48,7 @@ const Login = observer(function Login(props) {
             // the presenter doesn't need to know how we login. It just ask the model to do so.
             await model.submitGoogle();
 
-            navigate("/");
+            router.push("/app");
 
         } catch (e) {
             console.error(e);

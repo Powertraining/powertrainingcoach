@@ -7,6 +7,9 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "powertrainingcoach"
       }
     },
     "icon": "./app/assets/logo.png",
@@ -38,6 +41,9 @@
     "scheme": "powertrainingcoach",
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

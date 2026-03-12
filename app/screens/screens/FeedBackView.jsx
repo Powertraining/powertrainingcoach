@@ -1,12 +1,7 @@
-import { useEffect } from "react";
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from "react-native";
 
-export function FeedBackView(props) {
+export default function FeedBackView(props) {
   const stars = Array.from({ length: 10 }, (_, i) => i + 1);
-
-  useEffect(() => {
-    props.onTrainingDone();
-  }, []);
 
   function starClickedACB(value) {
     if (!props.isSubmitting) {

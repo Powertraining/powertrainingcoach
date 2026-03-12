@@ -15,5 +15,7 @@ objet normal           fonction MobX                   objet réactif (UI suit l
 
 connectToPersistance(reactiveModel, reaction)
 
-// making the reactive model available at the browser JavasScript Console
-window.myModel = reactiveModel;
+// making the reactive model available for debugging (React Native compatible)
+if (typeof global !== "undefined") {
+  global.myModel = reactiveModel;
+}

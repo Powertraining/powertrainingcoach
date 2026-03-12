@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "expo-router";
 import { MyProfileView } from "../screens/MyProfileView.jsx";
 
 const MyProfile = observer(function MyProfile(props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   function isGoogleUserACB() {
     const providers = user?.providerData || [];
     return providers.some((p) => p?.providerId === "google.com");
@@ -87,7 +87,7 @@ const MyProfile = observer(function MyProfile(props) {
 
   function changeSubscriptionACB() {
     // Navigate to your subscription page (adjust the route if needed)
-    navigate("/subscription");
+    router.push("/app/subscription");
   }
 
   async function logoutACB() {
@@ -96,7 +96,7 @@ const MyProfile = observer(function MyProfile(props) {
 
     try {
       await model.submitLogout();
-      navigate("/login");
+      router.push("/(auth)/login");
     } catch (e) {
       console.error(e);
       setError(e.message || "Logout failed.");

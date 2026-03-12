@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "expo-router";
 import StartView from "../screens/StartView.jsx";
 import InputFormView from "../screens/InputFormView.jsx";
 import ProgramOverviewView from "../screens/ProgramOverviewView.jsx";
@@ -104,7 +104,7 @@ function makeMockPlan(input) {
 }
 
 const AppPresenter = observer(function AppPresenter(props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [step, setStepInternal] = useState(STEPS.START);
   const [plan, setPlan] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -216,8 +216,8 @@ const AppPresenter = observer(function AppPresenter(props) {
   if (!props.model.user) {
     return (
       <AuthGateView
-        onLogin={() => navigate("/login")}
-        onSignup={() => navigate("/signup")}
+        onLogin={() => router.push("/(auth)/login")}
+        onSignup={() => router.push("/(auth)/signup")}
       />
     );
   }

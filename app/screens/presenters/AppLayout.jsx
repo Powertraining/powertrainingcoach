@@ -1,13 +1,10 @@
-import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { observer } from "mobx-react-lite";
+import { View, StyleSheet } from "react-native";
 import { UpBar } from "./UpBarPresenter.jsx";
-
-import LoadingView from "../views/LoadingView.jsx";
+import LoadingView from "../screens/LoadingView.jsx";
 
 const AppLayout = observer(function AppLayout(props) {
-    const location = useLocation();
-    const path = location.pathname;      // with createHashRouter, this is the actual path after the hash
     const model = props.model;
 
     // Start the background date change detector when app mounts
@@ -24,17 +21,30 @@ const AppLayout = observer(function AppLayout(props) {
     const isLoading = !model.ready || isGeneratingPlan;
 
     return (
-        <div className="reactRoot">
+        <View style={styles.container}>
             {isLoading && <LoadingView />}
 
-            <div className="sideBar">
-                <UpBar model={model} path={path} />
-            </div>
-            <div className="mainContent">
-                <Outlet />   {/*the point where React Router "inserts" the current child route element*/}
-            </div>
-        </div>
+            <View style={styles.sideBar}>
+                <UpBar model={model} />
+            </View>
+            <View style={styles.mainContent}>
+                {/* Expo Router will handle the route rendering */}
+            </View>
+        </View>
     );
+});
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+    sideBar: {
+        width: '20%',
+    },
+    mainContent: {
+        flex: 1,
+    },
 });
 
 export { AppLayout };

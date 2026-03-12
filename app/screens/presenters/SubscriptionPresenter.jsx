@@ -1,14 +1,15 @@
 // Code taken from Stripe's official docs: https://stripe.com/docs/billing/subscriptions/checkout
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import SubscriptionPlanView from '../screens/SubscriptionPlanView.jsx';
 import PaymentSuccessView from '../screens/PaymentSuccessView.jsx';
 import MessageView from '../screens/MessageView.jsx';
 import { observer } from "mobx-react-lite";
 
 const Subscription =  observer(function Subscription(props) {
-  const location = useLocation();
+  const router = useRouter();
+  const searchParams = useLocalSearchParams();
   let [message, setMessage] = useState('');
   let [success, setSuccess] = useState(false);
   let [sessionId, setSessionId] = useState('');
@@ -16,16 +17,11 @@ const Subscription =  observer(function Subscription(props) {
 
   useEffect(() => {
     // Check to see if this is a redirect back from Checkout
-    // React Router provides location.search with query parameters
-    const query = new URLSearchParams(location.search);
-    const successParam = query.get('success');
-    const sessionIdParam = query.get('session_id');
+    // Expo Router provides searchParams for query parameters
+    const successParam = searchParams.success;
+    const sessionIdParam = searchParams.session_id;
     
-    console.log('SubscriptionPresenter DEBUG - React Router location:', {
-      pathname: location.pathname,
-      search: location.search,
-      hash: location.hash,
-    });
+    console.log('SubscriptionPresenter DEBUG - Expo Router searchParams:', searchParams);
     console.log('SubscriptionPresenter DEBUG - Parsed params:', {
       success: successParam,
       session_id: sessionIdParam,
@@ -58,13 +54,13 @@ const Subscription =  observer(function Subscription(props) {
       }
     }
 
-    if (query.get('canceled')) {
+    if (searchParams.canceled) {
       setSuccess(false);
       setMessage(
         "Order canceled -- continue to check your subscription and checkout when you're ready."
       );
     }
-  }, [location, props.model.user, props.model]);
+  }, [searchParams, props.model.user, props.model]);
 
   // Debug: log the current render state
   console.log('SubscriptionPresenter RENDER - Current state:', { success, sessionId, message });
