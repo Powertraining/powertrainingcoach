@@ -59,7 +59,6 @@ export function MyProfileView(props) {
   );
 }
 
-// import "/src/style.css";
 
 // export function MyProfileView(props) {
 //   function usernameChangedACB(evt) {

@@ -58,7 +58,6 @@ const styles = StyleSheet.create({
   starActive: { fontSize: 24, color: "#f59e0b" },
 });
 
-// import "/src/style.css";
 
 // export function FeedBackView(props) {
 //   const stars = Array.from({ length: 10 }, (_, i) => i + 1);

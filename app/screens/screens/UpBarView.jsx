@@ -51,7 +51,6 @@ export function UpBarView(props) {
 }
 
 // // src/views/UpBarView.jsx
-// import "../../theme/style.css";
 // import logo from "../../assets/logo.png";
 // import { useNavigate } from "react-router-dom";
 

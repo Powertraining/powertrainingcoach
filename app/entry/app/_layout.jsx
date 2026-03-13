@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 
 import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
 import LoadingView from "../../screens/screens/LoadingView.jsx";
+import StripeProviderWrapper from "./StripeProviderWrapper";
 
 // Make model globally available for debugging
 if (typeof global !== "undefined") {
@@ -31,34 +32,36 @@ const RootLayout = observer(function RootLayout() {
   const isLoading = !model.ready || isGeneratingPlan;
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <LoadingView />
-          </View>
-        )}
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: "#f5f5f7" },
-            animation: "slide_from_right",
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: "modal",
-              animation: "slide_from_bottom",
+    <StripeProviderWrapper>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+          {isLoading && (
+            <View style={styles.loadingOverlay}>
+              <LoadingView />
+            </View>
+          )}
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#f5f5f7" },
+              animation: "slide_from_right",
             }}
-          />
-        </Stack>
-      </SafeAreaView>
-    </SafeAreaProvider>
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="modal"
+              options={{
+                presentation: "modal",
+                animation: "slide_from_bottom",
+              }}
+            />
+          </Stack>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </StripeProviderWrapper>
   );
 });
 

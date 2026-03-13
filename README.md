@@ -47,11 +47,6 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
    npm run android
    ```
    
-   For web preview:
-   ```bash
-   npm run web
-   ```
-
 ### Building for Production
 
 For iOS:
@@ -64,25 +59,10 @@ For Android:
 npm run build:android
 ```
 
-For web distribution:
-```bash
-npm run build
-```
-
-The web build output will be in the `dist` directory.
-
 ### Deployment
 
 **For iOS & Android:**
 Follow the standard app store and Google Play deployment processes.
-
-**For web version:**
-Deploy to Firebase Hosting:
-```bash
-firebase deploy
-```
-
-This will deploy both the frontend (from `dist`) and Cloud Functions.
 
 ## Third-Party Components & Libraries
 
@@ -96,17 +76,14 @@ This will deploy both the frontend (from `dist`) and Cloud Functions.
 - **MobX** (`latest`) - Reactive state management library
   - Provides reactive state management for the application
 - **mobx-react-lite** (`latest`) - MobX integration for React
-  - Used with the `observer` HOC to make React components reactive to MobX state changes
-  - Components: `FeedBackPresenter.jsx`, `LoginPresenter.jsx`, `MyProfilePresenter.jsx`, `AppLayout.jsx`, `SignUpPresenter.jsx`, `UpBarPresenter.jsx`
+  - Used with the `observer` HOC to make React components reactive to MobX state changes in the native screen tree
 
 ### Routing & Navigation
-- **React Navigation** (planned) - Navigation library for React Native
-  - Will replace react-router-dom for native navigation
-  - Provides native-like navigation experience on iOS and Android
+- **Expo Router** - File-based routing for the native app
+  - Provides navigation structure for iOS and Android
 
 ### Payment Processing
-- **@stripe/react-stripe-js** (`^5.4.1`) - React components for Stripe integration
-- **@stripe/stripe-js** (`^8.5.3`) - Stripe's JavaScript library
+- **@stripe/stripe-react-native** - Stripe's native SDK for iOS and Android
 - **stripe** (`^20.1.0`) - Stripe Node.js SDK for backend payment processing
   - Used in subscription and payment features
 
@@ -123,10 +100,7 @@ This will deploy both the frontend (from `dist`) and Cloud Functions.
   - Used in `app/core/generatePlan.js` for creating personalized workout plans
 
 ### Development & Build Tools
-- **Vite** (`latest`) - Modern build tool for web version
-  - Configuration in `vite.config.js`
-  - Provides fast HMR (Hot Module Replacement) for web development
-- **@vitejs/plugin-react** (`latest`) - React plugin for Vite with JSX support
+- **Expo / Expo Router** - Native app runtime, routing, and development tooling
 - **React Native CLI** - Build tools for native app development (iOS and Android)
 
 ## Project Structure
@@ -142,17 +116,9 @@ app/
 │   ├── baseTrainingPlans/ # Base training plan templates
 │   └── instructions/    # Training instruction markdown files
 ├── entry/               # Application entry points
-│   ├── index.jsx        # Main entry point
 │   └── app/             # App layout structure
-├── navigation/          # Navigation/routing logic
 ├── screens/             # Screen implementations
-│   ├── presenters/      # Business logic presenters (containers)
-│   │   ├── AppPresenter.jsx
-│   │   ├── LoginPresenter.jsx
-│   │   ├── SignUpPresenter.jsx
-│   │   ├── SubscriptionPresenter.jsx
-│   │   └── ...
-│   └── screens/         # Screen UI components (presentational)
+│   └── screens/         # Screen UI components
 │       ├── StartView.jsx
 │       ├── LoginView.jsx
 │       ├── SignUpView.jsx
@@ -172,9 +138,7 @@ app/
 │   └── utils/           # Utility functions
 │       ├── promptBuilder.js
 │       └── stripeClient.js
-├── styles/              # Shared component styles
-└── theme/               # Theme configuration and styling
-    └── style.css
+└── theme/               # Theme configuration
 ```
 
 ### Key Directories
@@ -182,10 +146,8 @@ app/
 - **`/app/core`** - Core business logic for training plan generation
 - **`/app/entry`** - Application entry points and initialization
 - **`/app/services`** - Business logic, data models, and external service integration
-- **`/app/screens`** - UI components split into presenters (logic) and screens (views)
+- **`/app/screens`** - Native application screens
 - **`/app/data`** - Application data including base training plans and instructions
 - **`/functions`** - Firebase Cloud Functions for backend operations
 - **`/scripts`** - Utility scripts for development and deployment
-- **`/root`** - Web entry point (index.html)
 - **`/docs`** - Documentation and instructions
-

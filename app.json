@@ -34,10 +34,7 @@
       "package": "com.powertraining.coach",
       "googleServicesFile": "./google-services.json"
     },
-    "web": {
-      "favicon": "./app/assets/logo.png",
-      "bundler": "metro"
-    },
+    "platforms": ["ios", "android"],
     "scheme": "powertrainingcoach",
     "experiments": {
       "typedRoutes": true
