@@ -1,8 +1,16 @@
-import { doc, getDoc, setDoc, addDoc, collection, getDocs } from "firebase/firestore";
-import { db } from "../config/firebase";
+import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
+import { ref, listAll, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../config/firebase";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+
+async function listFilesRecursively(storageRef) {
+  const { items, prefixes } = await listAll(storageRef);
+  const nestedFiles = await Promise.all(prefixes.map(listFilesRecursively));
+  return [...items, ...nestedFiles.flat()];
+}
 
 // User Data Management
 export async function getUserData(uid) {
@@ -59,27 +67,54 @@ export async function getApiConfig() {
   }
 }
 
-// Get live instructions (Prompts) from Firestore
+// Get live instructions (Prompts) from Firebase Storage
 export async function getLiveInstructions() {
   try {
-    const instructionsCol = collection(db, "instructions");
-    const snapshot = await getDocs(instructionsCol);
-    
-    const instructionsMap = {};
-    
-    function extractInstructionCB(doc) {
-      // id = name of the file (ex: general_rules), data().content = the text
-      instructionsMap[doc.id] = doc.data().content;
+    const instructionsRef = ref(storage, "instructions");
+    const files = await listFilesRecursively(instructionsRef);
+
+    const markdownFiles = files
+      .filter((itemRef) => itemRef.name.toLowerCase().endsWith(".md"))
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    const imageFiles = files
+      .filter((itemRef) => IMAGE_EXTENSIONS.some((extension) => itemRef.name.toLowerCase().endsWith(extension)))
+      .sort((left, right) => left.fullPath.localeCompare(right.fullPath));
+
+    const instructionEntries = await Promise.all(
+      markdownFiles.map(async (itemRef) => {
+        const url = await getDownloadURL(itemRef);
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch instruction file: ${itemRef.name}`);
+        }
+
+        const content = await response.text();
+        const key = itemRef.name.replace(/\.md$/i, "");
+
+        return [key, content];
+      })
+    );
+
+    const instructionsMap = Object.fromEntries(instructionEntries);
+    const instructionImages = await Promise.all(
+      imageFiles.map(async (itemRef) => ({
+        name: itemRef.name,
+        path: itemRef.fullPath,
+        url: await getDownloadURL(itemRef)
+      }))
+    );
+
+    if (instructionImages.length > 0) {
+      instructionsMap.__images = instructionImages;
     }
-    
-    snapshot.forEach(extractInstructionCB);
-    
+
     if (Object.keys(instructionsMap).length === 0) return null;
-    
+
     return instructionsMap;
   } catch (error) {
     console.error("Error fetching live instructions:", error);
-    return null; 
+    return null;
   }
 }
-

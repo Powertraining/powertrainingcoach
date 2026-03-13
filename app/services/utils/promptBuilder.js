@@ -1,8 +1,35 @@
-import local_general from "../../data/instructions/general_rules.md?raw";
-import local_reps from "../../data/instructions/reps_intensity.md?raw";
-import local_compound from "../../data/instructions/compound_lifts.md?raw";
-import local_plyo from "../../data/instructions/plyometrics_loading_jumps.md?raw";
-import local_ballistic from "../../data/instructions/ballistic_training.md?raw";
+// Note: In React Native/Expo, we cannot use the ?raw import syntax (Vite/webpack feature)
+// Instead, we rely on Firebase liveInstructions or minimal local fallbacks
+
+// Minimal local instruction fallbacks for use when Firebase is unavailable
+const local_general = `# General Rules
+You are a specialist performance coach that designs tailored strength, power, speed, and conditioning programs for combat-sport athletes.`;
+
+const local_reps = `# Reps and Intensity
+Follow progressive overload principles with appropriate rep ranges based on training goals.`;
+
+const local_compound = `# Compound Lifts
+Focus on fundamental movement patterns: squat, hinge, push, pull, and carry variations.`;
+
+const local_plyo = `# Plyometrics and Loading
+Progress from lower intensity to higher intensity movements following proper periodization.`;
+
+const local_ballistic = `# Ballistic Training
+Apply explosive training methods with adequate recovery between high-intensity efforts.`;
+
+const instructionPriority = [
+    "general_rules",
+    "reps_intensity",
+    "compound_lifts",
+    "plyometrics_loading_jumps",
+    "ballistic_training"
+];
+
+// import local_general from "../../data/instructions/general_rules.md?raw";
+// import local_reps from "../../data/instructions/reps_intensity.md?raw";
+// import local_compound from "../../data/instructions/compound_lifts.md?raw";
+// import local_plyo from "../../data/instructions/plyometrics_loading_jumps.md?raw";
+// import local_ballistic from "../../data/instructions/ballistic_training.md?raw";
 // import local_specific from "../../data/instructions/specific_rules.md?raw"; // Uncomment if file exists
 
 /**
@@ -13,19 +40,53 @@ import local_ballistic from "../../data/instructions/ballistic_training.md?raw";
  * @returns {string} - The complete prompt string.
  */
 export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions = null) {
-    
-    // Priority: Use live instructions from Firebase if available, otherwise fallback to local files.
-    const instructions = {
-        "general_rules": liveInstructions?.["general_rules"] || local_general,
-        "reps_intensity": liveInstructions?.["reps_intensity"] || local_reps,
-        "compound_lifts": liveInstructions?.["compound_lifts"] || local_compound,
-        "plyometrics_loading_jumps": liveInstructions?.["plyometrics_loading_jumps"] || local_plyo,
-        "ballistic_training": liveInstructions?.["ballistic_training"] || local_ballistic
+    const fallbackInstructions = {
+        general_rules: local_general,
+        reps_intensity: local_reps,
+        compound_lifts: local_compound,
+        plyometrics_loading_jumps: local_plyo,
+        ballistic_training: local_ballistic
     };
 
-    const guidelines = Object.values(instructions)
+    const liveInstructionEntries = Object.entries(liveInstructions || {}).filter(
+        ([, text]) => typeof text === "string" && text.trim().length > 0
+    );
+
+    const orderedLiveInstructions = liveInstructionEntries.sort(([leftKey], [rightKey]) => {
+        const leftPriority = instructionPriority.indexOf(leftKey);
+        const rightPriority = instructionPriority.indexOf(rightKey);
+
+        if (leftPriority !== -1 || rightPriority !== -1) {
+            if (leftPriority === -1) return 1;
+            if (rightPriority === -1) return -1;
+            return leftPriority - rightPriority;
+        }
+
+        return leftKey.localeCompare(rightKey);
+    });
+
+    const mergedInstructions = new Map(orderedLiveInstructions);
+
+    Object.entries(fallbackInstructions).forEach(([key, value]) => {
+        if (!mergedInstructions.has(key)) {
+            mergedInstructions.set(key, value);
+        }
+    });
+
+    const guidelines = Array.from(mergedInstructions.values())
         .filter(text => text && typeof text === 'string') 
         .join("\n\n");
+
+    const instructionImages = Array.isArray(liveInstructions?.__images)
+        ? liveInstructions.__images.filter((image) => image?.url && image?.name)
+        : [];
+
+    const imageInstructions = instructionImages.length > 0
+        ? `
+Additional reference images are attached separately and are part of the instruction set. Use them when relevant:
+${instructionImages.map((image) => `- ${image.name}`).join("\n")}
+`
+        : "";
 
     // Combine everything into the final prompt
     const prompt = `
@@ -34,6 +95,7 @@ You are **PowerTrainingCoach**, an expert AI specializing in creating safe, effe
 Follow ALL of the domain rules and instructions below:
 
 ${guidelines}
+${imageInstructions}
 
 ---
 

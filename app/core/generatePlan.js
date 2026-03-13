@@ -8,8 +8,8 @@ export async function generatePlan(userInput, oldPlan = null) {
     let liveInstructions = null;
 
     try {
-        // Fetch secure config and live instructions from Firebase
-        const [dbConfig, dbInstructions] = await Promise.all([
+        // Fetch secure config from Firestore and instruction files from Firebase Storage
+        const [dbConfig, storageInstructions] = await Promise.all([
             getApiConfig(),
             getLiveInstructions()
         ]);
@@ -22,13 +22,13 @@ export async function generatePlan(userInput, oldPlan = null) {
             throw new Error("Configuration Error: No OpenAI API Key found in Firestore.");
         }
 
-        if (dbInstructions) {
-            liveInstructions = dbInstructions;
+        if (storageInstructions) {
+            liveInstructions = storageInstructions;
         }
 
     } catch (error) {
-        // If DB connection fails, we stop here because we have no API Key.
-        console.error("Critical: Failed to fetch API Config from DB.", error);
+        // If the secure config fetch fails, we stop here because we have no API key.
+        console.error("Critical: Failed to fetch API config or instructions.", error);
         throw new Error("Service temporarily unavailable. Could not retrieve security credentials.");
     }
 
@@ -38,16 +38,39 @@ export async function generatePlan(userInput, oldPlan = null) {
     }
 
     const prompt = buildTrainingPrompt(userInput, oldPlan, liveInstructions);
+    const instructionImageParts = Array.isArray(liveInstructions?.__images)
+        ? liveInstructions.__images
+            .filter((image) => image?.url)
+            .map((image) => ({
+                type: "image_url",
+                image_url: { url: image.url }
+            }))
+        : [];
+
+    const messages = [
+        {
+            role: "system",
+            content: prompt
+        }
+    ];
+
+    if (instructionImageParts.length > 0) {
+        messages.push({
+            role: "user",
+            content: [
+                {
+                    type: "text",
+                    text: "Use the attached instruction reference images as part of the coaching rules for this plan."
+                },
+                ...instructionImageParts
+            ]
+        });
+    }
 
     const payload = {
         model: OPENAI_API_MODEL,
         temperature: OPENAI_API_TEMPERATURE,
-        messages: [
-            {
-                role: "system",
-                content: prompt
-            }
-        ],
+        messages,
         response_format: { type: "json_object" }
     };
 
