@@ -1,35 +1,48 @@
 // Stripe client-side payment handling
 // All payment processing is handled server-side by Cloud Functions
 
+import { Linking } from "react-native";
+
+import { auth } from "../config/firebase.js";
 import { STRIPE_CHECKOUT_ENDPOINT, STRIPE_PORTAL_ENDPOINT } from "../config/apiConfig.js";
+
+async function buildHeaders() {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  const token = await auth.currentUser?.getIdToken?.();
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+async function postStripeJson(url, body) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: await buildHeaders(),
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed with status ${response.status}`);
+  }
+
+  return data;
+}
 
 /**
  * Initiates a checkout session by calling the Cloud Function
  * @param {string} lookupKey - The Stripe lookup key for the price (e.g., 'starter_plan')
- * @returns {Promise<void>} Redirects to Stripe checkout
+ * @returns {Promise<object>} Returns a native payment payload
  */
 export async function createCheckoutSession(lookupKey) {
   try {
-    const response = await fetch(STRIPE_CHECKOUT_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ lookupKey: lookupKey }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to create checkout session: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    
-    if (data.url) {
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
-    } else {
-      throw new Error("No checkout URL returned from server");
-    }
+    return await postStripeJson(STRIPE_CHECKOUT_ENDPOINT, { lookupKey });
   } catch (error) {
     console.error("Checkout error:", error);
     throw error;
@@ -38,31 +51,23 @@ export async function createCheckoutSession(lookupKey) {
 
 /**
  * Creates a billing portal session for managing subscriptions
- * @param {string} sessionId - The Checkout session ID
- * @returns {Promise<void>} Redirects to Stripe Billing Portal
+ * @param {string|object} sessionOrOptions - The Checkout session ID or portal identifiers
+ * @returns {Promise<object>} Opens Stripe Billing Portal
  */
-export async function createPortalSession(sessionId) {
+export async function createPortalSession(sessionOrOptions) {
   try {
-    const response = await fetch(STRIPE_PORTAL_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ sessionId: sessionId }),
-    });
+    const payload = typeof sessionOrOptions === "string" ?
+      { sessionId: sessionOrOptions } :
+      (sessionOrOptions || {});
 
-    if (!response.ok) {
-      throw new Error(`Failed to create portal session: ${response.statusText}`);
-    }
+    const data = await postStripeJson(STRIPE_PORTAL_ENDPOINT, payload);
 
-    const data = await response.json();
-    
-    if (data.url) {
-      // Redirect to Stripe Billing Portal
-      window.location.href = data.url;
-    } else {
+    if (!data.url) {
       throw new Error("No portal URL returned from server");
     }
+
+    await Linking.openURL(data.url);
+    return data;
   } catch (error) {
     console.error("Portal error:", error);
     throw error;

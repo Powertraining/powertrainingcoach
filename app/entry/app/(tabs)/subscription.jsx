@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
-import SubscriptionPlanView from "../../../screens/screens/SubscriptionPlanView.jsx";
+import SubscriptionPlanView from "../../../screens/screens/SubscriptionPlanView";
 import PaymentSuccessView from "../../../screens/screens/PaymentSuccessView.jsx";
 import MessageView from "../../../screens/screens/MessageView.jsx";
 import AuthGateView from "../../../screens/screens/AuthGateView.jsx";
@@ -17,16 +17,18 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
   const [sessionId, setSessionId] = useState("");
-  const [planType, setPlanType] = useState("");
+  const [customerId, setCustomerId] = useState("");
 
   useEffect(() => {
     // Check to see if this is a redirect back from Checkout
     const successParam = params.success;
     const sessionIdParam = params.session_id;
+    const planParam = params.plan;
 
     console.log("SubscriptionScreen DEBUG - Params:", {
       success: successParam,
       session_id: sessionIdParam,
+      plan: planParam,
     });
 
     if (successParam === "true") {
@@ -34,11 +36,8 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
       setSuccess(true);
       setSessionId(sessionIdParam || "");
 
-      // Get the plan type from async storage or params
-      const plan = params.plan || "";
-      setPlanType(plan);
-
       // Update the model subscription with the plan end date
+      const plan = planParam || "";
       if (plan && model.user && model.user.uid && model.ready) {
         console.log("[SubscriptionScreen] User is ready, updating subscription via model");
         model.setSubscriptionWithPlan?.(plan);
@@ -77,18 +76,36 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     router.replace("/(tabs)");
   }
 
+  function handleCheckoutSuccess({ planKey, customerId: stripeCustomerId }) {
+    setSuccess(true);
+    setMessage("");
+    setSessionId("");
+    setCustomerId(stripeCustomerId || "");
+
+    if (planKey && model.user && model.user.uid && model.ready) {
+      model.setSubscriptionWithPlan?.(planKey);
+    }
+  }
+
   if (!success && message === "") {
     console.log("📋 Rendering SubscriptionPlanView");
     return (
       <View style={styles.container}>
-        <SubscriptionPlanView onBack={handleBack} />
+        <SubscriptionPlanView
+          onBack={handleBack}
+          onCheckoutSuccess={handleCheckoutSuccess}
+        />
       </View>
     );
   } else if (success) {
     console.log("✅ Rendering PaymentSuccessView with sessionId:", sessionId);
     return (
       <View style={styles.container}>
-        <PaymentSuccessView sessionId={sessionId} onContinue={handleContinue} />
+        <PaymentSuccessView
+          customerId={customerId}
+          sessionId={sessionId}
+          onContinue={handleContinue}
+        />
       </View>
     );
   } else {

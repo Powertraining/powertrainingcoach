@@ -9,6 +9,7 @@ const stripe = require("stripe");
 admin.initializeApp();
 
 const YOUR_DOMAIN = "https://powertrainingcoach.web.app";
+const STRIPE_EPHEMERAL_KEY_API_VERSION = "2025-06-30.basil";
 
 /**
  * Fetches the Stripe secret key from Firestore
@@ -32,6 +33,82 @@ async function getStripeSecretKey() {
 }
 
 /**
+ * Verifies the Firebase auth token sent by the client.
+ * @param {import("express").Request} req
+ * @return {Promise<import("firebase-admin/auth").DecodedIdToken>}
+ */
+async function getAuthenticatedUser(req) {
+  const authHeader = req.headers.authorization || "";
+
+  if (!authHeader.startsWith("Bearer ")) {
+    throw new Error("Missing authorization token");
+  }
+
+  const token = authHeader.slice("Bearer ".length);
+  return admin.auth().verifyIdToken(token);
+}
+
+/**
+ * Loads or creates the Stripe customer for the authenticated Firebase user.
+ * @param {object} params
+ * @param {ReturnType<typeof stripe>} params.stripeClient
+ * @param {import("firebase-admin/auth").DecodedIdToken} params.authUser
+ * @return {Promise<object>}
+ */
+async function getOrCreateStripeCustomer({stripeClient, authUser}) {
+  const db = admin.firestore();
+  const userRef = db.collection("users").doc(authUser.uid);
+  const userSnap = await userRef.get();
+  const storedCustomerId = userSnap.exists ?
+    userSnap.data().stripeCustomerId :
+    null;
+
+  if (storedCustomerId) {
+    try {
+      const existingCustomer =
+        await stripeClient.customers.retrieve(storedCustomerId);
+
+      if (!existingCustomer.deleted) {
+        return existingCustomer;
+      }
+    } catch (error) {
+      console.warn("Stored Stripe customer could not be retrieved:", error);
+    }
+  }
+
+  if (authUser.email) {
+    const matchingCustomers = await stripeClient.customers.list({
+      email: authUser.email,
+      limit: 1,
+    });
+
+    if (matchingCustomers.data.length > 0) {
+      const matchedCustomer = matchingCustomers.data[0];
+
+      await userRef.set({
+        stripeCustomerId: matchedCustomer.id,
+      }, {merge: true});
+
+      return matchedCustomer;
+    }
+  }
+
+  const customer = await stripeClient.customers.create({
+    email: authUser.email,
+    name: authUser.name,
+    metadata: {
+      firebaseUID: authUser.uid,
+    },
+  });
+
+  await userRef.set({
+    stripeCustomerId: customer.id,
+  }, {merge: true});
+
+  return customer;
+}
+
+/**
  * Cloud Function: Create Checkout Session
  * Handles POST requests to create a Stripe checkout session
  */
@@ -40,7 +117,7 @@ exports.createCheckoutSession = functions.https.onRequest(
       // Enable CORS
       res.set("Access-Control-Allow-Origin", "*");
       res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.set("Access-Control-Allow-Headers", "Content-Type");
+      res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
       if (req.method === "OPTIONS") {
         res.status(204).send("");
@@ -52,6 +129,7 @@ exports.createCheckoutSession = functions.https.onRequest(
       }
 
       try {
+        const authUser = await getAuthenticatedUser(req);
         const secretKey = await getStripeSecretKey();
         const stripeClient = stripe(secretKey);
 
@@ -71,26 +149,56 @@ exports.createCheckoutSession = functions.https.onRequest(
           return res.status(404).json({error: "Price not found"});
         }
 
-        // Create checkout session with promotion code support
-        const session = await stripeClient.checkout.sessions.create({
-          billing_address_collection: "auto",
-          line_items: [
-            {
-              price: prices.data[0].id,
-              quantity: 1,
-            },
-          ],
-          mode: "subscription",
-          success_url: `${YOUR_DOMAIN}/#/subscription?success=true` +
-              "&session_id={CHECKOUT_SESSION_ID}",
-          cancel_url: `${YOUR_DOMAIN}/#/subscription?canceled=true`,
-          allow_promotion_codes: true,
+        const customer = await getOrCreateStripeCustomer({
+          stripeClient,
+          authUser,
         });
 
-        return res.json({url: session.url});
+        const ephemeralKey = await stripeClient.ephemeralKeys.create({
+          customer: customer.id,
+        }, {
+          stripeVersion: STRIPE_EPHEMERAL_KEY_API_VERSION,
+        });
+
+        const subscription = await stripeClient.subscriptions.create({
+          customer: customer.id,
+          items: [
+            {
+              price: prices.data[0].id,
+            },
+          ],
+          payment_behavior: "default_incomplete",
+          payment_settings: {
+            save_default_payment_method: "on_subscription",
+          },
+          expand: ["latest_invoice.payment_intent"],
+          metadata: {
+            firebaseUID: authUser.uid,
+            lookupKey,
+          },
+        });
+
+        const clientSecret =
+          subscription.latest_invoice?.payment_intent?.client_secret;
+
+        if (!clientSecret) {
+          throw new Error("Stripe did not return a payment client secret");
+        }
+
+        return res.json({
+          mode: "payment_sheet",
+          clientSecret,
+          customerId: customer.id,
+          ephemeralKey: ephemeralKey.secret,
+          subscriptionId: subscription.id,
+        });
       } catch (error) {
         console.error("Checkout error:", error);
-        return res.status(500).json({error: error.message});
+        const statusCode = error.message === "Missing authorization token" ||
+          error.code?.startsWith("auth/") ?
+          401 :
+          500;
+        return res.status(statusCode).json({error: error.message});
       }
     },
 );
@@ -104,7 +212,7 @@ exports.createPortalSession = functions.https.onRequest(
       // Enable CORS
       res.set("Access-Control-Allow-Origin", "*");
       res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.set("Access-Control-Allow-Headers", "Content-Type");
+      res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
       if (req.method === "OPTIONS") {
         res.status(204).send("");
@@ -116,36 +224,51 @@ exports.createPortalSession = functions.https.onRequest(
       }
 
       try {
+        const authUser = await getAuthenticatedUser(req);
         const secretKey = await getStripeSecretKey();
         const stripeClient = stripe(secretKey);
 
-        const {sessionId} = req.body;
+        const {sessionId, customerId} = req.body;
+        const db = admin.firestore();
+        const userRef = db.collection("users").doc(authUser.uid);
+        const userSnap = await userRef.get();
+        const storedCustomerId = userSnap.exists ?
+          userSnap.data().stripeCustomerId :
+          null;
 
-        if (!sessionId) {
-          return res.status(400).json({error: "Missing sessionId"});
+        let resolvedCustomerId = customerId || storedCustomerId;
+
+        if (!resolvedCustomerId && sessionId) {
+          const checkoutSession =
+            await stripeClient.checkout.sessions.retrieve(sessionId);
+          resolvedCustomerId = checkoutSession.customer;
         }
 
-        // Retrieve the checkout session to get the customer ID
-        const checkoutSession =
-                await stripeClient.checkout.sessions.retrieve(sessionId);
+        if (!resolvedCustomerId) {
+          return res.status(400).json({
+            error: "Missing customer identifier for billing portal",
+          });
+        }
 
-        if (!checkoutSession.customer) {
-          return res
-              .status(400)
-              .json({error: "No customer associated with session"});
+        if (storedCustomerId && resolvedCustomerId !== storedCustomerId) {
+          return res.status(403).json({error: "Customer does not match user"});
         }
 
         // Create billing portal session
         const portalSession =
                 await stripeClient.billingPortal.sessions.create({
-                  customer: checkoutSession.customer,
+                  customer: resolvedCustomerId,
                   return_url: `${YOUR_DOMAIN}/#subscription`,
                 });
 
         return res.json({url: portalSession.url});
       } catch (error) {
         console.error("Portal error:", error);
-        return res.status(500).json({error: error.message});
+        const statusCode = error.message === "Missing authorization token" ||
+          error.code?.startsWith("auth/") ?
+          401 :
+          500;
+        return res.status(statusCode).json({error: error.message});
       }
     },
 );
@@ -447,5 +570,3 @@ Follow periodization principles for ${numWeeks} weeks of training.
 
   return prompt;
 }
-
-
