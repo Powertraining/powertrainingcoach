@@ -12,7 +12,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "stripe:server": "node app/services/models/stripe_server.js",
+    "stripe:server": "node src/services/models/stripe_server.js",
     "stripe:test": "node test/stripeIntegration.test.js"
   },
   "devDependencies": {
@@ -37,7 +37,7 @@
     "expo-router": "~4.0.0",
     "expo-status-bar": "~2.0.0",
     "expo-web-browser": "~14.0.2",
-    "firebase": "^12.6.0",
+    "firebase": "12.6.0",
     "firebase-admin": "^13.6.0",
     "mobx": "latest",
     "mobx-react-lite": "latest",

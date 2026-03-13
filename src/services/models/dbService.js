@@ -1,6 +1,14 @@
-import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
-import { ref, listAll, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../config/firebase";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDownloadURL,
+  listAll,
+  ref,
+  setDoc,
+} from "../config/firebaseSdk.js";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";

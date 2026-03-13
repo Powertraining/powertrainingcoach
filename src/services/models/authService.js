@@ -1,18 +1,18 @@
 import { auth } from "../config/firebase";
 import { db } from "../config/firebase";
 import {
-  signInWithEmailAndPassword,
+  GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail,
+  doc,
+  getDoc,
   onAuthStateChanged,
-  updateProfile,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithCredential,
-} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-
-// To connect with google
-import { GoogleAuthProvider } from "firebase/auth";
+  signOut,
+  setDoc,
+  updateProfile,
+} from "../config/firebaseSdk.js";
 
 // Role types
 export const USER_ROLES = {

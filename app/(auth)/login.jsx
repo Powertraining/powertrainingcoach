@@ -4,12 +4,12 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { makeRedirectUri } from "expo-auth-session";
-import { LoginView } from "../../../screens/screens/LoginView.jsx";
-import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
+import { LoginView } from "../../src/screens/screens/LoginView.jsx";
+import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import {
   GOOGLE_ANDROID_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
-} from "../../../services/config/apiConfig.js";
+} from "../../src/services/config/apiConfig.js";
 
 WebBrowser.maybeCompleteAuthSession();
 

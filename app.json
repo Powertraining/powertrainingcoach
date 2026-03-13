@@ -1,21 +1,22 @@
 {
   "expo": {
-    "name": "PowerTrainingCoach",
-    "slug": "powertrainingcoach",
+    "name": "Power Training Coach",
+    "slug": "power-training-coach",
     "version": "1.0.0",
+    "newArchEnabled": true,
     "orientation": "portrait",
     "extra": {
       "router": {
         "origin": false
       },
       "eas": {
-        "projectId": "powertrainingcoach"
+        "projectId": "26b5ffd7-cc77-4e3d-abf9-df6edb98c301"
       }
     },
-    "icon": "./app/assets/logo.png",
+    "icon": "./src/assets/logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./app/assets/login-bg.png",
+      "image": "./src/assets/login-bg.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -24,23 +25,28 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.powertraining.coach"
+      "bundleIdentifier": "com.powertraining.coach",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./app/assets/logo.png",
+        "foregroundImage": "./src/assets/logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.powertraining.coach",
       "googleServicesFile": "./google-services.json"
     },
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "scheme": "powertrainingcoach",
     "experiments": {
       "typedRoutes": true
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "owner": "power-training"
   }
 }

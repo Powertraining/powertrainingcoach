@@ -3,9 +3,9 @@ import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
-import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
-import FeedBackView from "../../../screens/screens/FeedBackView.jsx";
-import AuthGateView from "../../../screens/screens/AuthGateView.jsx";
+import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import FeedBackView from "../../src/screens/screens/FeedBackView.jsx";
+import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
 
 const FeedbackScreen = observer(function FeedbackScreen() {
   const model = reactiveModel;

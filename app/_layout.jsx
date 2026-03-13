@@ -5,9 +5,9 @@ import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
-import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
-import LoadingView from "../../screens/screens/LoadingView.jsx";
-import StripeProviderWrapper from "./StripeProviderWrapper";
+import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
+import LoadingView from "../src/screens/screens/LoadingView.jsx";
+import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
 
 // Make model globally available for debugging
 if (typeof global !== "undefined") {

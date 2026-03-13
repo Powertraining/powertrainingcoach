@@ -6,7 +6,7 @@ const config = getDefaultConfig(__dirname);
 
 // Preserve Expo defaults and only append any missing extensions we need.
 config.resolver.sourceExts = Array.from(
-  new Set([...config.resolver.sourceExts, 'mjs'])
+  new Set([...config.resolver.sourceExts, 'mjs', 'cjs'])
 );
 
 // Configure asset extensions

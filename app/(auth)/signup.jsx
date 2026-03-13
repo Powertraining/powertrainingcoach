@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
-import { SignUpView } from "../../../screens/screens/SignUpView.jsx";
-import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
+import { SignUpView } from "../../src/screens/screens/SignUpView.jsx";
+import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
 const SignUpScreen = observer(function SignUpScreen() {
   const model = reactiveModel;

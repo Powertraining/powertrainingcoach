@@ -3,22 +3,22 @@ import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
-import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
+import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
-import StartView from "../../../screens/screens/StartView.jsx";
-import QuestionnaireSportView from "../../../screens/screens/QuestionnaireSportView.jsx";
-import QuestionnaireFrequencyView from "../../../screens/screens/QuestionnaireFrequencyView.jsx";
-import InputFormView from "../../../screens/screens/InputFormView.jsx";
-import PlanSelectionView from "../../../screens/screens/PlanSelectionView.jsx";
-import LoadingView from "../../../screens/screens/LoadingView.jsx";
-import ErrorView from "../../../screens/screens/ErrorView.jsx";
-import AuthGateView from "../../../screens/screens/AuthGateView.jsx";
+import StartView from "../../src/screens/screens/StartView.jsx";
+import QuestionnaireSportView from "../../src/screens/screens/QuestionnaireSportView.jsx";
+import QuestionnaireFrequencyView from "../../src/screens/screens/QuestionnaireFrequencyView.jsx";
+import InputFormView from "../../src/screens/screens/InputFormView.jsx";
+import PlanSelectionView from "../../src/screens/screens/PlanSelectionView.jsx";
+import LoadingView from "../../src/screens/screens/LoadingView.jsx";
+import ErrorView from "../../src/screens/screens/ErrorView.jsx";
+import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
 
 import {
   fetchBaseTrainingPlans,
   filterTrainingPlans,
   extractFirstWeekPreview,
-} from "../../../services/models/trainingPlanService.js";
+} from "../../src/services/models/trainingPlanService.js";
 
 const STEPS = Object.freeze({
   START: "start",

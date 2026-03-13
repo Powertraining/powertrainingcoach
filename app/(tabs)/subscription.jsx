@@ -3,11 +3,11 @@ import { observer } from "mobx-react-lite";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
-import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
-import SubscriptionPlanView from "../../../screens/screens/SubscriptionPlanView";
-import PaymentSuccessView from "../../../screens/screens/PaymentSuccessView.jsx";
-import MessageView from "../../../screens/screens/MessageView.jsx";
-import AuthGateView from "../../../screens/screens/AuthGateView.jsx";
+import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import SubscriptionPlanView from "../../src/screens/screens/SubscriptionPlanView";
+import PaymentSuccessView from "../../src/screens/screens/PaymentSuccessView.jsx";
+import MessageView from "../../src/screens/screens/MessageView.jsx";
+import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
 
 const SubscriptionScreen = observer(function SubscriptionScreen() {
   const model = reactiveModel;

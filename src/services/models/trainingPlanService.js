@@ -2,7 +2,7 @@
  * Service to fetch and filter base training plans from Firebase Storage
  */
 import { storage } from "../config/firebase.js";
-import { ref, listAll, getDownloadURL } from "firebase/storage";
+import { getDownloadURL, listAll, ref } from "../config/firebaseSdk.js";
 
 /**
  * Fetches all base training plans from Firebase Storage

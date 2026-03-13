@@ -8,9 +8,10 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
 ### Prerequisites
 - **Node.js** (v16 or higher)
 - **npm** (comes with Node.js)
-- **React Native** CLI and development environment setup
-  - For iOS: Xcode and CocoaPods (macOS)
-  - For Android: Android Studio and Android SDK
+- **Expo / EAS** account for cloud builds
+- **React Native** development environment setup
+  - For iOS: Xcode and CocoaPods (macOS) if building locally
+  - For Android: Android Studio and Android SDK if building locally
 - A Firebase project with authentication and Firestore enabled
 - OpenAI API key
 - Stripe account for payment processing
@@ -32,31 +33,46 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
    - Set up a Firebase project at [firebase.google.com](https://firebase.google.com)
    - Enable Authentication (Email/Password and Google Sign-In)
    - Create a Firestore database
-   - Configure Stripe API keys as environment variables in Firebase Cloud Functions
-   - The application reads configuration from Firebase
+   - Add `google-services.json` for Android and `GoogleService-Info.plist` for iOS
+   - Configure Firebase JS SDK values with `EXPO_PUBLIC_FIREBASE_*` environment variables if you need to override the defaults in `src/services/config/firebase.js`
+   - Configure Stripe API keys as environment variables for the app and Firebase Cloud Functions
 
-4. **Run the development server**
-   
-   For iOS (macOS only):
+4. **Configure Google Sign-In**
+   - Provide `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`
+   - Provide `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
+
+5. **Start the Expo development server**
    ```bash
-   npm run ios
+   npx expo start --clear
    ```
-   
+
    For Android:
    ```bash
    npm run android
    ```
-   
-### Building for Production
 
-For iOS:
+   For iOS (macOS only):
+   ```bash
+   npm run ios
+   ```
+
+### EAS Builds
+
+Log in once:
 ```bash
-npm run build:ios
+npx expo login
 ```
+
+Then build with EAS:
 
 For Android:
 ```bash
 npm run build:android
+```
+
+For iOS:
+```bash
+npm run build:ios
 ```
 
 ### Deployment
@@ -88,7 +104,7 @@ Follow the standard app store and Google Play deployment processes.
   - Used in subscription and payment features
 
 ### Backend & Database
-- **Firebase** (`^12.6.0`) - Backend-as-a-Service platform
+- **Firebase** (`12.6.0`) - Backend-as-a-Service platform
   - Authentication, Firestore database, and hosting
   - Used in service models for backend operations
 - **firebase-admin** (`^13.6.0`) - Firebase Admin SDK for server-side operations
@@ -97,7 +113,7 @@ Follow the standard app store and Google Play deployment processes.
 ### API Integration
 - **openai** (`^6.15.0`) - OpenAI API client
   - Powers the AI-driven training program generation
-  - Used in `app/core/generatePlan.js` for creating personalized workout plans
+  - Used in `src/core/generatePlan.js` for creating personalized workout plans
 
 ### Development & Build Tools
 - **Expo / Expo Router** - Native app runtime, routing, and development tooling
@@ -107,47 +123,42 @@ Follow the standard app store and Google Play deployment processes.
 
 ```
 app/
-├── assets/              # Images, fonts, static resources
-├── components/          # Reusable UI components
+├── _layout.jsx          # Root Expo Router layout
+├── index.jsx            # Auth-aware app entry route
+├── modal.jsx            # Modal route
+├── (auth)/              # Authentication routes
+└── (tabs)/              # Main tab routes
+
+src/
+├── assets/              # Images and static resources
 ├── core/                # Core application logic
-│   ├── generatePlan.js  # AI-powered training plan generation
-│   └── resolvePromise.js# Promise resolution utilities
-├── data/                # Application data
-│   ├── baseTrainingPlans/ # Base training plan templates
-│   └── instructions/    # Training instruction markdown files
-├── entry/               # Application entry points
-│   └── app/             # App layout structure
-├── screens/             # Screen implementations
-│   └── screens/         # Screen UI components
-│       ├── StartView.jsx
-│       ├── LoginView.jsx
-│       ├── SignUpView.jsx
-│       ├── DayDetailView.jsx
-│       └── ...
+│   ├── generatePlan.js
+│   └── resolvePromise.js
+├── data/                # Application data and templates
+├── screens/             # Screen UI components
+│   └── screens/
 ├── services/            # Business logic services
-│   ├── config/          # Configuration files
-│   │   ├── apiConfig.js # API configuration
-│   │   └── firebase.js  # Firebase setup
-│   ├── models/          # Data models and services
-│   │   ├── authService.js
-│   │   ├── dbService.js
-│   │   ├── firebaseModel.js
-│   │   ├── CombatModel.js
-│   │   ├── trainingPlanService.js
-│   │   └── mobxReactiveModel.js
-│   └── utils/           # Utility functions
-│       ├── promptBuilder.js
-│       └── stripeClient.js
-└── theme/               # Theme configuration
+│   ├── config/
+│   │   ├── apiConfig.js
+│   │   ├── firebase.js
+│   │   └── firebaseSdk.js
+│   ├── models/
+│   └── utils/
+├── theme/               # Theme configuration
+└── StripeProviderWrapper.jsx
+
+functions/
+└── index.js             # Firebase Cloud Functions
 ```
 
 ### Key Directories
 
-- **`/app/core`** - Core business logic for training plan generation
-- **`/app/entry`** - Application entry points and initialization
-- **`/app/services`** - Business logic, data models, and external service integration
-- **`/app/screens`** - Native application screens
-- **`/app/data`** - Application data including base training plans and instructions
+- **`/app`** - Expo Router routes only
+- **`/src/core`** - Core business logic for training plan generation
+- **`/src/services`** - Business logic, data models, and external service integration
+- **`/src/screens`** - Native application screen components
+- **`/src/data`** - Application data including training plans and instructions
+- **`/src/assets`** - Static app assets
 - **`/functions`** - Firebase Cloud Functions for backend operations
 - **`/scripts`** - Utility scripts for development and deployment
 - **`/docs`** - Documentation and instructions

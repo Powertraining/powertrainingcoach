@@ -2,8 +2,8 @@ import { Tabs, Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
-import logo from "../../../assets/logo.png";
+import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import logo from "../../src/assets/logo.png";
 
 const TabsLayout = observer(function TabsLayout() {
   const model = reactiveModel;

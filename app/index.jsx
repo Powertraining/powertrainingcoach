@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
-import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
+import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 
 const IndexScreen = observer(function IndexScreen() {
   const model = reactiveModel;

@@ -10,7 +10,7 @@ import {
 import {
   updateProfile as fbUpdateProfile,
   updatePassword,
-} from "firebase/auth";
+} from "../config/firebaseSdk.js";
 import { saveFeedback, getApiConfig } from "./dbService.js";
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  

@@ -3,9 +3,9 @@ import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
-import { reactiveModel } from "../../../services/models/mobxReactiveModel.js";
-import ProgramOverviewView from "../../../screens/screens/ProgramOverviewView.jsx";
-import AuthGateView from "../../../screens/screens/AuthGateView.jsx";
+import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import ProgramOverviewView from "../../src/screens/screens/ProgramOverviewView.jsx";
+import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
 
 const OverviewScreen = observer(function OverviewScreen() {
   const model = reactiveModel;
