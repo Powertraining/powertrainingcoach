@@ -7,13 +7,12 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   updateProfile,
+  signInWithCredential,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 // To connect with google
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-
-const provider = new GoogleAuthProvider();
+import { GoogleAuthProvider } from "firebase/auth";
 
 // Role types
 export const USER_ROLES = {
@@ -83,25 +82,43 @@ export async function resetPassword(email) {
   }
 }
 
-export async function loginWithGoogle() {
-  try {
-    const userCredential = await signInWithPopup(auth, provider);
+async function ensureUserDocument(user, role = USER_ROLES.USER) {
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (!userDoc.exists()) {
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      role,
+      createdAt: new Date(),
+    });
+  }
+}
 
-    // Check if user exists in Firestore, if not create entry
-    const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-    if (!userDoc.exists()) {
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid,
-        email: userCredential.user.email,
-        displayName: userCredential.user.displayName,
-        role: USER_ROLES.USER,
-        createdAt: new Date(),
-      });
+export async function loginWithGoogle(idToken = null) {
+  try {
+    if (!idToken) {
+      throw new Error("missing-google-id-token");
     }
+
+    const credential = GoogleAuthProvider.credential(idToken);
+    const userCredential = await signInWithCredential(auth, credential);
+
+    await ensureUserDocument(userCredential.user);
 
     return { success: true, user: userCredential.user };
   } catch (error) {
-    return { success: false, error: error.code };
+    if (error?.message === "missing-google-id-token") {
+      return {
+        success: false,
+        error: "Google sign-in could not be completed on this device.",
+      };
+    }
+
+    return {
+      success: false,
+      error: error?.code || error?.message || "auth/google-sign-in-failed",
+    };
   }
 }
 

@@ -89,7 +89,6 @@ const styles = StyleSheet.create({
 });
 
 
-// import "/src/style.css";
 
 // export default function AuthGateView({ onLogin, onSignup }) {
 //     return (

@@ -52,7 +52,6 @@ export function SignUpView(props) {
   );
 }
 
-// import "/src/style.css";
 
 // export function SignUpView(props) {
 //   function usernameChangedACB(evt) {

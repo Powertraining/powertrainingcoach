@@ -18,6 +18,8 @@ export const OPENAI_API_MODEL = "gpt-5-mini";
 export const OPENAI_API_TEMPERATURE = 1;
 export const OPENAI_API_KEY = getEnv("OPENAI_API_KEY");
 export const STRIPE_PUBLIC_API_KEY = getEnv("STRIPE_PUBLIC_KEY");
+export const GOOGLE_ANDROID_CLIENT_ID = getEnv("GOOGLE_ANDROID_CLIENT_ID");
+export const GOOGLE_IOS_CLIENT_ID = getEnv("GOOGLE_IOS_CLIENT_ID");
 
 // Stripe server-side payment endpoints
 export const STRIPE_CHECKOUT_ENDPOINT = "https://us-central1-powertrainingcoach.cloudfunctions.net/createCheckoutSession";

@@ -73,8 +73,8 @@ export const model = {
   },
 
   // action to login with google
-  async submitGoogle() {
-    const authResult = await loginWithGoogle();
+  async submitGoogle(idToken = null) {
+    const authResult = await loginWithGoogle(idToken);
 
     if (!authResult.success) {
       throw new Error(authResult.error);
