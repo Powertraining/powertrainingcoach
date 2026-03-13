@@ -4,8 +4,10 @@ const { getDefaultConfig } = require('expo/metro-config');
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-// Add support for additional file extensions
-config.resolver.sourceExts = ['jsx', 'js', 'ts', 'tsx', 'json', 'mjs'];
+// Preserve Expo defaults and only append any missing extensions we need.
+config.resolver.sourceExts = Array.from(
+  new Set([...config.resolver.sourceExts, 'mjs'])
+);
 
 // Configure asset extensions
 config.resolver.assetExts = [

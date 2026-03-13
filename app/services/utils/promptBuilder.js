@@ -25,13 +25,6 @@ const instructionPriority = [
     "ballistic_training"
 ];
 
-// import local_general from "../../data/instructions/general_rules.md?raw";
-// import local_reps from "../../data/instructions/reps_intensity.md?raw";
-// import local_compound from "../../data/instructions/compound_lifts.md?raw";
-// import local_plyo from "../../data/instructions/plyometrics_loading_jumps.md?raw";
-// import local_ballistic from "../../data/instructions/ballistic_training.md?raw";
-// import local_specific from "../../data/instructions/specific_rules.md?raw"; // Uncomment if file exists
-
 /**
  * Builds the complete system prompt for generating training programs.
  * * @param {object} userInput - Clean structured input from frontend.
