@@ -13,12 +13,74 @@ import {
   setDoc,
   updateProfile,
 } from "../config/firebaseSdk.js";
+import { createDefaultUserData, saveUserData } from "./dbService.js";
 
 // Role types
 export const USER_ROLES = {
   ADMIN: "admin",
   USER: "user",
 };
+
+const BOOTSTRAP_WAIT_MS = 3000;
+
+function persistUserBootstrapData(user, role = USER_ROLES.USER) {
+  const createdAt = user.metadata?.creationTime
+    ? new Date(user.metadata.creationTime)
+    : new Date();
+
+  const profilePromise = setDoc(
+    doc(db, "users", user.uid),
+    {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      role,
+      createdAt,
+    },
+    { merge: true },
+  );
+
+  const combatModelPromise = saveUserData(
+    user.uid,
+    createDefaultUserData()
+  ).then((result) => {
+    if (!result.success) {
+      throw (
+        result.error ||
+        new Error(
+          "Could not create initial combatModel document during auth bootstrap."
+        )
+      );
+    }
+  });
+
+  return Promise.all([profilePromise, combatModelPromise]);
+}
+
+async function ensureBootstrapDataEventually(user, role = USER_ROLES.USER) {
+  let timeoutId;
+
+  const bootstrapPromise = persistUserBootstrapData(user, role)
+    .catch((error) => {
+      console.warn("Could not fully persist user bootstrap data:", error);
+    })
+    .finally(() => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    });
+
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => {
+      console.warn(
+        `Timed out after ${BOOTSTRAP_WAIT_MS}ms waiting for Firestore bootstrap writes for user ${user.uid}.`
+      );
+      resolve();
+    }, BOOTSTRAP_WAIT_MS);
+  });
+
+  await Promise.race([bootstrapPromise, timeoutPromise]);
+}
 
 export async function loginWithEmailPassword(email, password) {
   try {
@@ -49,14 +111,14 @@ export async function registerWithEmailPassword(
     // Update the user's displayName with the provided username
     await updateProfile(userCredential.user, { displayName: username });
 
-    // Store user role in Firestore
-    await setDoc(doc(db, "users", userCredential.user.uid), {
-      uid: userCredential.user.uid,
-      email: email,
-      displayName: username,
-      role: role,
-      createdAt: new Date(),
-    });
+    await ensureBootstrapDataEventually(
+      {
+        ...userCredential.user,
+        email,
+        displayName: username,
+      },
+      role
+    );
 
     return { success: true, user: userCredential.user };
   } catch (error) {
@@ -83,16 +145,7 @@ export async function resetPassword(email) {
 }
 
 async function ensureUserDocument(user, role = USER_ROLES.USER) {
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  if (!userDoc.exists()) {
-    await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      role,
-      createdAt: new Date(),
-    });
-  }
+  await ensureBootstrapDataEventually(user, role);
 }
 
 export async function loginWithGoogle(idToken = null) {

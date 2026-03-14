@@ -1,4 +1,4 @@
-export { getApp, getApps, initializeApp } from "@firebase/app";
+export { getApp, getApps, initializeApp } from "firebase/app";
 export {
   GoogleAuthProvider,
   getAuth,
@@ -12,7 +12,7 @@ export {
   updatePassword,
   updateProfile,
   createUserWithEmailAndPassword,
-} from "@firebase/auth/dist/rn/index.js";
+} from "firebase/auth";
 export {
   addDoc,
   collection,
@@ -20,6 +20,7 @@ export {
   getDoc,
   getFirestore,
   initializeFirestore,
+  serverTimestamp,
   setDoc,
-} from "@firebase/firestore/dist/index.rn.js";
-export { getDownloadURL, getStorage, listAll, ref } from "@firebase/storage";
+} from "firebase/firestore/lite";
+export { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";

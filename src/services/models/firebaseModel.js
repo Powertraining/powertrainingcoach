@@ -1,10 +1,31 @@
 // To handle data persistance agnostically of firestore
-import { getUserData, saveUserData } from "./dbService";
+import {
+  createDefaultUserData,
+  getUserData,
+  saveUserData,
+} from "./dbService";
 
 // To subscribe to the login/logout event
 import { subscribeToAuthChanges } from "./authService";
 
 export function connectToPersistance(model, sideEffectWatcherFunction) {
+  function applyPersistedUserData(data) {
+    const persistedData = {
+      ...createDefaultUserData(),
+      ...(data || {}),
+    };
+
+    model.questionnaire = persistedData.questionnaire ?? {};
+    model.primaryCombatSport = persistedData.primaryCombatSport ?? "";
+    model.sessionsPerWeek = persistedData.sessionsPerWeek ?? 3;
+    model.trainingPlan = persistedData.trainingPlan ?? null;
+    model.completedDays = persistedData.completedDays ?? [];
+    model.trainingPlanBatch = persistedData.trainingPlanBatch ?? 1;
+    model.completedWeeks = persistedData.completedWeeks ?? 0;
+    model.subscription = persistedData.subscription ?? false;
+    model.subscriptionEndDate = persistedData.subscriptionEndDate ?? null;
+  }
+
   function modelDataToCheckACB() {
     // ADD ALL THE DATA THAT IF THEY CHANGE, WE CALL THE SIDE EFFECT FUNCTION.
     // as the user is not in this method, the user document is created when
@@ -53,10 +74,13 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         trainingPlan: data.trainingPlan ? 'exists' : 'null',
       });
       try {
-        await saveUserData(model.user.uid, data);
+        const saveResult = await saveUserData(model.user.uid, data);
+        if (!saveResult.success) {
+          throw saveResult.error;
+        }
         console.log('[firebaseModel.saveToCloudACB] ✅ Successfully saved to Firestore');
       } catch (error) {
-        console.error('[firebaseModel.saveToCloudACB] ❌ Error saving to Firestore:', error);
+        console.warn('[firebaseModel.saveToCloudACB] Firestore save unavailable, will retry on next change:', error);
       }
     } else {
       console.log('[firebaseModel.saveToCloudACB] Skipping save - user:', !!model.user, 'ready:', model.ready);
@@ -76,17 +100,28 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.ready = false;
       try {
         const result = await getUserData(user.uid);
+        if (!result?.success) {
+          console.warn(
+            "[firebaseModel.onAuthStateChangedACB] Firestore user data unavailable, using defaults:",
+            result?.error
+          );
+          applyPersistedUserData(createDefaultUserData());
+          return;
+        }
+
+        if (result.fromCache || result.hasPendingWrites) {
+          console.warn(
+            "[firebaseModel.onAuthStateChangedACB] Firestore returned cached or unsynced user data:",
+            {
+              fromCache: result.fromCache,
+              hasPendingWrites: result.hasPendingWrites,
+            }
+          );
+        }
+
         console.log('[firebaseModel.onAuthStateChangedACB] User data loaded from Firestore:', result.data);
         if (result.exists) {
-          model.questionnaire = result.data.questionnaire || {};
-          // Load persistent questionnaire responses
-          model.primaryCombatSport = result.data.primaryCombatSport || "";
-          model.sessionsPerWeek = result.data.sessionsPerWeek || 3;
-          // Load training plan and batch info
-          model.trainingPlan = result.data.trainingPlan || null;
-          model.completedDays = result.data.completedDays || [];
-          model.trainingPlanBatch = result.data.trainingPlanBatch || 1;
-          model.completedWeeks = result.data.completedWeeks || 0;
+          applyPersistedUserData(result.data);
           console.log('[firebaseModel.onAuthStateChangedACB] ✅ Loaded questionnaire & training plan:', {
             primaryCombatSport: model.primaryCombatSport,
             sessionsPerWeek: model.sessionsPerWeek,
@@ -95,29 +130,27 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
             trainingPlanBatch: model.trainingPlanBatch,
             completedWeeks: model.completedWeeks,
           });
-          
-          // Load subscription data from Firestore (always use user's own data)
-          model.subscription = result.data.subscription || false;
-          model.subscriptionEndDate = result.data.subscriptionEndDate || null;
           console.log('[firebaseModel.onAuthStateChangedACB] ✅ Loaded subscription data from Firestore:', {
             subscription: model.subscription,
             subscriptionEndDate: model.subscriptionEndDate
           });
         } else {
           // New user or no document yet - reset to defaults
-          model.questionnaire = {};
-          model.primaryCombatSport = "";
-          model.sessionsPerWeek = 3;
-          model.trainingPlan = null;
-          model.completedDays = [];
-          model.trainingPlanBatch = 1;
-          model.completedWeeks = 0;
-          model.subscription = false;
-          model.subscriptionEndDate = null;
+          const defaultData = createDefaultUserData();
+          applyPersistedUserData(defaultData);
           console.log('[firebaseModel.onAuthStateChangedACB] New user, initialized with defaults');
+
+          const saveResult = await saveUserData(user.uid, defaultData);
+          if (!saveResult.success) {
+            console.warn(
+              "[firebaseModel.onAuthStateChangedACB] Could not create initial user document:",
+              saveResult.error
+            );
+          }
         }
       } catch (error) {
-        console.error('[firebaseModel.onAuthStateChangedACB] Error loading user data:', error);
+        console.warn('[firebaseModel.onAuthStateChangedACB] Unexpected error loading user data, using defaults:', error);
+        applyPersistedUserData(createDefaultUserData());
       } finally {
         model.ready = true;
       }

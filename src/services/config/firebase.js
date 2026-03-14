@@ -11,39 +11,57 @@ import {
   initializeFirestore,
 } from "./firebaseSdk.js";
 
-const getEnv = (key, fallback) => {
-  if (typeof process !== "undefined" && process.env?.[key]) {
-    return process.env[key];
-  }
+const runtimeEnv = typeof process !== "undefined" ? process.env ?? {} : {};
 
-  const expoPublicKey = `EXPO_PUBLIC_${key}`;
-  if (typeof process !== "undefined" && process.env?.[expoPublicKey]) {
-    return process.env[expoPublicKey];
-  }
-
-  return fallback;
-};
+const getEnv = (expoPublicValue, runtimeKey, fallback) =>
+  expoPublicValue || runtimeEnv[runtimeKey] || fallback;
 
 // Firebase JS SDK uses this config on Android, iOS, and web.
-// The native google-services files remain useful for native builds and EAS.
+// These values must come from the Firebase Web app config because this project
+// uses the Firebase JavaScript SDK, not the native RN Firebase SDK.
 const firebaseConfig = {
-  apiKey: getEnv("FIREBASE_API_KEY", "AIzaSyB45vz0PNa6GiZN34TROf9B-M_eUvM4G2U"),
+  apiKey: getEnv(
+    process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    "FIREBASE_API_KEY",
+    "AIzaSyB45vz0PNa6GiZN34TROf9B-M_eUvM4G2U"
+  ),
   authDomain: getEnv(
+    process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
     "FIREBASE_AUTH_DOMAIN",
     "power-training-coach.firebaseapp.com"
   ),
-  projectId: getEnv("FIREBASE_PROJECT_ID", "power-training-coach"),
+  projectId: getEnv(
+    process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    "FIREBASE_PROJECT_ID",
+    "power-training-coach"
+  ),
   storageBucket: getEnv(
+    process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
     "FIREBASE_STORAGE_BUCKET",
     "power-training-coach.firebasestorage.app"
   ),
-  messagingSenderId: getEnv("FIREBASE_MESSAGING_SENDER_ID", "410162189255"),
+  messagingSenderId: getEnv(
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    "FIREBASE_MESSAGING_SENDER_ID",
+    "410162189255"
+  ),
   appId: getEnv(
+    process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
     "FIREBASE_APP_ID",
     "1:410162189255:web:023105817d8ceddbbcffe2"
   ),
-  measurementId: getEnv("FIREBASE_MEASUREMENT_ID", "G-MMN29XQ5C5"),
+  measurementId: getEnv(
+    process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
+    "FIREBASE_MEASUREMENT_ID",
+    "G-MMN29XQ5C5"
+  ),
 };
+
+const firestoreDatabaseId = getEnv(
+  process.env.EXPO_PUBLIC_FIRESTORE_DATABASE_ID,
+  "FIRESTORE_DATABASE_ID",
+  "default"
+);
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
@@ -59,14 +77,12 @@ try {
 }
 
 try {
-  dbInstance = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
-    useFetchStreams: false,
-  });
+  dbInstance = initializeFirestore(app, {}, firestoreDatabaseId);
 } catch (error) {
-  dbInstance = getFirestore(app);
+  dbInstance = getFirestore(app, firestoreDatabaseId);
 }
 
 export const auth = authInstance;
 export const db = dbInstance;
 export const storage = getStorage(app);
+export const FIRESTORE_DATABASE_ID = firestoreDatabaseId;
