@@ -1,12 +1,15 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import StandardText from "../../components/StandardText.jsx";
+import SignFormInput from "../../components/SignFormInput.jsx";
 
 export function LoginView(props) {
     return (
         <View>
-            <Text>Welcome back! Please log in to continue.</Text>
+            <StandardText>Welcome back! Please log in to continue.</StandardText>
 
+            <SignFormInput text="hello" />
             <View>
-                <Text>E-Mail:</Text>
+                <StandardText>E-Mail:</StandardText>
                 <TextInput
                     value={props.identifier}
                     onChangeText={props.onIdentifierChange}
@@ -16,7 +19,7 @@ export function LoginView(props) {
             </View>
 
             <View>
-                <Text>Password:</Text>
+                <StandardText>Password:</StandardText>
                 <TextInput
                     value={props.password}
                     onChangeText={props.onPasswordChange}
@@ -26,21 +29,21 @@ export function LoginView(props) {
 
             <View style={styles.linksRow}>
                 <TouchableOpacity>
-                    <Text>Forgot password?</Text>
+                    <StandardText>Forgot password?</StandardText>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={props.onSignupPress}>
-                    <Text>Sign up</Text>
+                    <StandardText>Sign up</StandardText>
                 </TouchableOpacity>
             </View>
 
-            {props.error && <Text>{props.error}</Text>}
+            {props.error && <StandardText>{props.error}</StandardText>}
 
             <TouchableOpacity onPress={props.onSubmit} disabled={props.isSubmitting}>
-                <Text>{props.isSubmitting ? "Logging in..." : "Login"}</Text>
+                <StandardText>{props.isSubmitting ? "Logging in..." : "Login"}</StandardText>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={props.onSubmitGoogle}>
-                <Text>Continue with Google</Text>
+                <StandardText>Continue with Google</StandardText>
             </TouchableOpacity>
         </View>
     );

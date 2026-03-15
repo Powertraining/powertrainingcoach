@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite";
 import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
 
 import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../src/screens/screens/LoadingView.jsx";
@@ -16,6 +17,9 @@ if (typeof global !== "undefined") {
 
 const RootLayout = observer(function RootLayout() {
   const model = reactiveModel;
+  const [fontsLoaded] = useFonts({
+    BebasNeue: require("../src/assets/BebasNeue-Regular.ttf"),
+  });
 
   // Start the background date change detector when app mounts
   useEffect(() => {
@@ -30,6 +34,10 @@ const RootLayout = observer(function RootLayout() {
     !model.trainingPlanPromiseState?.data &&
     !model.trainingPlanPromiseState?.error;
   const isLoading = !model.ready || isGeneratingPlan;
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <StripeProviderWrapper>
