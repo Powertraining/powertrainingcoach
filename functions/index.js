@@ -1,41 +1,254 @@
 // Firebase Cloud Functions for Stripe Payment Processing
-// All sensitive API keys are managed server-side via Firebase Admin SDK
+// Stripe secrets are managed via Firebase Secret Manager
 
 const functions = require("firebase-functions");
+const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const stripe = require("stripe");
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
-const YOUR_DOMAIN = "https://powertrainingcoach.web.app";
-const STRIPE_EPHEMERAL_KEY_API_VERSION = "2025-06-30.basil";
+const FIREBASE_PROJECT_ID =
+  process.env.GCLOUD_PROJECT ||
+  process.env.GCP_PROJECT ||
+  admin.app().options.projectId ||
+  "power-training-coach";
+const HOSTING_BASE_URL =
+  process.env.HOSTING_BASE_URL || `https://${FIREBASE_PROJECT_ID}.web.app`;
+const USER_COLLECTION = "users";
+const COMBAT_MODEL_COLLECTION = "combatModel";
+const CHECKOUT_SUCCESS_URL =
+  `${HOSTING_BASE_URL}/checkout_redirect/success.html`;
+const CHECKOUT_CANCEL_URL =
+  `${HOSTING_BASE_URL}/checkout_redirect/cancel.html`;
+const BILLING_PORTAL_RETURN_URL =
+  `${HOSTING_BASE_URL}/checkout_redirect/portal.html`;
+const stripeSecretKeyParam = defineSecret("STRIPE_SECRET_KEY");
+const stripeWebhookSecretParam = defineSecret("STRIPE_WEBHOOK_SECRET");
+const openAiApiKeyParam = defineSecret("OPENAI_API_KEY");
 
 /**
- * Fetches the Stripe secret key from Firestore
- * @return {Promise<string>} The Stripe secret API key
+ * @return {FirebaseFirestore.CollectionReference}
  */
-async function getStripeSecretKey() {
-  try {
-    const db = admin.firestore();
-    const docRef = db.collection("config").doc("secrets");
-    const docSnap = await docRef.get();
+function getUsersCollection() {
+  return admin.firestore().collection(USER_COLLECTION);
+}
 
-    if (docSnap.exists && docSnap.data().stripe_key) {
-      return docSnap.data().stripe_key;
-    } else {
-      throw new Error("Stripe API key not found in Firestore");
-    }
-  } catch (error) {
-    console.error("Error fetching Stripe key:", error);
-    throw error;
+/**
+ * @return {FirebaseFirestore.CollectionReference}
+ */
+function getCombatModelCollection() {
+  return admin.firestore().collection(COMBAT_MODEL_COLLECTION);
+}
+
+/**
+ * @param {number|null|undefined} unixTimestamp
+ * @return {string|null}
+ */
+function formatDateFromUnixTimestamp(unixTimestamp) {
+  if (!unixTimestamp) {
+    return null;
   }
+
+  return new Date(unixTimestamp * 1000).toISOString().slice(0, 10);
+}
+
+/**
+ * @param {object} subscription
+ * @return {boolean}
+ */
+function isSubscriptionEntitled(subscription) {
+  const entitledStatuses = new Set(["active", "trialing"]);
+
+  if (!subscription || !entitledStatuses.has(subscription.status)) {
+    return false;
+  }
+
+  if (!subscription.current_period_end) {
+    return false;
+  }
+
+  return subscription.current_period_end * 1000 > Date.now();
+}
+
+/**
+ * @param {object} object
+ * @param {string} key
+ * @return {*}
+ */
+function getObjectMetadataValue(object, key) {
+  if (!object || !object.metadata) {
+    return null;
+  }
+
+  return object.metadata[key] || null;
+}
+
+/**
+ * @param {Error|object} error
+ * @return {boolean}
+ */
+function hasAuthErrorCode(error) {
+  return Boolean(error && error.code && error.code.startsWith("auth/"));
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {string|null} params.customerId
+ * @return {Promise<string|null>}
+ */
+async function resolveFirebaseUidForCustomer({stripeClient, customerId}) {
+  if (!customerId) {
+    return null;
+  }
+
+  const customer = await stripeClient.customers.retrieve(customerId);
+
+  if (!customer.deleted) {
+    return getObjectMetadataValue(customer, "firebaseUID");
+  }
+
+  return null;
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {object|string} params.subscription
+ * @param {string=} params.fallbackFirebaseUID
+ * @return {Promise<object>}
+ */
+async function syncStripeSubscriptionToFirestore({
+  stripeClient,
+  subscription,
+  fallbackFirebaseUID,
+}) {
+  let resolvedSubscription = subscription;
+
+  if (!resolvedSubscription || typeof resolvedSubscription === "string") {
+    resolvedSubscription = await stripeClient.subscriptions.retrieve(
+        resolvedSubscription,
+        {expand: ["items.data.price"]},
+    );
+  } else if (
+    !resolvedSubscription.items ||
+    !resolvedSubscription.items.data ||
+    !resolvedSubscription.items.data[0] ||
+    !resolvedSubscription.items.data[0].price
+  ) {
+    resolvedSubscription = await stripeClient.subscriptions.retrieve(
+        resolvedSubscription.id,
+        {expand: ["items.data.price"]},
+    );
+  }
+
+  const customerId = typeof resolvedSubscription.customer === "string" ?
+    resolvedSubscription.customer :
+    (resolvedSubscription.customer ? resolvedSubscription.customer.id : null);
+  const firebaseUID = getObjectMetadataValue(
+      resolvedSubscription,
+      "firebaseUID",
+  ) ||
+    fallbackFirebaseUID ||
+    await resolveFirebaseUidForCustomer({
+      stripeClient,
+      customerId,
+    });
+
+  if (!firebaseUID) {
+    throw new Error("Could not resolve Firebase user for subscription");
+  }
+
+  const firstSubscriptionItem = resolvedSubscription.items &&
+    resolvedSubscription.items.data &&
+    resolvedSubscription.items.data[0] ?
+    resolvedSubscription.items.data[0] :
+    null;
+  const lookupKey = getObjectMetadataValue(resolvedSubscription, "lookupKey") ||
+    (firstSubscriptionItem && firstSubscriptionItem.price ?
+      firstSubscriptionItem.price.lookup_key :
+      null) ||
+    null;
+  const subscriptionEndDate = formatDateFromUnixTimestamp(
+      resolvedSubscription.current_period_end,
+  );
+  const active = isSubscriptionEntitled(resolvedSubscription);
+
+  await getCombatModelCollection().doc(firebaseUID).set({
+    subscription: active,
+    subscriptionEndDate,
+    stripeSubscriptionId: resolvedSubscription.id,
+    stripeCustomerId: customerId || null,
+    stripePriceLookupKey: lookupKey,
+    subscriptionStatus: resolvedSubscription.status,
+    billingProvider: "stripe",
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  }, {merge: true});
+
+  if (customerId) {
+    await getUsersCollection().doc(firebaseUID).set({
+      stripeCustomerId: customerId,
+    }, {merge: true});
+  }
+
+  return {
+    active,
+    customerId: customerId || null,
+    firebaseUID,
+    lookupKey,
+    subscriptionEndDate,
+    subscriptionId: resolvedSubscription.id,
+    subscriptionStatus: resolvedSubscription.status,
+  };
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {object} params.invoice
+ * @return {Promise<object|null>}
+ */
+async function syncStripeInvoiceToFirestore({stripeClient, invoice}) {
+  const subscriptionId = typeof invoice.subscription === "string" ?
+    invoice.subscription :
+    (invoice.subscription ? invoice.subscription.id : null);
+
+  if (!subscriptionId) {
+    console.log(
+        `Invoice ${invoice.id || "unknown"} ` +
+        "has no subscription; skipping sync.",
+    );
+    return null;
+  }
+
+  return syncStripeSubscriptionToFirestore({
+    stripeClient,
+    subscription: subscriptionId,
+    fallbackFirebaseUID: getObjectMetadataValue(invoice, "firebaseUID"),
+  });
+}
+
+/**
+ * @param {object} secretParam
+ * @param {string} secretName
+ * @return {string}
+ */
+function getRequiredSecretValue(secretParam, secretName) {
+  const secretValue = secretParam.value();
+
+  if (!secretValue) {
+    throw new Error(`${secretName} is not configured in Secret Manager`);
+  }
+
+  return secretValue;
 }
 
 /**
  * Verifies the Firebase auth token sent by the client.
- * @param {import("express").Request} req
- * @return {Promise<import("firebase-admin/auth").DecodedIdToken>}
+ * @param {object} req
+ * @return {Promise<object>}
  */
 async function getAuthenticatedUser(req) {
   const authHeader = req.headers.authorization || "";
@@ -51,13 +264,12 @@ async function getAuthenticatedUser(req) {
 /**
  * Loads or creates the Stripe customer for the authenticated Firebase user.
  * @param {object} params
- * @param {ReturnType<typeof stripe>} params.stripeClient
- * @param {import("firebase-admin/auth").DecodedIdToken} params.authUser
+ * @param {object} params.stripeClient
+ * @param {object} params.authUser
  * @return {Promise<object>}
  */
 async function getOrCreateStripeCustomer({stripeClient, authUser}) {
-  const db = admin.firestore();
-  const userRef = db.collection("users").doc(authUser.uid);
+  const userRef = getUsersCollection().doc(authUser.uid);
   const userSnap = await userRef.get();
   const storedCustomerId = userSnap.exists ?
     userSnap.data().stripeCustomerId :
@@ -83,7 +295,21 @@ async function getOrCreateStripeCustomer({stripeClient, authUser}) {
     });
 
     if (matchingCustomers.data.length > 0) {
-      const matchedCustomer = matchingCustomers.data[0];
+      let matchedCustomer = matchingCustomers.data[0];
+
+      if (
+        getObjectMetadataValue(matchedCustomer, "firebaseUID") !== authUser.uid
+      ) {
+        matchedCustomer = await stripeClient.customers.update(
+            matchedCustomer.id,
+            {
+              metadata: {
+                ...matchedCustomer.metadata,
+                firebaseUID: authUser.uid,
+              },
+            },
+        );
+      }
 
       await userRef.set({
         stripeCustomerId: matchedCustomer.id,
@@ -113,11 +339,15 @@ async function getOrCreateStripeCustomer({stripeClient, authUser}) {
  * Handles POST requests to create a Stripe checkout session
  */
 exports.createCheckoutSession = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
     async (req, res) => {
       // Enable CORS
       res.set("Access-Control-Allow-Origin", "*");
       res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      res.set(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization",
+      );
 
       if (req.method === "OPTIONS") {
         res.status(204).send("");
@@ -130,7 +360,10 @@ exports.createCheckoutSession = functions.https.onRequest(
 
       try {
         const authUser = await getAuthenticatedUser(req);
-        const secretKey = await getStripeSecretKey();
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
         const stripeClient = stripe(secretKey);
 
         const {lookupKey} = req.body;
@@ -142,7 +375,6 @@ exports.createCheckoutSession = functions.https.onRequest(
         // Fetch the price based on lookupKey
         const prices = await stripeClient.prices.list({
           lookup_keys: [lookupKey],
-          expand: ["data.product"],
         });
 
         if (prices.data.length === 0) {
@@ -154,48 +386,146 @@ exports.createCheckoutSession = functions.https.onRequest(
           authUser,
         });
 
-        const ephemeralKey = await stripeClient.ephemeralKeys.create({
+        const checkoutSession = await stripeClient.checkout.sessions.create({
+          mode: "subscription",
           customer: customer.id,
-        }, {
-          stripeVersion: STRIPE_EPHEMERAL_KEY_API_VERSION,
-        });
-
-        const subscription = await stripeClient.subscriptions.create({
-          customer: customer.id,
-          items: [
-            {
-              price: prices.data[0].id,
-            },
+          line_items: [
+            {price: prices.data[0].id, quantity: 1},
           ],
-          payment_behavior: "default_incomplete",
-          payment_settings: {
-            save_default_payment_method: "on_subscription",
-          },
-          expand: ["latest_invoice.payment_intent"],
+          client_reference_id: authUser.uid,
+          success_url:
+            `${CHECKOUT_SUCCESS_URL}?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: CHECKOUT_CANCEL_URL,
           metadata: {
             firebaseUID: authUser.uid,
             lookupKey,
           },
+          subscription_data: {
+            metadata: {
+              firebaseUID: authUser.uid,
+              lookupKey,
+            },
+          },
         });
 
-        const clientSecret =
-          subscription.latest_invoice?.payment_intent?.client_secret;
-
-        if (!clientSecret) {
-          throw new Error("Stripe did not return a payment client secret");
+        if (!checkoutSession.url) {
+          throw new Error("Stripe did not return a Checkout URL");
         }
 
         return res.json({
-          mode: "payment_sheet",
-          clientSecret,
+          mode: "checkout",
+          checkoutUrl: checkoutSession.url,
           customerId: customer.id,
-          ephemeralKey: ephemeralKey.secret,
-          subscriptionId: subscription.id,
+          sessionId: checkoutSession.id,
         });
       } catch (error) {
         console.error("Checkout error:", error);
         const statusCode = error.message === "Missing authorization token" ||
-          error.code?.startsWith("auth/") ?
+          hasAuthErrorCode(error) ?
+          401 :
+          500;
+        return res.status(statusCode).json({error: error.message});
+      }
+    },
+);
+
+/**
+ * Cloud Function: Verify Checkout Session
+ * Confirms the Checkout Session belongs to the authenticated user and syncs
+ * the resulting subscription state into Firestore.
+ */
+exports.verifyCheckoutSession = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
+    async (req, res) => {
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.set(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization",
+      );
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        const authUser = await getAuthenticatedUser(req);
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
+        const stripeClient = stripe(secretKey);
+        const {sessionId} = req.body;
+
+        if (!sessionId) {
+          return res.status(400).json({error: "Missing sessionId"});
+        }
+
+        const checkoutSession = await stripeClient.checkout.sessions.retrieve(
+            sessionId,
+            {expand: ["subscription"]},
+        );
+
+        if (checkoutSession.mode !== "subscription") {
+          return res.status(400).json({
+            error: "Checkout session is not a subscription session",
+          });
+        }
+
+        const resolvedFirebaseUID = checkoutSession.client_reference_id ||
+          getObjectMetadataValue(checkoutSession, "firebaseUID") ||
+          getObjectMetadataValue(checkoutSession.subscription, "firebaseUID") ||
+          await resolveFirebaseUidForCustomer({
+            stripeClient,
+            customerId: checkoutSession.customer,
+          });
+
+        if (resolvedFirebaseUID !== authUser.uid) {
+          return res.status(403).json({
+            error: "Checkout session does not belong to this user",
+          });
+        }
+
+        if (checkoutSession.status !== "complete") {
+          return res.status(409).json({
+            error: "Checkout session has not completed yet",
+          });
+        }
+
+        if (!["paid", "no_payment_required"].includes(
+            checkoutSession.payment_status,
+        )) {
+          return res.status(409).json({
+            error: "Checkout session payment is not complete yet",
+          });
+        }
+
+        if (!checkoutSession.subscription) {
+          return res.status(400).json({
+            error: "Checkout session did not create a subscription",
+          });
+        }
+
+        const syncResult = await syncStripeSubscriptionToFirestore({
+          stripeClient,
+          subscription: checkoutSession.subscription,
+          fallbackFirebaseUID: authUser.uid,
+        });
+
+        return res.json({
+          verified: true,
+          sessionId: checkoutSession.id,
+          ...syncResult,
+        });
+      } catch (error) {
+        console.error("Checkout verification error:", error);
+        const statusCode = error.message === "Missing authorization token" ||
+          hasAuthErrorCode(error) ?
           401 :
           500;
         return res.status(statusCode).json({error: error.message});
@@ -208,11 +538,15 @@ exports.createCheckoutSession = functions.https.onRequest(
  * Handles POST requests to create a Stripe billing portal session
  */
 exports.createPortalSession = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
     async (req, res) => {
       // Enable CORS
       res.set("Access-Control-Allow-Origin", "*");
       res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      res.set(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization",
+      );
 
       if (req.method === "OPTIONS") {
         res.status(204).send("");
@@ -225,12 +559,14 @@ exports.createPortalSession = functions.https.onRequest(
 
       try {
         const authUser = await getAuthenticatedUser(req);
-        const secretKey = await getStripeSecretKey();
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
         const stripeClient = stripe(secretKey);
 
         const {sessionId, customerId} = req.body;
-        const db = admin.firestore();
-        const userRef = db.collection("users").doc(authUser.uid);
+        const userRef = getUsersCollection().doc(authUser.uid);
         const userSnap = await userRef.get();
         const storedCustomerId = userSnap.exists ?
           userSnap.data().stripeCustomerId :
@@ -256,16 +592,16 @@ exports.createPortalSession = functions.https.onRequest(
 
         // Create billing portal session
         const portalSession =
-                await stripeClient.billingPortal.sessions.create({
-                  customer: resolvedCustomerId,
-                  return_url: `${YOUR_DOMAIN}/#subscription`,
-                });
+          await stripeClient.billingPortal.sessions.create({
+            customer: resolvedCustomerId,
+            return_url: BILLING_PORTAL_RETURN_URL,
+          });
 
         return res.json({url: portalSession.url});
       } catch (error) {
         console.error("Portal error:", error);
         const statusCode = error.message === "Missing authorization token" ||
-          error.code?.startsWith("auth/") ?
+          hasAuthErrorCode(error) ?
           401 :
           500;
         return res.status(statusCode).json({error: error.message});
@@ -279,27 +615,25 @@ exports.createPortalSession = functions.https.onRequest(
  * Not implemented fully - extend as needed
  */
 exports.stripeWebhook = functions.https.onRequest(
+    {
+      invoker: "public",
+      secrets: [stripeSecretKeyParam, stripeWebhookSecretParam],
+    },
     async (req, res) => {
       if (req.method !== "POST") {
         return res.status(405).send("Method Not Allowed");
       }
 
       try {
-        const secretKey = await getStripeSecretKey();
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
         const stripeClient = stripe(secretKey);
-
-        // Get the webhook signing secret from Firestore
-        const db = admin.firestore();
-        const docRef = db.collection("config").doc("secrets");
-        const docSnap = await docRef.get();
-        const endpointSecret = docSnap.data().stripe_webhook_secret;
-
-        if (!endpointSecret) {
-          console.warn("Webhook endpoint secret not configured");
-          return res
-              .status(400)
-              .json({error: "Webhook not configured"});
-        }
+        const endpointSecret = getRequiredSecretValue(
+            stripeWebhookSecretParam,
+            "STRIPE_WEBHOOK_SECRET",
+        );
 
         // Verify the webhook signature
         const signature = req.headers["stripe-signature"];
@@ -322,17 +656,54 @@ exports.stripeWebhook = functions.https.onRequest(
 
         // Handle the event
         switch (event.type) {
+          case "checkout.session.completed":
+            if (
+              event.data.object.mode === "subscription" &&
+              event.data.object.subscription
+            ) {
+              await syncStripeSubscriptionToFirestore({
+                stripeClient,
+                subscription: event.data.object.subscription,
+                fallbackFirebaseUID:
+                  event.data.object.client_reference_id ||
+                  getObjectMetadataValue(event.data.object, "firebaseUID"),
+              });
+            }
+            break;
           case "customer.subscription.created":
             console.log("Subscription created:", event.data.object);
-            // TODO: Handle subscription created
+            await syncStripeSubscriptionToFirestore({
+              stripeClient,
+              subscription: event.data.object,
+            });
             break;
           case "customer.subscription.updated":
             console.log("Subscription updated:", event.data.object);
-            // TODO: Handle subscription updated
+            await syncStripeSubscriptionToFirestore({
+              stripeClient,
+              subscription: event.data.object,
+            });
             break;
           case "customer.subscription.deleted":
             console.log("Subscription deleted:", event.data.object);
-            // TODO: Handle subscription deleted
+            await syncStripeSubscriptionToFirestore({
+              stripeClient,
+              subscription: event.data.object,
+            });
+            break;
+          case "invoice.paid":
+            console.log("Invoice paid:", event.data.object.id);
+            await syncStripeInvoiceToFirestore({
+              stripeClient,
+              invoice: event.data.object,
+            });
+            break;
+          case "invoice.payment_failed":
+            console.log("Invoice payment failed:", event.data.object.id);
+            await syncStripeInvoiceToFirestore({
+              stripeClient,
+              invoice: event.data.object,
+            });
             break;
           case "customer.subscription.trial_will_end":
             console.log(
@@ -354,69 +725,38 @@ exports.stripeWebhook = functions.https.onRequest(
 );
 
 /**
- * Fetches the OpenAI API key from Firestore
- * @return {Promise<string>} The OpenAI API key
- */
-async function getOpenAIKey() {
-  try {
-    const db = admin.firestore();
-    const docRef = db.collection("config").doc("secrets");
-    const docSnap = await docRef.get();
-
-    if (docSnap.exists && docSnap.data().openai_key) {
-      return docSnap.data().openai_key;
-    } else {
-      throw new Error("OpenAI API key not found in Firestore");
-    }
-  } catch (error) {
-    console.error("Error fetching OpenAI key:", error);
-    throw error;
-  }
-}
-
-/**
  * Cloud Function: Generate Training Plan
  * Uses OpenAI API to generate a personalized training plan based on user inputs
  * Server-side to protect API key and handle rate limiting
  */
 exports.generateTrainingPlan = functions.https.onCall(
-    async (data, context) => {
+    {secrets: [openAiApiKeyParam]},
+    async (request) => {
       try {
-        const openaiKey = await getOpenAIKey();
+        if (!request.auth) {
+          throw new functions.https.HttpsError(
+              "unauthenticated",
+              "You must be signed in to generate a training plan.",
+          );
+        }
+
+        const openaiKey = getRequiredSecretValue(
+            openAiApiKeyParam,
+            "OPENAI_API_KEY",
+        );
         const fetch = require("node-fetch");
-
-        const {
-          goal,
-          experience,
-          daysPerWeek,
-          weightClass,
-          primaryStyle,
-          competitionPeriod,
-          equipment,
-          injuries,
-          preferences,
-          primaryCombatSport,
-          focusEmphasis,
-          numWeeks,
-          trainingPlanBatch,
-        } = data;
-
-        // Build a structured prompt similar to the client-side version
-        const prompt = buildTrainingPlanPrompt({
-          goal,
-          experience,
-          daysPerWeek,
-          weightClass,
-          primaryStyle,
-          competitionPeriod,
-          equipment,
-          injuries,
-          preferences,
-          primaryCombatSport,
-          focusEmphasis,
-          numWeeks,
-          trainingPlanBatch,
-        });
+        const data = request.data || {};
+        const hasCustomMessages =
+          Array.isArray(data.messages) && data.messages.length > 0;
+        const messages = hasCustomMessages ?
+          data.messages :
+          buildOpenAiMessagesFromData(data);
+        const model = typeof data.model === "string" && data.model ?
+          data.model :
+          "gpt-4o-mini";
+        const temperature = typeof data.temperature === "number" ?
+          data.temperature :
+          0.7;
 
         // Call OpenAI API
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -426,14 +766,9 @@ exports.generateTrainingPlan = functions.https.onCall(
             "Authorization": `Bearer ${openaiKey}`,
           },
           body: JSON.stringify({
-            model: "gpt-4o-mini",
-            temperature: 0.7,
-            messages: [
-              {
-                role: "system",
-                content: prompt,
-              },
-            ],
+            model,
+            temperature,
+            messages,
             response_format: {type: "json_object"},
           }),
         });
@@ -466,6 +801,51 @@ exports.generateTrainingPlan = functions.https.onCall(
       }
     },
 );
+
+/**
+ * @param {object} data
+ * @return {Array<object>}
+ */
+function buildOpenAiMessagesFromData(data) {
+  const {
+    goal,
+    experience,
+    daysPerWeek,
+    weightClass,
+    primaryStyle,
+    competitionPeriod,
+    equipment,
+    injuries,
+    preferences,
+    primaryCombatSport,
+    focusEmphasis,
+    numWeeks,
+    trainingPlanBatch,
+  } = data;
+
+  const prompt = buildTrainingPlanPrompt({
+    goal,
+    experience,
+    daysPerWeek,
+    weightClass,
+    primaryStyle,
+    competitionPeriod,
+    equipment,
+    injuries,
+    preferences,
+    primaryCombatSport,
+    focusEmphasis,
+    numWeeks,
+    trainingPlanBatch,
+  });
+
+  return [
+    {
+      role: "system",
+      content: prompt,
+    },
+  ];
+}
 
 /**
  * Builds a training plan prompt following the same structure

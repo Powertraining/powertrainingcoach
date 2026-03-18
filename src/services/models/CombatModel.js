@@ -11,7 +11,7 @@ import {
   updateProfile as fbUpdateProfile,
   updatePassword,
 } from "../config/firebaseSdk.js";
-import { saveFeedback, getApiConfig } from "./dbService.js";
+import { saveFeedback } from "./dbService.js";
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -129,14 +129,33 @@ export const model = {
   },
 
   isSubscribed() {
-    // Check if subscription is active and not expired
-    if (!this.subscription || !this.subscriptionEndDate || this.subscription.status !== 'active') {
+    if (!this.subscription || !this.subscriptionEndDate) {
       return false;
     }
     
     const today = new Date();
     const endDate = new Date(this.subscriptionEndDate);
     return today <= endDate;
+  },
+
+  /**
+   * Applies server-verified subscription state directly.
+   * @param {object} nextState
+   * @param {boolean} nextState.subscription
+   * @param {string|null} nextState.subscriptionEndDate
+   */
+  applySubscriptionState({ subscription, subscriptionEndDate }) {
+    const shouldResetTrainingProgress =
+      Boolean(subscription) &&
+      Boolean(subscriptionEndDate) &&
+      !this.subscriptionEndDate;
+
+    this.subscription = Boolean(subscription);
+    this.subscriptionEndDate = subscriptionEndDate || null;
+
+    if (shouldResetTrainingProgress) {
+      this.resetTrainingProgress();
+    }
   },
 
   /**

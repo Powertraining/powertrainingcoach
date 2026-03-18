@@ -347,27 +347,7 @@ export async function saveFeedback(feedbackData) {
   }
 }
 
-// API Config and Instructions Management
-
-// Get API configuration from Firestore
-export async function getApiConfig() {
-  try {
-    const docRef = doc(db, "config", "secrets");
-    const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
-      return docSnap.data(); // return { openai_key: "..." }
-    } else {
-      console.warn("No API config found in DB.");
-      return null;
-    }
-  } catch (error) {
-    console.error("Error fetching API config:", error);
-    return null;
-  }
-}
-
-// Get live instructions (Prompts) from Firebase Storage
+// Get live instructions (prompts) from Firebase Storage
 export async function getLiveInstructions() {
   try {
     const instructionsRef = ref(storage, "instructions");
