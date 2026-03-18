@@ -1,36 +1,37 @@
-import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import StandardText from "../../components/StandardText.jsx";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import StandardText from "../../components/textComponents/StandardText.jsx";
+import TitleText from "../../components/textComponents/TitleText.jsx";
 import SignFormInput from "../../components/SignFormInput.jsx";
+import GoogleButtonComponent from "../../components/GoogleButtonComponent.jsx";
 
 export function LoginView(props) {
     return (
         <View>
-            <StandardText>Welcome back! Please log in to continue.</StandardText>
+            <TitleText>Welcome back!</TitleText>
 
-            <SignFormInput text="hello" />
-            <View>
-                <StandardText>E-Mail:</StandardText>
-                <TextInput
-                    value={props.identifier}
-                    onChangeText={props.onIdentifierChange}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
-            </View>
-
-            <View>
-                <StandardText>Password:</StandardText>
-                <TextInput
-                    value={props.password}
-                    onChangeText={props.onPasswordChange}
-                    secureTextEntry
-                />
-            </View>
+            <SignFormInput 
+                text="E-mail"
+                image="user"
+                inputProps = {{value: props.identifier,
+                onChangeText: props.onIdentifierChange,
+                keyboardType : "email-address",
+                autoCapitalize: "none",
+                }}  
+            />
+            <SignFormInput 
+                text="Password"
+                image="user"
+                inputProps = {{value: props.password, 
+                onChangeText: props.onPasswordChange,
+                secureTextEntry: true,
+                }}  
+            />
+            <GoogleButtonComponent onPress={props.onSubmitGoogle} />
+            <TouchableOpacity style={{width: "100%"}}>
+                    <StandardText center={true}>Forgot password?</StandardText>
+                </TouchableOpacity>
 
             <View style={styles.linksRow}>
-                <TouchableOpacity>
-                    <StandardText>Forgot password?</StandardText>
-                </TouchableOpacity>
                 <TouchableOpacity onPress={props.onSignupPress}>
                     <StandardText>Sign up</StandardText>
                 </TouchableOpacity>
@@ -40,10 +41,6 @@ export function LoginView(props) {
 
             <TouchableOpacity onPress={props.onSubmit} disabled={props.isSubmitting}>
                 <StandardText>{props.isSubmitting ? "Logging in..." : "Login"}</StandardText>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={props.onSubmitGoogle}>
-                <StandardText>Continue with Google</StandardText>
             </TouchableOpacity>
         </View>
     );
