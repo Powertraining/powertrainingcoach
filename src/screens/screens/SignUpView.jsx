@@ -1,53 +1,55 @@
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
+import StandardText from "../../components/textComponents/StandardText.jsx";
+import TitleText from "../../components/textComponents/TitleText.jsx";
+import SignFormInput from "../../components/SignFormInput.jsx";
+import LargeSwitch from "../../components/LargeSwitch.jsx";
+import GoogleButtonComponent from "../../components/GoogleButton.jsx";
 
 export function SignUpView(props) {
   return (
-    <View>
-      <View style={{ flexDirection: "row" }}>
-        <Text>Sign</Text>
-        <Text>Up</Text>
-      </View>
+    <View style={{ flex: 1 }}>
+      <TitleText>Lets Get Started</TitleText>
 
-      <View style={{ flexDirection: "row" }}>
-        <Text>Have already an account? </Text>
-        <TouchableOpacity onPress={props.onLoginPress}>
-          <Text>Login</Text>
-        </TouchableOpacity>
-      </View>
+      <SignFormInput
+        text="Username"
+        image="user"
+        inputProps={{
+          value: props.username,
+          onChangeText: props.onUsernameChange,
+          autoCapitalize: "none",
+        }}
+      />
+      <SignFormInput
+        text="E-mail"
+        image="user"
+        inputProps={{
+          value: props.email,
+          onChangeText: props.onEmailChange,
+          keyboardType: "email-address",
+          autoCapitalize: "none",
+        }}
+      />
+      <SignFormInput
+        text="Password"
+        image="lock"
+        inputProps={{
+          value: props.password,
+          onChangeText: props.onPasswordChange,
+          secureTextEntry: true,
+        }}
+      />
 
-      <View>
-        <Text>Username:</Text>
-        <TextInput
-          value={props.username}
-          onChangeText={props.onUsernameChange}
-          autoCapitalize="none"
+      <GoogleButtonComponent />
+
+      {props.error && <StandardText center={true}>{props.error}</StandardText>}
+
+      <View style={{ marginTop: "auto", paddingBottom: 16 }}>
+        <LargeSwitch
+          highlighted={2}
+          onPress1={props.onLoginPress}
+          onPress2={props.onSubmit}
         />
       </View>
-
-      <View>
-        <Text>E-Mail:</Text>
-        <TextInput
-          value={props.email}
-          onChangeText={props.onEmailChange}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
-
-      <View>
-        <Text>Password:</Text>
-        <TextInput
-          value={props.password}
-          onChangeText={props.onPasswordChange}
-          secureTextEntry
-        />
-      </View>
-
-      {props.error && <Text>{props.error}</Text>}
-
-      <TouchableOpacity onPress={props.onSubmit} disabled={props.isSubmitting}>
-        <Text>{props.isSubmitting ? "Signing up..." : "Sign Up"}</Text>
-      </TouchableOpacity>
     </View>
   );
 }
