@@ -13,7 +13,7 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
   - For iOS: Xcode and CocoaPods (macOS) if building locally
   - For Android: Android Studio and Android SDK if building locally
 - A Firebase project with authentication and Firestore enabled
-- OpenAI API key
+- OpenAI API key for Firebase Functions Secret Manager
 - Stripe account for payment processing
 
 ### Installation Steps
@@ -34,8 +34,15 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
    - Enable Authentication (Email/Password and Google Sign-In)
    - Create a Firestore database
    - Add `google-services.json` for Android and `GoogleService-Info.plist` for iOS
-   - Configure Firebase JS SDK values with `EXPO_PUBLIC_FIREBASE_*` environment variables if you need to override the defaults in `src/services/config/firebase.js`
-   - Configure Stripe API keys as environment variables for the app and Firebase Cloud Functions
+  - Configure Firebase JS SDK values with `EXPO_PUBLIC_FIREBASE_*` environment variables if you need to override the defaults in `src/services/config/firebase.js`
+  - Configure Stripe client-safe values with Expo environment variables if needed
+  - Stripe function endpoints default to `https://us-central1-${EXPO_PUBLIC_FIREBASE_PROJECT_ID}.cloudfunctions.net`
+    and can be overridden with `EXPO_PUBLIC_STRIPE_FUNCTIONS_BASE_URL` if you use a different project or region
+  - Store Stripe server secrets in Firebase Secret Manager:
+    `firebase functions:secrets:set STRIPE_SECRET_KEY`
+    `firebase functions:secrets:set STRIPE_WEBHOOK_SECRET`
+  - Store the OpenAI server secret in Firebase Secret Manager:
+    `firebase functions:secrets:set OPENAI_API_KEY`
 
 4. **Configure Google Sign-In**
    - Provide `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`

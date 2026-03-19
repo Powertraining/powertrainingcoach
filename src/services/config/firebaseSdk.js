@@ -23,4 +23,5 @@ export {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore/lite";
+export { getFunctions, httpsCallable } from "firebase/functions";
 export { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";

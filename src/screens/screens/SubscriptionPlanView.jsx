@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useStripe } from "@stripe/stripe-react-native";
+import { Linking, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 import { createCheckoutSession } from "../../services/utils/stripeClient.js";
 
 const plans = [
-  { key: "starter_plan", name: "Starter Plan (1 week)", price: "20.00 SEK / week" },
-  { key: "pro_plan", name: "Pro Plan (1 month)", price: "70.00 SEK / month" },
-  { key: "expert_plan", name: "Expert Plan (1 year)", price: "800.00 SEK / year" },
+  { key: "starter_plan_setup", name: "Starter Plan (1 week)", price: "80.00 SEK / week" },
+  { key: "pro_plan_setup", name: "Pro Plan (1 month)", price: "290.00 SEK / month" },
+  { key: "expert_plan_setup", name: "Expert Plan (1 year)", price: "2990.00 SEK / year" },
 ];
 
 export default function SubscriptionPlanView({ onCheckoutSuccess }) {
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loadingPlan, setLoadingPlan] = useState("");
   const [error, setError] = useState(null);
 
@@ -22,40 +20,16 @@ export default function SubscriptionPlanView({ onCheckoutSuccess }) {
     try {
       const checkoutData = await createCheckoutSession(planKey);
 
-      if (!checkoutData?.clientSecret || !checkoutData?.customerId || !checkoutData?.ephemeralKey) {
-        throw new Error("Stripe did not return a valid mobile checkout payload.");
-      }
-
-      const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: "PowerTrainingCoach",
-        paymentIntentClientSecret: checkoutData.clientSecret,
-        customerId: checkoutData.customerId,
-        customerEphemeralKeySecret: checkoutData.ephemeralKey,
-        allowsDelayedPaymentMethods: true,
-        returnURL: "powertrainingcoach://stripe-redirect",
-      });
-
-      if (initError) {
-        throw new Error(initError.message || "Failed to initialize the payment sheet.");
-      }
-
-      const { error: paymentError } = await presentPaymentSheet();
-
-      if (paymentError) {
-        const errorCode = String(paymentError.code || "").toLowerCase();
-
-        if (errorCode !== "canceled") {
-          throw new Error(paymentError.message || "Payment could not be completed.");
-        }
-
-        return;
+      if (!checkoutData?.checkoutUrl) {
+        throw new Error("Stripe did not return a valid Checkout URL.");
       }
 
       onCheckoutSuccess?.({
         planKey,
-        customerId: checkoutData.customerId,
-        subscriptionId: checkoutData.subscriptionId,
+        checkoutSessionId: checkoutData.sessionId,
       });
+
+      await Linking.openURL(checkoutData.checkoutUrl);
     } catch (err) {
       setError(err.message || "Failed to start checkout. Please try again.");
     } finally {

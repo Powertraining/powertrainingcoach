@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { View, StyleSheet } from "react-native";
@@ -8,55 +8,90 @@ import SubscriptionPlanView from "../../src/screens/screens/SubscriptionPlanView
 import PaymentSuccessView from "../../src/screens/screens/PaymentSuccessView.jsx";
 import MessageView from "../../src/screens/screens/MessageView.jsx";
 import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import LoadingView from "../../src/screens/screens/LoadingView.jsx";
+import { verifyCheckoutSession } from "../../src/services/utils/stripeClient.js";
 
 const SubscriptionScreen = observer(function SubscriptionScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
+  const handledSessionIdRef = useRef("");
 
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const [customerId, setCustomerId] = useState("");
+  const [verifyingSession, setVerifyingSession] = useState(false);
+
+  function getParamValue(value) {
+    return Array.isArray(value) ? value[0] : value;
+  }
 
   useEffect(() => {
-    // Check to see if this is a redirect back from Checkout
-    const successParam = params.success;
-    const sessionIdParam = params.session_id;
-    const planParam = params.plan;
+    const successParam = getParamValue(params.success);
+    const sessionIdParam = getParamValue(params.session_id);
+    const canceledParam = getParamValue(params.canceled);
 
     console.log("SubscriptionScreen DEBUG - Params:", {
       success: successParam,
       session_id: sessionIdParam,
-      plan: planParam,
+      canceled: canceledParam,
     });
 
-    if (successParam === "true") {
-      console.log("✅ Payment success detected, setting success state");
-      setSuccess(true);
-      setSessionId(sessionIdParam || "");
-
-      // Update the model subscription with the plan end date
-      const plan = planParam || "";
-      if (plan && model.user && model.user.uid && model.ready) {
-        console.log("[SubscriptionScreen] User is ready, updating subscription via model");
-        model.setSubscriptionWithPlan?.(plan);
-        console.log("✅ Subscription updated in model:", {
-          subscription: true,
-          subscriptionEndDate: model.subscriptionEndDate,
-          plan: plan,
-          userId: model.user.uid,
-        });
-      }
+    if (canceledParam === "true") {
+      setVerifyingSession(false);
+      setSuccess(false);
+      setSessionId("");
+      setMessage(
+        "Order canceled. You can review the plans and try checkout again when you're ready."
+      );
+      return;
     }
 
-    if (params.canceled === "true") {
+    if (successParam !== "true") {
+      return;
+    }
+
+    if (!sessionIdParam) {
       setSuccess(false);
       setMessage(
-        "Order canceled -- continue to check your subscription and checkout when you're ready."
+        "Stripe returned without a session identifier. Please try the checkout again."
       );
+      return;
     }
-  }, [params, model.user, model.ready]);
+
+    if (!model.user || !model.ready || handledSessionIdRef.current === sessionIdParam) {
+      return;
+    }
+
+    handledSessionIdRef.current = sessionIdParam;
+    setVerifyingSession(true);
+    setSuccess(false);
+    setMessage("");
+
+    verifyCheckoutSession(sessionIdParam)
+      .then((verification) => {
+        model.applySubscriptionState?.({
+          subscription: verification.active,
+          subscriptionEndDate: verification.subscriptionEndDate,
+        });
+        setCustomerId(verification.customerId || "");
+        setSessionId(sessionIdParam);
+        setSuccess(true);
+      })
+      .catch((error) => {
+        console.error("Subscription verification failed:", error);
+        handledSessionIdRef.current = "";
+        setSuccess(false);
+        setMessage(
+          error.message ||
+            "We couldn't verify the payment yet. Please wait a moment and try again."
+        );
+      })
+      .finally(() => {
+        setVerifyingSession(false);
+      });
+  }, [model, model.ready, model.user, params]);
 
   // Check auth
   if (!model.user) {
@@ -76,18 +111,20 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     router.replace("/(tabs)");
   }
 
-  function handleCheckoutSuccess({ planKey, customerId: stripeCustomerId }) {
-    setSuccess(true);
+  function handleCheckoutSuccess() {
+    setSuccess(false);
     setMessage("");
     setSessionId("");
-    setCustomerId(stripeCustomerId || "");
-
-    if (planKey && model.user && model.user.uid && model.ready) {
-      model.setSubscriptionWithPlan?.(planKey);
-    }
+    setCustomerId("");
   }
 
-  if (!success && message === "") {
+  if (verifyingSession) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <LoadingView />
+      </View>
+    );
+  } else if (!success && message === "") {
     console.log("📋 Rendering SubscriptionPlanView");
     return (
       <View style={styles.container}>
@@ -124,5 +161,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f7",
+  },
+  centered: {
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
