@@ -2,11 +2,12 @@ import { View, TouchableOpacity, StyleSheet } from "react-native";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
 import SignFormInput from "../../components/SignFormInput.jsx";
-import GoogleButtonComponent from "../../components/GoogleButtonComponent.jsx";
+import GoogleButtonComponent from "../../components/GoogleButton.jsx";
+import LargeSwitch from "../../components/LargeSwitch.jsx";
 
 export function LoginView(props) {
     return (
-        <View>
+        <View style={{flex: 1,}}>
             <TitleText>Welcome back!</TitleText>
 
             <SignFormInput 
@@ -20,7 +21,7 @@ export function LoginView(props) {
             />
             <SignFormInput 
                 text="Password"
-                image="user"
+                image="lock"
                 inputProps = {{value: props.password, 
                 onChangeText: props.onPasswordChange,
                 secureTextEntry: true,
@@ -28,20 +29,16 @@ export function LoginView(props) {
             />
             <GoogleButtonComponent onPress={props.onSubmitGoogle} />
             <TouchableOpacity style={{width: "100%"}}>
-                    <StandardText center={true}>Forgot password?</StandardText>
+                    <StandardText center={true}>Forgot your password?</StandardText>
                 </TouchableOpacity>
 
-            <View style={styles.linksRow}>
-                <TouchableOpacity onPress={props.onSignupPress}>
-                    <StandardText>Sign up</StandardText>
-                </TouchableOpacity>
-            </View>
-
+            
             {props.error && <StandardText>{props.error}</StandardText>}
 
-            <TouchableOpacity onPress={props.onSubmit} disabled={props.isSubmitting}>
-                <StandardText>{props.isSubmitting ? "Logging in..." : "Login"}</StandardText>
-            </TouchableOpacity>
+            <View style={{ marginTop: "auto", paddingBottom: 16 }}>
+                <LargeSwitch highlighted={1} onPress2={props.onSignupPress}
+                onPress1 = {props.onSubmit} disabled1={props.isSubmitting}/>
+            </View>
         </View>
     );
 }

@@ -2,6 +2,7 @@ import { View, TextInput, Image } from "react-native";
 
 const iconMap = {
   user: require("../assets/icons/user.png"),
+  lock: require("../assets/icons/lock.png"),
 };
 
 export default function SignFormInput({ text, image, inputProps, type }) {
@@ -33,7 +34,7 @@ export default function SignFormInput({ text, image, inputProps, type }) {
         style={{
           color: "#fff",
           fontFamily: "BebasNeue",
-          fontSize: 20,
+          fontSize: 18,
           flex: 1,
           textAlignVertical: "center",
           height: "100%",
