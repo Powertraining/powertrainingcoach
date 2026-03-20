@@ -123,15 +123,15 @@ const ConfiguredNativeLoginScreen = observer(function ConfiguredNativeLoginScree
 
   return (
     <LoginView
-      identifier={identifier}
-      password={password}
-      isSubmitting={isSubmitting}
-      error={error}
-      onIdentifierChange={identifierChangeACB}
-      onPasswordChange={passwordChangeACB}
-      onSubmit={submitACB}
-      onSubmitGoogle={submitGoogleACB}
-      onSignupPress={handleSignupPress}
+      identifier={getIdentifier()}
+      password={getPassword()}
+      isSubmitting={getIsSubmitting()}
+      error={getError()}
+      onIdentifierChange={getOnIdentifierChange()}
+      onPasswordChange={getOnPasswordChange()}
+      onSubmit={getOnSubmit()}
+      onSubmitGoogle={getOnSubmitGoogle()}
+      onSignupPress={getOnSignupPress()}
     />
   );
 });

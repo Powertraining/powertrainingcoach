@@ -15,7 +15,7 @@ const IndexScreen = observer(function IndexScreen() {
   if (model.user) {
     return <Redirect href="/(tabs)" />;
   } else {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(auth)/auth" />;
   }
 });
 

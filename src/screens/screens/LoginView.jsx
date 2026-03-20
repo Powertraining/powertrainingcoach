@@ -3,7 +3,7 @@ import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
 import SignFormInput from "../../components/SignFormInput.jsx";
 import GoogleButtonComponent from "../../components/GoogleButton.jsx";
-import LargeSwitch from "../../components/LargeSwitch.jsx";
+
 
 export function LoginView(props) {
     return (
@@ -34,11 +34,6 @@ export function LoginView(props) {
 
             
             {props.error && <StandardText>{props.error}</StandardText>}
-
-            <View style={{ marginTop: "auto", paddingBottom: 16 }}>
-                <LargeSwitch highlighted={1} onPress2={props.onSignupPress}
-                onPress1 = {props.onSubmit} disabled1={props.isSubmitting}/>
-            </View>
         </View>
     );
 }

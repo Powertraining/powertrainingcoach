@@ -2,7 +2,6 @@ import { View, TouchableOpacity } from "react-native";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
 import SignFormInput from "../../components/SignFormInput.jsx";
-import LargeSwitch from "../../components/LargeSwitch.jsx";
 import GoogleButtonComponent from "../../components/GoogleButton.jsx";
 
 export function SignUpView(props) {
@@ -42,14 +41,6 @@ export function SignUpView(props) {
       <GoogleButtonComponent />
 
       {props.error && <StandardText center={true}>{props.error}</StandardText>}
-
-      <View style={{ marginTop: "auto", paddingBottom: 16 }}>
-        <LargeSwitch
-          highlighted={2}
-          onPress1={props.onLoginPress}
-          onPress2={props.onSubmit}
-        />
-      </View>
     </View>
   );
 }
