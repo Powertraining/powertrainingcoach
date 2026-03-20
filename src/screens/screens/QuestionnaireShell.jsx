@@ -1,17 +1,16 @@
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 export default function QuestionnaireShell({ children, onLogoClick }) {
     return (
-        <View style={{ flex: 1 }} >
+        <View style={ styles.container} >
             {children}
         </View>
     );
 }
 
-// export default function QuestionnaireShell({ children, onLogoClick }) {
-//     return (
-//         <div className="questionnaire-page">
-//             <main className="questionnaire-main">{children}</main>
-//         </div>
-//     );
-// }
+const styles = StyleSheet.create({
+    container : {
+        backgroundColor : "#000",
+        flex: 1,
+    }
+});

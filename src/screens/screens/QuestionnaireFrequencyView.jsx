@@ -1,18 +1,19 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx"
+import StandardText from "../../components/textComponents/StandardText.jsx"
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick }) {
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
-            <View>
+            <View style={styles.container}>
                 <TitleText>How many days a week do you exercise?</TitleText>
 
                 <View>
                     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                        <Text>total body, comprehensive</Text>
-                        <Text>more divided, scattered</Text>
+                        <StandardText>total body, comprehensive</StandardText>
+                        <StandardText>more divided, scattered</StandardText>
                     </View>
 
                     <Slider
@@ -21,17 +22,20 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                         step={1}
                         value={value}
                         onValueChange={(v) => onChange(v)}
+                        minimumTrackTintColor="#fff"
+                        thumbTintColor="#fff"  
+                        style = {styles.slider}
                     />
 
-                    <Text>Selected: {value}</Text>
+                    <StandardText>Selected: {value}</StandardText>
                 </View>
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <TouchableOpacity onPress={onBack}>
-                        <Text>Back</Text>
+                        <StandardText>Back</StandardText>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={onContinue}>
-                        <Text>Continue</Text>
+                        <StandardText>Continue</StandardText>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -39,60 +43,8 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     );
 }
 
-// import QuestionnaireShell from "./QuestionnaireShell.jsx";
-
-// export default function QuestionnaireFrequencyView({
-//     value,
-//     onChange,
-//     onBack,
-//     onContinue,
-//     onLogoClick,
-// }) {
-//     return (
-//         <QuestionnaireShell onLogoClick={onLogoClick}>
-//             <div className="questionnaire-center">
-//                 <div className="questionnaire-content">
-//                     <h2 className="questionnaire-title">Number of sessions/week</h2>
-
-//                     <div className="frequency-slider-block">
-//                         <div className="frequency-slider-labels">
-//                             <span>total body, comprehensive</span>
-//                             <span>more divided, scattered</span>
-//                         </div>
-
-//                         <input
-//                             type="range"
-//                             min={1}
-//                             max={5}
-//                             step={1}
-//                             value={value}
-//                             onChange={(e) => onChange(Number(e.target.value))}
-//                             list="sessionsTicks"
-//                             className="frequency-slider"
-//                         />
-//                         <datalist id="sessionsTicks">
-//                             <option value="1" />
-//                             <option value="2" />
-//                             <option value="3" />
-//                             <option value="4" />
-//                             <option value="5" />
-//                         </datalist>
-
-//                         <div className="frequency-slider-value-row">
-//                             <span>Selected: {value}</span>
-//                         </div>
-//                     </div>
-
-//                     <div className="questionnaire-footer-between">
-//                         <button onClick={onBack} className="secondary-button">
-//                             Back
-//                         </button>
-//                         <button onClick={onContinue} className="primary-button">
-//                             Continue
-//                         </button>
-//                     </div>
-//                 </div>
-//             </div>
-//         </QuestionnaireShell>
-//     );
-// }
+const styles = StyleSheet.create({
+    slider : {
+        
+    }
+});

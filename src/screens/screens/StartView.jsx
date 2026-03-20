@@ -1,17 +1,18 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import StandardText from "../../components/textComponents/StandardText.jsx";
 
 export default function StartView({ onStart }) {
     return (
         <QuestionnaireShell>
             <View>
-                <Text>Welcome</Text>
-                <Text>Combat Training Planner</Text>
-                <Text>
+                <StandardText>Welcome</StandardText>
+                <StandardText>Combat Training Planner</StandardText>
+                <StandardText>
                     Create a personalized training program for martial arts based on your goals and schedule.
-                </Text>
+                </StandardText>
                 <TouchableOpacity onPress={onStart}>
-                    <Text>Create Training Program</Text>
+                    <StandardText>Create Training Program</StandardText>
                 </TouchableOpacity>
             </View>
         </QuestionnaireShell>
