@@ -1,12 +1,13 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import Slider from "@react-native-community/slider";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import TitleText from "../../components/textComponents/TitleText.jsx"
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick }) {
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
             <View>
-                <Text>Number of sessions/week</Text>
+                <TitleText>How many days a week do you exercise?</TitleText>
 
                 <View>
                     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>

@@ -110,7 +110,7 @@ const ProfileScreen = observer(function ProfileScreen() {
 
     try {
       await model.submitLogout();
-      router.replace("/(auth)/login");
+      router.replace("/(auth)/auth");
     } catch (e) {
       console.error(e);
       setError(e.message || "Logout failed.");

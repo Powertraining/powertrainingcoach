@@ -1,9 +1,16 @@
-import { useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { useState, useEffect } from "react";
+import { TouchableOpacity, View, Keyboard } from "react-native";
 import StandardText from "../../components/textComponents/StandardText";
 
 export default function AuthNavbar({ onTabChange, onSubmitLogin, onSubmitSignup }) {
   const [active, setActive] = useState(1);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   function pressLoginACB() {
     if (active === 1) {
@@ -22,6 +29,8 @@ export default function AuthNavbar({ onTabChange, onSubmitLogin, onSubmitSignup 
       onTabChange(2);
     }
   }
+
+  if (keyboardVisible) return null;
 
   return (
     <View style={{ alignSelf: "stretch", flexDirection: "row",

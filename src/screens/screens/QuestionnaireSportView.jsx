@@ -8,7 +8,9 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
             <View style={{backgroundColor: "#000",}}>
-            
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+                            <Text style={[styles.buttonText,{color:"#585858"}]}>Back</Text>
+                        </TouchableOpacity>
             <ScrollView>
             <TitleText>select your primary combat sport</TitleText>
                 <View >
@@ -16,7 +18,7 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
                     {options.map((s) => (
                         <TouchableOpacity
                             key={s}
-                            onPress={() => onChange(s)}
+                            onPress={() => onChange(value === s ? null : s)}
                             style={[styles.option, value === s && styles.optionSelected]}
                         >
                             <Image source={value === s ? require("../../assets/icons/fistSelected.png"):require("../../assets/icons/fist.png")} style={styles.imageStyle} />
@@ -27,21 +29,13 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
                 </View>
                 </View>
             </ScrollView>
-            <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                            <Text>Back</Text>
-                        </TouchableOpacity>
-                
 
-                <View>
-                    {onBack && (
-                        <TouchableOpacity onPress={onBack}>
-                            <Text>Back</Text>
-                        </TouchableOpacity>
-                    )}
-                    <TouchableOpacity onPress={onContinue} disabled={!canContinue}>
-                        <Text>Continue</Text>
-                    </TouchableOpacity>
-                </View>
+            {value !== null ? 
+                    <TouchableOpacity onPress={onContinue} disabled={!canContinue} style={styles.continueButton}>
+                        <Text style={styles.buttonText}>Continue</Text>
+                    </TouchableOpacity> 
+                    
+                    : null}
             </View>
         </QuestionnaireShell>
     );
@@ -81,13 +75,27 @@ const styles = StyleSheet.create({
         fontSize:20
     },
     backButton: {
+        alignSelf: "flex-start",
+        margin: 10,
+        position: "absolute",
+        width: 40,
+        height: 30,
+        zIndex: 10,
+    },
+    buttonText: {
+        fontFamily: "BebasNeue",
+        fontSize: 22
+    },
+    continueButton : {
         color: "#000",
         backgroundColor: "#fff",
-        width: 75,
+        width: "95%",
+        margin:"auto",
         height: 75,
         borderRadius: 120,
-        position: "absolute",
-        bottom: 50,
-        alignContent: "center",
-    }
+        alignItems: "center",
+        justifyContent: "center",
+        alignSelf:"flex-start",
+        bottom: 100,
+    },
 });
