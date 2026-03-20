@@ -2,7 +2,7 @@ import { View } from "react-native";
 
 export default function QuestionnaireShell({ children, onLogoClick }) {
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }} >
             {children}
         </View>
     );

@@ -1,27 +1,38 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView} from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import TitleText from "../../components/textComponents/TitleText.jsx";
 
 export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick }) {
     const canContinue = Boolean(value);
 
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
-            <View>
-                <Text>What is your primary combat sport?</Text>
-
-                <View style={styles.grid}>
+            <View style={{backgroundColor: "#000",}}>
+            
+            <ScrollView>
+            <TitleText>select your primary combat sport</TitleText>
+                <View >
+                    <View  style={styles.grid}>
                     {options.map((s) => (
                         <TouchableOpacity
                             key={s}
                             onPress={() => onChange(s)}
                             style={[styles.option, value === s && styles.optionSelected]}
                         >
-                            <Text style={value === s && styles.optionTextSelected}>{s}</Text>
+                            <Image source={value === s ? require("../../assets/icons/fistSelected.png"):require("../../assets/icons/fist.png")} style={styles.imageStyle} />
+                            <Text style={value === s ? styles.optionTextSelected : styles.optionText}>{s}</Text>
+
                         </TouchableOpacity>
                     ))}
                 </View>
+                </View>
+            </ScrollView>
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+                            <Text>Back</Text>
+                        </TouchableOpacity>
+                
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <View>
                     {onBack && (
                         <TouchableOpacity onPress={onBack}>
                             <Text>Back</Text>
@@ -37,74 +48,46 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
 }
 
 const styles = StyleSheet.create({
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, backgroundColor: "#000",justifyContent: "center", 
+        alignSelf:"center", width: 280},
     option: {
         paddingVertical: 10,
         paddingHorizontal: 16,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: "rgba(0,0,0,0.2)",
+        borderRadius: 30,
+        borderWidth: 1.5,
+        borderColor: "#585858",
+        borderStyle: "dashed",
+        color: "#585858",
+        width: 125,
+        height: 125,
+        backgroundColor: "#1E1E1E",
+        alignItems: "center",
+        justifyContent: "center"
     },
+    imageStyle: {width:"60%", height: "60%", marginBottom: 10},
     optionSelected: {
-        backgroundColor: "#111",
-        borderColor: "#111",
+        backgroundColor: "#fff",
+        borderColor: "#000",
+        
+    },
+    optionText: {
+        color: "white",
+        fontFamily: "BebasNeue",
+        fontSize:20,
     },
     optionTextSelected: {
-        color: "white",
+        color: "#000",
+        fontFamily: "BebasNeue",
+        fontSize:20
     },
+    backButton: {
+        color: "#000",
+        backgroundColor: "#fff",
+        width: 75,
+        height: 75,
+        borderRadius: 120,
+        position: "absolute",
+        bottom: 50,
+        alignContent: "center",
+    }
 });
-
-// import QuestionnaireShell from "./QuestionnaireShell.jsx";
-
-// export default function QuestionnaireSportView({
-//     options,
-//     value,
-//     onChange,
-//     onContinue,
-//     onBack,
-//     onLogoClick,
-// }) {
-//     const canContinue = Boolean(value);
-
-//     return (
-//         <QuestionnaireShell onLogoClick={onLogoClick}>
-//             <div className="questionnaire-center">
-//                 <div className="questionnaire-content">
-//                     <h2 className="questionnaire-title">What is your primary combat sport?</h2>
-
-//                     <div className="sport-options-grid">
-//                         {options.map((s) => (
-//                             <label key={s} className="sport-option-label">
-//                                 <input
-//                                     type="radio"
-//                                     name="primarySport"
-//                                     value={s}
-//                                     checked={value === s}
-//                                     onChange={() => onChange(s)}
-//                                     className="sport-option-radio"
-//                                 />
-//                                 <span>{s}</span>
-//                             </label>
-//                         ))}
-//                     </div>
-
-//                     <div className="questionnaire-footer-between">
-//                         {onBack && (
-//                             <button onClick={onBack} className="secondary-button">
-//                                 Back
-//                             </button>
-//                         )}
-
-//                         <button
-//                             onClick={onContinue}
-//                             disabled={!canContinue}
-//                             className="primary-button"
-//                         >
-//                             Continue
-//                         </button>
-//                     </div>
-//                 </div>
-//             </div>
-//         </QuestionnaireShell>
-//     );
-// }
