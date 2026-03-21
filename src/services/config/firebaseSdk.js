@@ -6,13 +6,14 @@ export {
   initializeAuth,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  setPersistence,
   signInWithCredential,
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
   updateProfile,
   createUserWithEmailAndPassword,
-} from "firebase/auth";
+} from "@firebase/auth";
 export {
   addDoc,
   collection,

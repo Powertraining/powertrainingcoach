@@ -4,6 +4,7 @@
 const functions = require("firebase-functions");
 const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
+const {getFirestore} = require("firebase-admin/firestore");
 const stripe = require("stripe");
 
 // Initialize Firebase Admin
@@ -14,6 +15,7 @@ const FIREBASE_PROJECT_ID =
   process.env.GCP_PROJECT ||
   admin.app().options.projectId ||
   "power-training-coach";
+const CONFIGURED_FIRESTORE_DATABASE_ID = process.env.FIRESTORE_DATABASE_ID;
 const HOSTING_BASE_URL =
   process.env.HOSTING_BASE_URL || `https://${FIREBASE_PROJECT_ID}.web.app`;
 const USER_COLLECTION = "users";
@@ -29,17 +31,44 @@ const stripeWebhookSecretParam = defineSecret("STRIPE_WEBHOOK_SECRET");
 const openAiApiKeyParam = defineSecret("OPENAI_API_KEY");
 
 /**
+ * @return {string}
+ */
+function getResolvedFirestoreDatabaseId() {
+  if (
+    !CONFIGURED_FIRESTORE_DATABASE_ID ||
+    CONFIGURED_FIRESTORE_DATABASE_ID === "(default)"
+  ) {
+    return "(default)";
+  }
+
+  return CONFIGURED_FIRESTORE_DATABASE_ID;
+}
+
+/**
+ * @return {FirebaseFirestore.Firestore}
+ */
+function getFirestoreDb() {
+  const databaseId = getResolvedFirestoreDatabaseId();
+
+  if (databaseId === "(default)") {
+    return getFirestore(admin.app());
+  }
+
+  return getFirestore(admin.app(), databaseId);
+}
+
+/**
  * @return {FirebaseFirestore.CollectionReference}
  */
 function getUsersCollection() {
-  return admin.firestore().collection(USER_COLLECTION);
+  return getFirestoreDb().collection(USER_COLLECTION);
 }
 
 /**
  * @return {FirebaseFirestore.CollectionReference}
  */
 function getCombatModelCollection() {
-  return admin.firestore().collection(COMBAT_MODEL_COLLECTION);
+  return getFirestoreDb().collection(COMBAT_MODEL_COLLECTION);
 }
 
 /**
@@ -91,6 +120,63 @@ function getObjectMetadataValue(object, key) {
  */
 function hasAuthErrorCode(error) {
   return Boolean(error && error.code && error.code.startsWith("auth/"));
+}
+
+/**
+ * @param {Error|object} error
+ * @return {boolean}
+ */
+function isFirestoreDatabaseNotFoundError(error) {
+  return Boolean(error && error.code === 5);
+}
+
+/**
+ * @param {Error|object} error
+ * @return {string}
+ */
+function getClientSafeErrorMessage(error) {
+  if (isFirestoreDatabaseNotFoundError(error)) {
+    return (
+      `Firestore database ${getResolvedFirestoreDatabaseId()} was not found ` +
+      `in project ${FIREBASE_PROJECT_ID}. Create that database in Firebase ` +
+      "or set FIRESTORE_DATABASE_ID for Functions to the correct database ID."
+    );
+  }
+
+  return error && error.message ? error.message : "Unexpected server error";
+}
+
+/**
+ * @param {*} returnTo
+ * @return {string}
+ */
+function getSafeReturnToPath(returnTo) {
+  if (
+    typeof returnTo !== "string" ||
+    !returnTo.startsWith("/") ||
+    returnTo.startsWith("//")
+  ) {
+    return "";
+  }
+
+  return returnTo;
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {object} params
+ * @return {string}
+ */
+function appendQueryParams(baseUrl, params) {
+  const url = new URL(baseUrl);
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      url.searchParams.set(key, value);
+    }
+  });
+
+  return url.toString();
 }
 
 /**
@@ -366,7 +452,8 @@ exports.createCheckoutSession = functions.https.onRequest(
         );
         const stripeClient = stripe(secretKey);
 
-        const {lookupKey} = req.body;
+        const {lookupKey, returnTo} = req.body;
+        const safeReturnTo = getSafeReturnToPath(returnTo);
 
         if (!lookupKey) {
           return res.status(400).json({error: "Missing lookupKey"});
@@ -386,6 +473,15 @@ exports.createCheckoutSession = functions.https.onRequest(
           authUser,
         });
 
+        const successUrl = appendQueryParams(CHECKOUT_SUCCESS_URL, {
+          session_id: "{CHECKOUT_SESSION_ID}",
+          return_to: safeReturnTo,
+        });
+        const cancelUrl = appendQueryParams(CHECKOUT_CANCEL_URL, {
+          canceled: "true",
+          return_to: safeReturnTo,
+        });
+
         const checkoutSession = await stripeClient.checkout.sessions.create({
           mode: "subscription",
           customer: customer.id,
@@ -393,17 +489,18 @@ exports.createCheckoutSession = functions.https.onRequest(
             {price: prices.data[0].id, quantity: 1},
           ],
           client_reference_id: authUser.uid,
-          success_url:
-            `${CHECKOUT_SUCCESS_URL}?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: CHECKOUT_CANCEL_URL,
+          success_url: successUrl,
+          cancel_url: cancelUrl,
           metadata: {
             firebaseUID: authUser.uid,
             lookupKey,
+            returnTo: safeReturnTo,
           },
           subscription_data: {
             metadata: {
               firebaseUID: authUser.uid,
               lookupKey,
+              returnTo: safeReturnTo,
             },
           },
         });
@@ -424,7 +521,9 @@ exports.createCheckoutSession = functions.https.onRequest(
           hasAuthErrorCode(error) ?
           401 :
           500;
-        return res.status(statusCode).json({error: error.message});
+        return res.status(statusCode).json({
+          error: getClientSafeErrorMessage(error),
+        });
       }
     },
 );
@@ -528,7 +627,9 @@ exports.verifyCheckoutSession = functions.https.onRequest(
           hasAuthErrorCode(error) ?
           401 :
           500;
-        return res.status(statusCode).json({error: error.message});
+        return res.status(statusCode).json({
+          error: getClientSafeErrorMessage(error),
+        });
       }
     },
 );
@@ -604,7 +705,9 @@ exports.createPortalSession = functions.https.onRequest(
           hasAuthErrorCode(error) ?
           401 :
           500;
-        return res.status(statusCode).json({error: error.message});
+        return res.status(statusCode).json({
+          error: getClientSafeErrorMessage(error),
+        });
       }
     },
 );
@@ -719,7 +822,7 @@ exports.stripeWebhook = functions.https.onRequest(
         return res.json({received: true});
       } catch (error) {
         console.error("Webhook error:", error);
-        return res.status(500).json({error: error.message});
+        return res.status(500).json({error: getClientSafeErrorMessage(error)});
       }
     },
 );

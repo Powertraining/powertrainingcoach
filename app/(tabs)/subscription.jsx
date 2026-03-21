@@ -27,6 +27,23 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     return Array.isArray(value) ? value[0] : value;
   }
 
+  function getSafeReturnToPath() {
+    const rawReturnTo =
+      getParamValue(params.return_to) || getParamValue(params.returnTo) || "";
+
+    if (
+      typeof rawReturnTo !== "string" ||
+      !rawReturnTo.startsWith("/") ||
+      rawReturnTo.startsWith("//")
+    ) {
+      return "";
+    }
+
+    return rawReturnTo;
+  }
+
+  const returnTo = getSafeReturnToPath();
+
   useEffect(() => {
     const successParam = getParamValue(params.success);
     const sessionIdParam = getParamValue(params.session_id);
@@ -75,6 +92,12 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
           subscription: verification.active,
           subscriptionEndDate: verification.subscriptionEndDate,
         });
+
+        if (returnTo && returnTo !== "/(tabs)/subscription") {
+          router.replace(returnTo);
+          return;
+        }
+
         setCustomerId(verification.customerId || "");
         setSessionId(sessionIdParam);
         setSuccess(true);
@@ -91,7 +114,15 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
       .finally(() => {
         setVerifyingSession(false);
       });
-  }, [model, model.ready, model.user, params]);
+  }, [model, model.ready, model.user, params, returnTo, router]);
+
+  if (!model.ready) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <LoadingView />
+      </View>
+    );
+  }
 
   // Check auth
   if (!model.user) {
@@ -104,11 +135,16 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
   }
 
   function handleBack() {
+    if (returnTo) {
+      router.replace(returnTo);
+      return;
+    }
+
     router.back();
   }
 
   function handleContinue() {
-    router.replace("/(tabs)");
+    router.replace(returnTo || "/(tabs)");
   }
 
   function handleCheckoutSuccess() {
@@ -131,6 +167,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
         <SubscriptionPlanView
           onBack={handleBack}
           onCheckoutSuccess={handleCheckoutSuccess}
+          returnTo={returnTo}
         />
       </View>
     );

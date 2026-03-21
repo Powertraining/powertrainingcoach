@@ -6,6 +6,7 @@ import { View, StyleSheet } from "react-native";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import ProgramOverviewView from "../../src/screens/screens/ProgramOverviewView.jsx";
 import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 
 const OverviewScreen = observer(function OverviewScreen() {
   const model = reactiveModel;
@@ -29,7 +30,15 @@ const OverviewScreen = observer(function OverviewScreen() {
     if (!plan && model.ready) {
       router.replace("/(tabs)");
     }
-  }, [plan, model.ready]);
+  }, [plan, model.ready, router]);
+
+  if (!model.ready) {
+    return (
+      <View style={styles.container}>
+        <LoadingView />
+      </View>
+    );
+  }
 
   // Check auth
   if (!model.user) {

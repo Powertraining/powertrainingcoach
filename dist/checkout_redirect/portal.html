@@ -47,12 +47,12 @@
     <main>
       <h1>Billing updated</h1>
       <p>You can return to the app to continue managing your training plan.</p>
-      <a id="open-app" href="powertrainingcoach://subscription">
+      <a id="open-app" href="powertrainingcoach:///subscription">
         Return to Power Training Coach
       </a>
     </main>
     <script>
-      const deepLinkHref = "powertrainingcoach://subscription";
+      const deepLinkHref = "powertrainingcoach:///subscription";
       document.getElementById("open-app").href = deepLinkHref;
       window.location.replace(deepLinkHref);
     </script>

@@ -47,12 +47,22 @@
     <main>
       <h1>Checkout canceled</h1>
       <p>You can return to the app and choose another plan whenever you are ready.</p>
-      <a id="open-app" href="powertrainingcoach://subscription?canceled=true">
+      <a id="open-app" href="powertrainingcoach:///subscription?canceled=true">
         Return to Power Training Coach
       </a>
     </main>
     <script>
-      const deepLinkHref = "powertrainingcoach://subscription?canceled=true";
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get("return_to");
+      const deepLink = new URL("powertrainingcoach:///subscription");
+
+      deepLink.searchParams.set("canceled", "true");
+
+      if (returnTo) {
+        deepLink.searchParams.set("return_to", returnTo);
+      }
+
+      const deepLinkHref = deepLink.toString();
       document.getElementById("open-app").href = deepLinkHref;
       window.location.replace(deepLinkHref);
     </script>

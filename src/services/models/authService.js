@@ -1,4 +1,4 @@
-import { auth } from "../config/firebase";
+import { auth, authPersistenceReady } from "../config/firebase";
 import { db } from "../config/firebase";
 import {
   GoogleAuthProvider,
@@ -22,6 +22,10 @@ export const USER_ROLES = {
 };
 
 const BOOTSTRAP_WAIT_MS = 3000;
+
+async function ensureAuthPersistenceReady() {
+  await authPersistenceReady;
+}
 
 function persistUserBootstrapData(user, role = USER_ROLES.USER) {
   const createdAt = user.metadata?.creationTime
@@ -84,6 +88,7 @@ async function ensureBootstrapDataEventually(user, role = USER_ROLES.USER) {
 
 export async function loginWithEmailPassword(email, password) {
   try {
+    await ensureAuthPersistenceReady();
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -102,6 +107,7 @@ export async function registerWithEmailPassword(
   role = USER_ROLES.USER
 ) {
   try {
+    await ensureAuthPersistenceReady();
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -128,6 +134,7 @@ export async function registerWithEmailPassword(
 
 export async function logout() {
   try {
+    await ensureAuthPersistenceReady();
     await signOut(auth);
     return { success: true };
   } catch (error) {
@@ -150,6 +157,8 @@ async function ensureUserDocument(user, role = USER_ROLES.USER) {
 
 export async function loginWithGoogle(idToken = null) {
   try {
+    await ensureAuthPersistenceReady();
+
     if (!idToken) {
       throw new Error("missing-google-id-token");
     }
@@ -177,7 +186,40 @@ export async function loginWithGoogle(idToken = null) {
 
 // In order to wrap onAuthStateChanged
 export function subscribeToAuthChanges(functionACB) {
-  return onAuthStateChanged(auth, functionACB);
+  let isActive = true;
+  let unsubscribe = () => {};
+
+  const attachListener = async () => {
+    if (!isActive) {
+      return;
+    }
+
+    await ensureAuthPersistenceReady();
+    unsubscribe = onAuthStateChanged(auth, functionACB);
+  };
+
+  const authReadyPromise =
+    typeof auth.authStateReady === "function" ?
+      auth.authStateReady() :
+      Promise.resolve();
+
+  authReadyPromise
+    .catch((error) => {
+      console.warn(
+        "Firebase auth hydration failed, attaching auth listener anyway:",
+        error
+      );
+    })
+    .finally(() => {
+      attachListener().catch((error) => {
+        console.warn("Could not attach Firebase auth listener:", error);
+      });
+    });
+
+  return () => {
+    isActive = false;
+    unsubscribe();
+  };
 }
 
 // Get user role from Firestore

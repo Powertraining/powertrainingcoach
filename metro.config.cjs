@@ -1,5 +1,6 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require('expo/metro-config');
+const exclusionList = require('metro-config/src/defaults/exclusionList');
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
@@ -18,5 +19,15 @@ config.resolver.assetExts = [
   'gif',
   'webp',
 ];
+
+// Ignore generated native build artifacts so Metro doesn't spend watchers on
+// Gradle/Xcode output after `expo run:android` / `expo run:ios`.
+config.resolver.blockList = exclusionList([
+  /android\/app\/build\/.*/,
+  /android\/build\/.*/,
+  /ios\/build\/.*/,
+  /node_modules\/.*\/android\/build\/.*/,
+  /node_modules\/.*\/ios\/build\/.*/,
+]);
 
 module.exports = config;

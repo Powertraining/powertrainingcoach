@@ -47,19 +47,24 @@
     <main>
       <h1>Payment complete</h1>
       <p>We are returning you to the app to verify your subscription.</p>
-      <a id="open-app" href="powertrainingcoach://subscription?success=true">
+      <a id="open-app" href="powertrainingcoach:///subscription?success=true">
         Open Power Training Coach
       </a>
     </main>
     <script>
       const params = new URLSearchParams(window.location.search);
       const sessionId = params.get("session_id");
-      const deepLink = new URL("powertrainingcoach://subscription");
+      const returnTo = params.get("return_to");
+      const deepLink = new URL("powertrainingcoach:///subscription");
 
       deepLink.searchParams.set("success", "true");
 
       if (sessionId) {
         deepLink.searchParams.set("session_id", sessionId);
+      }
+
+      if (returnTo) {
+        deepLink.searchParams.set("return_to", returnTo);
       }
 
       const deepLinkHref = deepLink.toString();

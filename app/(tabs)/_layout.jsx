@@ -1,17 +1,54 @@
 import { Tabs, Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import logo from "../../src/assets/logo.png";
 
 const TabsLayout = observer(function TabsLayout() {
   const model = reactiveModel;
   const router = useRouter();
+  const pathname = usePathname();
+  const params = useLocalSearchParams();
+
+  function buildProtectedReturnTo() {
+    if (typeof pathname !== "string" || !pathname.startsWith("/")) {
+      return "/(tabs)";
+    }
+
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((entry) => {
+          if (typeof entry === "string") {
+            searchParams.append(key, entry);
+          }
+        });
+        return;
+      }
+
+      if (typeof value === "string") {
+        searchParams.set(key, value);
+      }
+    });
+
+    const query = searchParams.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }
+
+  const protectedReturnTo = buildProtectedReturnTo();
 
   // Redirect to auth if not logged in
   if (!model.user && model.ready) {
-    return <Redirect href="/(auth)/login" />;
+    return (
+      <Redirect
+        href={{
+          pathname: "/(auth)/login",
+          params: { returnTo: protectedReturnTo },
+        }}
+      />
+    );
   }
 
   function handleLogoPress() {

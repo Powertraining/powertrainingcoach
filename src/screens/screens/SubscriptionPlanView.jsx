@@ -9,7 +9,7 @@ const plans = [
   { key: "expert_plan_setup", name: "Expert Plan (1 year)", price: "2990.00 SEK / year" },
 ];
 
-export default function SubscriptionPlanView({ onCheckoutSuccess }) {
+export default function SubscriptionPlanView({ onCheckoutSuccess, returnTo = "" }) {
   const [loadingPlan, setLoadingPlan] = useState("");
   const [error, setError] = useState(null);
 
@@ -18,7 +18,7 @@ export default function SubscriptionPlanView({ onCheckoutSuccess }) {
     setError(null);
 
     try {
-      const checkoutData = await createCheckoutSession(planKey);
+      const checkoutData = await createCheckoutSession(planKey, returnTo);
 
       if (!checkoutData?.checkoutUrl) {
         throw new Error("Stripe did not return a valid Checkout URL.");

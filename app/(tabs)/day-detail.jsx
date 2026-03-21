@@ -6,6 +6,7 @@ import { View, StyleSheet } from "react-native";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import DayDetailView from "../../src/screens/screens/DayDetailView.jsx";
 import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 
 const DayDetailScreen = observer(function DayDetailScreen() {
   const model = reactiveModel;
@@ -40,6 +41,14 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     return plan.weeks.reduce((acc, week) => acc + (week.days?.length || 0), 0);
   }, [plan]);
 
+  if (!model.ready) {
+    return (
+      <View style={styles.container}>
+        <LoadingView />
+      </View>
+    );
+  }
+
   // Check auth
   if (!model.user) {
     return (
@@ -55,7 +64,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     if (!plan || !selectedDay) {
       router.replace("/(tabs)/overview");
     }
-  }, [plan, selectedDay]);
+  }, [plan, selectedDay, router]);
 
   function handleBack() {
     router.back();

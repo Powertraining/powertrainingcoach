@@ -9,6 +9,7 @@ import {
   initializeApp,
   initializeAuth,
   initializeFirestore,
+  setPersistence,
 } from "./firebaseSdk.js";
 
 const runtimeEnv = typeof process !== "undefined" ? process.env ?? {} : {};
@@ -64,17 +65,34 @@ const firestoreDatabaseId = getEnv(
 );
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const reactNativeAuthPersistence = getReactNativePersistence(AsyncStorage);
 
 let authInstance;
 let dbInstance;
+let authPersistenceReadyPromise;
 
 try {
   authInstance = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
+    persistence: reactNativeAuthPersistence,
   });
 } catch (error) {
+  console.warn(
+    "Firebase Auth was already initialized before React Native persistence could be attached. Reusing the existing auth instance:",
+    error
+  );
   authInstance = getAuth(app);
 }
+
+authPersistenceReadyPromise = setPersistence(
+  authInstance,
+  reactNativeAuthPersistence
+)
+  .then(() => {
+    console.log("[firebase] Firebase Auth persistence configured");
+  })
+  .catch((error) => {
+    console.warn("[firebase] Failed to configure Firebase Auth persistence:", error);
+  });
 
 try {
   dbInstance = initializeFirestore(app, {}, firestoreDatabaseId);
@@ -83,6 +101,7 @@ try {
 }
 
 export const auth = authInstance;
+export const authPersistenceReady = authPersistenceReadyPromise;
 export const db = dbInstance;
 export const storage = getStorage(app);
 export const FIRESTORE_DATABASE_ID = firestoreDatabaseId;

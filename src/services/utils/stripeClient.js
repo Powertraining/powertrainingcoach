@@ -105,11 +105,15 @@ async function postStripeJson(url, body) {
 /**
  * Initiates a checkout session by calling the Cloud Function
  * @param {string} lookupKey - The Stripe lookup key for the price (e.g., 'starter_plan')
+ * @param {string=} returnTo - In-app route to return to after checkout verification
  * @returns {Promise<object>} Returns a hosted Checkout URL and session metadata
  */
-export async function createCheckoutSession(lookupKey) {
+export async function createCheckoutSession(lookupKey, returnTo = "") {
   try {
-    return await postStripeJson(STRIPE_CHECKOUT_ENDPOINT, { lookupKey });
+    return await postStripeJson(STRIPE_CHECKOUT_ENDPOINT, {
+      lookupKey,
+      returnTo,
+    });
   } catch (error) {
     console.error("Checkout error:", error);
     throw error;

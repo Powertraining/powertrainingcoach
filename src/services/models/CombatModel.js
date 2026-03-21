@@ -17,7 +17,7 @@ import { saveFeedback } from "./dbService.js";
 */
 export const model = {
   user: null, // firebaseModel.js handles that proprety (object User or null)
-  ready: true, // to block data saving while data loading
+  ready: false, // stays false until the first auth state/bootstrap completes
 
   // Questionnaire responses (persistent across sessions)
   questionnaire: null,

@@ -9,6 +9,8 @@ import {
 import { subscribeToAuthChanges } from "./authService";
 
 export function connectToPersistance(model, sideEffectWatcherFunction) {
+  model.ready = false;
+
   function applyPersistedUserData(data) {
     const persistedData = {
       ...createDefaultUserData(),
@@ -93,11 +95,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
 
   async function onAuthStateChangedACB(user) {
     console.log('[firebaseModel.onAuthStateChangedACB] Auth state changed, user:', user?.uid || null);
-    
+
+    model.ready = false;
     model.user = user;
 
     if (user) {
-      model.ready = false;
       try {
         const result = await getUserData(user.uid);
         if (!result?.success) {
@@ -167,6 +169,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.subscriptionEndDate = null;
       model.primaryCombatSport = "";
       model.sessionsPerWeek = 3;
+      model.ready = true;
     }
   }
 

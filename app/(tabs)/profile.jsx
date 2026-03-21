@@ -6,6 +6,7 @@ import { View, StyleSheet } from "react-native";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { MyProfileView } from "../../src/screens/screens/MyProfileView.jsx";
 import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 
 const ProfileScreen = observer(function ProfileScreen() {
   const model = reactiveModel;
@@ -66,6 +67,14 @@ const ProfileScreen = observer(function ProfileScreen() {
     [username, password, isGoogleUser, user.displayName]
   );
 
+  if (!model.ready) {
+    return (
+      <View style={styles.container}>
+        <LoadingView />
+      </View>
+    );
+  }
+
   // Check auth
   if (!model.user) {
     return (
@@ -101,7 +110,10 @@ const ProfileScreen = observer(function ProfileScreen() {
   }
 
   function changeSubscriptionACB() {
-    router.push("/(tabs)/subscription");
+    router.push({
+      pathname: "/(tabs)/subscription",
+      params: { returnTo: "/(tabs)/profile" },
+    });
   }
 
   async function logoutACB() {

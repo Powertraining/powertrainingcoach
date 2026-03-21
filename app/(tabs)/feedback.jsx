@@ -6,6 +6,7 @@ import { View, StyleSheet } from "react-native";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import FeedBackView from "../../src/screens/screens/FeedBackView.jsx";
 import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 
 const FeedbackScreen = observer(function FeedbackScreen() {
   const model = reactiveModel;
@@ -15,6 +16,14 @@ const FeedbackScreen = observer(function FeedbackScreen() {
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  if (!model.ready) {
+    return (
+      <View style={styles.container}>
+        <LoadingView />
+      </View>
+    );
+  }
 
   // Check auth
   if (!model.user) {

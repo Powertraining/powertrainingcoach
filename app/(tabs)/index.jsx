@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
@@ -41,6 +41,7 @@ const SPORT_OPTIONS = [
 const HomeScreen = observer(function HomeScreen() {
   const model = reactiveModel;
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   const [step, setStep] = useState(STEPS.START);
   const [loading, setLoading] = useState(false);
@@ -53,12 +54,51 @@ const HomeScreen = observer(function HomeScreen() {
   const [plansError, setPlansError] = useState(null);
   const [currentFilters, setCurrentFilters] = useState(null);
 
+  function getParamValue(value) {
+    return Array.isArray(value) ? value[0] : value;
+  }
+
+  function getSafeResumeStep() {
+    const resume = getParamValue(params.resume);
+    const allowedSteps = new Set([
+      STEPS.START,
+      STEPS.Q_SPORT,
+      STEPS.Q_FREQ,
+      STEPS.INPUT,
+      STEPS.PLAN_SELECTION,
+    ]);
+
+    if (typeof resume !== "string" || !allowedSteps.has(resume)) {
+      return "";
+    }
+
+    return resume;
+  }
+
+  const resumeStep = getSafeResumeStep();
+
   // If user already has a training plan, redirect to overview
   useEffect(() => {
     if (model.trainingPlan) {
       router.replace("/(tabs)/overview");
     }
-  }, [model.trainingPlan]);
+  }, [model.trainingPlan, router]);
+
+  useEffect(() => {
+    if (!resumeStep || model.trainingPlan) {
+      return;
+    }
+
+    setStep(resumeStep);
+  }, [model.trainingPlan, resumeStep]);
+
+  if (!model.ready) {
+    return (
+      <View style={styles.container}>
+        <LoadingView />
+      </View>
+    );
+  }
 
   // Check auth
   if (!model.user) {
@@ -195,7 +235,12 @@ const HomeScreen = observer(function HomeScreen() {
         onBack={goBack}
         subscription={model.subscription}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
-        onPaymentClick={() => router.push("/(tabs)/subscription")}
+        onPaymentClick={() =>
+          router.push({
+            pathname: "/(tabs)/subscription",
+            params: { returnTo: "/(tabs)?resume=input" },
+          })
+        }
       />
     ),
 
