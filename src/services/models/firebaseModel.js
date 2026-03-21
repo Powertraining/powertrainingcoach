@@ -16,6 +16,12 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       ...createDefaultUserData(),
       ...(data || {}),
     };
+    const normalizedSubscriptionEndDate =
+      persistedData.subscriptionEndDate ?? null;
+    const hasActiveSubscription = Boolean(
+      normalizedSubscriptionEndDate &&
+      new Date(normalizedSubscriptionEndDate) >= new Date(new Date().setHours(0, 0, 0, 0))
+    );
 
     model.questionnaire = persistedData.questionnaire ?? {};
     model.primaryCombatSport = persistedData.primaryCombatSport ?? "";
@@ -24,8 +30,8 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     model.completedDays = persistedData.completedDays ?? [];
     model.trainingPlanBatch = persistedData.trainingPlanBatch ?? 1;
     model.completedWeeks = persistedData.completedWeeks ?? 0;
-    model.subscription = persistedData.subscription ?? false;
-    model.subscriptionEndDate = persistedData.subscriptionEndDate ?? null;
+    model.subscription = hasActiveSubscription;
+    model.subscriptionEndDate = normalizedSubscriptionEndDate;
   }
 
   function modelDataToCheckACB() {

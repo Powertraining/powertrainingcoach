@@ -8,6 +8,7 @@ import { onAuthStateChanged } from "../config/firebaseSdk.js";
 import {
   STRIPE_CHECKOUT_ENDPOINT,
   STRIPE_PORTAL_ENDPOINT,
+  STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT,
   STRIPE_VERIFY_CHECKOUT_ENDPOINT,
 } from "../config/apiConfig.js";
 
@@ -131,6 +132,19 @@ export async function verifyCheckoutSession(sessionId) {
     return await postStripeJson(STRIPE_VERIFY_CHECKOUT_ENDPOINT, { sessionId });
   } catch (error) {
     console.error("Checkout verification error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Re-syncs the authenticated user's Stripe subscription from the server.
+ * @returns {Promise<object>}
+ */
+export async function refreshSubscriptionStatus() {
+  try {
+    return await postStripeJson(STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT, {});
+  } catch (error) {
+    console.error("Subscription refresh error:", error);
     throw error;
   }
 }

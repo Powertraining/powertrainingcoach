@@ -129,12 +129,14 @@ export const model = {
   },
 
   isSubscribed() {
-    if (!this.subscription || !this.subscriptionEndDate) {
+    if (!this.subscriptionEndDate) {
       return false;
     }
     
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const endDate = new Date(this.subscriptionEndDate);
+    endDate.setHours(0, 0, 0, 0);
     return today <= endDate;
   },
 
@@ -145,13 +147,17 @@ export const model = {
    * @param {string|null} nextState.subscriptionEndDate
    */
   applySubscriptionState({ subscription, subscriptionEndDate }) {
+    const normalizedSubscriptionEndDate = subscriptionEndDate || null;
+    const hasActiveSubscription = Boolean(
+      normalizedSubscriptionEndDate &&
+      new Date(normalizedSubscriptionEndDate) >= new Date(new Date().setHours(0, 0, 0, 0))
+    );
     const shouldResetTrainingProgress =
-      Boolean(subscription) &&
-      Boolean(subscriptionEndDate) &&
+      hasActiveSubscription &&
       !this.subscriptionEndDate;
 
-    this.subscription = Boolean(subscription);
-    this.subscriptionEndDate = subscriptionEndDate || null;
+    this.subscription = Boolean(subscription) || hasActiveSubscription;
+    this.subscriptionEndDate = normalizedSubscriptionEndDate;
 
     if (shouldResetTrainingProgress) {
       this.resetTrainingProgress();
@@ -287,12 +293,14 @@ export const model = {
    * @returns {number} days remaining, or -1 if not subscribed
    */
   getDaysRemainingInSubscription() {
-    if (!this.subscription || !this.subscriptionEndDate) {
+    if (!this.subscriptionEndDate) {
       return -1;
     }
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const endDate = new Date(this.subscriptionEndDate);
+    endDate.setHours(0, 0, 0, 0);
     const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
     return Math.max(0, daysRemaining);
   },

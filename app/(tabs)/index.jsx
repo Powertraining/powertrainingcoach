@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
@@ -13,6 +13,7 @@ import PlanSelectionView from "../../src/screens/screens/PlanSelectionView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 
 import {
   fetchBaseTrainingPlans,
@@ -53,6 +54,7 @@ const HomeScreen = observer(function HomeScreen() {
   const [plansLoading, setPlansLoading] = useState(false);
   const [plansError, setPlansError] = useState(null);
   const [currentFilters, setCurrentFilters] = useState(null);
+  const subscriptionRefreshAttemptedRef = useRef("");
 
   function getParamValue(value) {
     return Array.isArray(value) ? value[0] : value;
@@ -91,6 +93,38 @@ const HomeScreen = observer(function HomeScreen() {
 
     setStep(resumeStep);
   }, [model.trainingPlan, resumeStep]);
+
+  useEffect(() => {
+    if (!model.user?.uid) {
+      subscriptionRefreshAttemptedRef.current = "";
+      return;
+    }
+
+    if (subscriptionRefreshAttemptedRef.current === model.user.uid) {
+      return;
+    }
+
+    if (model.isSubscribed?.()) {
+      return;
+    }
+
+    subscriptionRefreshAttemptedRef.current = model.user.uid;
+
+    refreshSubscriptionStatus()
+      .then((result) => {
+        if (!result?.refreshed) {
+          return;
+        }
+
+        model.applySubscriptionState?.({
+          subscription: result.active,
+          subscriptionEndDate: result.subscriptionEndDate,
+        });
+      })
+      .catch((error) => {
+        console.warn("Could not refresh Stripe subscription status:", error);
+      });
+  }, [model, model.ready, model.user, router]);
 
   if (!model.ready) {
     return (
@@ -233,7 +267,7 @@ const HomeScreen = observer(function HomeScreen() {
       <InputFormView
         onSubmit={handleFetchPlans}
         onBack={goBack}
-        subscription={model.subscription}
+        subscription={model.isSubscribed?.() || false}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
         onPaymentClick={() =>
           router.push({

@@ -85,6 +85,32 @@ function formatDateFromUnixTimestamp(unixTimestamp) {
 
 /**
  * @param {object} subscription
+ * @return {number|null}
+ */
+function getSubscriptionPeriodEndUnixTimestamp(subscription) {
+  if (!subscription) {
+    return null;
+  }
+
+  if (typeof subscription.current_period_end === "number") {
+    return subscription.current_period_end;
+  }
+
+  const itemPeriodEnds = ((subscription.items && subscription.items.data) || [])
+      .map((item) => item && typeof item.current_period_end === "number" ?
+        item.current_period_end :
+        null)
+      .filter((value) => typeof value === "number");
+
+  if (itemPeriodEnds.length > 0) {
+    return Math.max(...itemPeriodEnds);
+  }
+
+  return null;
+}
+
+/**
+ * @param {object} subscription
  * @return {boolean}
  */
 function isSubscriptionEntitled(subscription) {
@@ -94,11 +120,15 @@ function isSubscriptionEntitled(subscription) {
     return false;
   }
 
-  if (!subscription.current_period_end) {
+  const subscriptionPeriodEnd = getSubscriptionPeriodEndUnixTimestamp(
+      subscription,
+  );
+
+  if (!subscriptionPeriodEnd) {
     return false;
   }
 
-  return subscription.current_period_end * 1000 > Date.now();
+  return subscriptionPeriodEnd * 1000 > Date.now();
 }
 
 /**
@@ -257,8 +287,11 @@ async function syncStripeSubscriptionToFirestore({
       firstSubscriptionItem.price.lookup_key :
       null) ||
     null;
+  const subscriptionPeriodEnd = getSubscriptionPeriodEndUnixTimestamp(
+      resolvedSubscription,
+  );
   const subscriptionEndDate = formatDateFromUnixTimestamp(
-      resolvedSubscription.current_period_end,
+      subscriptionPeriodEnd,
   );
   const active = isSubscriptionEntitled(resolvedSubscription);
 
@@ -288,6 +321,32 @@ async function syncStripeSubscriptionToFirestore({
     subscriptionId: resolvedSubscription.id,
     subscriptionStatus: resolvedSubscription.status,
   };
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {string} params.customerId
+ * @return {Promise<string|null>}
+ */
+async function findSubscriptionIdForCustomer({stripeClient, customerId}) {
+  if (!customerId) {
+    return null;
+  }
+
+  const subscriptions = await stripeClient.subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 10,
+  });
+
+  const prioritizedSubscription = subscriptions.data.find((subscription) =>
+    ["active", "trialing", "past_due", "unpaid", "paused"].includes(
+        subscription.status,
+    ),
+  ) || subscriptions.data[0];
+
+  return prioritizedSubscription ? prioritizedSubscription.id : null;
 }
 
 /**
@@ -623,6 +682,89 @@ exports.verifyCheckoutSession = functions.https.onRequest(
         });
       } catch (error) {
         console.error("Checkout verification error:", error);
+        const statusCode = error.message === "Missing authorization token" ||
+          hasAuthErrorCode(error) ?
+          401 :
+          500;
+        return res.status(statusCode).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
+
+/**
+ * Cloud Function: Refresh Subscription Status
+ * Re-syncs the authenticated user's Stripe subscription into Firestore.
+ */
+exports.refreshSubscriptionStatus = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
+    async (req, res) => {
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.set(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization",
+      );
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (!["GET", "POST"].includes(req.method)) {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        const authUser = await getAuthenticatedUser(req);
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
+        const stripeClient = stripe(secretKey);
+
+        const combatModelSnap = await getCombatModelCollection()
+            .doc(authUser.uid)
+            .get();
+        const userSnap = await getUsersCollection().doc(authUser.uid).get();
+        const combatModelData = combatModelSnap.exists ?
+          combatModelSnap.data() :
+          {};
+        const userData = userSnap.exists ? userSnap.data() : {};
+
+        let subscriptionId = combatModelData.stripeSubscriptionId || null;
+        const customerId = combatModelData.stripeCustomerId ||
+          userData.stripeCustomerId ||
+          null;
+
+        if (!subscriptionId) {
+          subscriptionId = await findSubscriptionIdForCustomer({
+            stripeClient,
+            customerId,
+          });
+        }
+
+        if (!subscriptionId) {
+          return res.json({
+            refreshed: false,
+            active: false,
+            reason: "No Stripe subscription identifier found for user",
+          });
+        }
+
+        const syncResult = await syncStripeSubscriptionToFirestore({
+          stripeClient,
+          subscription: subscriptionId,
+          fallbackFirebaseUID: authUser.uid,
+        });
+
+        return res.json({
+          refreshed: true,
+          ...syncResult,
+        });
+      } catch (error) {
+        console.error("Subscription refresh error:", error);
         const statusCode = error.message === "Missing authorization token" ||
           hasAuthErrorCode(error) ?
           401 :
