@@ -38,7 +38,10 @@ export function SignUpView(props) {
         }}
       />
 
-      <GoogleButtonComponent />
+      <GoogleButtonComponent
+        onPress={props.onSubmitGoogle}
+        disabled={props.isSubmitting}
+      />
 
       {props.error && <StandardText center={true}>{props.error}</StandardText>}
     </View>

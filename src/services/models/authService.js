@@ -13,6 +13,7 @@ import {
   setDoc,
   updateProfile,
 } from "../config/firebaseSdk.js";
+import { clearGoogleCredentialState } from "../auth/googleIdentity";
 import { createDefaultUserData, saveUserData } from "./dbService.js";
 
 // Role types
@@ -136,6 +137,13 @@ export async function logout() {
   try {
     await ensureAuthPersistenceReady();
     await signOut(auth);
+
+    try {
+      await clearGoogleCredentialState();
+    } catch (error) {
+      console.warn("Could not clear native Google credential state:", error);
+    }
+
     return { success: true };
   } catch (error) {
     return { success: false, error: error.code };

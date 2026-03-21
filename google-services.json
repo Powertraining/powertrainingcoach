@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "410162189255",
+    "firebase_url": "https://power-training-coach-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "power-training-coach",
     "storage_bucket": "power-training-coach.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.powertraining.coach"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "410162189255-i3mc9htfcctke6mklp0hb6kf7vub9a7h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.powertraining.coach",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "410162189255-se4kfu9n9sfb66v2lm3u4chi68cpl7e1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB0Py3PDwc9r2vhpOXYrpjS_Mf_5N42MlQ"
@@ -20,7 +34,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "410162189255-se4kfu9n9sfb66v2lm3u4chi68cpl7e1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "410162189255-4oobkc0m3lbfdiloq3i9vj9nnjf8nbh3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.powertraining.coach"
+              }
+            }
+          ]
         }
       }
     }

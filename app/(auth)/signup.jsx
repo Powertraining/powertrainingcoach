@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SignUpView } from "../../src/screens/screens/SignUpView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import { useGoogleIdTokenProvider } from "../../src/services/auth/googleIdentity";
 
 function getParamValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -27,6 +28,7 @@ const SignUpScreen = observer(function SignUpScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { requestGoogleIdToken } = useGoogleIdTokenProvider();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -62,6 +64,22 @@ const SignUpScreen = observer(function SignUpScreen() {
     }
   }
 
+  async function submitGoogleACB() {
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const idToken = await requestGoogleIdToken({ mode: "signup" });
+      await model.submitGoogle(idToken);
+      router.replace(returnTo || "/(tabs)");
+    } catch (e) {
+      console.error(e);
+      setError(e.message || "Google sign-in could not be completed.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   function handleLoginPress() {
     router.push({
       pathname: "/(auth)/login",
@@ -86,6 +104,7 @@ const SignUpScreen = observer(function SignUpScreen() {
       onEmailChange={emailChangeACB}
       onPasswordChange={passwordChangeACB}
       onSubmit={submitACB}
+      onSubmitGoogle={submitGoogleACB}
       onLoginPress={handleLoginPress}
     />
   );

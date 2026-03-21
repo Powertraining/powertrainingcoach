@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>410162189255-4oobkc0m3lbfdiloq3i9vj9nnjf8nbh3.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.410162189255-4oobkc0m3lbfdiloq3i9vj9nnjf8nbh3</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>410162189255-i3mc9htfcctke6mklp0hb6kf7vub9a7h.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyALakpGvGABXJRLL_fgDNwHVrTwhyZnsqg</string>
 	<key>GCM_SENDER_ID</key>
@@ -26,5 +32,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:410162189255:ios:a5d63e41f95c1da3bcffe2</string>
+	<key>DATABASE_URL</key>
+	<string>https://power-training-coach-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>

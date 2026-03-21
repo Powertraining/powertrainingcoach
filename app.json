@@ -40,7 +40,10 @@
       "ios",
       "android"
     ],
-    "scheme": "powertrainingcoach",
+    "scheme": [
+      "powertrainingcoach",
+      "com.powertraining.coach"
+    ],
     "experiments": {
       "typedRoutes": true
     },
