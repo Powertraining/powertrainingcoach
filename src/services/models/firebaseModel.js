@@ -4,6 +4,11 @@ import {
   getUserData,
   saveUserData,
 } from "./dbService";
+import {
+  createDefaultForumComposer,
+  createDefaultForumFilters,
+  normalizeForumProfile,
+} from "./forumModel";
 
 // To subscribe to the login/logout event
 import { subscribeToAuthChanges } from "./authService";
@@ -32,6 +37,16 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     model.completedWeeks = persistedData.completedWeeks ?? 0;
     model.subscription = hasActiveSubscription;
     model.subscriptionEndDate = normalizedSubscriptionEndDate;
+    model.forumProfile = normalizeForumProfile(persistedData.forumProfile);
+    if (typeof model.resetForumRuntimeState === "function") {
+      model.resetForumRuntimeState();
+    } else {
+      model.forumFilters = createDefaultForumFilters();
+      model.forumComposer = createDefaultForumComposer();
+      model.forumFeed = [];
+      model.forumComments = [];
+      model.forumSelectedPost = null;
+    }
   }
 
   function modelDataToCheckACB() {
@@ -49,6 +64,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.completedDays,
       model.trainingPlanBatch,
       model.completedWeeks,
+      model.forumProfile,
     ];
     console.log('[firebaseModel.modelDataToCheckACB] Tracked data:', {
       questionnaire: model.questionnaire ? 'exists' : 'null',
@@ -59,6 +75,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       trainingPlan: model.trainingPlan ? 'exists' : 'null',
       trainingPlanBatch: model.trainingPlanBatch,
       completedWeeks: model.completedWeeks,
+      forumProfile: model.forumProfile,
     });
     return data;
   }
@@ -76,6 +93,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         completedDays: Array.from(model.completedDays || []),
         trainingPlanBatch: model.trainingPlanBatch,
         completedWeeks: model.completedWeeks,
+        forumProfile: normalizeForumProfile(model.forumProfile),
       };
       console.log('[firebaseModel.saveToCloudACB] Saving to Firestore:', {
         ...data,
@@ -175,6 +193,16 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.subscriptionEndDate = null;
       model.primaryCombatSport = "";
       model.sessionsPerWeek = 3;
+      model.forumProfile = normalizeForumProfile();
+      if (typeof model.resetForumRuntimeState === "function") {
+        model.resetForumRuntimeState();
+      } else {
+        model.forumFilters = createDefaultForumFilters();
+        model.forumComposer = createDefaultForumComposer();
+        model.forumFeed = [];
+        model.forumComments = [];
+        model.forumSelectedPost = null;
+      }
       model.ready = true;
     }
   }

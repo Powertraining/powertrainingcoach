@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import {
   FIRESTORE_DATABASE_ID,
   auth,
@@ -10,19 +9,35 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   getDownloadURL,
+  increment,
+  limit,
   listAll,
+  orderBy,
+  query,
   ref,
   serverTimestamp,
   setDoc,
 } from "../config/firebaseSdk.js";
+import {
+  createDefaultForumProfile,
+  DEFAULT_FORUM_COMMENT_LIMIT,
+  DEFAULT_FORUM_FEED_LIMIT,
+} from "./forumModel.js";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
+const FORUM_POSTS_COLLECTION = "forumPosts";
+const FORUM_COMMENTS_SUBCOLLECTION = "comments";
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
 
 function getCombatModelDocPath(uid) {
   return `${COLLECTION_NAME}/${uid}`;
+}
+
+function getForumPostDocPath(postId) {
+  return `${FORUM_POSTS_COLLECTION}/${postId}`;
 }
 
 function getFirebaseProjectId() {
@@ -249,6 +264,7 @@ export function createDefaultUserData() {
     completedWeeks: 0,
     subscription: false,
     subscriptionEndDate: null,
+    forumProfile: createDefaultForumProfile(),
   };
 }
 
@@ -344,6 +360,214 @@ export async function saveFeedback(feedbackData) {
   } catch (error) {
     console.error("DB feedback error:", error);
     return { success: false, error: error.message };
+  }
+}
+
+// Forum Management
+export async function getForumPosts({
+  limitCount = DEFAULT_FORUM_FEED_LIMIT,
+} = {}) {
+  try {
+    const postsQuery = query(
+      collection(db, FORUM_POSTS_COLLECTION),
+      orderBy("updatedAt", "desc"),
+      limit(limitCount)
+    );
+    const forumPostsSnapshot = await getDocs(postsQuery);
+
+    return {
+      success: true,
+      data: forumPostsSnapshot.docs.map((snapshot) => ({
+        id: snapshot.id,
+        ...snapshot.data(),
+      })),
+      error: null,
+    };
+  } catch (error) {
+    console.error("DB forum posts error:", error);
+    return { success: false, data: [], error };
+  }
+}
+
+export async function getForumPost(postId) {
+  try {
+    const postReference = doc(db, FORUM_POSTS_COLLECTION, postId);
+    const forumPostSnapshot = await getDoc(postReference);
+
+    if (!forumPostSnapshot.exists()) {
+      return { success: false, data: null, error: "forum/post-not-found" };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: forumPostSnapshot.id,
+        ...forumPostSnapshot.data(),
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error("DB forum post error:", error);
+    return { success: false, data: null, error };
+  }
+}
+
+export async function createForumPost(postData) {
+  try {
+    const postReference = doc(collection(db, FORUM_POSTS_COLLECTION));
+    const timestamp = serverTimestamp();
+    await setDoc(
+      postReference,
+      {
+        ...postData,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      { merge: true }
+    );
+
+    const now = new Date().toISOString();
+
+    return {
+      success: true,
+      data: {
+        id: postReference.id,
+        ...postData,
+        createdAt: now,
+        updatedAt: now,
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error("DB create forum post error:", error);
+    return { success: false, data: null, error };
+  }
+}
+
+export async function getForumComments(
+  postId,
+  { limitCount = DEFAULT_FORUM_COMMENT_LIMIT } = {}
+) {
+  try {
+    const commentsQuery = query(
+      collection(
+        db,
+        FORUM_POSTS_COLLECTION,
+        postId,
+        FORUM_COMMENTS_SUBCOLLECTION
+      ),
+      orderBy("createdAt", "asc"),
+      limit(limitCount)
+    );
+    const forumCommentsSnapshot = await getDocs(commentsQuery);
+
+    return {
+      success: true,
+      data: forumCommentsSnapshot.docs.map((snapshot) => ({
+        id: snapshot.id,
+        postId,
+        ...snapshot.data(),
+      })),
+      error: null,
+    };
+  } catch (error) {
+    console.error("DB forum comments error:", error);
+    return { success: false, data: [], error };
+  }
+}
+
+export async function createForumComment(postId, commentData) {
+  try {
+    const commentReference = doc(
+      collection(
+        db,
+        FORUM_POSTS_COLLECTION,
+        postId,
+        FORUM_COMMENTS_SUBCOLLECTION
+      )
+    );
+    const timestamp = serverTimestamp();
+
+    await setDoc(
+      commentReference,
+      {
+        ...commentData,
+        postId,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      { merge: true }
+    );
+
+    await setDoc(
+      doc(db, FORUM_POSTS_COLLECTION, postId),
+      {
+        commentsCount: increment(1),
+        updatedAt: serverTimestamp(),
+        ...(commentData.isCoachVerified ?
+          { coachResponseStatus: "responded" } :
+          {}),
+      },
+      { merge: true }
+    );
+
+    const now = new Date().toISOString();
+
+    return {
+      success: true,
+      data: {
+        id: commentReference.id,
+        postId,
+        ...commentData,
+        createdAt: now,
+        updatedAt: now,
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error("DB create forum comment error:", error);
+    return { success: false, data: null, error };
+  }
+}
+
+async function updateForumPostCounters(postId, patch) {
+  await setDoc(
+    doc(db, FORUM_POSTS_COLLECTION, postId),
+    {
+      ...patch,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+export async function incrementForumPostLikes(postId, delta) {
+  try {
+    await updateForumPostCounters(postId, {
+      likesCount: increment(delta),
+    });
+    return { success: true, error: null };
+  } catch (error) {
+    console.error(
+      `[dbService.incrementForumPostLikes] Could not update ${getForumPostDocPath(postId)}:`,
+      error
+    );
+    return { success: false, error };
+  }
+}
+
+export async function incrementForumPostSaves(postId, delta) {
+  try {
+    await updateForumPostCounters(postId, {
+      savesCount: increment(delta),
+    });
+    return { success: true, error: null };
+  } catch (error) {
+    console.error(
+      `[dbService.incrementForumPostSaves] Could not update ${getForumPostDocPath(postId)}:`,
+      error
+    );
+    return { success: false, error };
   }
 }
 

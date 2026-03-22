@@ -2,16 +2,38 @@ import { resolvePromise } from "../../core/resolvePromise.js";
 import { generatePlan } from "../../core/generatePlan.js";
 
 import {
+  getUserRole,
   loginWithEmailPassword,
   registerWithEmailPassword,
   logout,
   loginWithGoogle,
+  USER_ROLES,
 } from "./authService.js";
 import {
   updateProfile as fbUpdateProfile,
   updatePassword,
 } from "../config/firebaseSdk.js";
-import { saveFeedback } from "./dbService.js";
+import {
+  createForumComment as persistForumComment,
+  createForumPost as persistForumPost,
+  getForumComments,
+  getForumPost,
+  getForumPosts,
+  incrementForumPostLikes,
+  incrementForumPostSaves,
+  saveFeedback,
+} from "./dbService.js";
+import {
+  applyForumFilters,
+  buildForumCommentPayload,
+  buildForumPostPayload,
+  createDefaultForumComposer,
+  createDefaultForumFilters,
+  createDefaultForumProfile,
+  normalizeForumComment,
+  normalizeForumPost,
+  normalizeForumProfile,
+} from "./forumModel.js";
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -34,6 +56,16 @@ export const model = {
   subscriptionEndDate: null,
 
   trainingPlanPromiseState: {},
+
+  forumProfile: createDefaultForumProfile(),
+  forumFilters: createDefaultForumFilters(),
+  forumComposer: createDefaultForumComposer(),
+  forumFeed: [],
+  forumSelectedPost: null,
+  forumComments: [],
+  forumFeedPromiseState: {},
+  forumSelectedPostPromiseState: {},
+  forumCommentsPromiseState: {},
 
   dailyTrainingState: null,
   lastSeenDate: null, // tracks the date when daily training state was last updated
@@ -117,6 +149,329 @@ export const model = {
 
       throw error;
     }
+  },
+
+  getNormalizedForumProfile() {
+    return normalizeForumProfile(this.forumProfile);
+  },
+
+  resetForumRuntimeState() {
+    this.forumFilters = createDefaultForumFilters();
+    this.forumComposer = createDefaultForumComposer();
+    this.forumFeed = [];
+    this.forumSelectedPost = null;
+    this.forumComments = [];
+    this.forumFeedPromiseState = {};
+    this.forumSelectedPostPromiseState = {};
+    this.forumCommentsPromiseState = {};
+  },
+
+  setForumFilters(nextFilters = {}) {
+    this.forumFilters = {
+      ...createDefaultForumFilters(),
+      ...this.forumFilters,
+      ...(nextFilters || {}),
+    };
+  },
+
+  resetForumFilters() {
+    this.forumFilters = createDefaultForumFilters();
+  },
+
+  updateForumComposer(patch = {}) {
+    this.forumComposer = {
+      ...createDefaultForumComposer(),
+      ...this.forumComposer,
+      ...(patch || {}),
+    };
+  },
+
+  resetForumComposer() {
+    this.forumComposer = createDefaultForumComposer();
+  },
+
+  patchForumPostState(postId, patch) {
+    const applyPatch = (post) => {
+      if (!post || post.id !== postId) {
+        return post;
+      }
+
+      const nextPatch = typeof patch === "function" ? patch(post) : patch;
+      return normalizeForumPost(
+        {
+          ...post,
+          ...(nextPatch || {}),
+        },
+        this.getNormalizedForumProfile()
+      );
+    };
+
+    this.forumFeed = this.forumFeed.map(applyPatch);
+    this.forumSelectedPost = applyPatch(this.forumSelectedPost);
+  },
+
+  isForumPostLiked(postId) {
+    return this.getNormalizedForumProfile().likedPostIds.includes(postId);
+  },
+
+  isForumPostSaved(postId) {
+    return this.getNormalizedForumProfile().savedPostIds.includes(postId);
+  },
+
+  isFollowingForumUser(userId) {
+    return this.getNormalizedForumProfile().followedUserIds.includes(userId);
+  },
+
+  updateForumProfile(patch = {}) {
+    this.forumProfile = normalizeForumProfile({
+      ...this.getNormalizedForumProfile(),
+      ...(patch || {}),
+    });
+
+    const normalizedProfile = this.getNormalizedForumProfile();
+    this.forumFeed = this.forumFeed.map((post) =>
+      normalizeForumPost(post, normalizedProfile)
+    );
+
+    if (this.forumSelectedPost) {
+      this.forumSelectedPost = normalizeForumPost(
+        this.forumSelectedPost,
+        normalizedProfile
+      );
+    }
+  },
+
+  toggleFollowedForumUser(userId) {
+    if (!userId || userId === this.user?.uid) {
+      return false;
+    }
+
+    const forumProfile = this.getNormalizedForumProfile();
+    const followedUserIds = new Set(forumProfile.followedUserIds);
+
+    if (followedUserIds.has(userId)) {
+      followedUserIds.delete(userId);
+    } else {
+      followedUserIds.add(userId);
+    }
+
+    this.updateForumProfile({
+      followedUserIds: Array.from(followedUserIds),
+    });
+
+    return followedUserIds.has(userId);
+  },
+
+  async getForumAuthorMeta() {
+    if (!this.user?.uid) {
+      throw new Error("You need to be logged in to use the forum.");
+    }
+
+    const role = (await getUserRole(this.user.uid)) || USER_ROLES.USER;
+
+    return {
+      role,
+      isCoachVerified: role === USER_ROLES.ADMIN,
+    };
+  },
+
+  async loadForumFeed(filterOverrides = {}) {
+    const nextFilters = {
+      ...this.forumFilters,
+      ...(filterOverrides || {}),
+    };
+    this.setForumFilters(nextFilters);
+
+    const prms = getForumPosts({
+      limitCount: Math.max((nextFilters.limit || 25) * 2, 25),
+    }).then((result) => {
+      if (!result.success) {
+        throw result.error || new Error("Could not load forum posts.");
+      }
+
+      const normalizedPosts = applyForumFilters(
+        result.data,
+        nextFilters,
+        this.getNormalizedForumProfile()
+      );
+
+      this.forumFeed = normalizedPosts;
+      return normalizedPosts;
+    });
+
+    resolvePromise(prms, this.forumFeedPromiseState);
+    return prms;
+  },
+
+  async loadForumPost(postId) {
+    const prms = getForumPost(postId).then((result) => {
+      if (!result.success || !result.data) {
+        throw result.error || new Error("Could not load the selected post.");
+      }
+
+      const normalizedPost = normalizeForumPost(
+        result.data,
+        this.getNormalizedForumProfile()
+      );
+      this.forumSelectedPost = normalizedPost;
+      return normalizedPost;
+    });
+
+    resolvePromise(prms, this.forumSelectedPostPromiseState);
+    return prms;
+  },
+
+  async loadForumComments(
+    postId,
+    { limitCount = 50 } = {}
+  ) {
+    const prms = getForumComments(postId, { limitCount }).then((result) => {
+      if (!result.success) {
+        throw result.error || new Error("Could not load forum comments.");
+      }
+
+      const normalizedComments = result.data.map(normalizeForumComment);
+      this.forumComments = normalizedComments;
+      return normalizedComments;
+    });
+
+    resolvePromise(prms, this.forumCommentsPromiseState);
+    return prms;
+  },
+
+  async loadForumPostThread(postId, options = {}) {
+    const [post, comments] = await Promise.all([
+      this.loadForumPost(postId),
+      this.loadForumComments(postId, options),
+    ]);
+
+    return { post, comments };
+  },
+
+  async createForumPost(draftOverrides = {}) {
+    const authorMeta = await this.getForumAuthorMeta();
+    const payload = buildForumPostPayload({
+      draft: {
+        ...this.forumComposer,
+        ...(draftOverrides || {}),
+      },
+      author: this.user,
+      authorRole: authorMeta.role,
+      isCoachVerified: authorMeta.isCoachVerified,
+    });
+    const result = await persistForumPost(payload);
+
+    if (!result.success || !result.data) {
+      throw result.error || new Error("Could not create the forum post.");
+    }
+
+    const normalizedPost = normalizeForumPost(
+      result.data,
+      this.getNormalizedForumProfile()
+    );
+
+    this.forumFeed = [normalizedPost, ...this.forumFeed].slice(
+      0,
+      this.forumFilters.limit || 25
+    );
+    this.forumSelectedPost = normalizedPost;
+    this.forumComments = [];
+    this.resetForumComposer();
+
+    return normalizedPost;
+  },
+
+  async addForumComment(postId, body) {
+    const authorMeta = await this.getForumAuthorMeta();
+    const payload = buildForumCommentPayload({
+      body,
+      author: this.user,
+      authorRole: authorMeta.role,
+      isCoachVerified: authorMeta.isCoachVerified,
+    });
+    const result = await persistForumComment(postId, payload);
+
+    if (!result.success || !result.data) {
+      throw result.error || new Error("Could not create the forum comment.");
+    }
+
+    const normalizedComment = normalizeForumComment(result.data);
+    this.forumComments = [...this.forumComments, normalizedComment];
+    this.patchForumPostState(postId, (post) => ({
+      commentsCount: (post.commentsCount || 0) + 1,
+      coachResponseStatus:
+        normalizedComment.isCoachVerified ? "responded" : post.coachResponseStatus,
+    }));
+
+    return normalizedComment;
+  },
+
+  async toggleForumPostLike(postId) {
+    const forumProfile = this.getNormalizedForumProfile();
+    const likedPostIds = new Set(forumProfile.likedPostIds);
+    const isLiked = likedPostIds.has(postId);
+    const delta = isLiked ? -1 : 1;
+
+    if (isLiked) {
+      likedPostIds.delete(postId);
+    } else {
+      likedPostIds.add(postId);
+    }
+
+    this.updateForumProfile({
+      likedPostIds: Array.from(likedPostIds),
+    });
+    this.patchForumPostState(postId, (post) => ({
+      likesCount: Math.max(0, (post.likesCount || 0) + delta),
+    }));
+
+    const result = await incrementForumPostLikes(postId, delta);
+
+    if (!result.success) {
+      this.updateForumProfile({
+        likedPostIds: forumProfile.likedPostIds,
+      });
+      this.patchForumPostState(postId, (post) => ({
+        likesCount: Math.max(0, (post.likesCount || 0) - delta),
+      }));
+      throw result.error || new Error("Could not update the forum like.");
+    }
+
+    return !isLiked;
+  },
+
+  async toggleForumPostSave(postId) {
+    const forumProfile = this.getNormalizedForumProfile();
+    const savedPostIds = new Set(forumProfile.savedPostIds);
+    const isSaved = savedPostIds.has(postId);
+    const delta = isSaved ? -1 : 1;
+
+    if (isSaved) {
+      savedPostIds.delete(postId);
+    } else {
+      savedPostIds.add(postId);
+    }
+
+    this.updateForumProfile({
+      savedPostIds: Array.from(savedPostIds),
+    });
+    this.patchForumPostState(postId, (post) => ({
+      savesCount: Math.max(0, (post.savesCount || 0) + delta),
+    }));
+
+    const result = await incrementForumPostSaves(postId, delta);
+
+    if (!result.success) {
+      this.updateForumProfile({
+        savedPostIds: forumProfile.savedPostIds,
+      });
+      this.patchForumPostState(postId, (post) => ({
+        savesCount: Math.max(0, (post.savesCount || 0) - delta),
+      }));
+      throw result.error || new Error("Could not update the forum save.");
+    }
+
+    return !isSaved;
   },
   ////////////////////////////////////////////////
   setFinishedWorkout(value) {
