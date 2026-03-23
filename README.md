@@ -43,6 +43,11 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
     `firebase functions:secrets:set STRIPE_WEBHOOK_SECRET`
   - Store the OpenAI server secret in Firebase Secret Manager:
     `firebase functions:secrets:set OPENAI_API_KEY`
+  - Optional consultation-booking runtime env vars for Cloud Functions:
+    `CONSULTATION_CHECKOUT_HOLD_MINUTES`
+    `CONSULTATION_CANCELLATION_WINDOW_HOURS`
+    `CONSULTATION_MAX_BOOKING_WINDOW_DAYS`
+    `CONSULTATION_DEFAULT_CURRENCY`
 
 4. **Configure Google Sign-In**
    - Provide `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`
@@ -169,3 +174,13 @@ functions/
 - **`/functions`** - Firebase Cloud Functions for backend operations
 - **`/scripts`** - Utility scripts for development and deployment
 - **`/docs`** - Documentation and instructions
+
+## Consultation Booking Backend
+
+The backend now includes calendar-style consultation booking endpoints,
+temporary slot holds during checkout, Stripe charge-at-booking checkout,
+48-hour cancellation refund handling, and a scheduled reconciliation job for
+expiring abandoned checkout reservations.
+
+See [docs/consultation-booking-backend.md](docs/consultation-booking-backend.md)
+for the API contract and runtime configuration.

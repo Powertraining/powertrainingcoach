@@ -6,6 +6,27 @@ const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const {getFirestore} = require("firebase-admin/firestore");
 const stripe = require("stripe");
+const {
+  BOOKING_STATUS,
+  CONSULTATION_BOOKING_COLLECTION,
+  CONSULTATION_SLOT_COLLECTION,
+  DEFAULT_BOOKING_WINDOW_DAYS,
+  DEFAULT_CANCELLATION_WINDOW_HOURS,
+  DEFAULT_CHECKOUT_HOLD_MINUTES,
+  DEFAULT_CURRENCY,
+  NEXT_ACTION,
+  PAYMENT_STATUS,
+  SLOT_STATUS,
+  assertValidSlotWindow,
+  buildConsultationPolicy,
+  calculateCheckoutExpiryMs,
+  calculateRefundableUntilMs,
+  hasIntervalOverlap,
+  normalizeCurrency,
+  parseIsoDate,
+  parsePositiveInteger,
+  timeValueToMs,
+} = require("./consultationBooking");
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -29,6 +50,22 @@ const BILLING_PORTAL_RETURN_URL =
 const stripeSecretKeyParam = defineSecret("STRIPE_SECRET_KEY");
 const stripeWebhookSecretParam = defineSecret("STRIPE_WEBHOOK_SECRET");
 const openAiApiKeyParam = defineSecret("OPENAI_API_KEY");
+const CONSULTATION_CHECKOUT_HOLD_MINUTES = parsePositiveInteger(
+    process.env.CONSULTATION_CHECKOUT_HOLD_MINUTES,
+    DEFAULT_CHECKOUT_HOLD_MINUTES,
+);
+const CONSULTATION_CANCELLATION_WINDOW_HOURS = parsePositiveInteger(
+    process.env.CONSULTATION_CANCELLATION_WINDOW_HOURS,
+    DEFAULT_CANCELLATION_WINDOW_HOURS,
+);
+const CONSULTATION_MAX_BOOKING_WINDOW_DAYS = parsePositiveInteger(
+    process.env.CONSULTATION_MAX_BOOKING_WINDOW_DAYS,
+    DEFAULT_BOOKING_WINDOW_DAYS,
+);
+const CONSULTATION_DEFAULT_CURRENCY = normalizeCurrency(
+    process.env.CONSULTATION_DEFAULT_CURRENCY,
+    DEFAULT_CURRENCY,
+);
 
 /**
  * @return {string}
@@ -69,6 +106,88 @@ function getUsersCollection() {
  */
 function getCombatModelCollection() {
   return getFirestoreDb().collection(COMBAT_MODEL_COLLECTION);
+}
+
+/**
+ * @return {FirebaseFirestore.CollectionReference}
+ */
+function getConsultationSlotCollection() {
+  return getFirestoreDb().collection(CONSULTATION_SLOT_COLLECTION);
+}
+
+/**
+ * @return {FirebaseFirestore.CollectionReference}
+ */
+function getConsultationBookingCollection() {
+  return getFirestoreDb().collection(CONSULTATION_BOOKING_COLLECTION);
+}
+
+/**
+ * @param {object} res
+ */
+function setCorsHeaders(res) {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization",
+  );
+}
+
+/**
+ * @param {string} message
+ * @param {number} statusCode
+ * @return {Error}
+ */
+function createHttpError(message, statusCode) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+/**
+ * @param {Error|object} error
+ * @return {number}
+ */
+function getHttpStatusCode(error) {
+  if (error && typeof error.statusCode === "number") {
+    return error.statusCode;
+  }
+
+  if (error && error.message === "Missing authorization token") {
+    return 401;
+  }
+
+  if (hasAuthErrorCode(error)) {
+    return 401;
+  }
+
+  return 500;
+}
+
+/**
+ * @return {object}
+ */
+function getConsultationPolicy() {
+  return buildConsultationPolicy({
+    cancellationWindowHours: CONSULTATION_CANCELLATION_WINDOW_HOURS,
+    checkoutHoldMinutes: CONSULTATION_CHECKOUT_HOLD_MINUTES,
+    maxBookingWindowDays: CONSULTATION_MAX_BOOKING_WINDOW_DAYS,
+  });
+}
+
+/**
+ * @param {*} value
+ * @return {string|null}
+ */
+function serializeTimestamp(value) {
+  const valueMs = timeValueToMs(value);
+
+  if (!valueMs) {
+    return null;
+  }
+
+  return new Date(valueMs).toISOString();
 }
 
 /**
@@ -478,6 +597,1645 @@ async function getOrCreateStripeCustomer({stripeClient, authUser}) {
 
   return customer;
 }
+
+/**
+ * @param {object} authUser
+ * @return {Promise<void>}
+ */
+async function assertAdminUser(authUser) {
+  const userSnap = await getUsersCollection().doc(authUser.uid).get();
+  const role = userSnap.exists ? userSnap.data().role : null;
+
+  if (role !== "admin") {
+    throw createHttpError("Admin access required", 403);
+  }
+}
+
+/**
+ * @param {object} slotData
+ * @param {number} nowMs
+ * @return {boolean}
+ */
+function isExpiredHeldConsultationSlot(slotData, nowMs) {
+  const holdExpiresAtMs = timeValueToMs(slotData && slotData.holdExpiresAt);
+
+  return Boolean(
+      slotData &&
+      slotData.status === SLOT_STATUS.HELD &&
+      holdExpiresAtMs &&
+      holdExpiresAtMs <= nowMs,
+  );
+}
+
+/**
+ * @param {object} slotData
+ * @param {number} nowMs
+ * @return {string|null}
+ */
+function getConsultationSlotStatusForRead(slotData, nowMs) {
+  if (!slotData) {
+    return null;
+  }
+
+  if (isExpiredHeldConsultationSlot(slotData, nowMs)) {
+    return SLOT_STATUS.AVAILABLE;
+  }
+
+  return slotData.status || SLOT_STATUS.AVAILABLE;
+}
+
+/**
+ * @param {object} slotData
+ * @param {string} bookingId
+ * @return {boolean}
+ */
+function isConsultationSlotReservedForBooking(slotData, bookingId) {
+  if (!slotData || !bookingId) {
+    return false;
+  }
+
+  return (
+    slotData.activeBookingId === bookingId ||
+    slotData.bookedBookingId === bookingId
+  );
+}
+
+/**
+ * @param {string} slotId
+ * @param {object} slotData
+ * @param {number} nowMs
+ * @param {boolean=} includePrivateFields
+ * @return {object}
+ */
+function serializeConsultationSlot(
+    slotId,
+    slotData,
+    nowMs,
+    includePrivateFields,
+) {
+  const serializedSlot = {
+    slotId,
+    title: slotData.title || "Consultation",
+    description: slotData.description || "",
+    coachUid: slotData.coachUid || null,
+    status: getConsultationSlotStatusForRead(slotData, nowMs),
+    startsAt: serializeTimestamp(slotData.startsAt),
+    endsAt: serializeTimestamp(slotData.endsAt),
+    timezone: slotData.timezone || "UTC",
+    amount: slotData.amount || 0,
+    currency: normalizeCurrency(
+        slotData.currency,
+        CONSULTATION_DEFAULT_CURRENCY,
+    ),
+    meetingType: slotData.meetingType || "video",
+    location: slotData.location || "",
+    bookingPolicy: getConsultationPolicy(),
+    createdAt: serializeTimestamp(slotData.createdAt),
+    updatedAt: serializeTimestamp(slotData.updatedAt),
+  };
+
+  if (includePrivateFields) {
+    serializedSlot.activeBookingId = slotData.activeBookingId || null;
+    serializedSlot.bookedBookingId = slotData.bookedBookingId || null;
+    serializedSlot.holdExpiresAt = serializeTimestamp(slotData.holdExpiresAt);
+  }
+
+  return serializedSlot;
+}
+
+/**
+ * @param {string} bookingId
+ * @param {object} bookingData
+ * @return {object}
+ */
+function serializeConsultationBooking(bookingId, bookingData) {
+  return {
+    bookingId,
+    slotId: bookingData.slotId || null,
+    title: bookingData.title || "Consultation",
+    description: bookingData.description || "",
+    coachUid: bookingData.coachUid || null,
+    userUid: bookingData.userUid || null,
+    bookingStatus: bookingData.bookingStatus || null,
+    paymentStatus: bookingData.paymentStatus || null,
+    cancellationReason: bookingData.cancellationReason || null,
+    cancellationOutcome: bookingData.cancellationOutcome || null,
+    startsAt: serializeTimestamp(bookingData.startsAt),
+    endsAt: serializeTimestamp(bookingData.endsAt),
+    timezone: bookingData.timezone || "UTC",
+    amount: bookingData.amount || 0,
+    currency: normalizeCurrency(
+        bookingData.currency,
+        CONSULTATION_DEFAULT_CURRENCY,
+    ),
+    refundableUntil: serializeTimestamp(bookingData.refundableUntil),
+    checkoutExpiresAt: serializeTimestamp(bookingData.checkoutExpiresAt),
+    nextActionAt: serializeTimestamp(bookingData.nextActionAt),
+    nextActionType: bookingData.nextActionType || null,
+    stripeCheckoutSessionId: bookingData.stripeCheckoutSessionId || null,
+    stripePaymentIntentId: bookingData.stripePaymentIntentId || null,
+    stripeRefundId: bookingData.stripeRefundId || null,
+    createdAt: serializeTimestamp(bookingData.createdAt),
+    updatedAt: serializeTimestamp(bookingData.updatedAt),
+    canceledAt: serializeTimestamp(bookingData.canceledAt),
+    paidAt: serializeTimestamp(bookingData.paidAt),
+    paymentReleasedAt: serializeTimestamp(bookingData.paymentReleasedAt),
+  };
+}
+
+/**
+ * @param {object} stripeClient
+ * @param {string} sessionId
+ * @return {Promise<object>}
+ */
+async function retrieveExpandedConsultationCheckoutSession(
+    stripeClient,
+    sessionId,
+) {
+  return stripeClient.checkout.sessions.retrieve(sessionId, {
+    expand: ["payment_intent.latest_charge"],
+  });
+}
+
+/**
+ * @param {object} stripeClient
+ * @param {object} checkoutSession
+ * @return {Promise<string|null>}
+ */
+async function resolveFirebaseUidForCheckoutSession(
+    stripeClient,
+    checkoutSession,
+) {
+  const customerId = typeof checkoutSession.customer === "string" ?
+    checkoutSession.customer :
+    (checkoutSession.customer ? checkoutSession.customer.id : null);
+
+  return checkoutSession.client_reference_id ||
+    getObjectMetadataValue(checkoutSession, "firebaseUID") ||
+    await resolveFirebaseUidForCustomer({
+      stripeClient,
+      customerId,
+    });
+}
+
+/**
+ * @param {string} returnTo
+ * @param {string} bookingId
+ * @return {{successUrl: string, cancelUrl: string}}
+ */
+function buildConsultationCheckoutUrls(returnTo, bookingId) {
+  const safeReturnTo = getSafeReturnToPath(returnTo);
+
+  return {
+    successUrl: appendQueryParams(CHECKOUT_SUCCESS_URL, {
+      session_id: "{CHECKOUT_SESSION_ID}",
+      return_to: safeReturnTo,
+      booking_id: bookingId,
+      booking_kind: "consultation",
+    }),
+    cancelUrl: appendQueryParams(CHECKOUT_CANCEL_URL, {
+      canceled: "true",
+      return_to: safeReturnTo,
+      booking_id: bookingId,
+      booking_kind: "consultation",
+    }),
+  };
+}
+
+/**
+ * @param {object} stripeClient
+ * @param {string} paymentIntentId
+ * @return {Promise<object|null>}
+ */
+async function retrievePaymentIntentIfPresent(stripeClient, paymentIntentId) {
+  if (!paymentIntentId) {
+    return null;
+  }
+
+  return stripeClient.paymentIntents.retrieve(paymentIntentId, {
+    expand: ["latest_charge"],
+  });
+}
+
+/**
+ * @param {object} params
+ * @param {string} params.bookingId
+ * @param {string|null} params.slotId
+ * @param {object} params.bookingPatch
+ * @param {object=} params.slotPatch
+ * @return {Promise<void>}
+ */
+async function writeConsultationBookingAndSlot({
+  bookingId,
+  slotId,
+  bookingPatch,
+  slotPatch,
+}) {
+  const bookingRef = getConsultationBookingCollection().doc(bookingId);
+  const slotRef = slotId ? getConsultationSlotCollection().doc(slotId) : null;
+
+  await getFirestoreDb().runTransaction(async (transaction) => {
+    const bookingSnap = await transaction.get(bookingRef);
+
+    if (!bookingSnap.exists) {
+      throw createHttpError("Consultation booking was not found", 404);
+    }
+
+    transaction.set(bookingRef, {
+      ...bookingPatch,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    if (slotRef && slotPatch) {
+      const slotSnap = await transaction.get(slotRef);
+
+      if (slotSnap.exists) {
+        transaction.set(slotRef, {
+          ...slotPatch,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, {merge: true});
+      }
+    }
+  });
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {object|string|null} params.paymentIntent
+ * @param {string} params.reason
+ * @return {Promise<object>}
+ */
+async function releaseConsultationPaymentForFailedBooking({
+  stripeClient,
+  paymentIntent,
+  reason,
+}) {
+  let resolvedPaymentIntent = paymentIntent;
+
+  if (!resolvedPaymentIntent) {
+    return {
+      paymentStatus: PAYMENT_STATUS.FAILED,
+      releasedPaymentIntentId: null,
+      stripeRefundId: null,
+    };
+  }
+
+  if (typeof resolvedPaymentIntent === "string") {
+    resolvedPaymentIntent = await retrievePaymentIntentIfPresent(
+        stripeClient,
+        resolvedPaymentIntent,
+    );
+  }
+
+  if (!resolvedPaymentIntent) {
+    return {
+      paymentStatus: PAYMENT_STATUS.FAILED,
+      releasedPaymentIntentId: null,
+      stripeRefundId: null,
+    };
+  }
+
+  if (resolvedPaymentIntent.status === "canceled") {
+    return {
+      paymentStatus: PAYMENT_STATUS.RELEASED,
+      releasedPaymentIntentId: resolvedPaymentIntent.id,
+      stripeRefundId: null,
+    };
+  }
+
+  if (resolvedPaymentIntent.status === "requires_capture") {
+    const canceledIntent = await stripeClient.paymentIntents.cancel(
+        resolvedPaymentIntent.id,
+        {cancellation_reason: reason},
+    );
+    return {
+      paymentStatus: PAYMENT_STATUS.RELEASED,
+      releasedPaymentIntentId: canceledIntent.id,
+      stripeRefundId: null,
+    };
+  }
+
+  if (resolvedPaymentIntent.status === "succeeded") {
+    const refund = await stripeClient.refunds.create({
+      payment_intent: resolvedPaymentIntent.id,
+      reason: "requested_by_customer",
+    });
+    return {
+      paymentStatus: PAYMENT_STATUS.REFUNDED,
+      releasedPaymentIntentId: resolvedPaymentIntent.id,
+      stripeRefundId: refund.id,
+    };
+  }
+
+  return {
+    paymentStatus: PAYMENT_STATUS.FAILED,
+    releasedPaymentIntentId: resolvedPaymentIntent.id || null,
+    stripeRefundId: null,
+  };
+}
+
+/**
+ * @param {object} params
+ * @param {string} params.bookingId
+ * @param {object} params.bookingData
+ * @param {string} params.reason
+ * @param {string} params.paymentStatus
+ * @param {string=} params.stripeRefundId
+ * @param {string=} params.stripePaymentIntentId
+ * @return {Promise<void>}
+ */
+async function markConsultationBookingExpired({
+  bookingId,
+  bookingData,
+  reason,
+  paymentStatus,
+  stripeRefundId,
+  stripePaymentIntentId,
+}) {
+  await writeConsultationBookingAndSlot({
+    bookingId,
+    slotId: bookingData.slotId || null,
+    bookingPatch: {
+      bookingStatus: BOOKING_STATUS.EXPIRED,
+      paymentStatus,
+      cancellationReason: reason,
+      cancellationOutcome: "released",
+      stripeRefundId: stripeRefundId || null,
+      stripePaymentIntentId: stripePaymentIntentId || null,
+      nextActionAt: null,
+      nextActionType: null,
+      paymentReleasedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    slotPatch: {
+      status: SLOT_STATUS.AVAILABLE,
+      activeBookingId: null,
+      bookedBookingId: null,
+      holdExpiresAt: null,
+    },
+  });
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {object|string} params.checkoutSession
+ * @param {string=} params.fallbackFirebaseUID
+ * @return {Promise<object>}
+ */
+async function finalizeConsultationCheckoutSession({
+  stripeClient,
+  checkoutSession,
+  fallbackFirebaseUID,
+}) {
+  let resolvedSession = checkoutSession;
+
+  if (!resolvedSession || typeof resolvedSession === "string") {
+    resolvedSession = await retrieveExpandedConsultationCheckoutSession(
+        stripeClient,
+        resolvedSession,
+    );
+  } else if (
+    !resolvedSession.payment_intent ||
+    typeof resolvedSession.payment_intent === "string"
+  ) {
+    resolvedSession = await retrieveExpandedConsultationCheckoutSession(
+        stripeClient,
+        resolvedSession.id,
+    );
+  }
+
+  if (resolvedSession.mode !== "payment") {
+    throw createHttpError(
+        "Checkout session is not a consultation payment session",
+        400,
+    );
+  }
+
+  if (
+    getObjectMetadataValue(resolvedSession, "bookingKind") !== "consultation"
+  ) {
+    throw createHttpError(
+        "Checkout session is not a consultation booking session",
+        400,
+    );
+  }
+
+  if (resolvedSession.status !== "complete") {
+    throw createHttpError("Checkout session has not completed yet", 409);
+  }
+
+  if (resolvedSession.payment_status !== "paid") {
+    throw createHttpError("Checkout session payment is not complete yet", 409);
+  }
+
+  const bookingId = getObjectMetadataValue(resolvedSession, "bookingId");
+
+  if (!bookingId) {
+    throw createHttpError(
+        "Checkout session is missing consultation booking metadata",
+        400,
+    );
+  }
+
+  const bookingRef = getConsultationBookingCollection().doc(bookingId);
+  const bookingSnap = await bookingRef.get();
+
+  if (!bookingSnap.exists) {
+    throw createHttpError("Consultation booking was not found", 404);
+  }
+
+  const bookingData = bookingSnap.data();
+  const resolvedFirebaseUID = fallbackFirebaseUID ||
+    await resolveFirebaseUidForCheckoutSession(
+        stripeClient,
+        resolvedSession,
+    );
+
+  if (resolvedFirebaseUID && bookingData.userUid !== resolvedFirebaseUID) {
+    throw createHttpError(
+        "Checkout session does not belong to this user",
+        403,
+    );
+  }
+
+  const paymentIntent = resolvedSession.payment_intent;
+
+  if (!paymentIntent || typeof paymentIntent === "string") {
+    throw createHttpError(
+        "Checkout session payment intent is unavailable",
+        400,
+    );
+  }
+
+  const slotRef = getConsultationSlotCollection().doc(bookingData.slotId);
+  const slotSnap = await slotRef.get();
+  const slotData = slotSnap.exists ? slotSnap.data() : null;
+  const paymentIntentId = paymentIntent.id;
+
+  if (!slotData || !isConsultationSlotReservedForBooking(slotData, bookingId)) {
+    const releaseResult = await releaseConsultationPaymentForFailedBooking({
+      stripeClient,
+      paymentIntent,
+      reason: "abandoned",
+    });
+
+    await markConsultationBookingExpired({
+      bookingId,
+      bookingData,
+      reason: "slot_no_longer_reserved",
+      paymentStatus: releaseResult.paymentStatus,
+      stripeRefundId: releaseResult.stripeRefundId,
+      stripePaymentIntentId: releaseResult.releasedPaymentIntentId,
+    });
+
+    throw createHttpError(
+        "This consultation slot is no longer available",
+        409,
+    );
+  }
+
+  await writeConsultationBookingAndSlot({
+    bookingId,
+    slotId: bookingData.slotId,
+    bookingPatch: {
+      bookingStatus: BOOKING_STATUS.CONFIRMED,
+      paymentStatus: PAYMENT_STATUS.CAPTURED,
+      stripeCheckoutSessionId: resolvedSession.id,
+      stripePaymentIntentId: paymentIntentId,
+      nextActionAt: null,
+      nextActionType: null,
+      paidAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    slotPatch: {
+      status: SLOT_STATUS.BOOKED,
+      activeBookingId: bookingId,
+      bookedBookingId: bookingId,
+      holdExpiresAt: null,
+    },
+  });
+
+  const refreshedBookingSnap = await bookingRef.get();
+
+  return {
+    confirmed: true,
+    booking: serializeConsultationBooking(
+        bookingId,
+        refreshedBookingSnap.data(),
+    ),
+  };
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {string} params.bookingId
+ * @param {object} params.bookingData
+ * @return {Promise<object>}
+ */
+async function expireConsultationPendingBooking({
+  stripeClient,
+  bookingId,
+  bookingData,
+}) {
+  const checkoutSessionId = bookingData.stripeCheckoutSessionId || null;
+
+  if (checkoutSessionId) {
+    const checkoutSession = await retrieveExpandedConsultationCheckoutSession(
+        stripeClient,
+        checkoutSessionId,
+    );
+
+    if (checkoutSession.status === "complete") {
+      return finalizeConsultationCheckoutSession({
+        stripeClient,
+        checkoutSession,
+        fallbackFirebaseUID: bookingData.userUid,
+      });
+    }
+  }
+
+  await writeConsultationBookingAndSlot({
+    bookingId,
+    slotId: bookingData.slotId || null,
+    bookingPatch: {
+      bookingStatus: BOOKING_STATUS.EXPIRED,
+      paymentStatus: PAYMENT_STATUS.FAILED,
+      cancellationReason: "checkout_expired",
+      cancellationOutcome: "released",
+      nextActionAt: null,
+      nextActionType: null,
+    },
+    slotPatch: {
+      status: SLOT_STATUS.AVAILABLE,
+      activeBookingId: null,
+      holdExpiresAt: null,
+    },
+  });
+
+  return {
+    confirmed: false,
+    expired: true,
+  };
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {string} params.bookingId
+ * @param {object} params.bookingData
+ * @param {boolean} params.refundEligible
+ * @param {string} params.cancellationReason
+ * @return {Promise<object>}
+ */
+async function cancelConsultationBookingRecord({
+  stripeClient,
+  bookingId,
+  bookingData,
+  refundEligible,
+  cancellationReason,
+}) {
+  const paymentIntent = await retrievePaymentIntentIfPresent(
+      stripeClient,
+      bookingData.stripePaymentIntentId,
+  );
+  let paymentStatus = bookingData.paymentStatus || PAYMENT_STATUS.FAILED;
+  let stripeRefundId = null;
+
+  if (refundEligible) {
+    const releaseResult = await releaseConsultationPaymentForFailedBooking({
+      stripeClient,
+      paymentIntent,
+      reason: "requested_by_customer",
+    });
+    paymentStatus = releaseResult.paymentStatus;
+    stripeRefundId = releaseResult.stripeRefundId;
+  } else if (paymentIntent && paymentIntent.status === "requires_capture") {
+    await stripeClient.paymentIntents.capture(paymentIntent.id);
+    paymentStatus = PAYMENT_STATUS.CAPTURED;
+  } else if (paymentIntent && paymentIntent.status === "succeeded") {
+    paymentStatus = PAYMENT_STATUS.CAPTURED;
+  }
+
+  await writeConsultationBookingAndSlot({
+    bookingId,
+    slotId: bookingData.slotId || null,
+    bookingPatch: {
+      bookingStatus: BOOKING_STATUS.CANCELED,
+      paymentStatus,
+      stripeRefundId,
+      cancellationReason,
+      cancellationOutcome: refundEligible ?
+        (paymentStatus === PAYMENT_STATUS.RELEASED ? "released" : "refunded") :
+        "non_refundable",
+      canceledAt: admin.firestore.FieldValue.serverTimestamp(),
+      nextActionAt: null,
+      nextActionType: null,
+      paidAt: !refundEligible && paymentStatus === PAYMENT_STATUS.CAPTURED ?
+        admin.firestore.FieldValue.serverTimestamp() :
+        bookingData.paidAt || null,
+      paymentReleasedAt: refundEligible ?
+        admin.firestore.FieldValue.serverTimestamp() :
+        bookingData.paymentReleasedAt || null,
+    },
+    slotPatch: {
+      status: SLOT_STATUS.AVAILABLE,
+      activeBookingId: null,
+      bookedBookingId: null,
+      holdExpiresAt: null,
+    },
+  });
+
+  const refreshedBookingSnap = await getConsultationBookingCollection()
+      .doc(bookingId)
+      .get();
+
+  return {
+    canceled: true,
+    booking: serializeConsultationBooking(
+        bookingId,
+        refreshedBookingSnap.data(),
+    ),
+  };
+}
+
+/**
+ * @param {object} params
+ * @param {string} params.coachUid
+ * @param {number} params.startsAtMs
+ * @param {number} params.endsAtMs
+ * @param {string=} params.ignoreSlotId
+ * @return {Promise<void>}
+ */
+async function assertNoOverlappingConsultationSlot({
+  coachUid,
+  startsAtMs,
+  endsAtMs,
+  ignoreSlotId,
+}) {
+  const existingSlotsSnap = await getConsultationSlotCollection()
+      .where("coachUid", "==", coachUid)
+      .get();
+
+  existingSlotsSnap.forEach((slotSnap) => {
+    if (ignoreSlotId && slotSnap.id === ignoreSlotId) {
+      return;
+    }
+
+    const slotData = slotSnap.data();
+
+    if (
+      [SLOT_STATUS.BOOKED, SLOT_STATUS.HELD, SLOT_STATUS.AVAILABLE].includes(
+          slotData.status,
+      ) &&
+      hasIntervalOverlap(
+          startsAtMs,
+          endsAtMs,
+          timeValueToMs(slotData.startsAt),
+          timeValueToMs(slotData.endsAt),
+      )
+    ) {
+      throw createHttpError(
+          "This slot overlaps with an existing consultation " +
+          "availability window",
+          409,
+      );
+    }
+  });
+}
+
+/**
+ * @param {object} params
+ * @param {string} params.userUid
+ * @param {number} params.startsAtMs
+ * @param {number} params.endsAtMs
+ * @return {Promise<void>}
+ */
+async function assertUserHasNoOverlappingConsultationBooking({
+  userUid,
+  startsAtMs,
+  endsAtMs,
+}) {
+  const userBookingsSnap = await getConsultationBookingCollection()
+      .where("userUid", "==", userUid)
+      .get();
+
+  userBookingsSnap.forEach((bookingSnap) => {
+    const bookingData = bookingSnap.data();
+
+    if (
+      [BOOKING_STATUS.CHECKOUT_PENDING, BOOKING_STATUS.CONFIRMED].includes(
+          bookingData.bookingStatus,
+      ) &&
+      hasIntervalOverlap(
+          startsAtMs,
+          endsAtMs,
+          timeValueToMs(bookingData.startsAt),
+          timeValueToMs(bookingData.endsAt),
+      )
+    ) {
+      throw createHttpError(
+          "You already have a consultation booking that overlaps this slot",
+          409,
+      );
+    }
+  });
+}
+
+/**
+ * Cloud Function: Upsert Consultation Availability
+ * Allows admins to create or update consultation slots without frontend work.
+ */
+exports.upsertConsultationAvailability = functions.https.onRequest(
+    {invoker: "public"},
+    async (req, res) => {
+      setCorsHeaders(res);
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        const authUser = await getAuthenticatedUser(req);
+        await assertAdminUser(authUser);
+
+        const requestBody = req.body || {};
+        const requestedSlots = Array.isArray(requestBody.slots) ?
+          requestBody.slots :
+          [requestBody];
+
+        if (requestedSlots.length === 0) {
+          throw createHttpError(
+              "At least one consultation slot is required",
+              400,
+          );
+        }
+
+        const nowMs = Date.now();
+        const savedSlots = [];
+
+        for (const slotInput of requestedSlots) {
+          const startsAt = parseIsoDate(slotInput.startsAt, "startsAt");
+          const endsAt = parseIsoDate(slotInput.endsAt, "endsAt");
+          assertValidSlotWindow(startsAt, endsAt);
+
+          const amount = Number.parseInt(slotInput.amount, 10);
+
+          if (!Number.isFinite(amount) || amount <= 0) {
+            throw createHttpError(
+                "Consultation slot amount must be a positive integer",
+                400,
+            );
+          }
+
+          const slotId = typeof slotInput.slotId === "string" &&
+            slotInput.slotId.trim() ?
+            slotInput.slotId.trim() :
+            getConsultationSlotCollection().doc().id;
+          const coachUid = typeof slotInput.coachUid === "string" &&
+            slotInput.coachUid.trim() ?
+            slotInput.coachUid.trim() :
+            authUser.uid;
+          const slotRef = getConsultationSlotCollection().doc(slotId);
+          const existingSlotSnap = await slotRef.get();
+
+          if (existingSlotSnap.exists) {
+            const existingSlotData = existingSlotSnap.data();
+            const existingStatus = getConsultationSlotStatusForRead(
+                existingSlotData,
+                nowMs,
+            );
+
+            if (
+              existingStatus === SLOT_STATUS.BOOKED ||
+              existingStatus === SLOT_STATUS.HELD
+            ) {
+              throw createHttpError(
+                  "Booked or actively held consultation slots cannot be edited",
+                  409,
+              );
+            }
+          }
+
+          await assertNoOverlappingConsultationSlot({
+            coachUid,
+            startsAtMs: startsAt.getTime(),
+            endsAtMs: endsAt.getTime(),
+            ignoreSlotId: slotId,
+          });
+
+          const slotData = {
+            title:
+              typeof slotInput.title === "string" &&
+              slotInput.title.trim() ?
+              slotInput.title.trim() :
+              "Consultation",
+            description:
+              typeof slotInput.description === "string" ?
+                slotInput.description.trim() :
+                "",
+            coachUid,
+            startsAt: admin.firestore.Timestamp.fromDate(startsAt),
+            endsAt: admin.firestore.Timestamp.fromDate(endsAt),
+            timezone: typeof slotInput.timezone === "string" &&
+              slotInput.timezone.trim() ?
+              slotInput.timezone.trim() :
+              "UTC",
+            amount,
+            currency: normalizeCurrency(
+                slotInput.currency,
+                CONSULTATION_DEFAULT_CURRENCY,
+            ),
+            meetingType: typeof slotInput.meetingType === "string" &&
+              slotInput.meetingType.trim() ?
+              slotInput.meetingType.trim() :
+              "video",
+            location: typeof slotInput.location === "string" ?
+              slotInput.location.trim() :
+              "",
+            status: slotInput.status === SLOT_STATUS.UNAVAILABLE ?
+              SLOT_STATUS.UNAVAILABLE :
+              SLOT_STATUS.AVAILABLE,
+            activeBookingId: null,
+            bookedBookingId: null,
+            holdExpiresAt: null,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          };
+
+          if (!existingSlotSnap.exists) {
+            slotData.createdAt = admin.firestore.FieldValue.serverTimestamp();
+          }
+
+          await slotRef.set(slotData, {merge: true});
+
+          const savedSlotSnap = await slotRef.get();
+          savedSlots.push(
+              serializeConsultationSlot(
+                  savedSlotSnap.id,
+                  savedSlotSnap.data(),
+                  nowMs,
+                  true,
+              ),
+          );
+        }
+
+        return res.json({
+          saved: true,
+          slots: savedSlots,
+          bookingPolicy: getConsultationPolicy(),
+        });
+      } catch (error) {
+        console.error("Upsert consultation availability error:", error);
+        return res.status(getHttpStatusCode(error)).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
+
+/**
+ * Cloud Function: List Consultation Availability
+ * Returns upcoming public consultation slots for calendar rendering.
+ */
+exports.listConsultationAvailability = functions.https.onRequest(
+    {invoker: "public"},
+    async (req, res) => {
+      setCorsHeaders(res);
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (!["GET", "POST"].includes(req.method)) {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        const requestData = req.method === "GET" ? req.query : (req.body || {});
+        const startsAfter = requestData.startsAfter ?
+          parseIsoDate(requestData.startsAfter, "startsAfter") :
+          new Date();
+        const endsBefore = requestData.endsBefore ?
+          parseIsoDate(requestData.endsBefore, "endsBefore") :
+          null;
+        const coachUid = typeof requestData.coachUid === "string" &&
+          requestData.coachUid.trim() ?
+          requestData.coachUid.trim() :
+          null;
+        const limit = Math.min(
+            parsePositiveInteger(requestData.limit, 50),
+            200,
+        );
+        const nowMs = Date.now();
+        const futureSlotsSnap = await getConsultationSlotCollection()
+            .where(
+                "startsAt",
+                ">=",
+                admin.firestore.Timestamp.fromDate(startsAfter),
+            )
+            .limit(limit * 4)
+            .get();
+
+        const availableSlots = futureSlotsSnap.docs
+            .filter((slotSnap) => {
+              const slotData = slotSnap.data();
+              const startsAtMs = timeValueToMs(slotData.startsAt);
+              const slotStatus = getConsultationSlotStatusForRead(
+                  slotData,
+                  nowMs,
+              );
+
+              if (coachUid && slotData.coachUid !== coachUid) {
+                return false;
+              }
+
+              if (slotStatus !== SLOT_STATUS.AVAILABLE) {
+                return false;
+              }
+
+              if (startsAtMs && startsAtMs <= nowMs) {
+                return false;
+              }
+
+              if (
+                endsBefore &&
+                startsAtMs &&
+                startsAtMs > endsBefore.getTime()
+              ) {
+                return false;
+              }
+
+              return true;
+            })
+            .sort((leftSlot, rightSlot) => (
+              timeValueToMs(leftSlot.data().startsAt) -
+              timeValueToMs(rightSlot.data().startsAt)
+            ))
+            .slice(0, limit)
+            .map((slotSnap) => serializeConsultationSlot(
+                slotSnap.id,
+                slotSnap.data(),
+                nowMs,
+            ));
+
+        return res.json({
+          slots: availableSlots,
+          bookingPolicy: getConsultationPolicy(),
+        });
+      } catch (error) {
+        console.error("List consultation availability error:", error);
+        return res.status(getHttpStatusCode(error)).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
+
+/**
+ * Cloud Function: Create Consultation Checkout Session
+ * Reserves a slot and creates a hosted Stripe Checkout session.
+ */
+exports.createConsultationCheckoutSession = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
+    async (req, res) => {
+      setCorsHeaders(res);
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      let bookingId = null;
+      let bookingData = null;
+
+      try {
+        const authUser = await getAuthenticatedUser(req);
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
+        const stripeClient = stripe(secretKey);
+        const requestBody = req.body || {};
+        const slotId = typeof requestBody.slotId === "string" &&
+          requestBody.slotId.trim() ?
+          requestBody.slotId.trim() :
+          null;
+        const returnTo = typeof requestBody.returnTo === "string" ?
+          requestBody.returnTo :
+          "";
+
+        if (!slotId) {
+          throw createHttpError("slotId is required", 400);
+        }
+
+        const slotRef = getConsultationSlotCollection().doc(slotId);
+        const slotSnap = await slotRef.get();
+
+        if (!slotSnap.exists) {
+          throw createHttpError("Consultation slot was not found", 404);
+        }
+
+        const slotData = slotSnap.data();
+        const nowMs = Date.now();
+        const startsAtMs = timeValueToMs(slotData.startsAt);
+        const endsAtMs = timeValueToMs(slotData.endsAt);
+        const slotStatus = getConsultationSlotStatusForRead(slotData, nowMs);
+
+        if (!startsAtMs || !endsAtMs) {
+          throw createHttpError("Consultation slot timing is invalid", 500);
+        }
+
+        if (slotStatus !== SLOT_STATUS.AVAILABLE) {
+          throw createHttpError("Consultation slot is not available", 409);
+        }
+
+        if (startsAtMs <= nowMs) {
+          throw createHttpError(
+              "Past consultation slots cannot be booked",
+              409,
+          );
+        }
+
+        if (
+          startsAtMs >
+          nowMs + CONSULTATION_MAX_BOOKING_WINDOW_DAYS * 24 * 60 * 60 * 1000
+        ) {
+          throw createHttpError(
+              `Consultations can only be booked ` +
+              `${CONSULTATION_MAX_BOOKING_WINDOW_DAYS} ` +
+              "days in advance with the current consultation payment policy.",
+              400,
+          );
+        }
+
+        await assertUserHasNoOverlappingConsultationBooking({
+          userUid: authUser.uid,
+          startsAtMs,
+          endsAtMs,
+        });
+
+        const amount = Number.parseInt(slotData.amount, 10);
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+          throw createHttpError("Consultation slot amount is invalid", 500);
+        }
+
+        const bookingRef = getConsultationBookingCollection().doc();
+        bookingId = bookingRef.id;
+        const checkoutExpiresAtMs = calculateCheckoutExpiryMs(
+            nowMs,
+            CONSULTATION_CHECKOUT_HOLD_MINUTES,
+        );
+        const refundableUntilMs = calculateRefundableUntilMs(
+            startsAtMs,
+            CONSULTATION_CANCELLATION_WINDOW_HOURS,
+        );
+
+        await getFirestoreDb().runTransaction(async (transaction) => {
+          const reservedSlotSnap = await transaction.get(slotRef);
+
+          if (!reservedSlotSnap.exists) {
+            throw createHttpError("Consultation slot was not found", 404);
+          }
+
+          const reservedSlotData = reservedSlotSnap.data();
+          const reservedSlotStatus = getConsultationSlotStatusForRead(
+              reservedSlotData,
+              nowMs,
+          );
+
+          if (reservedSlotStatus !== SLOT_STATUS.AVAILABLE) {
+            throw createHttpError(
+                "Consultation slot is no longer available",
+                409,
+            );
+          }
+
+          transaction.set(slotRef, {
+            status: SLOT_STATUS.HELD,
+            activeBookingId: bookingId,
+            holdExpiresAt: admin.firestore.Timestamp.fromMillis(
+                checkoutExpiresAtMs,
+            ),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          }, {merge: true});
+
+          transaction.set(bookingRef, {
+            slotId,
+            userUid: authUser.uid,
+            coachUid: reservedSlotData.coachUid || null,
+            title: reservedSlotData.title || "Consultation",
+            description: reservedSlotData.description || "",
+            timezone: reservedSlotData.timezone || "UTC",
+            amount,
+            currency: normalizeCurrency(
+                reservedSlotData.currency,
+                CONSULTATION_DEFAULT_CURRENCY,
+            ),
+            meetingType: reservedSlotData.meetingType || "video",
+            location: reservedSlotData.location || "",
+            startsAt: reservedSlotData.startsAt,
+            endsAt: reservedSlotData.endsAt,
+            bookingStatus: BOOKING_STATUS.CHECKOUT_PENDING,
+            paymentStatus: PAYMENT_STATUS.CHECKOUT_PENDING,
+            refundableUntil: admin.firestore.Timestamp.fromMillis(
+                refundableUntilMs,
+            ),
+            checkoutExpiresAt: admin.firestore.Timestamp.fromMillis(
+                checkoutExpiresAtMs,
+            ),
+            nextActionAt: admin.firestore.Timestamp.fromMillis(
+                checkoutExpiresAtMs,
+            ),
+            nextActionType: NEXT_ACTION.EXPIRE_CHECKOUT,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+
+        bookingData = {
+          slotId,
+          title: slotData.title || "Consultation",
+          startsAt: slotData.startsAt,
+          endsAt: slotData.endsAt,
+          amount,
+          currency: normalizeCurrency(
+              slotData.currency,
+              CONSULTATION_DEFAULT_CURRENCY,
+          ),
+        };
+
+        const customer = await getOrCreateStripeCustomer({
+          stripeClient,
+          authUser,
+        });
+        const checkoutUrls = buildConsultationCheckoutUrls(returnTo, bookingId);
+        const checkoutSession = await stripeClient.checkout.sessions.create({
+          mode: "payment",
+          customer: customer.id,
+          client_reference_id: authUser.uid,
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              quantity: 1,
+              price_data: {
+                currency: bookingData.currency,
+                unit_amount: amount,
+                product_data: {
+                  name: bookingData.title,
+                  description:
+                    `${serializeTimestamp(slotData.startsAt)} consultation`,
+                },
+              },
+            },
+          ],
+          success_url: checkoutUrls.successUrl,
+          cancel_url: checkoutUrls.cancelUrl,
+          metadata: {
+            firebaseUID: authUser.uid,
+            bookingId,
+            bookingKind: "consultation",
+            slotId,
+          },
+          payment_intent_data: {
+            description: bookingData.title,
+            metadata: {
+              firebaseUID: authUser.uid,
+              bookingId,
+              bookingKind: "consultation",
+              slotId,
+            },
+          },
+        });
+
+        if (!checkoutSession.url) {
+          throw new Error("Stripe did not return a Checkout URL");
+        }
+
+        await getConsultationBookingCollection().doc(bookingId).set({
+          stripeCustomerId: customer.id,
+          stripeCheckoutSessionId: checkoutSession.id,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, {merge: true});
+
+        return res.json({
+          mode: "checkout",
+          checkoutUrl: checkoutSession.url,
+          sessionId: checkoutSession.id,
+          bookingId,
+          bookingPolicy: getConsultationPolicy(),
+          holdExpiresAt: new Date(checkoutExpiresAtMs).toISOString(),
+        });
+      } catch (error) {
+        if (bookingId && bookingData) {
+          try {
+            await markConsultationBookingExpired({
+              bookingId,
+              bookingData,
+              reason: "checkout_session_creation_failed",
+              paymentStatus: PAYMENT_STATUS.FAILED,
+            });
+          } catch (cleanupError) {
+            console.error("Consultation checkout cleanup error:", cleanupError);
+          }
+        }
+
+        console.error("Create consultation checkout error:", error);
+        return res.status(getHttpStatusCode(error)).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
+
+/**
+ * Cloud Function: Verify Consultation Checkout Session
+ * Confirms the checkout belongs to the user and finalizes the booking.
+ */
+exports.verifyConsultationCheckoutSession = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
+    async (req, res) => {
+      setCorsHeaders(res);
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        const authUser = await getAuthenticatedUser(req);
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
+        const stripeClient = stripe(secretKey);
+        const requestBody = req.body || {};
+        const sessionId = typeof requestBody.sessionId === "string" &&
+          requestBody.sessionId.trim() ?
+          requestBody.sessionId.trim() :
+          null;
+
+        if (!sessionId) {
+          throw createHttpError("sessionId is required", 400);
+        }
+
+        const checkoutSession =
+          await retrieveExpandedConsultationCheckoutSession(
+              stripeClient,
+              sessionId,
+          );
+        const resolvedFirebaseUID =
+          await resolveFirebaseUidForCheckoutSession(
+              stripeClient,
+              checkoutSession,
+          );
+
+        if (resolvedFirebaseUID !== authUser.uid) {
+          throw createHttpError(
+              "Consultation checkout does not belong to this user",
+              403,
+          );
+        }
+
+        const finalizedBooking = await finalizeConsultationCheckoutSession({
+          stripeClient,
+          checkoutSession,
+          fallbackFirebaseUID: authUser.uid,
+        });
+
+        return res.json({
+          verified: true,
+          sessionId,
+          ...finalizedBooking,
+        });
+      } catch (error) {
+        console.error("Verify consultation checkout error:", error);
+        return res.status(getHttpStatusCode(error)).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
+
+/**
+ * Cloud Function: Cancel Consultation Booking
+ * Cancels and refunds/releases payment when within the 48-hour window.
+ */
+exports.cancelConsultationBooking = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
+    async (req, res) => {
+      setCorsHeaders(res);
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        const authUser = await getAuthenticatedUser(req);
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
+        const stripeClient = stripe(secretKey);
+        const requestBody = req.body || {};
+        const bookingId = typeof requestBody.bookingId === "string" &&
+          requestBody.bookingId.trim() ?
+          requestBody.bookingId.trim() :
+          null;
+
+        if (!bookingId) {
+          throw createHttpError("bookingId is required", 400);
+        }
+
+        const bookingRef = getConsultationBookingCollection().doc(bookingId);
+        const bookingSnap = await bookingRef.get();
+
+        if (!bookingSnap.exists) {
+          throw createHttpError("Consultation booking was not found", 404);
+        }
+
+        let bookingData = bookingSnap.data();
+
+        if (bookingData.userUid !== authUser.uid) {
+          await assertAdminUser(authUser);
+        }
+
+        if (
+          bookingData.bookingStatus === BOOKING_STATUS.CHECKOUT_PENDING &&
+          bookingData.stripeCheckoutSessionId
+        ) {
+          try {
+            const checkoutSession =
+              await retrieveExpandedConsultationCheckoutSession(
+                  stripeClient,
+                  bookingData.stripeCheckoutSessionId,
+              );
+
+            if (checkoutSession.status === "complete") {
+              await finalizeConsultationCheckoutSession({
+                stripeClient,
+                checkoutSession,
+                fallbackFirebaseUID: bookingData.userUid,
+              });
+              bookingData = (await bookingRef.get()).data();
+            }
+          } catch (finalizeError) {
+            console.warn(
+                "Consultation booking was not finalized before cancel:",
+                finalizeError,
+            );
+          }
+        }
+
+        if (
+          ![BOOKING_STATUS.CHECKOUT_PENDING, BOOKING_STATUS.CONFIRMED].includes(
+              bookingData.bookingStatus,
+          )
+        ) {
+          return res.json({
+            canceled: false,
+            booking: serializeConsultationBooking(bookingId, bookingData),
+          });
+        }
+
+        if (
+          bookingData.bookingStatus === BOOKING_STATUS.CHECKOUT_PENDING &&
+          !bookingData.stripePaymentIntentId
+        ) {
+          await writeConsultationBookingAndSlot({
+            bookingId,
+            slotId: bookingData.slotId || null,
+            bookingPatch: {
+              bookingStatus: BOOKING_STATUS.CANCELED,
+              paymentStatus: PAYMENT_STATUS.FAILED,
+              cancellationReason: "checkout_canceled_before_payment",
+              cancellationOutcome: "released",
+              canceledAt: admin.firestore.FieldValue.serverTimestamp(),
+              nextActionAt: null,
+              nextActionType: null,
+            },
+            slotPatch: {
+              status: SLOT_STATUS.AVAILABLE,
+              activeBookingId: null,
+              bookedBookingId: null,
+              holdExpiresAt: null,
+            },
+          });
+
+          const canceledBookingSnap = await bookingRef.get();
+          return res.json({
+            canceled: true,
+            booking: serializeConsultationBooking(
+                bookingId,
+                canceledBookingSnap.data(),
+            ),
+          });
+        }
+
+        const nowMs = Date.now();
+        const refundableUntilMs = timeValueToMs(bookingData.refundableUntil);
+        const refundEligible = Boolean(
+            refundableUntilMs && nowMs < refundableUntilMs,
+        );
+        const cancellationResult = await cancelConsultationBookingRecord({
+          stripeClient,
+          bookingId,
+          bookingData,
+          refundEligible,
+          cancellationReason: refundEligible ?
+            "canceled_before_48h_cutoff" :
+            "canceled_after_48h_cutoff",
+        });
+
+        return res.json({
+          refundEligible,
+          ...cancellationResult,
+        });
+      } catch (error) {
+        console.error("Cancel consultation booking error:", error);
+        return res.status(getHttpStatusCode(error)).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
+
+/**
+ * Cloud Function: List My Consultation Bookings
+ * Returns the authenticated user's consultation bookings for later UI work.
+ */
+exports.listMyConsultationBookings = functions.https.onRequest(
+    {invoker: "public"},
+    async (req, res) => {
+      setCorsHeaders(res);
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (!["GET", "POST"].includes(req.method)) {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        const authUser = await getAuthenticatedUser(req);
+        const requestData = req.method === "GET" ? req.query : (req.body || {});
+        const upcomingOnly = requestData.upcomingOnly === undefined ?
+          true :
+          requestData.upcomingOnly !== false &&
+          requestData.upcomingOnly !== "false";
+        const limit = Math.min(
+            parsePositiveInteger(requestData.limit, 50),
+            200,
+        );
+        const nowMs = Date.now();
+        const bookingsSnap = await getConsultationBookingCollection()
+            .where("userUid", "==", authUser.uid)
+            .get();
+        const bookings = bookingsSnap.docs
+            .map((bookingSnap) => ({
+              bookingId: bookingSnap.id,
+              bookingData: bookingSnap.data(),
+            }))
+            .filter(({bookingData}) => {
+              if (!upcomingOnly) {
+                return true;
+              }
+
+              const startsAtMs = timeValueToMs(bookingData.startsAt);
+              return startsAtMs ? startsAtMs >= nowMs : false;
+            })
+            .sort((leftBooking, rightBooking) => (
+              timeValueToMs(leftBooking.bookingData.startsAt) -
+              timeValueToMs(rightBooking.bookingData.startsAt)
+            ))
+            .slice(0, limit)
+            .map(({bookingId, bookingData}) => serializeConsultationBooking(
+                bookingId,
+                bookingData,
+            ));
+
+        return res.json({
+          bookings,
+          bookingPolicy: getConsultationPolicy(),
+        });
+      } catch (error) {
+        console.error("List consultation bookings error:", error);
+        return res.status(getHttpStatusCode(error)).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
+
+/**
+ * @param {object} stripeClient
+ * @return {Promise<number>}
+ */
+async function reconcileDueConsultationBookings(stripeClient) {
+  const nowTimestamp = admin.firestore.Timestamp.fromMillis(Date.now());
+  let processedBookings = 0;
+
+  while (processedBookings < 100) {
+    const dueBookingsSnap = await getConsultationBookingCollection()
+        .where("nextActionAt", "<=", nowTimestamp)
+        .limit(25)
+        .get();
+
+    if (dueBookingsSnap.empty) {
+      break;
+    }
+
+    for (const bookingSnap of dueBookingsSnap.docs) {
+      const bookingData = bookingSnap.data();
+
+      try {
+        if (
+          bookingData.nextActionType === NEXT_ACTION.EXPIRE_CHECKOUT &&
+          bookingData.bookingStatus === BOOKING_STATUS.CHECKOUT_PENDING
+        ) {
+          await expireConsultationPendingBooking({
+            stripeClient,
+            bookingId: bookingSnap.id,
+            bookingData,
+          });
+        } else {
+          await writeConsultationBookingAndSlot({
+            bookingId: bookingSnap.id,
+            slotId: bookingData.slotId || null,
+            bookingPatch: {
+              nextActionAt: null,
+              nextActionType: null,
+            },
+          });
+        }
+      } catch (error) {
+        console.error(
+            `Consultation booking reconciliation failed for ${bookingSnap.id}:`,
+            error,
+        );
+      }
+
+      processedBookings += 1;
+
+      if (processedBookings >= 100) {
+        break;
+      }
+    }
+
+    if (dueBookingsSnap.size < 25) {
+      break;
+    }
+  }
+
+  return processedBookings;
+}
+
+/**
+ * Scheduled Function: Reconcile Consultation Bookings
+ * Cleans up expired checkout reservations for consultation bookings.
+ */
+exports.reconcileConsultationBookings = functions
+    .runWith({secrets: [stripeSecretKeyParam]})
+    .pubsub
+    .schedule("every 15 minutes")
+    .onRun(async () => {
+      const secretKey = getRequiredSecretValue(
+          stripeSecretKeyParam,
+          "STRIPE_SECRET_KEY",
+      );
+      const stripeClient = stripe(secretKey);
+      const processedBookings = await reconcileDueConsultationBookings(
+          stripeClient,
+      );
+
+      console.log(
+          "Consultation booking reconciliation processed " +
+          `${processedBookings} booking(s).`,
+      );
+
+      return null;
+    });
 
 /**
  * Cloud Function: Create Checkout Session
@@ -913,6 +2671,47 @@ exports.stripeWebhook = functions.https.onRequest(
                   event.data.object.client_reference_id ||
                   getObjectMetadataValue(event.data.object, "firebaseUID"),
               });
+            } else if (
+              event.data.object.mode === "payment" &&
+              getObjectMetadataValue(event.data.object, "bookingKind") ===
+                "consultation"
+            ) {
+              await finalizeConsultationCheckoutSession({
+                stripeClient,
+                checkoutSession: event.data.object,
+                fallbackFirebaseUID:
+                  event.data.object.client_reference_id ||
+                  getObjectMetadataValue(event.data.object, "firebaseUID"),
+              });
+            }
+            break;
+          case "checkout.session.expired":
+            if (
+              getObjectMetadataValue(event.data.object, "bookingKind") ===
+              "consultation"
+            ) {
+              const bookingId = getObjectMetadataValue(
+                  event.data.object,
+                  "bookingId",
+              );
+
+              if (bookingId) {
+                const bookingSnap = await getConsultationBookingCollection()
+                    .doc(bookingId)
+                    .get();
+
+                if (
+                  bookingSnap.exists &&
+                  bookingSnap.data().bookingStatus ===
+                    BOOKING_STATUS.CHECKOUT_PENDING
+                ) {
+                  await expireConsultationPendingBooking({
+                    stripeClient,
+                    bookingId,
+                    bookingData: bookingSnap.data(),
+                  });
+                }
+              }
             }
             break;
           case "customer.subscription.created":
