@@ -79,6 +79,28 @@ async function readResponseData(response) {
   }
 }
 
+function getFriendlyServiceErrorMessage(response, data) {
+  if (response.status === 503) {
+    return (
+      "The billing service is temporarily unavailable right now. " +
+      "Please try again in 30 seconds."
+    );
+  }
+
+  if (
+    response.status >= 500 &&
+    typeof data.rawText === "string" &&
+    /<html[\s>]/i.test(data.rawText)
+  ) {
+    return (
+      `The billing service is temporarily unavailable (HTTP ${response.status}). ` +
+      "Please try again shortly."
+    );
+  }
+
+  return "";
+}
+
 async function postStripeJson(url, body) {
   const response = await fetch(url, {
     method: "POST",
@@ -89,7 +111,9 @@ async function postStripeJson(url, body) {
   const data = await readResponseData(response);
 
   if (!response.ok) {
+    const friendlyServiceError = getFriendlyServiceErrorMessage(response, data);
     const errorMessage =
+      friendlyServiceError ||
       data.error ||
       data.message ||
       data.rawText ||

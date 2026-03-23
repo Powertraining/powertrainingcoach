@@ -1,32 +1,52 @@
 // npx expo install @react-native-picker/picker
 
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 
-export default function InputFormView({ onSubmit, onBack, useApi, onToggleUseApi, hasApiKey, subscription, daysRemaining, onPaymentClick }) {
-    const [goal, setGoal] = useState("hypertrophy");
-    const [experience, setExperience] = useState("beginner");
-    const [daysPerWeek, setDaysPerWeek] = useState(3);
-    const [weightClass, setWeightClass] = useState("");
-    const [primaryStyle, setPrimaryStyle] = useState("balanced");
-    const [competitionPeriod, setCompetitionPeriod] = useState("off_season");
-    const [injuries, setInjuries] = useState("");
-    const [equipmentAccess, setEquipmentAccess] = useState("full_gym");
-    const [focusEmphasis, setFocusEmphasis] = useState("mixed");
+export default function InputFormView({
+    onSubmit,
+    onBack,
+    useApi,
+    onToggleUseApi,
+    hasApiKey,
+    subscription,
+    daysRemaining,
+    initialValues = {},
+}) {
+    const [goal, setGoal] = useState(initialValues.goal || "hypertrophy");
+    const [experience, setExperience] = useState(initialValues.experience || "beginner");
+    const [daysPerWeek, setDaysPerWeek] = useState(
+        Number.parseInt(initialValues.daysPerWeek, 10) || 3
+    );
+    const [weightClass, setWeightClass] = useState(initialValues.weightClass || "");
+    const [primaryStyle, setPrimaryStyle] = useState(initialValues.primaryStyle || "balanced");
+    const [competitionPeriod, setCompetitionPeriod] = useState(
+        initialValues.competitionPeriod || "off_season"
+    );
+    const [injuries, setInjuries] = useState(
+        Array.isArray(initialValues.injuries)
+            ? initialValues.injuries.join(", ")
+            : initialValues.injuries || ""
+    );
+    const [equipmentAccess, setEquipmentAccess] = useState(
+        initialValues.equipment || "full_gym"
+    );
+    const [focusEmphasis, setFocusEmphasis] = useState(
+        initialValues.focusEmphasis ||
+            initialValues.preferences?.[0] ||
+            "mixed"
+    );
 
     function handleSubmit() {
-        if (!subscription) {
-            Alert.alert("Subscription Required", "You need an active subscription to generate a training plan. Please subscribe first.");
-            onPaymentClick?.();
-            return;
-        }
+        const normalizedDaysPerWeek =
+            Number.isFinite(daysPerWeek) && daysPerWeek > 0 ? daysPerWeek : 3;
 
         onSubmit({
             goal,
             experience,
-            daysPerWeek,
+            daysPerWeek: normalizedDaysPerWeek,
             weightClass,
             primaryStyle,
             competitionPeriod,
@@ -49,8 +69,8 @@ export default function InputFormView({ onSubmit, onBack, useApi, onToggleUseApi
                         {!subscription && (
                             <View style={styles.subscriptionAlert}>
                                 <Text style={styles.alertText}>📋 Subscription Required{"\n"}You need an active subscription to generate training plans.</Text>
-                                <TouchableOpacity onPress={onPaymentClick} style={styles.subscribeButton}>
-                                    <Text style={styles.subscribeButtonText}>Subscribe Now</Text>
+                                <TouchableOpacity onPress={handleSubmit} style={styles.subscribeButton}>
+                                    <Text style={styles.subscribeButtonText}>Subscribe & Generate</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -143,8 +163,11 @@ export default function InputFormView({ onSubmit, onBack, useApi, onToggleUseApi
                             <Text style={styles.label}>Days per week</Text>
                             <TextInput
                                 keyboardType="numeric"
-                                value={String(daysPerWeek)}
-                                onChangeText={(v) => setDaysPerWeek(Number(v))}
+                                value={daysPerWeek > 0 ? String(daysPerWeek) : ""}
+                                onChangeText={(v) => {
+                                    const parsedValue = Number.parseInt(v, 10);
+                                    setDaysPerWeek(Number.isFinite(parsedValue) ? parsedValue : 0);
+                                }}
                                 style={styles.input}
                             />
                         </View>
@@ -157,11 +180,10 @@ export default function InputFormView({ onSubmit, onBack, useApi, onToggleUseApi
                             )}
                             <TouchableOpacity
                                 onPress={handleSubmit}
-                                style={[styles.primaryButton, !subscription && styles.primaryButtonDisabled]}
-                                disabled={!subscription}
+                                style={styles.primaryButton}
                             >
                                 <Text style={styles.primaryButtonText}>
-                                    {subscription ? "Find Training Plans" : "Subscribe to Continue"}
+                                    {subscription ? "Generate My Plan" : "Subscribe & Generate Plan"}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -242,7 +264,6 @@ const styles = StyleSheet.create({
         borderColor: "#111",
         backgroundColor: "#111",
     },
-    primaryButtonDisabled: { opacity: 0.5 },
     primaryButtonText: { color: "white", fontSize: 18 },
     secondaryButton: {
         paddingVertical: 12,

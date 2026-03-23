@@ -9,25 +9,16 @@ import StartView from "../../src/screens/screens/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/screens/QuestionnaireSportView.jsx";
 import QuestionnaireFrequencyView from "../../src/screens/screens/QuestionnaireFrequencyView.jsx";
 import InputFormView from "../../src/screens/screens/InputFormView.jsx";
-import PlanSelectionView from "../../src/screens/screens/PlanSelectionView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
-
-import {
-  fetchBaseTrainingPlans,
-  filterTrainingPlans,
-  extractFirstWeekPreview,
-} from "../../src/services/models/trainingPlanService.js";
 
 const STEPS = Object.freeze({
   START: "start",
   Q_SPORT: "questionnaireSport",
   Q_FREQ: "questionnaireFrequency",
   INPUT: "input",
-  SUBSCRIPTION: "subscription",
-  PLAN_SELECTION: "planSelection",
 });
 
 const SPORT_OPTIONS = [
@@ -47,13 +38,6 @@ const HomeScreen = observer(function HomeScreen() {
   const [step, setStep] = useState(STEPS.START);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // State for plan selection
-  const [planPreviews, setPlanPreviews] = useState([]);
-  const [allFetchedPlans, setAllFetchedPlans] = useState([]);
-  const [plansLoading, setPlansLoading] = useState(false);
-  const [plansError, setPlansError] = useState(null);
-  const [currentFilters, setCurrentFilters] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
 
   function getParamValue(value) {
@@ -67,7 +51,6 @@ const HomeScreen = observer(function HomeScreen() {
       STEPS.Q_SPORT,
       STEPS.Q_FREQ,
       STEPS.INPUT,
-      STEPS.PLAN_SELECTION,
     ]);
 
     if (typeof resume !== "string" || !allowedSteps.has(resume)) {
@@ -155,76 +138,69 @@ const HomeScreen = observer(function HomeScreen() {
       case STEPS.INPUT:
         setStep(STEPS.Q_FREQ);
         break;
-      case STEPS.PLAN_SELECTION:
-        setStep(STEPS.INPUT);
-        break;
       default:
         setStep(STEPS.START);
     }
   }
 
-  async function handleFetchPlans(input) {
-    setPlansLoading(true);
-    setPlansError(null);
-
-    const filters = {
+  function buildQuestionnairePayload(input, pendingPlanGeneration) {
+    return {
       ...input,
       primaryCombatSport: model.primaryCombatSport,
       sessionsPerWeek: model.sessionsPerWeek,
+      trainingPlanBatch: model.getTrainingPlanBatch?.() || 1,
+      pendingPlanGeneration,
     };
-    setCurrentFilters(filters);
+  }
+
+  async function generatePlanFromQuestionnaire(questionnaire) {
+    setLoading(true);
+    setError(null);
 
     try {
-      console.log("Fetching base training plans from Firebase Storage...");
-      const plans = await fetchBaseTrainingPlans();
-      setAllFetchedPlans(plans);
-
-      console.log("Filtering plans with criteria:", filters);
-      const filtered = filterTrainingPlans(plans, filters);
-
-      console.log(`Found ${filtered.length} matching plans`);
-      const previews = filtered.map(extractFirstWeekPreview);
-      setPlanPreviews(previews);
-
-      setStep(STEPS.PLAN_SELECTION);
+      const normalizedQuestionnaire =
+        model.buildTrainingPlanInput?.(questionnaire) || questionnaire;
+      await model.generateTrainingPlan?.(normalizedQuestionnaire);
+      model.setQuestionnaire?.({
+        ...questionnaire,
+        pendingPlanGeneration: false,
+      });
+      router.replace("/(tabs)/overview");
     } catch (e) {
-      console.error("Error fetching training plans:", e);
-      setPlansError(`Could not load training plans: ${e.message}`);
-      setStep(STEPS.PLAN_SELECTION);
+      console.error("Error generating training plan:", e);
+      setError(
+        e.message || "Could not generate your personalized training plan."
+      );
+      setStep(STEPS.INPUT);
     } finally {
-      setPlansLoading(false);
+      setLoading(false);
     }
   }
 
-  function handleSelectPlan(planId) {
-    const selectedPlan = allFetchedPlans.find((p) => p.id === planId);
+  async function handleQuestionnaireSubmit(input) {
+    const requiresSubscription = !model.isSubscribed?.();
+    const questionnaire = buildQuestionnairePayload(
+      input,
+      requiresSubscription
+    );
 
-    if (!selectedPlan) {
-      console.error("Selected plan not found:", planId);
-      setPlansError("Selected plan not found. Please try again.");
+    model.setQuestionnaire?.(questionnaire);
+
+    if (requiresSubscription) {
+      router.push({
+        pathname: "/(tabs)/subscription",
+        params: { returnTo: "/(tabs)?resume=input" },
+      });
       return;
     }
 
-    console.log("User selected plan:", selectedPlan.name || planId);
-    model.trainingPlan = selectedPlan;
-    model.completedDays = [];
-
-    // Navigate to overview
-    router.replace("/(tabs)/overview");
-  }
-
-  function handleRetryFetchPlans() {
-    if (currentFilters) {
-      handleFetchPlans(currentFilters);
-    } else {
-      setStep(STEPS.INPUT);
-    }
+    await generatePlanFromQuestionnaire(questionnaire);
   }
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <LoadingView text="Loading..." />
+        <LoadingView />
       </View>
     );
   }
@@ -232,7 +208,13 @@ const HomeScreen = observer(function HomeScreen() {
   if (error) {
     return (
       <View style={styles.container}>
-        <ErrorView message={error} onRetry={() => setStep(STEPS.INPUT)} />
+        <ErrorView
+          message={error}
+          onRetry={() => {
+            setError(null);
+            setStep(STEPS.INPUT);
+          }}
+        />
       </View>
     );
   }
@@ -265,27 +247,11 @@ const HomeScreen = observer(function HomeScreen() {
 
     [STEPS.INPUT]: () => (
       <InputFormView
-        onSubmit={handleFetchPlans}
+        onSubmit={handleQuestionnaireSubmit}
         onBack={goBack}
+        initialValues={model.questionnaire || {}}
         subscription={model.isSubscribed?.() || false}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
-        onPaymentClick={() =>
-          router.push({
-            pathname: "/(tabs)/subscription",
-            params: { returnTo: "/(tabs)?resume=input" },
-          })
-        }
-      />
-    ),
-
-    [STEPS.PLAN_SELECTION]: () => (
-      <PlanSelectionView
-        planPreviews={planPreviews}
-        loading={plansLoading}
-        error={plansError}
-        onSelectPlan={handleSelectPlan}
-        onBack={() => setStep(STEPS.INPUT)}
-        onRetry={handleRetryFetchPlans}
       />
     ),
   };

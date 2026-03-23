@@ -478,9 +478,87 @@ export const model = {
     this.finishedWorkout = value;
   },
 
-  generateTrainingPlan(userInput) {
-    const prms = generatePlan(userInput);
+  setQuestionnaire(questionnaire = {}) {
+    this.questionnaire =
+      questionnaire && typeof questionnaire === "object" ?
+        {...questionnaire} :
+        {};
+  },
+
+  buildTrainingPlanInput(questionnaire = this.questionnaire) {
+    const source =
+      questionnaire && typeof questionnaire === "object" ? questionnaire : {};
+    const parsedDaysPerWeek = Number.parseInt(source.daysPerWeek, 10);
+    const parsedSessionsPerWeek = Number.parseInt(source.sessionsPerWeek, 10);
+    const fallbackSessionsPerWeek = Number.parseInt(this.sessionsPerWeek, 10);
+    const parsedNumWeeks = Number.parseInt(source.numWeeks, 10);
+    const parsedTrainingPlanBatch = Number.parseInt(source.trainingPlanBatch, 10);
+
+    const daysPerWeek =
+      Number.isFinite(parsedDaysPerWeek) && parsedDaysPerWeek > 0 ?
+        parsedDaysPerWeek :
+        Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
+          parsedSessionsPerWeek :
+          Number.isFinite(fallbackSessionsPerWeek) && fallbackSessionsPerWeek > 0 ?
+            fallbackSessionsPerWeek :
+            3;
+
+    const focusEmphasis =
+      typeof source.focusEmphasis === "string" && source.focusEmphasis ?
+        source.focusEmphasis :
+        Array.isArray(source.preferences) &&
+            typeof source.preferences[0] === "string" &&
+            source.preferences[0] ?
+          source.preferences[0] :
+          "mixed";
+
+    const weeksFromSubscription = this.getPlannedWeeksFromSubscription?.() || 0;
+
+    return {
+      ...source,
+      primaryCombatSport: source.primaryCombatSport || this.primaryCombatSport || "",
+      sessionsPerWeek:
+        Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
+          parsedSessionsPerWeek :
+          daysPerWeek,
+      daysPerWeek,
+      focusEmphasis,
+      preferences:
+        Array.isArray(source.preferences) && source.preferences.length > 0 ?
+          source.preferences.filter(Boolean) :
+          [focusEmphasis].filter(Boolean),
+      injuries: Array.isArray(source.injuries) ? source.injuries.filter(Boolean) : [],
+      numWeeks:
+        Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
+          weeksFromSubscription :
+          Number.isFinite(parsedNumWeeks) && parsedNumWeeks > 0 ?
+            parsedNumWeeks :
+            4,
+      trainingPlanBatch:
+        Number.isFinite(parsedTrainingPlanBatch) && parsedTrainingPlanBatch > 0 ?
+          parsedTrainingPlanBatch :
+          this.getTrainingPlanBatch?.() || 1,
+    };
+  },
+
+  async generateTrainingPlan(userInput = this.buildTrainingPlanInput()) {
+    if (!userInput || typeof userInput !== "object") {
+      throw new Error(
+        "Please complete the onboarding questions before generating a training plan."
+      );
+    }
+
+    const prms = generatePlan(userInput).then((plan) => {
+      if (this.trainingPlanPromiseState.promise === prms) {
+        this.trainingPlan = plan;
+        this.completedDays = [];
+      }
+
+      return plan;
+    });
+
     resolvePromise(prms, this.trainingPlanPromiseState);
+    return prms;
   },
 
   isSubscribed() {

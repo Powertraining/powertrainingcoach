@@ -14,8 +14,14 @@ export const STRIPE_FUNCTIONS_BASE_URL = getEnv(
   "STRIPE_FUNCTIONS_BASE_URL"
 ) || `https://${STRIPE_FUNCTIONS_REGION}-${FIREBASE_PROJECT_ID}.cloudfunctions.net`;
 
-export const OPENAI_API_MODEL = "gpt-5-mini";
-export const OPENAI_API_TEMPERATURE = 1;
+export const OPENAI_API_MODEL = getEnv(
+  process.env.EXPO_PUBLIC_OPENAI_API_MODEL,
+  "OPENAI_API_MODEL"
+) || "gpt-5.4-mini";
+export const OPENAI_API_TEMPERATURE = getEnv(
+  process.env.EXPO_PUBLIC_OPENAI_API_TEMPERATURE,
+  "OPENAI_API_TEMPERATURE"
+) || 1;
 export const STRIPE_PUBLIC_API_KEY = getEnv(
   process.env.EXPO_PUBLIC_STRIPE_PUBLIC_KEY,
   "STRIPE_PUBLIC_KEY"

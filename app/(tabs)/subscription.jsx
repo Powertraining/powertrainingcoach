@@ -22,6 +22,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
   const [sessionId, setSessionId] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [verifyingSession, setVerifyingSession] = useState(false);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
 
   function getParamValue(value) {
     return Array.isArray(value) ? value[0] : value;
@@ -43,6 +44,18 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
   }
 
   const returnTo = getSafeReturnToPath();
+
+  function clearPendingPlanGenerationFlag() {
+    const savedQuestionnaire =
+      model.questionnaire && typeof model.questionnaire === "object" ?
+        model.questionnaire :
+        {};
+
+    model.setQuestionnaire?.({
+      ...savedQuestionnaire,
+      pendingPlanGeneration: false,
+    });
+  }
 
   useEffect(() => {
     const successParam = getParamValue(params.success);
@@ -87,11 +100,50 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     setMessage("");
 
     verifyCheckoutSession(sessionIdParam)
-      .then((verification) => {
+      .then(async (verification) => {
         model.applySubscriptionState?.({
           subscription: verification.active,
           subscriptionEndDate: verification.subscriptionEndDate,
         });
+
+        const shouldAutoGeneratePlan =
+          Boolean(model.questionnaire?.pendingPlanGeneration) &&
+          !model.trainingPlan;
+
+        if (shouldAutoGeneratePlan) {
+          setGeneratingPlan(true);
+          clearPendingPlanGenerationFlag();
+
+          try {
+            const trainingPlanInput = model.buildTrainingPlanInput?.();
+
+            if (!trainingPlanInput) {
+              throw new Error(
+                "We couldn't restore your onboarding answers. Please return to the questionnaire and try again."
+              );
+            }
+
+            await model.generateTrainingPlan?.(trainingPlanInput);
+            router.replace("/(tabs)/overview");
+            return;
+          } catch (error) {
+            console.error(
+              "Training plan generation failed after subscription:",
+              error
+            );
+            handledSessionIdRef.current = "";
+            setSuccess(false);
+            setSessionId("");
+            setCustomerId("");
+            setMessage(
+              error.message ||
+                "Your subscription is active, but we couldn't generate your training plan yet. Please return to the questionnaire and try again."
+            );
+            return;
+          } finally {
+            setGeneratingPlan(false);
+          }
+        }
 
         if (returnTo && returnTo !== "/(tabs)/subscription") {
           router.replace(returnTo);
@@ -154,7 +206,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     setCustomerId("");
   }
 
-  if (verifyingSession) {
+  if (verifyingSession || generatingPlan) {
     return (
       <View style={[styles.container, styles.centered]}>
         <LoadingView />
