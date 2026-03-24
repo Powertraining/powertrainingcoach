@@ -1,6 +1,7 @@
 import {
   FIRESTORE_DATABASE_ID,
   auth,
+  authPersistenceReady,
   db,
   storage,
 } from "../config/firebase";
@@ -272,6 +273,28 @@ async function listFilesRecursively(storageRef) {
   const { items, prefixes } = await listAll(storageRef);
   const nestedFiles = await Promise.all(prefixes.map(listFilesRecursively));
   return [...items, ...nestedFiles.flat()];
+}
+
+async function waitForAuthHydration() {
+  try {
+    await authPersistenceReady;
+
+    if (typeof auth?.authStateReady === "function") {
+      await auth.authStateReady();
+    }
+  } catch (error) {
+    console.info(
+      "[dbService.waitForAuthHydration] Auth hydration was not ready before reading Storage; continuing with bundled instruction defaults.",
+      error
+    );
+  }
+}
+
+function isStoragePermissionError(error) {
+  return (
+    error?.code === "storage/unauthorized" ||
+    error?.code === "storage/unauthenticated"
+  );
 }
 
 // User Data Management
@@ -574,6 +597,8 @@ export async function incrementForumPostSaves(postId, delta) {
 // Get live instructions (prompts) from Firebase Storage
 export async function getLiveInstructions() {
   try {
+    await waitForAuthHydration();
+
     const instructionsRef = ref(storage, "instructions");
     const files = await listFilesRecursively(instructionsRef);
 
@@ -618,6 +643,14 @@ export async function getLiveInstructions() {
 
     return instructionsMap;
   } catch (error) {
+    if (isStoragePermissionError(error)) {
+      console.info(
+        "[dbService.getLiveInstructions] Firebase Storage instructions are unavailable for this session; using bundled defaults instead.",
+        { code: error?.code || null }
+      );
+      return null;
+    }
+
     console.error("Error fetching live instructions:", error);
     return null;
   }

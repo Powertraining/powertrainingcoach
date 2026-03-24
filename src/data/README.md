@@ -104,7 +104,12 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // Allow read access to base training plans for authenticated users
-    match /baseTrainingPlans/{planFile} {
+    match /baseTrainingPlans/{planPath=**} {
+      allow read: if request.auth != null;
+    }
+
+    // Allow read access to live prompt instructions and images
+    match /instructions/{instructionPath=**} {
       allow read: if request.auth != null;
     }
   }
