@@ -152,6 +152,7 @@ export async function logout() {
 
 export async function resetPassword(email) {
   try {
+    await ensureAuthPersistenceReady();
     await sendPasswordResetEmail(auth, email);
     return { success: true };
   } catch (error) {

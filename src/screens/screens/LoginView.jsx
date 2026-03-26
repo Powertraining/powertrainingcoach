@@ -4,42 +4,52 @@ import TitleText from "../../components/textComponents/TitleText.jsx";
 import SignFormInput from "../../components/SignFormInput.jsx";
 import GoogleButtonComponent from "../../components/GoogleButton.jsx";
 
-
 export function LoginView(props) {
-    return (
-        <View style={{flex: 1,}}>
-            <TitleText>Welcome back!</TitleText>
+  return (
+    <View style={{ flex: 1 }}>
+      <TitleText>Welcome back!</TitleText>
 
-            <SignFormInput 
-                text="E-mail"
-                image="user"
-                inputProps = {{value: props.identifier,
-                onChangeText: props.onIdentifierChange,
-                keyboardType : "email-address",
-                autoCapitalize: "none",
-                }}  
-            />
-            <SignFormInput 
-                text="Password"
-                image="lock"
-                inputProps = {{value: props.password, 
-                onChangeText: props.onPasswordChange,
-                secureTextEntry: true,
-                }}  
-            />
-            <GoogleButtonComponent onPress={props.onSubmitGoogle} />
-            <TouchableOpacity style={{width: "100%"}}>
-                    <StandardText center={true}>Forgot your password?</StandardText>
-                </TouchableOpacity>
+      <SignFormInput
+        text="E-mail"
+        image="user"
+        inputProps={{
+          value: props.identifier,
+          onChangeText: props.onIdentifierChange,
+          keyboardType: "email-address",
+          autoCapitalize: "none",
+        }}
+      />
+      <SignFormInput
+        text="Password"
+        image="lock"
+        inputProps={{
+          value: props.password,
+          onChangeText: props.onPasswordChange,
+          secureTextEntry: true,
+        }}
+      />
+      <GoogleButtonComponent
+        onPress={props.onSubmitGoogle}
+        disabled={props.isSubmitting}
+      />
+      <TouchableOpacity
+        style={styles.forgotPasswordButton}
+        onPress={props.onForgotPasswordPress}
+        disabled={props.isSubmitting}
+      >
+        <StandardText center={true}>Forgot your password?</StandardText>
+      </TouchableOpacity>
 
-            
-            {props.error && <StandardText>{props.error}</StandardText>}
-        </View>
-    );
+      {props.error ? <StandardText center={true}>{props.error}</StandardText> : null}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    linksRow: { flexDirection: "row", justifyContent: "space-between" },
+  forgotPasswordButton: {
+    width: "100%",
+    marginBottom: 15,
+  },
 });
 
 // // src/views/LoginView.jsx

@@ -80,6 +80,18 @@ const AuthScreen = observer(function AuthScreen() {
   function emailChangeACB(value) { setEmail(value); }
   function signupPasswordChangeACB(value) { setSignupPassword(value); }
 
+  function handleForgotPasswordPress() {
+    const normalizedIdentifier = identifier.trim();
+
+    router.push({
+      pathname: "/(auth)/reset-password",
+      params: {
+        source: "auth",
+        ...(normalizedIdentifier ? { email: normalizedIdentifier } : {}),
+      },
+    });
+  }
+
   async function signupSubmitACB() {
     setSignupError(null);
     setSignupSubmitting(true);
@@ -105,6 +117,7 @@ const AuthScreen = observer(function AuthScreen() {
           onPasswordChange={loginPasswordChangeACB}
           onSubmit={loginSubmitACB}
           onSubmitGoogle={submitGoogleACB}
+          onForgotPasswordPress={handleForgotPasswordPress}
         />
       ) : (
         <SignUpView

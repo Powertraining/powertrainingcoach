@@ -7,6 +7,7 @@ import {
   registerWithEmailPassword,
   logout,
   loginWithGoogle,
+  resetPassword as requestPasswordReset,
   USER_ROLES,
 } from "./authService.js";
 import {
@@ -112,6 +113,15 @@ export const model = {
       throw new Error(authResult.error);
     }
   },
+
+  async submitPasswordReset(email) {
+    const authResult = await requestPasswordReset(email);
+
+    if (!authResult.success) {
+      throw new Error(authResult.error);
+    }
+  },
+
   async submitFeedBack(rating, comment) {
     const feedbackData = {
       rating,

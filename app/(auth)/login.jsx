@@ -82,6 +82,20 @@ const LoginScreen = observer(function LoginScreen() {
     });
   }
 
+  function handleForgotPasswordPress() {
+    const normalizedIdentifier = identifier.trim();
+    const nextParams = {
+      source: "login",
+      ...(normalizedIdentifier ? { email: normalizedIdentifier } : {}),
+      ...(returnTo ? { returnTo } : {}),
+    };
+
+    router.push({
+      pathname: "/(auth)/reset-password",
+      params: nextParams,
+    });
+  }
+
   useEffect(() => {
     if (model.ready && model.user) {
       router.replace(returnTo || "/(tabs)");
@@ -98,6 +112,7 @@ const LoginScreen = observer(function LoginScreen() {
       onPasswordChange={passwordChangeACB}
       onSubmit={submitACB}
       onSubmitGoogle={submitGoogleACB}
+      onForgotPasswordPress={handleForgotPasswordPress}
       onSignupPress={handleSignupPress}
     />
   );
