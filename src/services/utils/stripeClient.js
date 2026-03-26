@@ -7,6 +7,7 @@ import { auth } from "../config/firebase.js";
 import { onAuthStateChanged } from "../config/firebaseSdk.js";
 import {
   STRIPE_CHECKOUT_ENDPOINT,
+  STRIPE_LIST_SUBSCRIPTION_PLANS_ENDPOINT,
   STRIPE_PORTAL_ENDPOINT,
   STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT,
   STRIPE_VERIFY_CHECKOUT_ENDPOINT,
@@ -141,6 +142,19 @@ export async function createCheckoutSession(lookupKey, returnTo = "") {
     });
   } catch (error) {
     console.error("Checkout error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Returns the current subscription plans from Stripe.
+ * @returns {Promise<object>}
+ */
+export async function listSubscriptionPlans() {
+  try {
+    return await postStripeJson(STRIPE_LIST_SUBSCRIPTION_PLANS_ENDPOINT, {});
+  } catch (error) {
+    console.error("List subscription plans error:", error);
     throw error;
   }
 }

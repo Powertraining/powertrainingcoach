@@ -122,11 +122,14 @@ const ProfileScreen = observer(function ProfileScreen() {
 
     try {
       await model.submitLogout();
-      router.replace("/(auth)/auth");
     } catch (e) {
       console.error(e);
       setError(e.message || "Logout failed.");
-    } finally {
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (model.user) {
       setIsSubmitting(false);
     }
   }

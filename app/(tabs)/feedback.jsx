@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
@@ -16,6 +16,12 @@ const FeedbackScreen = observer(function FeedbackScreen() {
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (model.user && model.ready && model.finishedWorkout !== 3) {
+      router.replace("/(tabs)");
+    }
+  }, [model.finishedWorkout, model.ready, model.user, router]);
 
   if (!model.ready) {
     return (
@@ -37,7 +43,6 @@ const FeedbackScreen = observer(function FeedbackScreen() {
 
   // Check if user should be on feedback page
   if (model.finishedWorkout !== 3) {
-    router.replace("/(tabs)");
     return null;
   }
 

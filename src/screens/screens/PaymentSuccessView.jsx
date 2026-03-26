@@ -13,8 +13,10 @@ export default function PaymentSuccessView({ customerId, sessionId, onContinue }
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>💪</Text>
-      <Text style={styles.title}>Subscription Successful!</Text>
-      <Text style={styles.copy}>Thank you for your purchase. Your subscription is now active.</Text>
+      <Text style={styles.title}>Subscription Ready!</Text>
+      <Text style={styles.copy}>
+        Your subscription is set up and your app access is now active.
+      </Text>
       <TouchableOpacity style={styles.secondaryButton} onPress={handleManageBilling}>
         <Text style={styles.secondaryButtonText}>Manage billing</Text>
       </TouchableOpacity>

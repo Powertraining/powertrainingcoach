@@ -50,6 +50,24 @@ const BILLING_PORTAL_RETURN_URL =
 const stripeSecretKeyParam = defineSecret("STRIPE_SECRET_KEY");
 const stripeWebhookSecretParam = defineSecret("STRIPE_WEBHOOK_SECRET");
 const openAiApiKeyParam = defineSecret("OPENAI_API_KEY");
+const SUBSCRIPTION_TRIAL_DAYS = parsePositiveInteger(
+    process.env.SUBSCRIPTION_TRIAL_DAYS,
+    7,
+);
+const SUBSCRIPTION_PLAN_CONFIGS = Object.freeze([
+  {
+    lookupKey: "starter_plan_setup",
+    fallbackName: "Starter Plan",
+  },
+  {
+    lookupKey: "pro_plan_setup",
+    fallbackName: "Pro Plan",
+  },
+  {
+    lookupKey: "expert_plan_setup",
+    fallbackName: "Expert Plan",
+  },
+]);
 const CONSULTATION_CHECKOUT_HOLD_MINUTES = parsePositiveInteger(
     process.env.CONSULTATION_CHECKOUT_HOLD_MINUTES,
     DEFAULT_CHECKOUT_HOLD_MINUTES,
@@ -329,6 +347,123 @@ function appendQueryParams(baseUrl, params) {
 }
 
 /**
+ * @param {string} currency
+ * @return {number}
+ */
+function getCurrencyFractionDigits(currency) {
+  const normalizedCurrency = normalizeCurrency(
+      currency,
+      DEFAULT_CURRENCY,
+  ).toUpperCase();
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: normalizedCurrency,
+    }).resolvedOptions().maximumFractionDigits;
+  } catch (error) {
+    console.warn(
+        `Could not determine currency digits for ${normalizedCurrency}:`,
+        error,
+    );
+    return 2;
+  }
+}
+
+/**
+ * @param {number|null} amountMinor
+ * @param {string} currency
+ * @return {string}
+ */
+function formatStripeAmount(amountMinor, currency) {
+  if (typeof amountMinor !== "number") {
+    return "";
+  }
+
+  const normalizedCurrency = normalizeCurrency(
+      currency,
+      DEFAULT_CURRENCY,
+  ).toUpperCase();
+  const fractionDigits = getCurrencyFractionDigits(normalizedCurrency);
+  const amountMajor = amountMinor / Math.pow(10, fractionDigits);
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: normalizedCurrency,
+    currencyDisplay: "code",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(amountMajor).replace(/\s+/g, " ").trim();
+}
+
+/**
+ * @param {object|null} recurring
+ * @return {string}
+ */
+function formatStripeRecurringInterval(recurring) {
+  if (!recurring || !recurring.interval) {
+    return "";
+  }
+
+  const intervalCount = recurring.interval_count || 1;
+
+  if (intervalCount === 1) {
+    return recurring.interval;
+  }
+
+  return `${intervalCount} ${recurring.interval}s`;
+}
+
+/**
+ * @param {object} price
+ * @return {string}
+ */
+function formatStripePriceLabel(price) {
+  const amountLabel = formatStripeAmount(price.unit_amount, price.currency);
+
+  if (!amountLabel) {
+    return "";
+  }
+
+  const recurringInterval = formatStripeRecurringInterval(price.recurring);
+
+  if (!recurringInterval) {
+    return amountLabel;
+  }
+
+  return `${amountLabel} / ${recurringInterval}`;
+}
+
+/**
+ * @param {object} price
+ * @param {string} fallbackName
+ * @return {object}
+ */
+function serializeSubscriptionPlan(price, fallbackName) {
+  const recurring = price.recurring || null;
+  const product =
+    price.product &&
+    typeof price.product === "object" &&
+    !price.product.deleted ?
+      price.product :
+      null;
+
+  return {
+    lookupKey: price.lookup_key || null,
+    priceId: price.id,
+    name: product && product.name ? product.name : fallbackName,
+    description: product && product.description ? product.description : "",
+    currency: normalizeCurrency(price.currency, DEFAULT_CURRENCY).toUpperCase(),
+    unitAmount:
+      typeof price.unit_amount === "number" ? price.unit_amount : null,
+    interval: recurring && recurring.interval ? recurring.interval : null,
+    intervalCount:
+      recurring && recurring.interval_count ? recurring.interval_count : 1,
+    priceLabel: formatStripePriceLabel(price),
+  };
+}
+
+/**
  * @param {object} params
  * @param {object} params.stripeClient
  * @param {string|null} params.customerId
@@ -466,6 +601,26 @@ async function findSubscriptionIdForCustomer({stripeClient, customerId}) {
   ) || subscriptions.data[0];
 
   return prioritizedSubscription ? prioritizedSubscription.id : null;
+}
+
+/**
+ * @param {object} params
+ * @param {object} params.stripeClient
+ * @param {string} params.customerId
+ * @return {Promise<boolean>}
+ */
+async function isEligibleForSubscriptionTrial({stripeClient, customerId}) {
+  if (!customerId || SUBSCRIPTION_TRIAL_DAYS < 1) {
+    return false;
+  }
+
+  const subscriptions = await stripeClient.subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 1,
+  });
+
+  return subscriptions.data.length === 0;
 }
 
 /**
@@ -2215,11 +2370,12 @@ async function reconcileDueConsultationBookings(stripeClient) {
  * Scheduled Function: Reconcile Consultation Bookings
  * Cleans up expired checkout reservations for consultation bookings.
  */
-exports.reconcileConsultationBookings = functions
-    .runWith({secrets: [stripeSecretKeyParam]})
-    .pubsub
-    .schedule("every 15 minutes")
-    .onRun(async () => {
+exports.reconcileConsultationBookings = functions.scheduler.onSchedule(
+    {
+      schedule: "every 15 minutes",
+      secrets: [stripeSecretKeyParam],
+    },
+    async () => {
       const secretKey = getRequiredSecretValue(
           stripeSecretKeyParam,
           "STRIPE_SECRET_KEY",
@@ -2235,7 +2391,92 @@ exports.reconcileConsultationBookings = functions
       );
 
       return null;
-    });
+    },
+);
+
+/**
+ * Cloud Function: List Subscription Plans
+ * Returns the Stripe-backed plan catalog for the subscription screen.
+ */
+exports.listSubscriptionPlans = functions.https.onRequest(
+    {invoker: "public", secrets: [stripeSecretKeyParam]},
+    async (req, res) => {
+      setCorsHeaders(res);
+
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+
+      if (!["GET", "POST"].includes(req.method)) {
+        return res.status(405).send("Method Not Allowed");
+      }
+
+      try {
+        await getAuthenticatedUser(req);
+        const secretKey = getRequiredSecretValue(
+            stripeSecretKeyParam,
+            "STRIPE_SECRET_KEY",
+        );
+        const stripeClient = stripe(secretKey);
+        const lookupKeys = SUBSCRIPTION_PLAN_CONFIGS.map(
+            (config) => config.lookupKey,
+        );
+        const prices = await stripeClient.prices.list({
+          lookup_keys: lookupKeys,
+          active: true,
+          expand: ["data.product"],
+          limit: lookupKeys.length,
+        });
+        const priceByLookupKey = new Map();
+
+        prices.data.forEach((price) => {
+          if (price.lookup_key && !priceByLookupKey.has(price.lookup_key)) {
+            priceByLookupKey.set(price.lookup_key, price);
+          }
+        });
+
+        const missingLookupKeys = lookupKeys.filter(
+            (lookupKey) => !priceByLookupKey.has(lookupKey),
+        );
+
+        if (missingLookupKeys.length > 0) {
+          console.warn(
+              "Missing Stripe prices for subscription lookup keys:",
+              missingLookupKeys,
+          );
+        }
+
+        const plans = SUBSCRIPTION_PLAN_CONFIGS.map((config) => {
+          const price = priceByLookupKey.get(config.lookupKey);
+
+          if (!price) {
+            return null;
+          }
+
+          return serializeSubscriptionPlan(price, config.fallbackName);
+        }).filter(Boolean);
+
+        if (plans.length === 0) {
+          return res.status(404).json({error: "No subscription plans found"});
+        }
+
+        return res.json({
+          plans,
+          trialDays: SUBSCRIPTION_TRIAL_DAYS,
+        });
+      } catch (error) {
+        console.error("List subscription plans error:", error);
+        const statusCode = error.message === "Missing authorization token" ||
+          hasAuthErrorCode(error) ?
+          401 :
+          500;
+        return res.status(statusCode).json({
+          error: getClientSafeErrorMessage(error),
+        });
+      }
+    },
+);
 
 /**
  * Cloud Function: Create Checkout Session
@@ -2279,6 +2520,8 @@ exports.createCheckoutSession = functions.https.onRequest(
         // Fetch the price based on lookupKey
         const prices = await stripeClient.prices.list({
           lookup_keys: [lookupKey],
+          active: true,
+          limit: 1,
         });
 
         if (prices.data.length === 0) {
@@ -2298,6 +2541,22 @@ exports.createCheckoutSession = functions.https.onRequest(
           canceled: "true",
           return_to: safeReturnTo,
         });
+        const trialEligible = await isEligibleForSubscriptionTrial({
+          stripeClient,
+          customerId: customer.id,
+        });
+        const subscriptionMetadata = {
+          firebaseUID: authUser.uid,
+          lookupKey,
+          returnTo: safeReturnTo,
+        };
+        const subscriptionData = {
+          metadata: subscriptionMetadata,
+          // Grant the trial only on the customer's first subscription.
+          ...(trialEligible ?
+            {trial_period_days: SUBSCRIPTION_TRIAL_DAYS} :
+            {}),
+        };
 
         const checkoutSession = await stripeClient.checkout.sessions.create({
           mode: "subscription",
@@ -2309,17 +2568,9 @@ exports.createCheckoutSession = functions.https.onRequest(
           success_url: successUrl,
           cancel_url: cancelUrl,
           metadata: {
-            firebaseUID: authUser.uid,
-            lookupKey,
-            returnTo: safeReturnTo,
+            ...subscriptionMetadata,
           },
-          subscription_data: {
-            metadata: {
-              firebaseUID: authUser.uid,
-              lookupKey,
-              returnTo: safeReturnTo,
-            },
-          },
+          subscription_data: subscriptionData,
         });
 
         if (!checkoutSession.url) {
@@ -2331,6 +2582,7 @@ exports.createCheckoutSession = functions.https.onRequest(
           checkoutUrl: checkoutSession.url,
           customerId: customer.id,
           sessionId: checkoutSession.id,
+          trialDays: trialEligible ? SUBSCRIPTION_TRIAL_DAYS : 0,
         });
       } catch (error) {
         console.error("Checkout error:", error);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { observer } from "mobx-react-lite";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { View, StyleSheet } from "react-native";
@@ -41,6 +41,12 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     return plan.weeks.reduce((acc, week) => acc + (week.days?.length || 0), 0);
   }, [plan]);
 
+  useEffect(() => {
+    if (model.user && model.ready && (!plan || !selectedDay)) {
+      router.replace("/(tabs)/overview");
+    }
+  }, [model.ready, model.user, plan, selectedDay, router]);
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -58,13 +64,6 @@ const DayDetailScreen = observer(function DayDetailScreen() {
       />
     );
   }
-
-  // If no plan or invalid params, go back
-  useEffect(() => {
-    if (!plan || !selectedDay) {
-      router.replace("/(tabs)/overview");
-    }
-  }, [plan, selectedDay, router]);
 
   function handleBack() {
     router.back();

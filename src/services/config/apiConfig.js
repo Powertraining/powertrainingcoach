@@ -41,6 +41,7 @@ export const GOOGLE_IOS_CLIENT_ID = getEnv(
 
 // Stripe server-side payment endpoints
 export const STRIPE_CHECKOUT_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/createCheckoutSession`;
+export const STRIPE_LIST_SUBSCRIPTION_PLANS_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/listSubscriptionPlans`;
 export const STRIPE_VERIFY_CHECKOUT_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/verifyCheckoutSession`;
 export const STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/refreshSubscriptionStatus`;
 export const STRIPE_PORTAL_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/createPortalSession`;
