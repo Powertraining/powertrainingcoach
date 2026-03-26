@@ -7,7 +7,7 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
 
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
-            <View style={{backgroundColor: "#000",}}>
+            <View>
             <TouchableOpacity onPress={onBack} style={styles.backButton}>
                             <Text style={[styles.buttonText,{color:"#585858"}]}>Back</Text>
                         </TouchableOpacity>
@@ -42,7 +42,7 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
 }
 
 const styles = StyleSheet.create({
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, backgroundColor: "#000",justifyContent: "center", 
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, justifyContent: "center",
         alignSelf:"center", width: 280},
     option: {
         paddingVertical: 10,

@@ -62,8 +62,8 @@ const TabsLayout = observer(function TabsLayout() {
 
   return (
     <View style={styles.container}>
-      {/* Custom Header */}
-      <View style={styles.header}>
+      Custom Header
+      {/* <View style={styles.header}>
         <TouchableOpacity onPress={handleLogoPress} style={styles.logoContainer}>
           <Image source={logo} style={styles.logo} />
         </TouchableOpacity>
@@ -76,12 +76,13 @@ const TabsLayout = observer(function TabsLayout() {
         >
           <Text style={styles.profileButtonText}>👤</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* Tab Navigator */}
       <Tabs
         screenOptions={{
           headerShown: false,
+          sceneStyle: { backgroundColor: "transparent" },
           tabBarStyle: styles.tabBar,
           tabBarActiveTintColor: "#111827",
           tabBarInactiveTintColor: "#6b7280",
@@ -143,7 +144,6 @@ export default TabsLayout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f7",
   },
   header: {
     flexDirection: "row",
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e2e2",
+    borderBottomColor: "#000",
   },
   logoContainer: {
     padding: 4,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
   tabBar: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "transparent",
     borderTopWidth: 1,
     borderTopColor: "#e2e2e2",
     paddingTop: 4,

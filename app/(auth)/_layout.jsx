@@ -7,7 +7,7 @@ export default function AuthLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: "#000000", },
+          contentStyle: { backgroundColor: "transparent" },
           animation: "slide_from_right",
           
         }}
@@ -24,6 +24,5 @@ export default function AuthLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f7",
   },
 });

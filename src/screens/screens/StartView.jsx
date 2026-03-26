@@ -1,18 +1,17 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
+import TitleText from "../../components/textComponents/TitleText.jsx"
+import GoldGradient from "../../components/colorComponents/GoldGradient.jsx"
 
 export default function StartView({ onStart }) {
     return (
         <QuestionnaireShell>
             <View>
-                <StandardText>Welcome</StandardText>
-                <StandardText>Combat Training Planner</StandardText>
-                <StandardText>
-                    Create a personalized training program for martial arts based on your goals and schedule.
-                </StandardText>
-                <TouchableOpacity onPress={onStart}>
-                    <StandardText>Create Training Program</StandardText>
+                <TitleText>Lets start by creating your program</TitleText>
+                <TouchableOpacity onPress={onStart} style={styles.bigButton}>
+                    <GoldGradient style={{borderRadius: styles.bigButton.borderRadius}}/>
+                    <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
                 </TouchableOpacity>
             </View>
         </QuestionnaireShell>
@@ -42,3 +41,14 @@ export default function StartView({ onStart }) {
 //         </QuestionnaireShell>
 //     );
 // }
+
+const styles = StyleSheet.create({
+    bigButton: {backgroundColor: "#fff",
+        height: 90,
+        marginHorizontal: 70,
+        borderRadius: 120,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 20,
+    },
+})

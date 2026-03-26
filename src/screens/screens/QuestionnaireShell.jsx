@@ -10,7 +10,6 @@ export default function QuestionnaireShell({ children, onLogoClick }) {
 
 const styles = StyleSheet.create({
     container : {
-        backgroundColor : "#000",
         flex: 1,
     }
 });

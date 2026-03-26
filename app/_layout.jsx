@@ -6,9 +6,12 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 
+
 import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../src/screens/screens/LoadingView.jsx";
 import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
+import BlackGradient from "../src/components/colorComponents/blackGradient.jsx";
+
 
 // Make model globally available for debugging
 if (typeof global !== "undefined") {
@@ -49,10 +52,13 @@ const RootLayout = observer(function RootLayout() {
               <LoadingView />
             </View>
           )}
+
+          <BlackGradient/>
+
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: "#f5f5f7" },
+              contentStyle: { backgroundColor: "transparent" },
               animation: "slide_from_right",
             }}
           >
@@ -78,7 +84,7 @@ export default RootLayout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f7",
+    backgroundColor :"transparent"
   },
   loadingOverlay: {
     position: "absolute",
