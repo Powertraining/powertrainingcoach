@@ -1,9 +1,8 @@
 import { Tabs, Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-import logo from "../../src/assets/logo.png";
 
 const TabsLayout = observer(function TabsLayout() {
   const model = reactiveModel;
@@ -51,34 +50,8 @@ const TabsLayout = observer(function TabsLayout() {
     );
   }
 
-  function handleLogoPress() {
-    // If training plan exists, navigate to overview; otherwise go home
-    if (model.trainingPlan) {
-      router.push("/(tabs)/overview");
-    } else {
-      router.push("/(tabs)");
-    }
-  }
-
   return (
     <View style={styles.container}>
-      Custom Header
-      {/* <View style={styles.header}>
-        <TouchableOpacity onPress={handleLogoPress} style={styles.logoContainer}>
-          <Image source={logo} style={styles.logo} />
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Power Training Coach</Text>
-
-        <TouchableOpacity
-          onPress={() => router.push("/(tabs)/profile")}
-          style={styles.profileButton}
-        >
-          <Text style={styles.profileButtonText}>👤</Text>
-        </TouchableOpacity>
-      </View> */}
-
-      {/* Tab Navigator */}
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -144,42 +117,6 @@ export default TabsLayout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#000",
-  },
-  logoContainer: {
-    padding: 4,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    resizeMode: "contain",
-  },
-  title: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "700",
-    textAlign: "center",
-    color: "#111827",
-    letterSpacing: 0.3,
-  },
-  profileButton: {
-    backgroundColor: "#111827",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  profileButtonText: {
-    fontSize: 16,
-    color: "#ffffff",
   },
   tabBar: {
     backgroundColor: "transparent",
