@@ -10,7 +10,7 @@ import { useFonts } from "expo-font";
 import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../src/screens/screens/LoadingView.jsx";
 import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
-import BlackGradient from "../src/components/colorComponents/blackGradient.jsx";
+import BlackGradient from "../src/components/colorComponents/BlackGradient.jsx";
 
 
 // Make model globally available for debugging
