@@ -44,37 +44,38 @@ const RootLayout = observer(function RootLayout() {
 
   return (
     <StripeProviderWrapper>
-      <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-          {isLoading && (
-            <View style={styles.loadingOverlay}>
-              <LoadingView />
-            </View>
-          )}
+      <View style={styles.root}>
+        <BlackGradient />
+        <SafeAreaProvider style={styles.provider}>
+          <StatusBar style="light" backgroundColor="#000000" />
+          <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+            {isLoading && (
+              <View style={styles.loadingOverlay}>
+                <LoadingView />
+              </View>
+            )}
 
-          <BlackGradient/>
-
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: "transparent" },
-              animation: "slide_from_right",
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="modal"
-              options={{
-                presentation: "modal",
-                animation: "slide_from_bottom",
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: "transparent" },
+                animation: "slide_from_right",
               }}
-            />
-          </Stack>
-        </SafeAreaView>
-      </SafeAreaProvider>
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="modal"
+                options={{
+                  presentation: "modal",
+                  animation: "slide_from_bottom",
+                }}
+              />
+            </Stack>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </View>
     </StripeProviderWrapper>
   );
 });
@@ -82,9 +83,16 @@ const RootLayout = observer(function RootLayout() {
 export default RootLayout;
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  provider: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor :"transparent"
+    backgroundColor: "transparent",
   },
   loadingOverlay: {
     position: "absolute",
