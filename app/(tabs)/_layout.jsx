@@ -1,20 +1,32 @@
 import { Tabs, Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
-import { View, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
-function TabIcon({ source, size, focused }) {
+function TabIcon({ source, size, focused, label }) {
   return (
     <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
-      <Image
-        source={source}
+      <View
         style={[
-          styles.tabIconImage,
-          { width: size, height: size },
-          focused ? styles.tabIconImageActive : styles.tabIconImageInactive,
+          styles.tabIconContent,
+          focused ? styles.tabIconContentActive : styles.tabIconContentInactive,
         ]}
-      />
+      >
+        <Image
+          source={source}
+          style={[
+            styles.tabIconImage,
+            { width: size, height: size },
+            focused ? styles.tabIconImageActive : styles.tabIconImageInactive,
+          ]}
+        />
+        {focused ? (
+          <Text numberOfLines={1} style={styles.tabIconLabel}>
+            {label}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -102,12 +114,13 @@ const TabsLayout = observer(function TabsLayout() {
           options={{
             title: "Home",
             tabBarItemStyle:
-              activeTabName === "index" ? styles.tabBarItemActive : [styles.tabBarItemInactive, { paddingLeft: 10 }],
+              activeTabName === "index" ? styles.tabBarItemActive : styles.tabBarItemInactive,
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/home.png")}
                 size={size}
                 focused={focused}
+                label="Home"
               />
             ),
           }}
@@ -123,6 +136,7 @@ const TabsLayout = observer(function TabsLayout() {
                 source={require("../../src/assets/icons/conversation.png")}
                 size={size}
                 focused={focused}
+                label="Forum"
               />
             ),
           }}
@@ -138,6 +152,7 @@ const TabsLayout = observer(function TabsLayout() {
                 source={require("../../src/assets/icons/sport.png")}
                 size={size}
                 focused={focused}
+                label="Plan"
               />
             ),
           }}
@@ -147,12 +162,13 @@ const TabsLayout = observer(function TabsLayout() {
           options={{
             title: "Profile",
             tabBarItemStyle:
-              activeTabName === "profile" ? styles.tabBarItemActive : [styles.tabBarItemInactive, { paddingRight: 10 }], 
+              activeTabName === "profile" ? styles.tabBarItemActive : styles.tabBarItemInactive,
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/user.png")}
                 size={size}
                 focused={focused}
+                label="Profile"
               />
             ),
           }}
@@ -217,15 +233,35 @@ const styles = StyleSheet.create({
   tabIcon: {
     flex: 1,
     width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
     borderRadius: 120,
   },
   tabIconActive: {
     backgroundColor: "#000",
   },
+  tabIconContent: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+  },
+  tabIconContentInactive: {
+    justifyContent: "center",
+  },
+  tabIconContentActive: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 18,
+  },
   tabIconImage: {
     resizeMode: "contain",
+  },
+  tabIconLabel: {
+    color: "#fff",
+    fontFamily: "BebasNeue",
+    fontSize: 24,
+    letterSpacing: 0.8,
+    flexShrink: 1,
   },
   tabIconImageActive: {
     tintColor: "#fff",

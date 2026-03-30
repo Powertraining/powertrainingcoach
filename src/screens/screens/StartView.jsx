@@ -44,7 +44,7 @@ export default function StartView({ onStart }) {
 
 const styles = StyleSheet.create({
     bigButton: {backgroundColor: "#fff",
-        height: 90,
+        height: 75,
         marginHorizontal: 70,
         borderRadius: 120,
         alignItems: "center",

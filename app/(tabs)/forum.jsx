@@ -1,16 +1,5 @@
-import { View, StyleSheet } from "react-native";
-import ForumPresenter from "../../src/screens/presenters/ForumPresenter.jsx";
+import ForumView from "../../src/screens/screens/ForumView.jsx";
 
 export default function ForumScreen() {
-  return (
-    <View style={styles.container}>
-      <ForumPresenter />
-    </View>
-  );
+  return <ForumView />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
