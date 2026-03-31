@@ -114,7 +114,7 @@ const TabsLayout = observer(function TabsLayout() {
           options={{
             title: "Home",
             tabBarItemStyle:
-              activeTabName === "index" ? styles.tabBarItemActive : styles.tabBarItemInactive,
+              activeTabName === "index" ? styles.tabBarItemActive : [styles.tabBarItemInactive, {paddingLeft: 20}],
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/home.png")}
@@ -162,7 +162,7 @@ const TabsLayout = observer(function TabsLayout() {
           options={{
             title: "Profile",
             tabBarItemStyle:
-              activeTabName === "profile" ? styles.tabBarItemActive : styles.tabBarItemInactive,
+              activeTabName === "profile" ? styles.tabBarItemActive : [styles.tabBarItemInactive, {paddingRight: 10}],
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/user.png")}
