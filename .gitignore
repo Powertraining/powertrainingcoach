@@ -46,3 +46,6 @@ yarn-error.*
 
 # Native
 .kotlin/
+
+# AI
+.codex
