@@ -1,6 +1,6 @@
 import { TouchableOpacity, Image } from "react-native";
 
-const googleIcon = require("../assets/icons/google.png");
+const googleIcon = require("../../assets/icons/google.png");
 const googleIconSource = Image.resolveAssetSource(googleIcon);
 const googleIconAspectRatio =
   googleIconSource?.width && googleIconSource?.height

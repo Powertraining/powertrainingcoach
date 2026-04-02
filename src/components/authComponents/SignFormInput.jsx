@@ -1,8 +1,8 @@
 import { View, TextInput, Image } from "react-native";
 
 const iconMap = {
-  user: require("../assets/icons/user.png"),
-  lock: require("../assets/icons/lock.png"),
+  user: require("../../assets/icons/user.png"),
+  lock: require("../../assets/icons/lock.png"),
 };
 
 export default function SignFormInput({ text, image, inputProps, type }) {

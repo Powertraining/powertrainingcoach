@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import SignFormInput from "../../src/components/SignFormInput.jsx";
+import SignFormInput from "../../src/components/authComponents/SignFormInput.jsx";
 import StandardText from "../../src/components/textComponents/StandardText.jsx";
 import TitleText from "../../src/components/textComponents/TitleText.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
