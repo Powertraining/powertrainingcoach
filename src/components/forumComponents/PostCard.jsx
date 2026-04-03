@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Image, TouchableOpacity, Text } from "react-native";
 import StandardText from "../textComponents/StandardText.jsx";
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
 
@@ -34,7 +34,7 @@ export default function PostCard({ post, onTogglePostLike, onTogglePostSave }) {
          
     </View>
       <StandardText style={styles.postTitle}>{post?.title}</StandardText>
-      <StandardText style={styles.postContent}>{post?.body}</StandardText>
+      <Text numberOfLines={3} style={styles.postContent}>{post?.body}</Text>
       <View style={styles.postCardMenu}>
         <TouchableOpacity
           style={[styles.standardButton, isPostSaved ? styles.standardButtonActive : null]}
@@ -53,13 +53,13 @@ export default function PostCard({ post, onTogglePostLike, onTogglePostSave }) {
               source={require("../../assets/icons/like.png")}
               style={[styles.buttonIcon, isPostLiked ? styles.buttonIconActive : null]}
             />
-          <StandardText fontSize={16} textColor={isPostLiked ? "#000" : "#fff"}>
+          <StandardText fontSize={18} textColor={isPostLiked ? "#000" : "#fff"}>
             {post?.likesCount}
           </StandardText>
         </TouchableOpacity>
          <TouchableOpacity style={styles.countButton}>
             <Image source={require("../../assets/icons/conversation.png")} style={styles.buttonIcon} />
-          <StandardText fontSize={16}>{post?.commentsCount}</StandardText>
+          <StandardText fontSize={18}>{post?.commentsCount}</StandardText>
         </TouchableOpacity>
         {post?.coachResponseStatus === "responded" ? (
             <TouchableOpacity>
@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
   card: {
     borderBottomWidth: 0.167,
     borderBottomColor: "#7E7E7E",
-    paddingBottom: 4,
-    paddingHorizontal: 16,
+    paddingBottom: 8,
+    paddingTop: 12,
   },
 
   // Header
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
   authorButton: {
     flexDirection: "row",
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   postAuthor: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 18,
   },
   verifiedBadge: {
     width: 16,
@@ -114,8 +114,8 @@ const styles = StyleSheet.create({
     tintColor: "#000",
   },
   dot: {
-    width: 4,
-    height: 4,
+    width: 6,
+    height: 6,
     borderRadius: 120,
     backgroundColor: "#C9B259",
     alignSelf: "center",
@@ -124,18 +124,18 @@ const styles = StyleSheet.create({
   // Body
   postTitle: {
     color: "#ffffff",
-    fontSize: 16,
-    marginBottom: 8,
+    fontSize: 17,
   },
   postContent: {
     color: "#ffffff",
     fontSize: 14,
-    marginTop: 20,
+    marginTop: 25,
+    lineHeight : 19,
   },
 
   // Menu
   postCardMenu: {
-    marginTop: 16,
+    marginTop: 25,
     marginBottom: 12,
     flexDirection: "row",
     gap: 8,
@@ -144,20 +144,20 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     borderRadius: 120,
     paddingHorizontal: 10,
-    height: 32,
+    height: 36,
     justifyContent: "center",
     position: "relative",
     overflow: "hidden",
   },
   coachResponseText: {
-    fontSize: 18,
+    fontSize: 19,
   },
   countButton: {
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: "#fff",
     borderRadius: 120,
-    height: 32,
-    width: 54,
+    height: 36,
+    width: 62,
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "flex-start",
@@ -168,11 +168,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   standardButton: {
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: "#fff",
     borderRadius: 120,
-    height: 32,
-    width: 32,
+    height: 36,
+    width: 36,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -180,8 +180,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   buttonIcon: {
-    width: 14,
-    height: 14,
+    width: 18,
+    height: 18,
     tintColor: "#fff",
   },
   buttonIconActive: {
