@@ -1,0 +1,427 @@
+{
+  "status": "success",
+  "generatedAt": "2026-04-01T20:39:01.489Z",
+  "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "cce108375c23adf299a3ffc3e0861ed94b7084a2426eacff3e23887a9beadfb5",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "goal": "hypertrophy",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "numWeeks": 4,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": true,
+    "issues": []
+  },
+  "usage": {
+    "prompt_tokens": 15072,
+    "completion_tokens": 3170,
+    "total_tokens": 18242,
+    "prompt_tokens_details": {
+      "cached_tokens": 14080,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Skip Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Light pulse raise. Stay relaxed through shoulders and bounce softly."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World's greatest stretch, hip circles, thoracic rotations, ankle rocks. Move smoothly."
+              },
+              {
+                "name": "3. Pogo Jumps",
+                "sets": "3",
+                "reps": "15",
+                "notes": "Quick ankle stiffness. Stay tall, short ground contact, quiet landings."
+              },
+              {
+                "name": "4. Broad Jump",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Jump far with full intent. Stick the landing and reset each rep."
+              },
+              {
+                "name": "5a. Bodyweight Squat",
+                "sets": "3",
+                "reps": "12",
+                "notes": "Controlled down, stand up fast. Keep chest tall and knees tracking over toes."
+              },
+              {
+                "name": "5b. Push-Up",
+                "sets": "3",
+                "reps": "8–12",
+                "notes": "Stop 1–2 reps before form breaks. Straight line from head to heel."
+              },
+              {
+                "name": "6a. Reverse Lunge",
+                "sets": "3",
+                "reps": "8 each leg",
+                "notes": "Step back under control. Light tap on the floor, drive through front foot."
+              },
+              {
+                "name": "6b. Prone Y-T-W Raises",
+                "sets": "2",
+                "reps": "8 each position",
+                "notes": "Lift arms with control. Keep neck relaxed and squeeze upper back."
+              },
+              {
+                "name": "7a. Glute Bridge",
+                "sets": "3",
+                "reps": "15",
+                "notes": "Pause 1 second at the top. Do not overarch the lower back."
+              },
+              {
+                "name": "7b. Side Plank",
+                "sets": "2",
+                "reps": "25 sec each side",
+                "notes": "Straight body line. Squeeze glutes and keep hips high."
+              },
+              {
+                "name": "8a. V-Up or Bent-Knee Leg Raise",
+                "sets": "3",
+                "reps": "10–12",
+                "notes": "Use the harder version only if you can stay controlled."
+              },
+              {
+                "name": "8b. Neck Isometric Holds",
+                "sets": "2",
+                "reps": "15 sec each direction",
+                "notes": "Front, back, left, right. Use hands lightly and keep tension smooth."
+              },
+              {
+                "name": "9. Shadowboxing Conditioning Intervals",
+                "sets": "8",
+                "reps": "30 sec hard / 30 sec easy",
+                "notes": "Hard rounds at RPE 8, easy rounds at RPE 3–4. Stay crisp, fast, and technical."
+              },
+              {
+                "name": "10. Easy Cooldown Walk and Nasal Breathing",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Bring heart rate down gradually. Relax shoulders and slow breathing."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Skip Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Light pulse raise. Stay relaxed through shoulders and bounce softly."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World's greatest stretch, hip circles, thoracic rotations, ankle rocks. Move smoothly."
+              },
+              {
+                "name": "3. Pogo Jumps",
+                "sets": "3",
+                "reps": "18",
+                "notes": "Quick ankle stiffness. Stay tall, short ground contact, quiet landings."
+              },
+              {
+                "name": "4. Broad Jump",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Jump far with full intent. Stick the landing and reset each rep."
+              },
+              {
+                "name": "5a. Bodyweight Squat",
+                "sets": "4",
+                "reps": "12",
+                "notes": "Controlled down, stand up fast. Keep chest tall and knees tracking over toes."
+              },
+              {
+                "name": "5b. Push-Up",
+                "sets": "4",
+                "reps": "10–12",
+                "notes": "Stop 1–2 reps before form breaks. Straight line from head to heel."
+              },
+              {
+                "name": "6a. Reverse Lunge",
+                "sets": "3",
+                "reps": "10 each leg",
+                "notes": "Step back under control. Light tap on the floor, drive through front foot."
+              },
+              {
+                "name": "6b. Prone Y-T-W Raises",
+                "sets": "2",
+                "reps": "10 each position",
+                "notes": "Lift arms with control. Keep neck relaxed and squeeze upper back."
+              },
+              {
+                "name": "7a. Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "10 each leg",
+                "notes": "Keep hips level. Pause at the top and avoid twisting."
+              },
+              {
+                "name": "7b. Side Plank",
+                "sets": "3",
+                "reps": "25 sec each side",
+                "notes": "Straight body line. Squeeze glutes and keep hips high."
+              },
+              {
+                "name": "8a. V-Up or Bent-Knee Leg Raise",
+                "sets": "3",
+                "reps": "12",
+                "notes": "Use the harder version only if you can stay controlled."
+              },
+              {
+                "name": "8b. Neck Isometric Holds",
+                "sets": "2",
+                "reps": "20 sec each direction",
+                "notes": "Front, back, left, right. Use hands lightly and keep tension smooth."
+              },
+              {
+                "name": "9. Shadowboxing Conditioning Intervals",
+                "sets": "10",
+                "reps": "30 sec hard / 30 sec easy",
+                "notes": "Hard rounds at RPE 8, easy rounds at RPE 3–4. Stay crisp, fast, and technical."
+              },
+              {
+                "name": "10. Easy Cooldown Walk and Nasal Breathing",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Bring heart rate down gradually. Relax shoulders and slow breathing."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Skip Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Light pulse raise. Stay relaxed through shoulders and bounce softly."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World's greatest stretch, hip circles, thoracic rotations, ankle rocks. Move smoothly."
+              },
+              {
+                "name": "3. Split-Squat Jumps",
+                "sets": "3",
+                "reps": "5 each side",
+                "notes": "Explode up, land softly, reset balance each rep."
+              },
+              {
+                "name": "4. Broad Jump",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Jump far with full intent. Stick the landing and reset each rep."
+              },
+              {
+                "name": "5a. Tempo Bodyweight Squat",
+                "sets": "4",
+                "reps": "10",
+                "notes": "3 seconds down, 1 second pause, stand up fast. Great for hypertrophy without load."
+              },
+              {
+                "name": "5b. Push-Up",
+                "sets": "4",
+                "reps": "10–15",
+                "notes": "Stop 1 rep before failure. Maintain full-body tension."
+              },
+              {
+                "name": "6a. Reverse Lunge",
+                "sets": "4",
+                "reps": "10 each leg",
+                "notes": "Step back under control. Keep torso tall and front foot rooted."
+              },
+              {
+                "name": "6b. Prone Y-T-W Raises",
+                "sets": "2",
+                "reps": "10 each position",
+                "notes": "Lift arms with control. Keep neck relaxed and squeeze upper back."
+              },
+              {
+                "name": "7a. Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "12 each leg",
+                "notes": "Keep hips level. Pause at the top and avoid twisting."
+              },
+              {
+                "name": "7b. Side Plank with Reach Through",
+                "sets": "2",
+                "reps": "8 each side",
+                "notes": "Move slowly. Keep hips high and rotate through upper back."
+              },
+              {
+                "name": "8a. V-Up or Bent-Knee Leg Raise",
+                "sets": "3",
+                "reps": "12–15",
+                "notes": "Use the harder version only if you can stay controlled."
+              },
+              {
+                "name": "8b. Neck Isometric Holds",
+                "sets": "3",
+                "reps": "15 sec each direction",
+                "notes": "Front, back, left, right. Use hands lightly and keep tension smooth."
+              },
+              {
+                "name": "9. Shadowboxing Conditioning Intervals",
+                "sets": "12",
+                "reps": "30 sec hard / 30 sec easy",
+                "notes": "Hard rounds at RPE 8–9, easy rounds at RPE 3–4. Punch with speed and stay relaxed."
+              },
+              {
+                "name": "10. Easy Cooldown Walk and Nasal Breathing",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Bring heart rate down gradually. Relax shoulders and slow breathing."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Skip Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Light pulse raise. Stay relaxed through shoulders and bounce softly."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World's greatest stretch, hip circles, thoracic rotations, ankle rocks. Move smoothly."
+              },
+              {
+                "name": "3. Pogo Jumps",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Quick ankle stiffness. Stay tall, short ground contact, quiet landings."
+              },
+              {
+                "name": "4. Broad Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Jump far with full intent. Stick the landing and reset each rep."
+              },
+              {
+                "name": "5a. Bodyweight Squat",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Controlled down, stand up fast. Keep chest tall and knees tracking over toes."
+              },
+              {
+                "name": "5b. Push-Up",
+                "sets": "2",
+                "reps": "8–10",
+                "notes": "Clean reps only. Leave 2 reps in reserve."
+              },
+              {
+                "name": "6a. Reverse Lunge",
+                "sets": "2",
+                "reps": "8 each leg",
+                "notes": "Step back under control. Keep torso tall and front foot rooted."
+              },
+              {
+                "name": "6b. Prone Y-T-W Raises",
+                "sets": "2",
+                "reps": "8 each position",
+                "notes": "Lift arms with control. Keep neck relaxed and squeeze upper back."
+              },
+              {
+                "name": "7a. Glute Bridge",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Pause 1 second at the top. Do not overarch the lower back."
+              },
+              {
+                "name": "7b. Side Plank",
+                "sets": "2",
+                "reps": "20 sec each side",
+                "notes": "Straight body line. Squeeze glutes and keep hips high."
+              },
+              {
+                "name": "8a. Bent-Knee Leg Raise",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Control the lowering phase and avoid swinging."
+              },
+              {
+                "name": "8b. Neck Isometric Holds",
+                "sets": "2",
+                "reps": "12 sec each direction",
+                "notes": "Front, back, left, right. Use hands lightly and keep tension smooth."
+              },
+              {
+                "name": "9. Shadowboxing Conditioning Intervals",
+                "sets": "8",
+                "reps": "20 sec hard / 40 sec easy",
+                "notes": "Deload week. Stay sharp and fast, but keep overall fatigue lower."
+              },
+              {
+                "name": "10. Easy Cooldown Walk and Nasal Breathing",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Bring heart rate down gradually. Relax shoulders and slow breathing."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

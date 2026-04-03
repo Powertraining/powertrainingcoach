@@ -1,0 +1,275 @@
+{
+  "generatedAt": "2026-04-01T20:39:32.403Z",
+  "mode": "run",
+  "totalCaseCount": 10,
+  "selectedSports": [
+    "Boxing",
+    "Wrestling",
+    "BJJ",
+    "Muay Thai / Kickboxing",
+    "Judo",
+    "MMA"
+  ],
+  "instructionsSource": "local",
+  "includeImages": false,
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "numWeeks": 4,
+  "trainingPlanBatch": 1,
+  "gcpProjectId": "power-training-coach",
+  "secretName": "OPENAI_API_KEY",
+  "secretVersion": "latest",
+  "apiKeySource": "env",
+  "summary": {
+    "requestedCases": 10,
+    "generated": 10,
+    "skipped": 0,
+    "failed": 0
+  },
+  "instructionKeys": [
+    "accessory_exercises",
+    "ballistic_training",
+    "compound_lifts",
+    "general_rules",
+    "general_strength_training_logic",
+    "percentage_system",
+    "plyometrics_loading_jumps",
+    "reps_intensity",
+    "rm_attempts",
+    "rpe_rationale",
+    "sport_specific_rules",
+    "substitutes"
+  ],
+  "cases": [
+    {
+      "sequence": 1,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 2,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-more-sparring",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 3,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-more-conditioning",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 4,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-home-minimal__focus-mixed",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-home-minimal__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 5,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 6,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-home-minimal__focus-more-conditioning",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-home-minimal__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 7,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-mixed",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 8,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-more-sparring",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 9,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "off_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 10,
+      "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-pre-season__equipment-full-gym__focus-mixed",
+      "outputFile": "boxing/boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-pre-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "goal": "hypertrophy",
+        "experience": "beginner",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "pre_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "numWeeks": 4,
+        "trainingPlanBatch": 1
+      }
+    }
+  ]
+}

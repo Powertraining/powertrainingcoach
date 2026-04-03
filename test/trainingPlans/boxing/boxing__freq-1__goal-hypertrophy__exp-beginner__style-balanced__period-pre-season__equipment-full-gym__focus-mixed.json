@@ -1,0 +1,403 @@
+{
+  "status": "success",
+  "generatedAt": "2026-04-01T20:39:32.402Z",
+  "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-pre-season__equipment-full-gym__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "0daf838b1fc53dc99f05678775598526604172d09205ff72ec4f0a4f879585e6",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "goal": "hypertrophy",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "pre_season",
+    "equipment": "full_gym",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "numWeeks": 4,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": true,
+    "issues": []
+  },
+  "usage": {
+    "prompt_tokens": 15068,
+    "completion_tokens": 2774,
+    "total_tokens": 17842,
+    "prompt_tokens_details": {
+      "cached_tokens": 14080,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Assault Bike or Jump Rope",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pace, build light sweat and nasal breathing."
+              },
+              {
+                "name": "Warm-Up: Dynamic Mobility Circuit",
+                "sets": "1",
+                "reps": "6 reps each",
+                "notes": "World’s greatest stretch, ankle rocks, hip openers, T-spine rotations."
+              },
+              {
+                "name": "1. Countermovement Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Max intent each rep, stick soft landing, rest 45–60 sec."
+              },
+              {
+                "name": "2. Medicine Ball Chest Pass",
+                "sets": "3",
+                "reps": "6",
+                "notes": "Explode straight from chest, full intent, reset between reps."
+              },
+              {
+                "name": "3. Goblet Squat",
+                "sets": "3",
+                "reps": "10",
+                "notes": "RPE 7, controlled down, full depth you can own, drive up hard."
+              },
+              {
+                "name": "4. Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "10",
+                "notes": "RPE 7, neutral or slight pronated grip, 2 sec lower, strong press."
+              },
+              {
+                "name": "5. Chest-Supported Row",
+                "sets": "3",
+                "reps": "10",
+                "notes": "RPE 7, pull elbows back, pause briefly at top, no shrugging."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "2",
+                "reps": "10",
+                "notes": "RPE 7, soft knees, hinge at hips, feel hamstrings, keep spine neutral."
+              },
+              {
+                "name": "7. Walking Lunge",
+                "sets": "2",
+                "reps": "10 each leg",
+                "notes": "Smooth steps, upright torso, control knee tracking."
+              },
+              {
+                "name": "8. Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Brace hard, ribs down, only go as far as you can keep control."
+              },
+              {
+                "name": "9. Neck Flexion + Extension",
+                "sets": "2",
+                "reps": "12 each",
+                "notes": "Use light plate or harness if available, slow and controlled."
+              },
+              {
+                "name": "10. Farmer Carry",
+                "sets": "2",
+                "reps": "30 m",
+                "notes": "Heavy but stable, tall posture, crush grips, steady breathing."
+              },
+              {
+                "name": "11. Aerobic Finisher: Assault Bike",
+                "sets": "1",
+                "reps": "10 min",
+                "notes": "Zone 2 pace, conversational effort, smooth breathing."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Assault Bike or Jump Rope",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pace, build light sweat and nasal breathing."
+              },
+              {
+                "name": "Warm-Up: Dynamic Mobility Circuit",
+                "sets": "1",
+                "reps": "6 reps each",
+                "notes": "World’s greatest stretch, ankle rocks, hip openers, T-spine rotations."
+              },
+              {
+                "name": "1. Countermovement Jump",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Max intent each rep, stick soft landing, rest 45–60 sec."
+              },
+              {
+                "name": "2. Medicine Ball Chest Pass",
+                "sets": "4",
+                "reps": "6",
+                "notes": "Explode straight from chest, full intent, reset between reps."
+              },
+              {
+                "name": "3. Goblet Squat",
+                "sets": "4",
+                "reps": "8",
+                "notes": "RPE 7–8, slightly heavier than week 1, keep full control."
+              },
+              {
+                "name": "4. Dumbbell Bench Press",
+                "sets": "4",
+                "reps": "8",
+                "notes": "RPE 7–8, slightly heavier than week 1, smooth bar path."
+              },
+              {
+                "name": "5. Chest-Supported Row",
+                "sets": "4",
+                "reps": "8",
+                "notes": "RPE 7–8, pull hard, brief squeeze at top."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "RPE 7–8, maintain neutral spine and slow lowering."
+              },
+              {
+                "name": "7. Walking Lunge",
+                "sets": "2",
+                "reps": "12 each leg",
+                "notes": "Add load if stable, keep stride smooth and balanced."
+              },
+              {
+                "name": "8. Weighted Sit-Up",
+                "sets": "3",
+                "reps": "10",
+                "notes": "Hold plate at chest, controlled down, strong exhale up."
+              },
+              {
+                "name": "9. Neck Flexion + Extension",
+                "sets": "2",
+                "reps": "15 each",
+                "notes": "Light load, smooth tempo, no jerking."
+              },
+              {
+                "name": "10. Farmer Carry",
+                "sets": "3",
+                "reps": "30 m",
+                "notes": "Heavy but stable, shoulders down, tight trunk."
+              },
+              {
+                "name": "11. Aerobic Finisher: Assault Bike",
+                "sets": "1",
+                "reps": "12 min",
+                "notes": "Zone 2 pace, relaxed upper body, steady cadence."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Assault Bike or Jump Rope",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pace, build light sweat and nasal breathing."
+              },
+              {
+                "name": "Warm-Up: Dynamic Mobility Circuit",
+                "sets": "1",
+                "reps": "6 reps each",
+                "notes": "World’s greatest stretch, ankle rocks, hip openers, T-spine rotations."
+              },
+              {
+                "name": "1. Broad Jump",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Jump far with full intent, land balanced, reset each rep."
+              },
+              {
+                "name": "2. Medicine Ball Rotational Scoop Throw",
+                "sets": "4",
+                "reps": "4 each side",
+                "notes": "Rotate through hips and trunk, fast hands, full reset each rep."
+              },
+              {
+                "name": "3. Front Squat",
+                "sets": "4",
+                "reps": "6",
+                "notes": "RPE 7–8, choose a load you can keep clean posture with."
+              },
+              {
+                "name": "4. Incline Dumbbell Bench Press",
+                "sets": "4",
+                "reps": "6–8",
+                "notes": "RPE 7–8, controlled lowering, aggressive press."
+              },
+              {
+                "name": "5. One-Arm Dumbbell Row",
+                "sets": "4",
+                "reps": "8 each arm",
+                "notes": "RPE 8, pull elbow toward hip, avoid torso twisting."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "RPE 7–8, hinge cleanly and keep lats tight."
+              },
+              {
+                "name": "7. Bulgarian Split Squat",
+                "sets": "2",
+                "reps": "8 each leg",
+                "notes": "Use dumbbells if stable, control depth, drive through front foot."
+              },
+              {
+                "name": "8. Hanging Leg Raise",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "Strict reps, avoid swinging, pelvis tucks at top."
+              },
+              {
+                "name": "9. Neck Flexion + Extension",
+                "sets": "2",
+                "reps": "12 each",
+                "notes": "Moderate load, smooth controlled reps."
+              },
+              {
+                "name": "10. Farmer Carry",
+                "sets": "3",
+                "reps": "40 m",
+                "notes": "Heavy carry, tall posture, crush the handles."
+              },
+              {
+                "name": "11. Tempo Conditioning: Assault Bike Intervals",
+                "sets": "6",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Work at RPE 7, keep output repeatable and smooth."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Assault Bike or Jump Rope",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pace, build light sweat and nasal breathing."
+              },
+              {
+                "name": "Warm-Up: Dynamic Mobility Circuit",
+                "sets": "1",
+                "reps": "6 reps each",
+                "notes": "World’s greatest stretch, ankle rocks, hip openers, T-spine rotations."
+              },
+              {
+                "name": "1. Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Deload week, stay crisp and explosive, full recovery between sets."
+              },
+              {
+                "name": "2. Medicine Ball Chest Pass",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Fast and snappy, stop before speed drops."
+              },
+              {
+                "name": "3. Goblet Squat",
+                "sets": "2",
+                "reps": "8",
+                "notes": "RPE 6, lighter than prior weeks, focus on clean technique."
+              },
+              {
+                "name": "4. Dumbbell Bench Press",
+                "sets": "2",
+                "reps": "8",
+                "notes": "RPE 6, smooth tempo, leave plenty in reserve."
+              },
+              {
+                "name": "5. Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "RPE 6, controlled pull and lower."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "2",
+                "reps": "8",
+                "notes": "RPE 6, easy quality reps only."
+              },
+              {
+                "name": "7. Walking Lunge",
+                "sets": "1",
+                "reps": "10 each leg",
+                "notes": "Bodyweight or light dumbbells, keep it easy."
+              },
+              {
+                "name": "8. Weighted Sit-Up",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Moderate control, not to fatigue."
+              },
+              {
+                "name": "9. Neck Flexion + Extension",
+                "sets": "1",
+                "reps": "12 each",
+                "notes": "Light and smooth, recovery-focused."
+              },
+              {
+                "name": "10. Farmer Carry",
+                "sets": "2",
+                "reps": "20 m",
+                "notes": "Moderate load, posture and grip only."
+              },
+              {
+                "name": "11. Aerobic Finisher: Assault Bike",
+                "sets": "1",
+                "reps": "8 min",
+                "notes": "Easy Zone 2 pace, finish feeling fresh."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

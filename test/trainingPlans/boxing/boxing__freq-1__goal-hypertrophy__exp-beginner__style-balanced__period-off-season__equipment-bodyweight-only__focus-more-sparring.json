@@ -1,0 +1,403 @@
+{
+  "status": "success",
+  "generatedAt": "2026-04-01T20:38:32.373Z",
+  "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "0f183ef4300004d6029ce7b35adb2c80ee48fc4ab89640ad196bc007c7d8edcf",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "goal": "hypertrophy",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "numWeeks": 4,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": true,
+    "issues": []
+  },
+  "usage": {
+    "prompt_tokens": 15074,
+    "completion_tokens": 2895,
+    "total_tokens": 17969,
+    "prompt_tokens_details": {
+      "cached_tokens": 14080,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Jump Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Build light sweat, stay relaxed, nasal breathing if possible"
+              },
+              {
+                "name": "Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World’s greatest stretch, squat-to-stand, hip circles, arm circles, thoracic rotations"
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "2",
+                "reps": "15",
+                "notes": "Quick off the floor, stiff ankles, quiet landings"
+              },
+              {
+                "name": "Skater Jumps",
+                "sets": "3",
+                "reps": "6 each side",
+                "notes": "Stick the landing briefly, control knee position, jump laterally with intent"
+              },
+              {
+                "name": "Push-Up",
+                "sets": "2",
+                "reps": "8–12",
+                "notes": "Leave 2 reps in reserve, body straight, full range, stop before form breaks"
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "2",
+                "reps": "8 each leg",
+                "notes": "Use bed, couch, or chair if available, upright torso, slow lower"
+              },
+              {
+                "name": "1a. Table Row or Sturdy Desk Row",
+                "sets": "2",
+                "reps": "6–10",
+                "notes": "Primary back exercise, keep chest up, pull elbows toward hips, use safe sturdy setup only"
+              },
+              {
+                "name": "1b. Side Plank",
+                "sets": "2",
+                "reps": "20–30 sec each side",
+                "notes": "Straight line from head to heel, squeeze glutes, do not let hips sag"
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "2",
+                "reps": "10 each leg",
+                "notes": "Drive through heel, pause at top for 1 second, keep ribs down"
+              },
+              {
+                "name": "Reverse Crunch",
+                "sets": "2",
+                "reps": "10–15",
+                "notes": "Curl pelvis up, slow eccentric, avoid swinging legs"
+              },
+              {
+                "name": "Prone Neck Hold",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Light effort, chin tucked, no pain, keep neck long"
+              },
+              {
+                "name": "Supine Neck Hold",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Light effort, chin tucked, no pain, do not strain"
+              },
+              {
+                "name": "Shadow Boxing Tempo Intervals",
+                "sets": "6",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Moderate pace, stay sharp and relaxed, focus on footwork and breathing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Jump Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Build light sweat, stay relaxed, nasal breathing if possible"
+              },
+              {
+                "name": "Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World’s greatest stretch, squat-to-stand, hip circles, arm circles, thoracic rotations"
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "2",
+                "reps": "20",
+                "notes": "Quick off the floor, stiff ankles, quiet landings"
+              },
+              {
+                "name": "Skater Jumps",
+                "sets": "3",
+                "reps": "7 each side",
+                "notes": "Stick the landing briefly, control knee position, jump laterally with intent"
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "8–12",
+                "notes": "Leave 1–2 reps in reserve, body straight, full range, stop before form breaks"
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "8 each leg",
+                "notes": "Use bed, couch, or chair if available, upright torso, slow lower"
+              },
+              {
+                "name": "1a. Table Row or Sturdy Desk Row",
+                "sets": "3",
+                "reps": "6–10",
+                "notes": "Primary back exercise, keep chest up, pull elbows toward hips, use safe sturdy setup only"
+              },
+              {
+                "name": "1b. Side Plank",
+                "sets": "3",
+                "reps": "20–30 sec each side",
+                "notes": "Straight line from head to heel, squeeze glutes, do not let hips sag"
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "10–12 each leg",
+                "notes": "Drive through heel, pause at top for 1 second, keep ribs down"
+              },
+              {
+                "name": "Reverse Crunch",
+                "sets": "3",
+                "reps": "12–15",
+                "notes": "Curl pelvis up, slow eccentric, avoid swinging legs"
+              },
+              {
+                "name": "Prone Neck Hold",
+                "sets": "2",
+                "reps": "25 sec",
+                "notes": "Light effort, chin tucked, no pain, keep neck long"
+              },
+              {
+                "name": "Supine Neck Hold",
+                "sets": "2",
+                "reps": "25 sec",
+                "notes": "Light effort, chin tucked, no pain, do not strain"
+              },
+              {
+                "name": "Shadow Boxing Tempo Intervals",
+                "sets": "8",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Moderate pace, stay sharp and relaxed, focus on footwork and breathing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Jump Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Build light sweat, stay relaxed, nasal breathing if possible"
+              },
+              {
+                "name": "Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World’s greatest stretch, squat-to-stand, hip circles, arm circles, thoracic rotations"
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "3",
+                "reps": "15",
+                "notes": "Quick off the floor, stiff ankles, quiet landings"
+              },
+              {
+                "name": "Skater Jumps",
+                "sets": "3",
+                "reps": "8 each side",
+                "notes": "Stick the landing briefly, control knee position, jump laterally with intent"
+              },
+              {
+                "name": "Explosive Push-Up",
+                "sets": "3",
+                "reps": "5–8",
+                "notes": "Push fast, hands may leave floor slightly, quality over fatigue"
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "10 each leg",
+                "notes": "Use bed, couch, or chair if available, upright torso, smooth control"
+              },
+              {
+                "name": "1a. Table Row or Sturdy Desk Row",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "Primary back exercise, keep chest up, pull elbows toward hips, use safe sturdy setup only"
+              },
+              {
+                "name": "1b. Hollow Body Hold",
+                "sets": "3",
+                "reps": "20–30 sec",
+                "notes": "Lower back flat, ribs down, extend only as far as you can control"
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "12 each leg",
+                "notes": "Drive through heel, pause at top for 1 second, keep hips level"
+              },
+              {
+                "name": "Strict Lying Leg Raise",
+                "sets": "3",
+                "reps": "8–12",
+                "notes": "Keep lower back controlled, lower slowly, no momentum"
+              },
+              {
+                "name": "Prone Neck Hold",
+                "sets": "2",
+                "reps": "30 sec",
+                "notes": "Light effort, chin tucked, no pain, keep neck long"
+              },
+              {
+                "name": "Supine Neck Hold",
+                "sets": "2",
+                "reps": "30 sec",
+                "notes": "Light effort, chin tucked, no pain, do not strain"
+              },
+              {
+                "name": "Shadow Boxing Intervals",
+                "sets": "8",
+                "reps": "40 sec on / 20 sec easy",
+                "notes": "Crisp hands, active feet, moderate-hard but controlled pace"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Warm-Up: Jump Rope or Fast March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Build light sweat, stay relaxed, nasal breathing if possible"
+              },
+              {
+                "name": "Dynamic Mobility Circuit",
+                "sets": "1",
+                "reps": "5 reps each",
+                "notes": "World’s greatest stretch, squat-to-stand, hip circles, arm circles, thoracic rotations"
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Quick off the floor, stiff ankles, quiet landings"
+              },
+              {
+                "name": "Skater Jumps",
+                "sets": "2",
+                "reps": "6 each side",
+                "notes": "Stick the landing briefly, control knee position, jump laterally with intent"
+              },
+              {
+                "name": "Push-Up",
+                "sets": "2",
+                "reps": "8–10",
+                "notes": "Smooth reps, leave 2 reps in reserve, perfect form"
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "2",
+                "reps": "8 each leg",
+                "notes": "Use bed, couch, or chair if available, upright torso, controlled pace"
+              },
+              {
+                "name": "1a. Table Row or Sturdy Desk Row",
+                "sets": "2",
+                "reps": "6–8",
+                "notes": "Primary back exercise, keep chest up, pull elbows toward hips, use safe sturdy setup only"
+              },
+              {
+                "name": "1b. Side Plank",
+                "sets": "2",
+                "reps": "20 sec each side",
+                "notes": "Straight line from head to heel, squeeze glutes, do not let hips sag"
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "2",
+                "reps": "10 each leg",
+                "notes": "Drive through heel, pause at top for 1 second, keep ribs down"
+              },
+              {
+                "name": "Reverse Crunch",
+                "sets": "2",
+                "reps": "10–12",
+                "notes": "Curl pelvis up, slow eccentric, avoid swinging legs"
+              },
+              {
+                "name": "Prone Neck Hold",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Light effort, chin tucked, no pain, keep neck long"
+              },
+              {
+                "name": "Supine Neck Hold",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Light effort, chin tucked, no pain, do not strain"
+              },
+              {
+                "name": "Shadow Boxing Recovery Tempo",
+                "sets": "6",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Easy-moderate pace, focus on smooth technique and staying loose"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,331 @@
+{
+  "status": "success",
+  "generatedAt": "2026-04-01T20:37:09.325Z",
+  "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-home-minimal__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "96b4714b21cbd1960154fc2f6e32bfcc41e929c18fe1745e9e7e2c95d4b6cd4f",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "goal": "hypertrophy",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "numWeeks": 4,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": true,
+    "issues": []
+  },
+  "usage": {
+    "prompt_tokens": 15074,
+    "completion_tokens": 2214,
+    "total_tokens": 17288,
+    "prompt_tokens_details": {
+      "cached_tokens": 14080,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Jump Rope",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raiser. Stay relaxed through shoulders and bounce lightly."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World's greatest stretch, hip openers, ankle rocks, T-spine rotations. Move smoothly."
+              },
+              {
+                "name": "3. Countermovement Jump",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Explode up fast, land softly, reset between reps."
+              },
+              {
+                "name": "4. Push-Up",
+                "sets": "3",
+                "reps": "8–12",
+                "notes": "Leave 2 reps in reserve. Straight line from head to heel."
+              },
+              {
+                "name": "5. Bulgarian Split Squat",
+                "sets": "3",
+                "reps": "8–10 per leg",
+                "notes": "Use bodyweight or hold household load if available. Control down, drive up."
+              },
+              {
+                "name": "6. 1-Arm Backpack Row",
+                "sets": "3",
+                "reps": "10–12 per arm",
+                "notes": "Use a loaded backpack or similar. Pull elbow toward hip, avoid twisting."
+              },
+              {
+                "name": "7. Backpack Romanian Deadlift",
+                "sets": "3",
+                "reps": "10–12",
+                "notes": "Soft knees, hinge at hips, keep back flat, feel hamstrings."
+              },
+              {
+                "name": "8. Weighted Sit-Up",
+                "sets": "3",
+                "reps": "10–15",
+                "notes": "Hold a light backpack or object if possible. Smooth reps, do not yank neck."
+              },
+              {
+                "name": "9. Front Plank",
+                "sets": "2",
+                "reps": "30–45 sec",
+                "notes": "Brace hard, ribs down, squeeze glutes."
+              },
+              {
+                "name": "10. Zone 2 Shadowboxing or Brisk Walk",
+                "sets": "1",
+                "reps": "12–15 min",
+                "notes": "Steady conversational pace. Keep it easy to support recovery and aerobic base."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Jump Rope",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raiser. Stay relaxed through shoulders and bounce lightly."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World's greatest stretch, hip openers, ankle rocks, T-spine rotations. Move smoothly."
+              },
+              {
+                "name": "3. Broad Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Jump far with good mechanics. Stick the landing softly."
+              },
+              {
+                "name": "4. Push-Up",
+                "sets": "4",
+                "reps": "8–12",
+                "notes": "Add 1 set from last week if all sets stayed clean with 2 reps in reserve."
+              },
+              {
+                "name": "5. Bulgarian Split Squat",
+                "sets": "3",
+                "reps": "10–12 per leg",
+                "notes": "Use bodyweight or household load. Keep torso tall and knee tracking over toes."
+              },
+              {
+                "name": "6. 1-Arm Backpack Row",
+                "sets": "4",
+                "reps": "10–12 per arm",
+                "notes": "Squeeze at the top. Use a slightly heavier backpack if available."
+              },
+              {
+                "name": "7. Backpack Romanian Deadlift",
+                "sets": "3",
+                "reps": "12",
+                "notes": "Controlled lowering, strong hip hinge, keep load close."
+              },
+              {
+                "name": "8. Weighted Sit-Up",
+                "sets": "3",
+                "reps": "12–15",
+                "notes": "Increase load slightly if all reps are easy."
+              },
+              {
+                "name": "9. Side Plank",
+                "sets": "2",
+                "reps": "25–35 sec per side",
+                "notes": "Stack ribs and hips. Stay long through the body."
+              },
+              {
+                "name": "10. Zone 2 Shadowboxing or Brisk Walk",
+                "sets": "1",
+                "reps": "15–18 min",
+                "notes": "Steady easy pace. Nasal breathing if possible."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Jump Rope",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raiser. Stay relaxed through shoulders and bounce lightly."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "2",
+                "reps": "5 reps each",
+                "notes": "World's greatest stretch, hip openers, ankle rocks, T-spine rotations. Move smoothly."
+              },
+              {
+                "name": "3. Skater Jump",
+                "sets": "3",
+                "reps": "5 per side",
+                "notes": "Cover distance with control. Stick each landing before the next rep."
+              },
+              {
+                "name": "4. Feet-Elevated Push-Up or Standard Push-Up",
+                "sets": "4",
+                "reps": "8–10",
+                "notes": "Choose the harder option only if form stays solid. Leave 1–2 reps in reserve."
+              },
+              {
+                "name": "5. Bulgarian Split Squat",
+                "sets": "4",
+                "reps": "8–10 per leg",
+                "notes": "Use slightly more load if possible. Control down for 2 seconds."
+              },
+              {
+                "name": "6. 1-Arm Backpack Row",
+                "sets": "4",
+                "reps": "12 per arm",
+                "notes": "Heavy but clean. Pause briefly at top."
+              },
+              {
+                "name": "7. Backpack Romanian Deadlift",
+                "sets": "4",
+                "reps": "10–12",
+                "notes": "Increase load if available. Hips back, spine neutral."
+              },
+              {
+                "name": "8. Weighted Sit-Up",
+                "sets": "4",
+                "reps": "10–12",
+                "notes": "Use more resistance than prior weeks if able."
+              },
+              {
+                "name": "9. Towel Grip Hold",
+                "sets": "2",
+                "reps": "20–30 sec",
+                "notes": "Grip a towel hard and hold tension. Good for forearms and boxing robustness."
+              },
+              {
+                "name": "10. Tempo Shadowboxing Intervals",
+                "sets": "6",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Sharp but submax pace. Focus on rhythm, breathing, and relaxed hands."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Jump Rope",
+                "sets": "1",
+                "reps": "4 min",
+                "notes": "Easy pulse raiser. Keep it light for deload week."
+              },
+              {
+                "name": "2. Dynamic Mobility Circuit",
+                "sets": "1",
+                "reps": "5 reps each",
+                "notes": "Move smoothly and do not force range of motion."
+              },
+              {
+                "name": "3. Countermovement Jump",
+                "sets": "2",
+                "reps": "4",
+                "notes": "Fast and crisp. Stop before jump height drops."
+              },
+              {
+                "name": "4. Push-Up",
+                "sets": "2",
+                "reps": "8–10",
+                "notes": "Deload volume. Keep reps clean and easy."
+              },
+              {
+                "name": "5. Bulgarian Split Squat",
+                "sets": "2",
+                "reps": "8 per leg",
+                "notes": "Use lighter load than week 3. Smooth, controlled reps."
+              },
+              {
+                "name": "6. 1-Arm Backpack Row",
+                "sets": "2",
+                "reps": "10 per arm",
+                "notes": "Moderate effort only. Focus on position and squeeze."
+              },
+              {
+                "name": "7. Backpack Romanian Deadlift",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Easy hinge practice. No grinding."
+              },
+              {
+                "name": "8. Weighted Sit-Up",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Use a lighter load and leave several reps in reserve."
+              },
+              {
+                "name": "9. Front Plank",
+                "sets": "2",
+                "reps": "25–30 sec",
+                "notes": "Short, strong holds. Quality over duration."
+              },
+              {
+                "name": "10. Zone 2 Shadowboxing or Brisk Walk",
+                "sets": "1",
+                "reps": "10–12 min",
+                "notes": "Keep it easy and restorative."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,469 @@
+{
+  "status": "success",
+  "generatedAt": "2026-04-01T20:38:04.930Z",
+  "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "3052d08b7e86ca1831ad410a2ee9dae85728d145e2fd166d5912b9d933b57bed",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "goal": "hypertrophy",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "numWeeks": 4,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": true,
+    "issues": []
+  },
+  "usage": {
+    "prompt_tokens": 15068,
+    "completion_tokens": 3233,
+    "total_tokens": 18301,
+    "prompt_tokens_details": {
+      "cached_tokens": 14080,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Jump Rope or March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raiser. Stay relaxed and breathe through the nose when possible."
+              },
+              {
+                "name": "World’s Greatest Stretch",
+                "sets": "2",
+                "reps": "5/side",
+                "notes": "Move smoothly through hips and T-spine. Do not force range."
+              },
+              {
+                "name": "Glute Bridge",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Pause 1 second at the top. Keep ribs down."
+              },
+              {
+                "name": "Scapular Push-Up",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Keep elbows straight and move only through the shoulder blades."
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "3",
+                "reps": "15",
+                "notes": "Quick contacts, stiff ankles, stay tall."
+              },
+              {
+                "name": "Broad Jump",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Explode forward and stick the landing softly."
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "8–12",
+                "notes": "Leave 2 reps in reserve. Hands under shoulders, full-body tension."
+              },
+              {
+                "name": "Split Squat",
+                "sets": "3",
+                "reps": "10/side",
+                "notes": "Control the descent for 2 seconds. Front foot flat."
+              },
+              {
+                "name": "Table Row or Doorframe Row",
+                "sets": "4",
+                "reps": "8–12",
+                "notes": "Use a sturdy setup only. Pull chest toward hands and squeeze shoulder blades."
+              },
+              {
+                "name": "Single-Leg Romanian Deadlift",
+                "sets": "3",
+                "reps": "8/side",
+                "notes": "Reach long with the back leg. Keep hips square."
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "2",
+                "reps": "8/side",
+                "notes": "Use a low support. Keep torso slightly forward and move under control."
+              },
+              {
+                "name": "Strict Lying Leg Raise",
+                "sets": "3",
+                "reps": "10–15",
+                "notes": "Lower slowly and keep lower back pressed down."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "25–35 sec/side",
+                "notes": "Straight line from head to heel. Do not let hips sag."
+              },
+              {
+                "name": "Front Neck Isometric",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Press forehead gently into hands. Keep effort moderate and pain-free."
+              },
+              {
+                "name": "Back Neck Isometric",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Press head gently into hands. Keep neck long and controlled."
+              },
+              {
+                "name": "Shadow Boxing Tempo Intervals",
+                "sets": "6",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Work at moderate pace. Stay light on the feet and keep technique crisp."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Jump Rope or March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raiser. Stay relaxed and breathe through the nose when possible."
+              },
+              {
+                "name": "World’s Greatest Stretch",
+                "sets": "2",
+                "reps": "5/side",
+                "notes": "Move smoothly through hips and T-spine. Do not force range."
+              },
+              {
+                "name": "Glute Bridge",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Pause 1 second at the top. Keep ribs down."
+              },
+              {
+                "name": "Scapular Push-Up",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Keep elbows straight and move only through the shoulder blades."
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "3",
+                "reps": "18",
+                "notes": "Quick contacts, stiff ankles, stay tall."
+              },
+              {
+                "name": "Broad Jump",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Explode forward and stick the landing softly."
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "10–14",
+                "notes": "Leave 1–2 reps in reserve. Elevate feet slightly if too easy."
+              },
+              {
+                "name": "Split Squat",
+                "sets": "4",
+                "reps": "10/side",
+                "notes": "Control the descent for 2 seconds. Front foot flat."
+              },
+              {
+                "name": "Table Row or Doorframe Row",
+                "sets": "4",
+                "reps": "10–14",
+                "notes": "Use a sturdy setup only. Pull chest toward hands and squeeze shoulder blades."
+              },
+              {
+                "name": "Single-Leg Romanian Deadlift",
+                "sets": "3",
+                "reps": "10/side",
+                "notes": "Reach long with the back leg. Keep hips square."
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "2",
+                "reps": "10/side",
+                "notes": "Use a low support. Keep torso slightly forward and move under control."
+              },
+              {
+                "name": "Strict Lying Leg Raise",
+                "sets": "3",
+                "reps": "12–15",
+                "notes": "Lower slowly and keep lower back pressed down."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "25–35 sec/side",
+                "notes": "Straight line from head to heel. Do not let hips sag."
+              },
+              {
+                "name": "Front Neck Isometric",
+                "sets": "2",
+                "reps": "25 sec",
+                "notes": "Press forehead gently into hands. Keep effort moderate and pain-free."
+              },
+              {
+                "name": "Back Neck Isometric",
+                "sets": "2",
+                "reps": "25 sec",
+                "notes": "Press head gently into hands. Keep neck long and controlled."
+              },
+              {
+                "name": "Shadow Boxing Tempo Intervals",
+                "sets": "7",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Work at moderate pace. Stay light on the feet and keep technique crisp."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Jump Rope or March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raiser. Stay relaxed and breathe through the nose when possible."
+              },
+              {
+                "name": "World’s Greatest Stretch",
+                "sets": "2",
+                "reps": "5/side",
+                "notes": "Move smoothly through hips and T-spine. Do not force range."
+              },
+              {
+                "name": "Glute Bridge",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Pause 1 second at the top. Keep ribs down."
+              },
+              {
+                "name": "Scapular Push-Up",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Keep elbows straight and move only through the shoulder blades."
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "3",
+                "reps": "20",
+                "notes": "Quick contacts, stiff ankles, stay tall."
+              },
+              {
+                "name": "Skater Jumps",
+                "sets": "4",
+                "reps": "5/side",
+                "notes": "Bound laterally with control. Stick each landing before the next rep."
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "12–15",
+                "notes": "Leave 1 rep in reserve. Elevate feet slightly if needed to stay in range."
+              },
+              {
+                "name": "Split Squat",
+                "sets": "4",
+                "reps": "12/side",
+                "notes": "Control the descent for 2 seconds. Front foot flat."
+              },
+              {
+                "name": "Table Row or Doorframe Row",
+                "sets": "4",
+                "reps": "12–15",
+                "notes": "Use a sturdy setup only. Pull chest toward hands and squeeze shoulder blades."
+              },
+              {
+                "name": "Single-Leg Romanian Deadlift",
+                "sets": "3",
+                "reps": "10/side",
+                "notes": "Reach long with the back leg. Keep hips square."
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "10/side",
+                "notes": "Use a low support. Keep torso slightly forward and move under control."
+              },
+              {
+                "name": "Strict Lying Leg Raise",
+                "sets": "4",
+                "reps": "12–15",
+                "notes": "Lower slowly and keep lower back pressed down."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "30–40 sec/side",
+                "notes": "Straight line from head to heel. Do not let hips sag."
+              },
+              {
+                "name": "Front Neck Isometric",
+                "sets": "2",
+                "reps": "30 sec",
+                "notes": "Press forehead gently into hands. Keep effort moderate and pain-free."
+              },
+              {
+                "name": "Back Neck Isometric",
+                "sets": "2",
+                "reps": "30 sec",
+                "notes": "Press head gently into hands. Keep neck long and controlled."
+              },
+              {
+                "name": "Shadow Boxing Tempo Intervals",
+                "sets": "8",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Work at moderate pace. Stay light on the feet and keep technique crisp."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "Jump Rope or March in Place",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raiser. Stay relaxed and breathe through the nose when possible."
+              },
+              {
+                "name": "World’s Greatest Stretch",
+                "sets": "2",
+                "reps": "4/side",
+                "notes": "Move smoothly through hips and T-spine. Do not force range."
+              },
+              {
+                "name": "Glute Bridge",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Pause 1 second at the top. Keep ribs down."
+              },
+              {
+                "name": "Scapular Push-Up",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Keep elbows straight and move only through the shoulder blades."
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "2",
+                "reps": "15",
+                "notes": "Quick contacts, stiff ankles, stay tall."
+              },
+              {
+                "name": "Broad Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Explode forward and stick the landing softly."
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "Deload week. Smooth reps, stop with 2–3 reps in reserve."
+              },
+              {
+                "name": "Split Squat",
+                "sets": "3",
+                "reps": "8/side",
+                "notes": "Deload week. Controlled reps with good balance."
+              },
+              {
+                "name": "Table Row or Doorframe Row",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "Use a sturdy setup only. Smooth reps, no grinding."
+              },
+              {
+                "name": "Single-Leg Romanian Deadlift",
+                "sets": "2",
+                "reps": "8/side",
+                "notes": "Reach long with the back leg. Keep hips square."
+              },
+              {
+                "name": "Strict Lying Leg Raise",
+                "sets": "2",
+                "reps": "10–12",
+                "notes": "Lower slowly and keep lower back pressed down."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "20–30 sec/side",
+                "notes": "Straight line from head to heel. Do not let hips sag."
+              },
+              {
+                "name": "Front Neck Isometric",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Press forehead gently into hands. Keep effort moderate and pain-free."
+              },
+              {
+                "name": "Back Neck Isometric",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Press head gently into hands. Keep neck long and controlled."
+              },
+              {
+                "name": "Shadow Boxing Tempo Intervals",
+                "sets": "5",
+                "reps": "30 sec on / 30 sec easy",
+                "notes": "Deload pace. Stay sharp and technical, not fatigued."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

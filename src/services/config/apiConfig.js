@@ -17,7 +17,7 @@ export const STRIPE_FUNCTIONS_BASE_URL = getEnv(
 export const OPENAI_API_MODEL = getEnv(
   process.env.EXPO_PUBLIC_OPENAI_API_MODEL,
   "OPENAI_API_MODEL"
-) || "gpt-5.4-mini";
+) || "gpt-5.4";
 export const OPENAI_API_TEMPERATURE = getEnv(
   process.env.EXPO_PUBLIC_OPENAI_API_TEMPERATURE,
   "OPENAI_API_TEMPERATURE"

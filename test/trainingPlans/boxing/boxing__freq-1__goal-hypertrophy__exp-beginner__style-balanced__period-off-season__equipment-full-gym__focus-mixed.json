@@ -1,0 +1,379 @@
+{
+  "status": "success",
+  "generatedAt": "2026-04-01T20:35:21.199Z",
+  "caseId": "boxing__freq-1__goal-hypertrophy__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "8f13ba1e53180b0d2d16a1daa2a97d8a70e751f1b782e257c3f25ffc272fec52",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "goal": "hypertrophy",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "full_gym",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "numWeeks": 4,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": true,
+    "issues": []
+  },
+  "usage": {
+    "prompt_tokens": 15068,
+    "completion_tokens": 2695,
+    "total_tokens": 17763,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Assault Bike or Row Erg",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raise. Nasal breathing if possible, gradually build warmth."
+              },
+              {
+                "name": "2a. Countermovement Jump",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Max intent on each rep. Stick soft landings. Rest 45–60 sec."
+              },
+              {
+                "name": "2b. Medicine Ball Chest Pass",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Explosive, chest-height throw. Reset between reps. Use 3–5 kg / 7–11 lb ball."
+              },
+              {
+                "name": "3. Back Squat",
+                "sets": "3",
+                "reps": "8",
+                "notes": "RPE 6–7, 2–3 RIR. Controlled 2–0–1 tempo. Full range with solid bracing."
+              },
+              {
+                "name": "4. Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "RPE 7, 2 RIR. Lower under control, press smoothly. Keep shoulders packed."
+              },
+              {
+                "name": "5. Chest-Supported Row",
+                "sets": "3",
+                "reps": "10",
+                "notes": "RPE 7, 2 RIR. Pull elbows toward hips, pause briefly at top."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "2",
+                "reps": "10",
+                "notes": "RPE 6–7. Soft knees, hinge at hips, feel hamstrings. Do not turn this into a deadlift."
+              },
+              {
+                "name": "7a. Walking Lunge",
+                "sets": "2",
+                "reps": "10 each leg",
+                "notes": "Bodyweight or light dumbbells. Long stride, upright torso, smooth control."
+              },
+              {
+                "name": "7b. Lat Pulldown",
+                "sets": "2",
+                "reps": "10–12",
+                "notes": "RPE 7. Pull to upper chest, avoid swinging."
+              },
+              {
+                "name": "8a. Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "8–10",
+                "notes": "Only roll as far as trunk stays braced. Slow out, controlled return."
+              },
+              {
+                "name": "8b. Plate Neck Flexion + Extension",
+                "sets": "2",
+                "reps": "12 each direction",
+                "notes": "Light load only. Smooth tempo, no jerking."
+              },
+              {
+                "name": "9. Zone 2 Bike",
+                "sets": "1",
+                "reps": "10 min",
+                "notes": "Moderate steady pace at RPE 5–6. Finish feeling fresher, not drained."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Assault Bike or Row Erg",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raise. Nasal breathing if possible, gradually build warmth."
+              },
+              {
+                "name": "2a. Broad Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Explode forward, land balanced, reset each rep. Rest 60 sec."
+              },
+              {
+                "name": "2b. Medicine Ball Rotational Scoop Throw",
+                "sets": "3",
+                "reps": "5 each side",
+                "notes": "Rotate through hips and torso. Fast release, full intent."
+              },
+              {
+                "name": "3. Back Squat",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Add a small load from week 1 if all sets were solid. RPE 7, 2 RIR."
+              },
+              {
+                "name": "4. Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "10",
+                "notes": "RPE 7–8, 1–2 RIR. Add reps before load if unsure."
+              },
+              {
+                "name": "5. Chest-Supported Row",
+                "sets": "3",
+                "reps": "10–12",
+                "notes": "RPE 7–8. Keep chest fixed to pad, no momentum."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Slightly heavier than week 1 if technique stays crisp. RPE 7."
+              },
+              {
+                "name": "7a. Bulgarian Split Squat",
+                "sets": "2",
+                "reps": "8 each leg",
+                "notes": "Bodyweight or light dumbbells. Stay tall and control the bottom."
+              },
+              {
+                "name": "7b. Lat Pulldown",
+                "sets": "2",
+                "reps": "10–12",
+                "notes": "RPE 7–8. Full stretch at top, pull elbows down."
+              },
+              {
+                "name": "8a. Weighted Sit-Up",
+                "sets": "2",
+                "reps": "10–12",
+                "notes": "Hold plate at chest. Move under control, avoid excessive hip yank."
+              },
+              {
+                "name": "8b. Plate Neck Lateral Flexion",
+                "sets": "2",
+                "reps": "12 each side",
+                "notes": "Light load only. Smooth motion, no shrugging."
+              },
+              {
+                "name": "9. Zone 2 Bike",
+                "sets": "1",
+                "reps": "12 min",
+                "notes": "Moderate steady pace at RPE 5–6."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Assault Bike or Row Erg",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raise. Nasal breathing if possible, gradually build warmth."
+              },
+              {
+                "name": "2a. Box Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Use a box height that allows clean landings. Step down each rep."
+              },
+              {
+                "name": "2b. Medicine Ball Shot-Put Throw",
+                "sets": "3",
+                "reps": "5 each side",
+                "notes": "Boxing-specific intent. Drive from rear hip, fast hand finish."
+              },
+              {
+                "name": "3. Back Squat",
+                "sets": "4",
+                "reps": "6–8",
+                "notes": "RPE 7–8, 1–2 RIR. Add load if week 2 moved well."
+              },
+              {
+                "name": "4. Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "RPE 8. Controlled descent, powerful press."
+              },
+              {
+                "name": "5. Chest-Supported Row",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "Slightly heavier than week 2. Pause briefly at top."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "RPE 7–8. Keep lats tight and bar close to legs."
+              },
+              {
+                "name": "7a. Walking Lunge",
+                "sets": "2",
+                "reps": "12 each leg",
+                "notes": "Use light to moderate dumbbells if available. Stay balanced."
+              },
+              {
+                "name": "7b. Pull-Up or Assisted Pull-Up",
+                "sets": "2",
+                "reps": "6–8",
+                "notes": "Use assistance as needed to keep clean reps and full range."
+              },
+              {
+                "name": "8a. Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "8–10",
+                "notes": "Brace hard. Stop before lower back extends."
+              },
+              {
+                "name": "8b. Plate Neck Flexion + Extension",
+                "sets": "2",
+                "reps": "15 each direction",
+                "notes": "Light load, smooth reps, no rushing."
+              },
+              {
+                "name": "9. Zone 2 Bike",
+                "sets": "1",
+                "reps": "12 min",
+                "notes": "Moderate steady pace at RPE 5–6. Keep breathing controlled."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "exercises": [
+              {
+                "name": "1. Assault Bike or Row Erg",
+                "sets": "1",
+                "reps": "5 min",
+                "notes": "Easy pulse raise. Keep this deload week relaxed."
+              },
+              {
+                "name": "2a. Countermovement Jump",
+                "sets": "2",
+                "reps": "4",
+                "notes": "Fast and crisp. Lower total volume this week."
+              },
+              {
+                "name": "2b. Medicine Ball Chest Pass",
+                "sets": "2",
+                "reps": "6",
+                "notes": "Explosive but relaxed. Stop every set with reps in reserve."
+              },
+              {
+                "name": "3. Back Squat",
+                "sets": "2",
+                "reps": "6",
+                "notes": "RPE 6. Reduce load about 10–15% from week 3."
+              },
+              {
+                "name": "4. Dumbbell Bench Press",
+                "sets": "2",
+                "reps": "8",
+                "notes": "RPE 6–7. Smooth reps, no grinding."
+              },
+              {
+                "name": "5. Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "RPE 6–7. Keep movement strict."
+              },
+              {
+                "name": "6. Romanian Deadlift",
+                "sets": "2",
+                "reps": "8",
+                "notes": "RPE 6. Easy hinge practice and hamstring stimulus."
+              },
+              {
+                "name": "7a. Bodyweight Split Squat",
+                "sets": "2",
+                "reps": "8 each leg",
+                "notes": "Controlled range, easy effort."
+              },
+              {
+                "name": "7b. Lat Pulldown",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Moderate load, leave 3 reps in reserve."
+              },
+              {
+                "name": "8a. Weighted Sit-Up",
+                "sets": "2",
+                "reps": "8–10",
+                "notes": "Use lighter load than week 3. Controlled tempo."
+              },
+              {
+                "name": "8b. Plate Neck Lateral Flexion",
+                "sets": "2",
+                "reps": "10 each side",
+                "notes": "Very light load, smooth and easy."
+              },
+              {
+                "name": "9. Zone 2 Bike",
+                "sets": "1",
+                "reps": "8–10 min",
+                "notes": "Easy flush at RPE 4–5. Finish fresh."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
