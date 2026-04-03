@@ -5,7 +5,7 @@ import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import ProgramOverviewView from "../../src/screens/screens/ProgramOverviewView.jsx";
-import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 
 const OverviewScreen = observer(function OverviewScreen() {

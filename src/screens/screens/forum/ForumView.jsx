@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet } from "react-native";
-import PostCard from "../../components/forumComponents/PostCard.jsx";
-import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import PostCard from "../../../components/forumComponents/PostCard.jsx";
+import QuestionnaireShell from "../QuestionnaireShell.jsx";
 
 export default function ForumView({
   posts = [],

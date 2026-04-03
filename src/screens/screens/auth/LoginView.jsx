@@ -1,8 +1,8 @@
 import { View, TouchableOpacity, StyleSheet } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
-import SignFormInput from "../../components/authComponents/SignFormInput.jsx";
-import GoogleButtonComponent from "../../components/authComponents/GoogleButton.jsx";
+import StandardText from "../../../components/textComponents/StandardText.jsx";
+import TitleText from "../../../components/textComponents/TitleText.jsx";
+import SignFormInput from "../../../components/authComponents/SignFormInput.jsx";
+import GoogleButtonComponent from "../../../components/authComponents/GoogleButton.jsx";
 
 export function LoginView(props) {
   return (

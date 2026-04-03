@@ -5,7 +5,7 @@ import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import DayDetailView from "../../src/screens/screens/DayDetailView.jsx";
-import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 
 const DayDetailScreen = observer(function DayDetailScreen() {

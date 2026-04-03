@@ -5,7 +5,7 @@ import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import FeedBackView from "../../src/screens/screens/FeedBackView.jsx";
-import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 
 const FeedbackScreen = observer(function FeedbackScreen() {

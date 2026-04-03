@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ForumView from "../../src/screens/screens/ForumView.jsx";
+import ForumView from "../../src/screens/screens/forum/ForumView.jsx";
 
 function createPost(overrides) {
   return {

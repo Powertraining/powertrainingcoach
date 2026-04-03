@@ -11,7 +11,7 @@ import QuestionnaireFrequencyView from "../../src/screens/screens/QuestionnaireF
 import InputFormView from "../../src/screens/screens/InputFormView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/screens/ErrorView.jsx";
-import AuthGateView from "../../src/screens/screens/AuthGateView.jsx";
+import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 
 const STEPS = Object.freeze({
