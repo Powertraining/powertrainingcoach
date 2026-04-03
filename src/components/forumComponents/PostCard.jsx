@@ -8,24 +8,40 @@ export default function PostCard({ post }) {
     <View style={styles.card}>
     <TouchableOpacity>
     <View style={styles.postHeader}>
+     {post?.isCoachVerified ? (
+        <View style={styles.verifiedBadge}>
+          <GoldGradient />
+          <Image
+            source={require("../../assets/icons/check.png")}
+            style={styles.verifiedIcon}
+          />
+        </View>
+      ) : null}
         <TouchableOpacity>
         <StandardText style={styles.postAuthor}>{post?.authorDisplayName}</StandardText>
       </TouchableOpacity>
-      {post?.isCoachVerified ? (
-            <View>
-            <GoldGradient style={{ width: 16, height: 16, borderRadius: 120, justifyContent: "center", alignItems: "center", }}>
-                <Image source={require("../../assets/icons/check.png")} style={{ width: 9, height: 9, tintColor: "#000" }} /> 
-             </GoldGradient>
-            </View>
-        ) : null}
-        <StandardText>{"* " + post?.topic}</StandardText>
+     
+      
+        <View style={styles.dot} />
+
+          <StandardText style={styles.postAuthor} >{post?.topic}</StandardText>
+
+        
     </View>
       <StandardText style={styles.postTitle}>{post?.title}</StandardText>
       <StandardText style={styles.postContent}>{post?.body}</StandardText>
       <View style={styles.postCardMenu}>
-        <TouchableOpacity style={styles.commentsCount}>
-            <Image source={require("../../assets/icons/conversation.png")} style={{ width: 14, height: 14, tintColor: "#fff" }} />
+       
+        <TouchableOpacity style={styles.countButton}>
+            <Image source={require("../../assets/icons/like.png")} style={styles.buttonIcon} />
+          <StandardText fontSize={16}>{post?.likesCount}</StandardText>
+        </TouchableOpacity>
+         <TouchableOpacity style={styles.countButton}>
+            <Image source={require("../../assets/icons/conversation.png")} style={styles.buttonIcon} />
           <StandardText fontSize={16}>{post?.commentsCount}</StandardText>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.standardButton}>
+          <Image source={require("../../assets/icons/save.png")} style={styles.buttonIcon} />
         </TouchableOpacity>
         {post?.coachResponseStatus === "responded" ? (
             <TouchableOpacity>
@@ -52,7 +68,6 @@ const styles = StyleSheet.create({
   postAuthor: {
     color: "#ffffff",
     fontSize: 16,
-    marginBottom: 4,
   },
   postTitle: {
     color: "#ffffff",
@@ -82,7 +97,7 @@ const styles = StyleSheet.create({
   coachResponseText: {
     fontSize: 18,
   },
-    commentsCount: {
+    countButton: {
         borderWidth: 2,
         borderColor: "#fff",
         borderRadius: 120,
@@ -94,9 +109,42 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 8,
     },
+    standardButton: {
+        borderWidth: 2,
+        borderColor: "#fff",
+        borderRadius: 120,
+        height: 32,
+        width: 32,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    buttonIcon: {
+      width: 14, height: 14, tintColor: "#fff", 
+    },
     postHeader: {
         flexDirection: "row",
         gap: 8,
-        justifyContent: "left",
+        alignItems: "center",
+        paddingBottom: 8,
+    },
+    dot: {
+        width: 4,
+        height: 4,
+        borderRadius: 120,
+        backgroundColor: "#C9B259",
+        alignSelf: "center",
+    },
+    verifiedBadge: {
+        width: 16,
+        height: 16,
+        borderRadius: 120,
+        overflow: "hidden",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    verifiedIcon: {
+        width: 9,
+        height: 9,
+        tintColor: "#000",
     },
 });
