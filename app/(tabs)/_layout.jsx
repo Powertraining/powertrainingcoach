@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#fff",
     height: 70,
-    marginHorizontal: 30,
+    marginHorizontal: 16,
     marginVertical: 20,
     position: "absolute",
     borderRadius: 120,

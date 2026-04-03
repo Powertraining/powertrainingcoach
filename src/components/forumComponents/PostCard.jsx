@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   cardContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
   },
 
   // Header
