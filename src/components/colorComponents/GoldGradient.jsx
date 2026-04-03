@@ -6,8 +6,8 @@ export default function BlackGradient({ children, style }) {
         <LinearGradient
             colors={['#C9B259', '#6A5500']}
             locations={[0, 1]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
+            start={{ x: 0.4, y: 0 }}
+            end={{ x: 0.5, y: 1.4 }}
             style={[StyleSheet.absoluteFill, { overflow: 'hidden' }, style]}
         >
             {children}

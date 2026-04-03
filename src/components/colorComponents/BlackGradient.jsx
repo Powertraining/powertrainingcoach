@@ -4,10 +4,10 @@ import { StyleSheet } from "react-native";
 export default function BlackGradient({ children, style }) {
     return (
         <LinearGradient
-            colors={['#1c1c1c', '#000000', '#000000', '#1c1c1c']}
+            colors={['#333333', '#000000', '#000000', '#333333']}
             locations={[0, 0.5, 0.6, 1]}
             start={{ x: -0.3, y: 1.3 }}
-            end={{ x: 1.3, y: -0.3 }}
+            end={{ x: 1.3, y: -0.1 }}
             style={[StyleSheet.absoluteFill, style]}
         >
             {children}
