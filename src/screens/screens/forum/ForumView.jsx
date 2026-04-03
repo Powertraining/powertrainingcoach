@@ -1,5 +1,6 @@
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import PostCard from "../../../components/forumComponents/PostCard.jsx";
+import StandardText from "../../../components/textComponents/StandardText.jsx";
 import QuestionnaireShell from "../QuestionnaireShell.jsx";
 
 export default function ForumView({
@@ -11,6 +12,7 @@ export default function ForumView({
     <QuestionnaireShell>
       <View style={styles.wrapper}>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+          <StandardText style={styles.searchLabel}>Search</StandardText>
           {posts.map((_, index) => (
             <PostCard
               key={posts[index].id}
@@ -42,6 +44,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 8,
     paddingBottom: 120,
+  },
+  searchLabel: {
+    fontSize: 20,
+    paddingHorizontal: 16,
   },
   postButton: {
     position: "absolute",
