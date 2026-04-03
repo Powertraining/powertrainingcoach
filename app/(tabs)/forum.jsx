@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ForumView from "../../src/screens/screens/ForumView.jsx";
 
 function createPost(overrides) {
@@ -273,5 +274,41 @@ function getPosts(startIndex = 0) {
 }
 
 export default function ForumScreen() {
-  return <ForumView posts={getPosts()} />;
+  const [posts, setPosts] = useState(() => getPosts());
+
+  function togglePostLike(postId) {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) =>
+        post.id !== postId ?
+          post :
+          {
+            ...post,
+            isLiked: !post.isLiked,
+            likesCount: Math.max(0, (post.likesCount || 0) + (post.isLiked ? -1 : 1)),
+          }
+      )
+    );
+  }
+
+  function togglePostSave(postId) {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) =>
+        post.id !== postId ?
+          post :
+          {
+            ...post,
+            isSaved: !post.isSaved,
+            savesCount: Math.max(0, (post.savesCount || 0) + (post.isSaved ? -1 : 1)),
+          }
+      )
+    );
+  }
+
+  return (
+    <ForumView
+      posts={posts}
+      onTogglePostLike={togglePostLike}
+      onTogglePostSave={togglePostSave}
+    />
+  );
 }
