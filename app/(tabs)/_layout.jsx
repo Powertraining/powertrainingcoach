@@ -126,22 +126,6 @@ const TabsLayout = observer(function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="forum"
-          options={{
-            title: "Forum",
-            tabBarItemStyle:
-              activeTabName === "forum" ? styles.tabBarItemActive : styles.tabBarItemInactive,
-            tabBarIcon: ({ size, focused }) => (
-              <TabIcon
-                source={require("../../src/assets/icons/conversation.png")}
-                size={size}
-                focused={focused}
-                label="Forum"
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="overview"
           options={{
             title: "Plan",
@@ -153,6 +137,22 @@ const TabsLayout = observer(function TabsLayout() {
                 size={size}
                 focused={focused}
                 label="Plan"
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="forum"
+          options={{
+            title: "Forum",
+            tabBarItemStyle:
+              activeTabName === "forum" ? styles.tabBarItemActive : styles.tabBarItemInactive,
+            tabBarIcon: ({ size, focused }) => (
+              <TabIcon
+                source={require("../../src/assets/icons/conversation.png")}
+                size={size}
+                focused={focused}
+                label="Forum"
               />
             ),
           }}
