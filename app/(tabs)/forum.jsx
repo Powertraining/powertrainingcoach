@@ -146,10 +146,31 @@ const allPosts = [
     tags: ["boxing", "conditioning"],
     likesCount: 6,
     savesCount: 2,
-    commentsCount: 0,
-    comments: [],
+    commentsCount: 2,
+    comments: [
+      createComment({
+        id: "comment-21",
+        postId: "post-3",
+        authorId: "user-david",
+        authorDisplayName: "David",
+        body: "Assault bike intervals have been easier to place in my week than extra roadwork too, especially near sparring days.",
+        createdAt: "2026-03-30T12:10:00.000Z",
+        updatedAt: "2026-03-30T12:10:00.000Z",
+      }),
+      createComment({
+        id: "comment-22",
+        postId: "post-3",
+        authorId: "coach-daniel",
+        authorDisplayName: "Coach Daniel",
+        authorRole: "admin",
+        isCoachVerified: true,
+        body: "That trade makes sense. Keep conditioning dense enough to matter, but not so eccentric-heavy that it drags down your boxing sessions.",
+        createdAt: "2026-03-31T06:45:00.000Z",
+        updatedAt: "2026-03-31T06:45:00.000Z",
+      }),
+    ],
     createdAt: "2026-03-30T09:00:00.000Z",
-    updatedAt: "2026-03-31T07:00:00.000Z",
+    updatedAt: "2026-03-31T07:10:00.000Z",
     searchIndex: ["boxing", "conditioning", "assault", "bike"],
   }),
   createPost({
@@ -413,10 +434,31 @@ const allPosts = [
     tags: ["conditioning", "power", "fatigue"],
     likesCount: 4,
     savesCount: 2,
-    commentsCount: 0,
-    comments: [],
+    commentsCount: 2,
+    comments: [
+      createComment({
+        id: "comment-23",
+        postId: "post-10",
+        authorId: "user-filip",
+        authorDisplayName: "Filip",
+        body: "Same here. A few clean jumps and throws keep me feeling sharp without adding much fatigue.",
+        createdAt: "2026-03-23T19:05:00.000Z",
+        updatedAt: "2026-03-23T19:05:00.000Z",
+      }),
+      createComment({
+        id: "comment-24",
+        postId: "post-10",
+        authorId: "coach-elias",
+        authorDisplayName: "Coach Elias",
+        authorRole: "admin",
+        isCoachVerified: true,
+        body: "That is usually the better move. Keep the intent high and the contact count low when overall stress is already climbing.",
+        createdAt: "2026-03-24T07:25:00.000Z",
+        updatedAt: "2026-03-24T07:25:00.000Z",
+      }),
+    ],
     createdAt: "2026-03-23T16:35:00.000Z",
-    updatedAt: "2026-03-24T08:45:00.000Z",
+    updatedAt: "2026-03-24T08:50:00.000Z",
     searchIndex: ["conditioning", "power", "fatigue", "jumps", "throws"],
   }),
   createPost({
@@ -503,9 +545,20 @@ function getPosts(startIndex = 0) {
   return allPosts.slice(startIndex, startIndex + 10);
 }
 
+function getCommentsByPostId(postId) {
+  return allPosts.find((post) => post.id === postId)?.comments || [];
+}
+
+function getCoachCommentsByPostId(postId) {
+  return getCommentsByPostId(postId).filter(
+    (comment) => comment.authorRole === "admin" || comment.isCoachVerified
+  );
+}
+
 export default function ForumScreen() {
   const [posts, setPosts] = useState(() => getPosts());
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
 
   function togglePostLike(postId) {
     setPosts((currentPosts) =>
@@ -535,11 +588,13 @@ export default function ForumScreen() {
     );
   }
 
-  function showCoachResponseView() {
+  function showCoachResponseView(postId) {
+    setSelectedPostId(postId);
     setIsCoachResponseVisible(true);
   }
 
   function hideCoachResponseView() {
+    setSelectedPostId(null);
     setIsCoachResponseVisible(false);
   }
 
@@ -552,7 +607,10 @@ export default function ForumScreen() {
         onToggleCoachResponse={showCoachResponseView}
       />
       {isCoachResponseVisible ? (
-        <CoachResponseView onClose={hideCoachResponseView} />
+        <CoachResponseView
+          onClose={hideCoachResponseView}
+          comments={getCoachCommentsByPostId(selectedPostId)}
+        />
       ) : null}
     </View>
   );

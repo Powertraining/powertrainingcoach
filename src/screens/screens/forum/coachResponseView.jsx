@@ -1,7 +1,8 @@
 import { StyleSheet, TouchableWithoutFeedback, View, Text } from "react-native";
+import Comment from "../../../components/forumComponents/Comment.jsx";
 import StandardText from "../../../components/textComponents/StandardText.jsx";
 
-export default function CoachResponseView({ onClose }) {
+export default function CoachResponseView({ onClose, comments = [] }) {
   return (
     <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay}>
@@ -12,6 +13,11 @@ export default function CoachResponseView({ onClose }) {
             <Text style={{fontSize: 17,  color: "#C9B259", marginTop: 10, textAlign: "center" }}>
               Coach Response shows that a verified coach has contributed to the thread, so you can weigh the advice with more confidence.
             </Text>
+            <View style={styles.commentsList}>
+              {comments.map((comment) => (
+                <Comment key={comment.id} comment={comment} />
+              ))}
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </View>
@@ -37,5 +43,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#1f1f1f",
     borderRadius: 45,
     padding: 40,
+  },
+  commentsList: {
+    width: "100%",
+    marginTop: 20,
   },
 });

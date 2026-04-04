@@ -65,7 +65,7 @@ export default function PostCard({
               <StandardText fontSize={18}>{post?.commentsCount}</StandardText>
             </TouchableOpacity>
             {post?.coachResponseStatus === "responded" ? (
-              <TouchableOpacity onPress={onToggleCoachResponse}>
+              <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                 <GoldGradient style={styles.coachResponseStatus}>
                   <StandardText style={styles.coachResponseText} textColor="#111111">
                     Coach Response
