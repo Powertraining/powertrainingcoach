@@ -1,4 +1,6 @@
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+
+import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import StandardText from "../../components/textComponents/StandardText";
 
 export function MyProfileView(props) {
@@ -40,7 +42,22 @@ export function MyProfileView(props) {
         </View>
       )}
 
-      {props.error && <Text>{props.error}</Text>}
+        <View style={styles.subscriptionCard}>
+          <Text style={styles.subscriptionLabel}>Subscription</Text>
+          <Text style={styles.subscriptionValue}>{props.subscriptionText}</Text>
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <AppLogicSettingsFields
+          title="App Logic Settings"
+          description="These values are saved to your profile and used when the app builds or regenerates training plans."
+          values={props.appLogicSettings}
+          onChange={props.onAppLogicSettingsChange}
+        />
+      </View>
+
+      {props.error ? <Text style={styles.errorText}>{props.error}</Text> : null}
 
       <TouchableOpacity
         onPress={props.onSave}

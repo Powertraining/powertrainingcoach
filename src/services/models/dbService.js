@@ -26,6 +26,7 @@ import {
   DEFAULT_FORUM_COMMENT_LIMIT,
   DEFAULT_FORUM_FEED_LIMIT,
 } from "./forumModel.js";
+import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
@@ -256,7 +257,7 @@ async function saveUserDataViaRest(uid, dataToSave) {
 
 export function createDefaultUserData() {
   return {
-    questionnaire: {},
+    questionnaire: normalizeAppLogicSettings({}),
     primaryCombatSport: "",
     sessionsPerWeek: 3,
     trainingPlan: null,

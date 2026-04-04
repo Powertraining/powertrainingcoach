@@ -1,0 +1,212 @@
+export const TRAINING_PHASE_OPTIONS = Object.freeze([
+  {
+    label: "Off-camp (No planned competition)",
+    value: "off_camp",
+    description: "Use longer-term development without a planned competition timeline.",
+  },
+  {
+    label: "In Camp (Planned competition)",
+    value: "in_camp",
+    description: "Back-plan the training around an upcoming competition.",
+  },
+]);
+
+export const COMBAT_TRAINING_INTENSITY_OPTIONS = Object.freeze([
+  { label: "Light", value: "light" },
+  { label: "Moderate", value: "moderate" },
+  { label: "Intense", value: "intense" },
+]);
+
+export const COMPETENCY_AND_LIMITATION_OPTIONS = Object.freeze([
+  { label: "Barbells", value: "barbells" },
+  { label: "Machines", value: "machines" },
+  { label: "Dumbbells", value: "dumbbells" },
+  { label: "Olympic lifts", value: "olympic_lifts" },
+  { label: "Ballistic training", value: "ballistic_training" },
+]);
+
+export const LIFT_INTENSITY_METHOD_OPTIONS = Object.freeze([
+  {
+    label: "% logic",
+    value: "percentage",
+    description: "Use percentage-based loading when 1RM-style references are available.",
+  },
+  {
+    label: "RPE",
+    value: "rpe",
+    description: "Use Rate of Perceived Exertion to autoregulate lift intensity.",
+  },
+]);
+
+export const DELOAD_STRATEGY_OPTIONS = Object.freeze([
+  {
+    label: "Maintain intensity, reduce volume 30-50%",
+    value: "maintain_intensity_reduce_volume",
+    description: "Keep loads relatively heavy while cutting total work.",
+  },
+  {
+    label: "Maintain volume, reduce intensity",
+    value: "maintain_volume_reduce_intensity",
+    description: "Keep the amount of work similar while backing off the load.",
+  },
+]);
+
+export const LOADING_STRATEGY_OPTIONS = Object.freeze([
+  {
+    label: "Flat Loading",
+    value: "flat_loading",
+    description: "Basic and repeatable. Recommended for beginners.",
+  },
+  {
+    label: "Ascending pyramid",
+    value: "ascending_pyramid",
+    description:
+      "Start with moderately intense and/or light-volume work, then progress to intense and voluminous work.",
+  },
+  {
+    label: "Descending pyramid",
+    value: "descending_pyramid",
+    description:
+      "Start with intense or high-volume work, then progress to less intense and less voluminous work.",
+  },
+  {
+    label: "Double pyramid",
+    value: "double_pyramid",
+    description:
+      "Both pyramids are performed back-to-back: high-to-low and low-to-high.",
+  },
+]);
+
+export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
+  trainingPhase: "off_camp",
+  competitionTimeline: "",
+  combatTrainingIntensity: "moderate",
+  competencyAndLimitations: [],
+  liftIntensityMethod: "percentage",
+  deloadStrategy: "maintain_intensity_reduce_volume",
+  loadingStrategy: "flat_loading",
+});
+
+function isAllowedValue(value, options) {
+  return options.some((option) => option.value === value);
+}
+
+function mapLegacyCompetitionPeriodToTrainingPhase(competitionPeriod) {
+  if (competitionPeriod === "fight_camp" || competitionPeriod === "pre_season" || competitionPeriod === "in_season") {
+    return "in_camp";
+  }
+
+  return APP_LOGIC_SETTINGS_DEFAULTS.trainingPhase;
+}
+
+function getNormalizedCompetencyAndLimitations(values) {
+  const rawValues = Array.isArray(values) ? values : [];
+  const selectedValues = new Set(rawValues);
+
+  return COMPETENCY_AND_LIMITATION_OPTIONS
+    .map((option) => option.value)
+    .filter((value) => selectedValues.has(value));
+}
+
+function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = false } = {}) {
+  const safeSource = source && typeof source === "object" ? source : {};
+  const inferredTrainingPhase = isAllowedValue(
+    safeSource.trainingPhase,
+    TRAINING_PHASE_OPTIONS
+  )
+    ? safeSource.trainingPhase
+    : mapLegacyCompetitionPeriodToTrainingPhase(safeSource.competitionPeriod);
+
+  const competitionTimeline =
+    typeof safeSource.competitionTimeline === "string"
+      ? safeSource.competitionTimeline.trim()
+      : typeof safeSource.competitionDate === "string"
+        ? safeSource.competitionDate.trim()
+        : "";
+
+  return {
+    trainingPhase: inferredTrainingPhase,
+    competitionTimeline:
+      preserveCompetitionTimeline || inferredTrainingPhase === "in_camp"
+        ? competitionTimeline
+        : "",
+    combatTrainingIntensity: isAllowedValue(
+      safeSource.combatTrainingIntensity,
+      COMBAT_TRAINING_INTENSITY_OPTIONS
+    )
+      ? safeSource.combatTrainingIntensity
+      : APP_LOGIC_SETTINGS_DEFAULTS.combatTrainingIntensity,
+    competencyAndLimitations: getNormalizedCompetencyAndLimitations(
+      safeSource.competencyAndLimitations
+    ),
+    liftIntensityMethod: isAllowedValue(
+      safeSource.liftIntensityMethod,
+      LIFT_INTENSITY_METHOD_OPTIONS
+    )
+      ? safeSource.liftIntensityMethod
+      : APP_LOGIC_SETTINGS_DEFAULTS.liftIntensityMethod,
+    deloadStrategy: isAllowedValue(
+      safeSource.deloadStrategy,
+      DELOAD_STRATEGY_OPTIONS
+    )
+      ? safeSource.deloadStrategy
+      : APP_LOGIC_SETTINGS_DEFAULTS.deloadStrategy,
+    loadingStrategy: isAllowedValue(
+      safeSource.loadingStrategy,
+      LOADING_STRATEGY_OPTIONS
+    )
+      ? safeSource.loadingStrategy
+      : APP_LOGIC_SETTINGS_DEFAULTS.loadingStrategy,
+  };
+}
+
+export function getAppLogicSettingsFormState(source = {}) {
+  return {
+    ...APP_LOGIC_SETTINGS_DEFAULTS,
+    ...coerceAppLogicSettings(source, { preserveCompetitionTimeline: true }),
+  };
+}
+
+export function normalizeAppLogicSettings(source = {}) {
+  return {
+    ...APP_LOGIC_SETTINGS_DEFAULTS,
+    ...coerceAppLogicSettings(source, { preserveCompetitionTimeline: false }),
+  };
+}
+
+export function mergeAppLogicSettings(questionnaire = {}, patch = {}) {
+  const safeQuestionnaire =
+    questionnaire && typeof questionnaire === "object" ? questionnaire : {};
+  const safePatch = patch && typeof patch === "object" ? patch : {};
+  const merged = {
+    ...safeQuestionnaire,
+    ...safePatch,
+  };
+
+  return {
+    ...merged,
+    ...normalizeAppLogicSettings(merged),
+  };
+}
+
+export function areAppLogicSettingsEqual(left, right) {
+  const normalizedLeft = normalizeAppLogicSettings(left);
+  const normalizedRight = normalizeAppLogicSettings(right);
+
+  return (
+    normalizedLeft.trainingPhase === normalizedRight.trainingPhase &&
+    normalizedLeft.competitionTimeline === normalizedRight.competitionTimeline &&
+    normalizedLeft.combatTrainingIntensity ===
+      normalizedRight.combatTrainingIntensity &&
+    normalizedLeft.liftIntensityMethod ===
+      normalizedRight.liftIntensityMethod &&
+    normalizedLeft.deloadStrategy === normalizedRight.deloadStrategy &&
+    normalizedLeft.loadingStrategy === normalizedRight.loadingStrategy &&
+    normalizedLeft.competencyAndLimitations.length ===
+      normalizedRight.competencyAndLimitations.length &&
+    normalizedLeft.competencyAndLimitations.every(
+      (value, index) =>
+        value === normalizedRight.competencyAndLimitations[index]
+    )
+  );
+}

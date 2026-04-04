@@ -4,6 +4,8 @@ import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
+import { getAppLogicSettingsFormState, normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
 
 export default function InputFormView({
     onSubmit,
@@ -22,26 +24,19 @@ export default function InputFormView({
     );
     const [weightClass, setWeightClass] = useState(initialValues.weightClass || "");
     const [primaryStyle, setPrimaryStyle] = useState(initialValues.primaryStyle || "balanced");
-    const [competitionPeriod, setCompetitionPeriod] = useState(
-        initialValues.competitionPeriod || "off_season"
-    );
     const [injuries, setInjuries] = useState(
         Array.isArray(initialValues.injuries)
             ? initialValues.injuries.join(", ")
             : initialValues.injuries || ""
     );
-    const [equipmentAccess, setEquipmentAccess] = useState(
-        initialValues.equipment || "full_gym"
-    );
-    const [focusEmphasis, setFocusEmphasis] = useState(
-        initialValues.focusEmphasis ||
-            initialValues.preferences?.[0] ||
-            "mixed"
+    const [appLogicSettings, setAppLogicSettings] = useState(
+        getAppLogicSettingsFormState(initialValues)
     );
 
     function handleSubmit() {
         const normalizedDaysPerWeek =
             Number.isFinite(daysPerWeek) && daysPerWeek > 0 ? daysPerWeek : 3;
+        const normalizedAppLogicSettings = normalizeAppLogicSettings(appLogicSettings);
 
         onSubmit({
             goal,
@@ -49,10 +44,8 @@ export default function InputFormView({
             daysPerWeek: normalizedDaysPerWeek,
             weightClass,
             primaryStyle,
-            competitionPeriod,
-            equipment: equipmentAccess,
             injuries: injuries ? injuries.split(",").map((s) => s.trim()).filter(Boolean) : [],
-            preferences: [focusEmphasis].filter(Boolean)
+            ...normalizedAppLogicSettings,
         });
     }
 
@@ -102,16 +95,6 @@ export default function InputFormView({
                         </View>
 
                         <View style={styles.field}>
-                            <Text style={styles.label}>Competition period</Text>
-                            <Picker selectedValue={competitionPeriod} onValueChange={setCompetitionPeriod} style={styles.input}>
-                                <Picker.Item label="Off-season / general prep" value="off_season" />
-                                <Picker.Item label="Pre-season (4-8 weeks out)" value="pre_season" />
-                                <Picker.Item label="Fight camp (1-4 weeks out)" value="fight_camp" />
-                                <Picker.Item label="In-season / frequent bouts" value="in_season" />
-                            </Picker>
-                        </View>
-
-                        <View style={styles.field}>
                             <Text style={styles.label}>Injuries / weaknesses</Text>
                             <TextInput
                                 placeholder="e.g. sore shoulder, weak left kick, knee rehab"
@@ -123,23 +106,12 @@ export default function InputFormView({
                             />
                         </View>
 
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Equipment access</Text>
-                            <Picker selectedValue={equipmentAccess} onValueChange={setEquipmentAccess} style={styles.input}>
-                                <Picker.Item label="Full gym + bags/mats" value="full_gym" />
-                                <Picker.Item label="Home setup (bands/dumbbells)" value="home_minimal" />
-                                <Picker.Item label="Bodyweight + roadwork" value="bodyweight_only" />
-                            </Picker>
-                        </View>
-
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Focus emphasis</Text>
-                            <Picker selectedValue={focusEmphasis} onValueChange={setFocusEmphasis} style={styles.input}>
-                                <Picker.Item label="Mixed (sparring/technique + conditioning)" value="mixed" />
-                                <Picker.Item label="Heavier on sparring/technique" value="more_sparring" />
-                                <Picker.Item label="Heavier on conditioning/strength" value="more_conditioning" />
-                            </Picker>
-                        </View>
+                        <AppLogicSettingsFields
+                            title="App Logic Settings"
+                            description="Choose the strength-planning logic you want the app to use for this athlete profile."
+                            values={appLogicSettings}
+                            onChange={setAppLogicSettings}
+                        />
 
                         <View style={styles.field}>
                             <Text style={styles.label}>Goal</Text>

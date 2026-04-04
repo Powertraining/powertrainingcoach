@@ -28,7 +28,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       new Date(normalizedSubscriptionEndDate) >= new Date(new Date().setHours(0, 0, 0, 0))
     );
 
-    model.questionnaire = persistedData.questionnaire ?? {};
+    if (typeof model.setQuestionnaire === "function") {
+      model.setQuestionnaire(persistedData.questionnaire ?? {});
+    } else {
+      model.questionnaire = persistedData.questionnaire ?? {};
+    }
     model.primaryCombatSport = persistedData.primaryCombatSport ?? "";
     model.sessionsPerWeek = persistedData.sessionsPerWeek ?? 3;
     model.trainingPlan = persistedData.trainingPlan ?? null;

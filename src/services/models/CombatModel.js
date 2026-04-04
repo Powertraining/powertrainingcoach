@@ -35,6 +35,10 @@ import {
   normalizeForumPost,
   normalizeForumProfile,
 } from "./forumModel.js";
+import {
+  mergeAppLogicSettings,
+  normalizeAppLogicSettings,
+} from "../../constants/appLogicSettings.js";
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -489,15 +493,13 @@ export const model = {
   },
 
   setQuestionnaire(questionnaire = {}) {
-    this.questionnaire =
-      questionnaire && typeof questionnaire === "object" ?
-        {...questionnaire} :
-        {};
+    this.questionnaire = mergeAppLogicSettings({}, questionnaire);
   },
 
   buildTrainingPlanInput(questionnaire = this.questionnaire) {
     const source =
       questionnaire && typeof questionnaire === "object" ? questionnaire : {};
+    const normalizedAppLogicSettings = normalizeAppLogicSettings(source);
     const parsedDaysPerWeek = Number.parseInt(source.daysPerWeek, 10);
     const parsedSessionsPerWeek = Number.parseInt(source.sessionsPerWeek, 10);
     const fallbackSessionsPerWeek = Number.parseInt(this.sessionsPerWeek, 10);
@@ -526,6 +528,7 @@ export const model = {
 
     return {
       ...source,
+      ...normalizedAppLogicSettings,
       primaryCombatSport: source.primaryCombatSport || this.primaryCombatSport || "",
       sessionsPerWeek:
         Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
@@ -538,6 +541,11 @@ export const model = {
           source.preferences.filter(Boolean) :
           [focusEmphasis].filter(Boolean),
       injuries: Array.isArray(source.injuries) ? source.injuries.filter(Boolean) : [],
+      competitionPeriod:
+        source.competitionPeriod ||
+        (normalizedAppLogicSettings.trainingPhase === "in_camp" ?
+          "fight_camp" :
+          "off_season"),
       numWeeks:
         Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
           weeksFromSubscription :

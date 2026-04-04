@@ -7,6 +7,12 @@ import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { MyProfileView } from "../../src/screens/screens/MyProfileView.jsx";
 import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
+import {
+  areAppLogicSettingsEqual,
+  getAppLogicSettingsFormState,
+  mergeAppLogicSettings,
+  normalizeAppLogicSettings,
+} from "../../src/constants/appLogicSettings.js";
 
 const ProfileScreen = observer(function ProfileScreen() {
   const model = reactiveModel;
@@ -26,6 +32,9 @@ const ProfileScreen = observer(function ProfileScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [appLogicSettings, setAppLogicSettings] = useState(
+    getAppLogicSettingsFormState(model.questionnaire || {})
+  );
 
   // Keep form in sync if currentUser changes
   useEffect(
@@ -33,8 +42,16 @@ const ProfileScreen = observer(function ProfileScreen() {
       setUsername(user.displayName || "");
       setEmail(user.email || "");
       setPassword("");
+      setAppLogicSettings(getAppLogicSettingsFormState(model.questionnaire || {}));
     },
-    [user.displayName, user.email]
+    [user.displayName, user.email, model.questionnaire]
+  );
+
+  const persistedAppLogicSettings = useMemo(
+    function persistedAppLogicSettingsACB() {
+      return normalizeAppLogicSettings(model.questionnaire || {});
+    },
+    [model.questionnaire]
   );
 
   const subscriptionText = useMemo(
@@ -59,12 +76,20 @@ const ProfileScreen = observer(function ProfileScreen() {
     function canSaveACB() {
       const changed =
         username !== (user.displayName || "") ||
-        (!isGoogleUser && password.length > 0);
+        (!isGoogleUser && password.length > 0) ||
+        !areAppLogicSettingsEqual(appLogicSettings, persistedAppLogicSettings);
 
       const valid = username.trim().length > 0;
       return changed && valid;
     },
-    [username, password, isGoogleUser, user.displayName]
+    [
+      appLogicSettings,
+      isGoogleUser,
+      password,
+      persistedAppLogicSettings,
+      user.displayName,
+      username,
+    ]
   );
 
   if (!model.ready) {
@@ -95,6 +120,12 @@ const ProfileScreen = observer(function ProfileScreen() {
         password: password,
         isGoogleUser: isGoogleUser,
       });
+      const nextQuestionnaire = mergeAppLogicSettings(
+        model.questionnaire,
+        appLogicSettings
+      );
+      model.setQuestionnaire?.(nextQuestionnaire);
+      setAppLogicSettings(getAppLogicSettingsFormState(nextQuestionnaire));
     } catch (e) {
       setError(e.message || "Update failed.");
     } finally {
@@ -107,6 +138,7 @@ const ProfileScreen = observer(function ProfileScreen() {
     setError(null);
     setUsername(user.displayName || "");
     setPassword("");
+    setAppLogicSettings(getAppLogicSettingsFormState(model.questionnaire || {}));
   }
 
   function changeSubscriptionACB() {
@@ -144,9 +176,11 @@ const ProfileScreen = observer(function ProfileScreen() {
         isSubmitting={isSubmitting}
         error={error}
         canSave={canSave}
+        appLogicSettings={appLogicSettings}
         onUsernameChange={setUsername}
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
+        onAppLogicSettingsChange={setAppLogicSettings}
         onSave={saveACB}
         onCancel={cancelACB}
         onChangeSubscription={changeSubscriptionACB}
