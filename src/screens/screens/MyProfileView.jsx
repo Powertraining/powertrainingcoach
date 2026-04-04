@@ -1,186 +1,256 @@
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 
-import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
-import StandardText from "../../components/textComponents/StandardText";
+import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
 
 export function MyProfileView(props) {
   return (
-    <View>
-      <StandardText fontSize={24}>My Profile</StandardText>
+    <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.card}>
+        <Text style={styles.pageTitle}>My Profile</Text>
+        <Text style={styles.pageDescription}>
+          Update your account details and the app logic used for future training plans.
+        </Text>
 
-      <View>
-        <StandardText>Username:</StandardText>
-        <TextInput
-          value={props.username}
-          placeholder={props.usernamePlaceholder}
-          onChangeText={props.onUsernameChange}
-          editable={!props.isSubmitting}
-        />
-      </View>
-
-      <View>
-        <StandardText>E-mail:</StandardText>
-        <TextInput
-          value={props.email}
-          placeholder={props.emailPlaceholder}
-          editable={false}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
-
-      {!props.hidePassword && (
-        <View>
-          <StandardText>Password:</StandardText>
+        <View style={styles.field}>
+          <Text style={styles.label}>Username</Text>
           <TextInput
-            value={props.password}
-            onChangeText={props.onPasswordChange}
+            value={props.username}
+            placeholder={props.usernamePlaceholder}
+            onChangeText={props.onUsernameChange}
             editable={!props.isSubmitting}
-            secureTextEntry
-            placeholder="••••••••"
+            style={styles.input}
           />
         </View>
-      )}
+
+        <View style={styles.field}>
+          <Text style={styles.label}>E-mail</Text>
+          <TextInput
+            value={props.email}
+            placeholder={props.emailPlaceholder}
+            editable={false}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={[styles.input, styles.inputDisabled]}
+          />
+        </View>
+
+        {!props.hidePassword && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              value={props.password}
+              onChangeText={props.onPasswordChange}
+              editable={!props.isSubmitting}
+              secureTextEntry
+              placeholder="••••••••"
+              style={styles.input}
+            />
+          </View>
+        )}
 
         <View style={styles.subscriptionCard}>
           <Text style={styles.subscriptionLabel}>Subscription</Text>
           <Text style={styles.subscriptionValue}>{props.subscriptionText}</Text>
         </View>
+
+        <View style={styles.subscriptionCard}>
+          <Text style={styles.subscriptionLabel}>Primary Sport</Text>
+          <Text style={styles.subscriptionValue}>
+            {props.primaryCombatSport || "Not selected"}
+          </Text>
+          <TouchableOpacity
+            onPress={props.onEditPrimaryCombatSport}
+            disabled={props.isSubmitting}
+            style={styles.inlineActionButton}
+          >
+            <Text style={styles.inlineActionButtonText}>Edit primary sport</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.subscriptionCard}>
+          <Text style={styles.subscriptionLabel}>Training Frequency</Text>
+          <Text style={styles.subscriptionValue}>
+            {props.sessionsPerWeek ? `${props.sessionsPerWeek} days per week` : "Not selected"}
+          </Text>
+          <TouchableOpacity
+            onPress={props.onEditTrainingFrequency}
+            disabled={props.isSubmitting}
+            style={styles.inlineActionButton}
+          >
+            <Text style={styles.inlineActionButtonText}>Edit training frequency</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.card}>
-        <AppLogicSettingsFields
-          title="App Logic Settings"
+        <TrainingPreferencesFields
+          title="Training Preferences"
           description="These values are saved to your profile and used when the app builds or regenerates training plans."
-          values={props.appLogicSettings}
-          onChange={props.onAppLogicSettingsChange}
+          values={props.trainingPreferences}
+          onChange={props.onTrainingPreferencesChange}
+          appLogicTitle="App Logic Settings"
+          appLogicDescription="Adjust the strength-planning logic and the full onboarding preferences from your profile."
         />
       </View>
 
       {props.error ? <Text style={styles.errorText}>{props.error}</Text> : null}
 
-      <TouchableOpacity
-        onPress={props.onSave}
-        disabled={props.isSubmitting || !props.canSave}
-      >
-        <StandardText>{props.isSubmitting ? "Saving..." : "Save changes"}</StandardText>
-      </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity
+          onPress={props.onSave}
+          disabled={props.isSubmitting || !props.canSave}
+          style={[
+            styles.primaryButton,
+            props.isSubmitting || !props.canSave ? styles.buttonDisabled : null,
+          ]}
+        >
+          <Text style={styles.primaryButtonText}>
+            {props.isSubmitting ? "Saving..." : "Save changes"}
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={props.onCancel} disabled={props.isSubmitting}>
-        <StandardText>Cancel</StandardText>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={props.onCancel}
+          disabled={props.isSubmitting}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryButtonText}>Cancel</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={props.onLogout} disabled={props.isSubmitting}>
-        <StandardText>Logout</StandardText>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          onPress={props.onLogout}
+          disabled={props.isSubmitting}
+          style={styles.logoutButton}
+        >
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
-
-// export function MyProfileView(props) {
-//   function usernameChangedACB(evt) {
-//     props.onUsernameChange(evt.target.value);
-//   }
-//   function passwordChangedACB(evt) {
-//     props.onPasswordChange(evt.target.value);
-//   }
-
-//   return (
-//     <div className="profile-page">
-//       <h2 className="profile-title">My Profile</h2>
-
-//       <form className="profile-form" onSubmit={props.onSave}>
-//         <div className="profile-row">
-//           <label htmlFor="profile-username" className="profile-label">Username:</label>
-//           <input
-//             id="profile-username"
-//             className="profile-input"
-//             type="text"
-//             value={props.username}
-//             placeholder={props.usernamePlaceholder}
-//             onChange={usernameChangedACB}
-//             disabled={props.isSubmitting}
-//           />
-//         </div>
-
-//         <div className="profile-row">
-//           <label htmlFor="profile-email" className="profile-label">E-mail:</label>
-//           <input
-//             id="profile-email"
-//             className="profile-input profile-input--readonly"
-//             type="email"
-//             value={props.email}
-//             placeholder={props.emailPlaceholder}
-//             disabled
-//             readOnly
-//           />
-//         </div>
-
-//         {!props.hidePassword && (
-//           <div className="profile-row">
-//             <label htmlFor="profile-password" className="profile-label">Password:</label>
-//             <input
-//               id="profile-password"
-//               className="profile-input"
-//               type="password"
-//               value={props.password}
-//               onChange={passwordChangedACB}
-//               disabled={props.isSubmitting}
-//               placeholder="••••••••"
-//             />
-//           </div>
-//         )}
-
-
-//         {props.error && <p className="profile-error">{props.error}</p>}
-
-//         <div className="profile-actions">
-//           <button
-//             className="profile-save"
-//             type="submit"
-//             disabled={props.isSubmitting || !props.canSave}
-//           >
-//             {props.isSubmitting ? "Saving..." : "Save changes"}
-//           </button>
-
-//           <button
-//             className="profile-cancel"
-//             type="button"
-//             onClick={props.onCancel}
-//             disabled={props.isSubmitting}
-//           >
-//             Cancel
-//           </button>
-//         </div>
-//         {/* could be implemented in the future 
-//         <div className="profile-subscription">
-//           <span className="profile-subscription-label">Subscription:</span>
-//           <span className="profile-subscription-value">{props.subscriptionText}</span>
-//         </div>
-        
-//         <div className="profile-subscription-actions">
-//           <button
-//             className="profile-change-subscription"
-//             type="button"
-//             onClick={props.onChangeSubscription}
-//             disabled={props.isSubmitting}
-//           >
-//             Change Subscription
-//           </button>
-//         </div>*/}
-
-//         <div className="profile-logout-actions">
-//           <button
-//             className="profile-logout"
-//             type="button"
-//             onClick={props.onLogout}
-//             disabled={props.isSubmitting}
-//           >
-//             Logout
-//           </button>
-//         </div>
-//       </form>
-//     </div>
-//   );
-// }
+const styles = StyleSheet.create({
+  content: {
+    padding: 20,
+    gap: 16,
+  },
+  card: {
+    padding: 20,
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(15,23,42,0.08)",
+    gap: 14,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  pageDescription: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#475569",
+  },
+  field: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  input: {
+    height: 46,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(17,24,39,0.14)",
+    backgroundColor: "#f8fafc",
+    paddingHorizontal: 12,
+    fontSize: 16,
+  },
+  inputDisabled: {
+    color: "#64748b",
+  },
+  subscriptionCard: {
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "rgba(17,24,39,0.08)",
+    gap: 4,
+  },
+  subscriptionLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  subscriptionValue: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#0f172a",
+  },
+  inlineActionButton: {
+    marginTop: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(17,24,39,0.12)",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+  inlineActionButtonText: {
+    color: "#111827",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  errorText: {
+    color: "#b91c1c",
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  actions: {
+    gap: 12,
+    paddingBottom: 12,
+  },
+  primaryButton: {
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: "#111827",
+    alignItems: "center",
+  },
+  primaryButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  secondaryButton: {
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(17,24,39,0.18)",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+  secondaryButtonText: {
+    color: "#111827",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  logoutButton: {
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: "#fee2e2",
+    alignItems: "center",
+  },
+  logoutButtonText: {
+    color: "#991b1b",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonDisabled: {
+    opacity: 0.55,
+  },
+});

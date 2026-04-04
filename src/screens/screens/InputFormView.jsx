@@ -1,11 +1,13 @@
 // npx expo install @react-native-picker/picker
 
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
-import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
-import { getAppLogicSettingsFormState, normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
+import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
+import {
+    getTrainingPreferencesFormState,
+    normalizeTrainingPreferences,
+} from "../../constants/trainingPreferences.js";
 
 export default function InputFormView({
     onSubmit,
@@ -17,36 +19,12 @@ export default function InputFormView({
     daysRemaining,
     initialValues = {},
 }) {
-    const [goal, setGoal] = useState(initialValues.goal || "hypertrophy");
-    const [experience, setExperience] = useState(initialValues.experience || "beginner");
-    const [daysPerWeek, setDaysPerWeek] = useState(
-        Number.parseInt(initialValues.daysPerWeek, 10) || 3
-    );
-    const [weightClass, setWeightClass] = useState(initialValues.weightClass || "");
-    const [primaryStyle, setPrimaryStyle] = useState(initialValues.primaryStyle || "balanced");
-    const [injuries, setInjuries] = useState(
-        Array.isArray(initialValues.injuries)
-            ? initialValues.injuries.join(", ")
-            : initialValues.injuries || ""
-    );
-    const [appLogicSettings, setAppLogicSettings] = useState(
-        getAppLogicSettingsFormState(initialValues)
+    const [trainingPreferences, setTrainingPreferences] = useState(
+        getTrainingPreferencesFormState(initialValues)
     );
 
     function handleSubmit() {
-        const normalizedDaysPerWeek =
-            Number.isFinite(daysPerWeek) && daysPerWeek > 0 ? daysPerWeek : 3;
-        const normalizedAppLogicSettings = normalizeAppLogicSettings(appLogicSettings);
-
-        onSubmit({
-            goal,
-            experience,
-            daysPerWeek: normalizedDaysPerWeek,
-            weightClass,
-            primaryStyle,
-            injuries: injuries ? injuries.split(",").map((s) => s.trim()).filter(Boolean) : [],
-            ...normalizedAppLogicSettings,
-        });
+        onSubmit(normalizeTrainingPreferences(trainingPreferences));
     }
 
     return (
@@ -74,75 +52,12 @@ export default function InputFormView({
                             </View>
                         )}
 
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Weight class</Text>
-                            <TextInput
-                                placeholder="e.g. -70 kg / Lightweight"
-                                value={weightClass}
-                                onChangeText={setWeightClass}
-                                style={styles.input}
-                            />
-                        </View>
-
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Primary style focus</Text>
-                            <Picker selectedValue={primaryStyle} onValueChange={setPrimaryStyle} style={styles.input}>
-                                <Picker.Item label="Balanced (striking & grappling)" value="balanced" />
-                                <Picker.Item label="Striking-heavy" value="striking" />
-                                <Picker.Item label="Grappling-heavy" value="grappling" />
-                                <Picker.Item label="Clinching & throws" value="clinching" />
-                            </Picker>
-                        </View>
-
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Injuries / weaknesses</Text>
-                            <TextInput
-                                placeholder="e.g. sore shoulder, weak left kick, knee rehab"
-                                value={injuries}
-                                onChangeText={setInjuries}
-                                multiline
-                                numberOfLines={3}
-                                style={styles.textarea}
-                            />
-                        </View>
-
-                        <AppLogicSettingsFields
-                            title="App Logic Settings"
-                            description="Choose the strength-planning logic you want the app to use for this athlete profile."
-                            values={appLogicSettings}
-                            onChange={setAppLogicSettings}
+                        <TrainingPreferencesFields
+                            values={trainingPreferences}
+                            onChange={setTrainingPreferences}
+                            appLogicTitle="App Logic Settings"
+                            appLogicDescription="Choose the strength-planning logic you want the app to use for this athlete profile."
                         />
-
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Goal</Text>
-                            <Picker selectedValue={goal} onValueChange={setGoal} style={styles.input}>
-                                <Picker.Item label="Hypertrophy" value="hypertrophy" />
-                                <Picker.Item label="Strength" value="strength" />
-                                <Picker.Item label="Power / Speed" value="power" />
-                            </Picker>
-                        </View>
-
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Experience</Text>
-                            <Picker selectedValue={experience} onValueChange={setExperience} style={styles.input}>
-                                <Picker.Item label="Beginner" value="beginner" />
-                                <Picker.Item label="Intermediate" value="intermediate" />
-                                <Picker.Item label="Advanced" value="advanced" />
-                            </Picker>
-                        </View>
-
-                        <View style={styles.field}>
-                            <Text style={styles.label}>Days per week</Text>
-                            <TextInput
-                                keyboardType="numeric"
-                                value={daysPerWeek > 0 ? String(daysPerWeek) : ""}
-                                onChangeText={(v) => {
-                                    const parsedValue = Number.parseInt(v, 10);
-                                    setDaysPerWeek(Number.isFinite(parsedValue) ? parsedValue : 0);
-                                }}
-                                style={styles.input}
-                            />
-                        </View>
 
                         <View style={styles.actions}>
                             {onBack && (
@@ -182,25 +97,6 @@ const styles = StyleSheet.create({
     title: { fontSize: 30, fontWeight: "700" },
     subtitle: { fontSize: 17, opacity: 0.8, lineHeight: 25 },
     form: { gap: 14, marginTop: 4 },
-    field: { gap: 6 },
-    label: { fontSize: 15, fontWeight: "600", color: "#111" },
-    input: {
-        height: 46,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: "rgba(0,0,0,0.18)",
-        paddingHorizontal: 12,
-        fontSize: 16,
-        backgroundColor: "#f8f8f8",
-    },
-    textarea: {
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: "rgba(0,0,0,0.18)",
-        padding: 10,
-        fontSize: 16,
-        backgroundColor: "#f8f8f8",
-    },
     subscriptionAlert: {
         padding: 16,
         borderRadius: 10,

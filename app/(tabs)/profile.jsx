@@ -5,14 +5,23 @@ import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { MyProfileView } from "../../src/screens/screens/MyProfileView.jsx";
+import QuestionnaireFrequencyView from "../../src/screens/screens/QuestionnaireFrequencyView.jsx";
+import QuestionnaireSportView from "../../src/screens/screens/QuestionnaireSportView.jsx";
 import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import {
-  areAppLogicSettingsEqual,
-  getAppLogicSettingsFormState,
-  mergeAppLogicSettings,
-  normalizeAppLogicSettings,
-} from "../../src/constants/appLogicSettings.js";
+  areTrainingPreferencesEqual,
+  getTrainingPreferencesFormState,
+  mergeTrainingPreferences,
+  normalizeTrainingPreferences,
+} from "../../src/constants/trainingPreferences.js";
+import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
+
+const PROFILE_EDIT_MODES = Object.freeze({
+  MAIN: "main",
+  SPORT: "sport",
+  FREQUENCY: "frequency",
+});
 
 const ProfileScreen = observer(function ProfileScreen() {
   const model = reactiveModel;
@@ -32,9 +41,14 @@ const ProfileScreen = observer(function ProfileScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [appLogicSettings, setAppLogicSettings] = useState(
-    getAppLogicSettingsFormState(model.questionnaire || {})
+  const [trainingPreferences, setTrainingPreferences] = useState(
+    getTrainingPreferencesFormState(model.questionnaire || {})
   );
+  const [primaryCombatSport, setPrimaryCombatSport] = useState(
+    model.primaryCombatSport || ""
+  );
+  const [sessionsPerWeek, setSessionsPerWeek] = useState(model.sessionsPerWeek || 3);
+  const [editMode, setEditMode] = useState(PROFILE_EDIT_MODES.MAIN);
 
   // Keep form in sync if currentUser changes
   useEffect(
@@ -42,14 +56,17 @@ const ProfileScreen = observer(function ProfileScreen() {
       setUsername(user.displayName || "");
       setEmail(user.email || "");
       setPassword("");
-      setAppLogicSettings(getAppLogicSettingsFormState(model.questionnaire || {}));
+      setTrainingPreferences(getTrainingPreferencesFormState(model.questionnaire || {}));
+      setPrimaryCombatSport(model.primaryCombatSport || "");
+      setSessionsPerWeek(model.sessionsPerWeek || 3);
+      setEditMode(PROFILE_EDIT_MODES.MAIN);
     },
-    [user.displayName, user.email, model.questionnaire]
+    [user.displayName, user.email, model.primaryCombatSport, model.questionnaire, model.sessionsPerWeek]
   );
 
-  const persistedAppLogicSettings = useMemo(
-    function persistedAppLogicSettingsACB() {
-      return normalizeAppLogicSettings(model.questionnaire || {});
+  const persistedTrainingPreferences = useMemo(
+    function persistedTrainingPreferencesACB() {
+      return normalizeTrainingPreferences(model.questionnaire || {});
     },
     [model.questionnaire]
   );
@@ -77,16 +94,25 @@ const ProfileScreen = observer(function ProfileScreen() {
       const changed =
         username !== (user.displayName || "") ||
         (!isGoogleUser && password.length > 0) ||
-        !areAppLogicSettingsEqual(appLogicSettings, persistedAppLogicSettings);
+        primaryCombatSport !== (model.primaryCombatSport || "") ||
+        sessionsPerWeek !== (model.sessionsPerWeek || 3) ||
+        !areTrainingPreferencesEqual(
+          trainingPreferences,
+          persistedTrainingPreferences
+        );
 
       const valid = username.trim().length > 0;
       return changed && valid;
     },
     [
-      appLogicSettings,
       isGoogleUser,
       password,
-      persistedAppLogicSettings,
+      persistedTrainingPreferences,
+      primaryCombatSport,
+      sessionsPerWeek,
+      trainingPreferences,
+      model.primaryCombatSport,
+      model.sessionsPerWeek,
       user.displayName,
       username,
     ]
@@ -110,6 +136,29 @@ const ProfileScreen = observer(function ProfileScreen() {
     );
   }
 
+  if (editMode === PROFILE_EDIT_MODES.SPORT) {
+    return (
+      <QuestionnaireSportView
+        options={PRIMARY_COMBAT_SPORT_OPTIONS}
+        value={primaryCombatSport}
+        onChange={(sport) => setPrimaryCombatSport(sport || "")}
+        onBack={() => setEditMode(PROFILE_EDIT_MODES.MAIN)}
+        onContinue={() => setEditMode(PROFILE_EDIT_MODES.MAIN)}
+      />
+    );
+  }
+
+  if (editMode === PROFILE_EDIT_MODES.FREQUENCY) {
+    return (
+      <QuestionnaireFrequencyView
+        value={sessionsPerWeek}
+        onChange={setSessionsPerWeek}
+        onBack={() => setEditMode(PROFILE_EDIT_MODES.MAIN)}
+        onContinue={() => setEditMode(PROFILE_EDIT_MODES.MAIN)}
+      />
+    );
+  }
+
   async function saveACB() {
     setError(null);
     setIsSubmitting(true);
@@ -120,12 +169,18 @@ const ProfileScreen = observer(function ProfileScreen() {
         password: password,
         isGoogleUser: isGoogleUser,
       });
-      const nextQuestionnaire = mergeAppLogicSettings(
+      const nextQuestionnaire = mergeTrainingPreferences(
         model.questionnaire,
-        appLogicSettings
+        {
+          ...trainingPreferences,
+          primaryCombatSport,
+          sessionsPerWeek,
+        }
       );
+      model.primaryCombatSport = primaryCombatSport;
+      model.sessionsPerWeek = sessionsPerWeek;
       model.setQuestionnaire?.(nextQuestionnaire);
-      setAppLogicSettings(getAppLogicSettingsFormState(nextQuestionnaire));
+      setTrainingPreferences(getTrainingPreferencesFormState(nextQuestionnaire));
     } catch (e) {
       setError(e.message || "Update failed.");
     } finally {
@@ -138,7 +193,10 @@ const ProfileScreen = observer(function ProfileScreen() {
     setError(null);
     setUsername(user.displayName || "");
     setPassword("");
-    setAppLogicSettings(getAppLogicSettingsFormState(model.questionnaire || {}));
+    setTrainingPreferences(getTrainingPreferencesFormState(model.questionnaire || {}));
+    setPrimaryCombatSport(model.primaryCombatSport || "");
+    setSessionsPerWeek(model.sessionsPerWeek || 3);
+    setEditMode(PROFILE_EDIT_MODES.MAIN);
   }
 
   function changeSubscriptionACB() {
@@ -176,11 +234,15 @@ const ProfileScreen = observer(function ProfileScreen() {
         isSubmitting={isSubmitting}
         error={error}
         canSave={canSave}
-        appLogicSettings={appLogicSettings}
+        trainingPreferences={trainingPreferences}
+        primaryCombatSport={primaryCombatSport}
+        sessionsPerWeek={sessionsPerWeek}
         onUsernameChange={setUsername}
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
-        onAppLogicSettingsChange={setAppLogicSettings}
+        onTrainingPreferencesChange={setTrainingPreferences}
+        onEditPrimaryCombatSport={() => setEditMode(PROFILE_EDIT_MODES.SPORT)}
+        onEditTrainingFrequency={() => setEditMode(PROFILE_EDIT_MODES.FREQUENCY)}
         onSave={saveACB}
         onCancel={cancelACB}
         onChangeSubscription={changeSubscriptionACB}

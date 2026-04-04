@@ -13,6 +13,7 @@ import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
+import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 
 const STEPS = Object.freeze({
   START: "start",
@@ -20,15 +21,6 @@ const STEPS = Object.freeze({
   Q_FREQ: "questionnaireFrequency",
   INPUT: "input",
 });
-
-const SPORT_OPTIONS = [
-  "Boxing",
-  "Wrestling",
-  "BJJ",
-  "Muay Thai / Kickboxing",
-  "Judo",
-  "MMA",
-];
 
 const HomeScreen = observer(function HomeScreen() {
   const model = reactiveModel;
@@ -224,7 +216,7 @@ const HomeScreen = observer(function HomeScreen() {
 
     [STEPS.Q_SPORT]: () => (
       <QuestionnaireSportView
-        options={SPORT_OPTIONS}
+        options={PRIMARY_COMBAT_SPORT_OPTIONS}
         value={model.primaryCombatSport}
         onChange={(sport) => {
           model.primaryCombatSport = sport;

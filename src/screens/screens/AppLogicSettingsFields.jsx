@@ -27,10 +27,15 @@ export default function AppLogicSettingsFields({
   values,
   onChange,
 }) {
-  const resolvedValues = getAppLogicSettingsFormState(values);
+  const safeValues = values && typeof values === "object" ? values : {};
+  const resolvedValues = {
+    ...safeValues,
+    ...getAppLogicSettingsFormState(values),
+  };
 
   function updateField(field, value) {
     onChange?.({
+      ...safeValues,
       ...resolvedValues,
       [field]: value,
     });

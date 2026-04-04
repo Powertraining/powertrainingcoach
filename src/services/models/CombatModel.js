@@ -36,9 +36,9 @@ import {
   normalizeForumProfile,
 } from "./forumModel.js";
 import {
-  mergeAppLogicSettings,
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
+import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -493,7 +493,7 @@ export const model = {
   },
 
   setQuestionnaire(questionnaire = {}) {
-    this.questionnaire = mergeAppLogicSettings({}, questionnaire);
+    this.questionnaire = mergeTrainingPreferences({}, questionnaire);
   },
 
   buildTrainingPlanInput(questionnaire = this.questionnaire) {
