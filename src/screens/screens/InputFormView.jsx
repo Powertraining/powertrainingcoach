@@ -33,7 +33,7 @@ export default function InputFormView({
                 <View style={styles.card}>
                     <View style={styles.header}>
                         <Text style={styles.title}>Training Preferences</Text>
-                        <Text style={styles.subtitle}>Fine-tune goal, experience, and schedule before we generate your plan.</Text>
+                        <Text style={styles.subtitle}>Fine-tune goal, experience, and session structure before we generate your plan. Preferred weekdays stay optional and only act as calendar guidance.</Text>
                     </View>
 
                     <View style={styles.form}>
@@ -82,7 +82,12 @@ export default function InputFormView({
 }
 
 const styles = StyleSheet.create({
-    center: { flexGrow: 1, justifyContent: "center", alignItems: "center" },
+    center: {
+        flexGrow: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 120,
+    },
     card: {
         width: "100%",
         maxWidth: 900,

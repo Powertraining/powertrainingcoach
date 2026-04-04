@@ -39,7 +39,11 @@ import {
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
 import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
-import { replaceTrainingPlanExercise } from "../utils/trainingPlan.js";
+import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
+import {
+  getTrainingDayPreferredWeekday,
+  replaceTrainingPlanExercise,
+} from "../utils/trainingPlan.js";
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -526,6 +530,12 @@ export const model = {
           "mixed";
 
     const weeksFromSubscription = this.getPlannedWeeksFromSubscription?.() || 0;
+    const rawPreferredWeekdays = Array.isArray(source.preferredWeekdays) ?
+      source.preferredWeekdays :
+      [];
+    const preferredWeekdays = Array.from({ length: daysPerWeek }, (_, index) =>
+      getNormalizedWeekday(rawPreferredWeekdays[index])
+    );
 
     return {
       ...source,
@@ -536,6 +546,7 @@ export const model = {
           parsedSessionsPerWeek :
           daysPerWeek,
       daysPerWeek,
+      preferredWeekdays,
       focusEmphasis,
       preferences:
         Array.isArray(source.preferences) && source.preferences.length > 0 ?
@@ -877,16 +888,16 @@ export const model = {
       return false;
     }
 
-    // Get today's day of week (0 = Sunday, 1 = Monday, etc.)
-    const todayDayOfWeek = new Date().getDay();
+    const todayWeekday = getWeekdayNameFromIndex(new Date().getDay());
 
-    // Search through all weeks and days to find exercises for today's day of week
+    if (!todayWeekday) {
+      return false;
+    }
+
     for (const week of this.trainingPlan.weeks) {
       for (const day of week.days) {
-        // Assuming day.day represents day of week (1-7 or 0-6)
-        // Adjust this logic based on your actual plan structure
-        if (day.day === todayDayOfWeek || day.dayOfWeek === todayDayOfWeek) {
-          return day.exercises && day.exercises.length > 0;
+        if (getTrainingDayPreferredWeekday(day) === todayWeekday) {
+          return Array.isArray(day.exercises) && day.exercises.length > 0;
         }
       }
     }

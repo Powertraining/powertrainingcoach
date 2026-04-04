@@ -3,6 +3,7 @@ import {
   getAppLogicSettingsFormState,
   normalizeAppLogicSettings,
 } from "./appLogicSettings.js";
+import { getNormalizedWeekday } from "./weekdays.js";
 
 export const PRIMARY_STYLE_OPTIONS = Object.freeze([
   { label: "Balanced (striking & grappling)", value: "balanced" },
@@ -27,6 +28,7 @@ export const TRAINING_PREFERENCES_DEFAULTS = Object.freeze({
   goal: "hypertrophy",
   experience: "beginner",
   daysPerWeek: 3,
+  preferredWeekdays: [],
   weightClass: "",
   primaryStyle: "balanced",
   injuriesInput: "",
@@ -60,8 +62,33 @@ function normalizeInjuries(source = {}) {
     .filter(Boolean);
 }
 
+function getRawPreferredWeekdays(source = {}) {
+  if (Array.isArray(source.preferredWeekdays)) {
+    return source.preferredWeekdays;
+  }
+
+  if (Array.isArray(source.preferredTrainingDays)) {
+    return source.preferredTrainingDays;
+  }
+
+  if (typeof source.preferredWeekdays === "string") {
+    return source.preferredWeekdays.split(",");
+  }
+
+  return TRAINING_PREFERENCES_DEFAULTS.preferredWeekdays;
+}
+
+function normalizePreferredWeekdays(source = {}, daysPerWeek) {
+  const rawPreferredWeekdays = getRawPreferredWeekdays(source);
+
+  return Array.from({ length: daysPerWeek }, (_, index) =>
+    getNormalizedWeekday(rawPreferredWeekdays[index])
+  );
+}
+
 export function getTrainingPreferencesFormState(source = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
+  const daysPerWeek = parseDaysPerWeek(safeSource.daysPerWeek);
 
   return {
     goal: isAllowedValue(safeSource.goal, GOAL_OPTIONS)
@@ -70,7 +97,8 @@ export function getTrainingPreferencesFormState(source = {}) {
     experience: isAllowedValue(safeSource.experience, EXPERIENCE_OPTIONS)
       ? safeSource.experience
       : TRAINING_PREFERENCES_DEFAULTS.experience,
-    daysPerWeek: parseDaysPerWeek(safeSource.daysPerWeek),
+    daysPerWeek,
+    preferredWeekdays: normalizePreferredWeekdays(safeSource, daysPerWeek),
     weightClass:
       typeof safeSource.weightClass === "string"
         ? safeSource.weightClass
@@ -91,6 +119,7 @@ export function getTrainingPreferencesFormState(source = {}) {
 
 export function normalizeTrainingPreferences(source = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
+  const daysPerWeek = parseDaysPerWeek(safeSource.daysPerWeek);
 
   return {
     goal: isAllowedValue(safeSource.goal, GOAL_OPTIONS)
@@ -99,7 +128,8 @@ export function normalizeTrainingPreferences(source = {}) {
     experience: isAllowedValue(safeSource.experience, EXPERIENCE_OPTIONS)
       ? safeSource.experience
       : TRAINING_PREFERENCES_DEFAULTS.experience,
-    daysPerWeek: parseDaysPerWeek(safeSource.daysPerWeek),
+    daysPerWeek,
+    preferredWeekdays: normalizePreferredWeekdays(safeSource, daysPerWeek),
     weightClass:
       typeof safeSource.weightClass === "string"
         ? safeSource.weightClass.trim()
@@ -136,6 +166,11 @@ export function areTrainingPreferencesEqual(left, right) {
     normalizedLeft.goal === normalizedRight.goal &&
     normalizedLeft.experience === normalizedRight.experience &&
     normalizedLeft.daysPerWeek === normalizedRight.daysPerWeek &&
+    normalizedLeft.preferredWeekdays.length ===
+      normalizedRight.preferredWeekdays.length &&
+    normalizedLeft.preferredWeekdays.every(
+      (value, index) => value === normalizedRight.preferredWeekdays[index]
+    ) &&
     normalizedLeft.weightClass === normalizedRight.weightClass &&
     normalizedLeft.primaryStyle === normalizedRight.primaryStyle &&
     normalizedLeft.injuries.length === normalizedRight.injuries.length &&

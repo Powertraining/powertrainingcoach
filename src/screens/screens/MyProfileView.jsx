@@ -3,6 +3,13 @@ import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from 
 import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
 
 export function MyProfileView(props) {
+  const preferredWeekdaySummary = Array.isArray(props.trainingPreferences?.preferredWeekdays)
+    ? props.trainingPreferences.preferredWeekdays
+        .map((weekday, index) => (weekday ? `Day ${index + 1} - ${weekday}` : ""))
+        .filter(Boolean)
+        .join(" • ")
+    : "";
+
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.card}>
@@ -70,8 +77,11 @@ export function MyProfileView(props) {
         <View style={styles.subscriptionCard}>
           <Text style={styles.subscriptionLabel}>Training Frequency</Text>
           <Text style={styles.subscriptionValue}>
-            {props.sessionsPerWeek ? `${props.sessionsPerWeek} days per week` : "Not selected"}
+            {props.sessionsPerWeek ? `${props.sessionsPerWeek} sessions per week` : "Not selected"}
           </Text>
+          {preferredWeekdaySummary ? (
+            <Text style={styles.preferenceText}>{preferredWeekdaySummary}</Text>
+          ) : null}
           <TouchableOpacity
             onPress={props.onEditTrainingFrequency}
             disabled={props.isSubmitting}
@@ -191,6 +201,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: "#0f172a",
+  },
+  preferenceText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#475569",
   },
   inlineActionButton: {
     marginTop: 8,

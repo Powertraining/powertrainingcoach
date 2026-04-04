@@ -1,5 +1,10 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import {
+  getTrainingDayLabel,
+  getTrainingDayPreferredWeekday,
+  getTrainingPlanSpacingAdvisories,
+} from "../../services/utils/trainingPlan.js";
 
 export default function PlanSelectionView({ planPreviews, loading, error, onSelectPlan, onBack, onRetry }) {
   if (loading) {
@@ -71,55 +76,78 @@ export default function PlanSelectionView({ planPreviews, loading, error, onSele
           </View>
 
           <View style={styles.plansContainer}>
-            {planPreviews.map((preview) => (
-              <View key={preview.id} style={styles.planCard}>
-                <View style={styles.planHeader}>
-                  <Text style={styles.planName}>{preview.name}</Text>
-                  <View style={styles.planMeta}>
-                    {preview.totalWeeks > 0 && (
-                      <Text style={styles.metaBadge}>{preview.totalWeeks} weeks</Text>
-                    )}
-                    {preview.sessionsPerWeek && (
-                      <Text style={styles.metaBadge}>{preview.sessionsPerWeek} sessions/week</Text>
-                    )}
-                    {preview.goal && (
-                      <Text style={styles.metaBadge}>{preview.goal}</Text>
+            {planPreviews.map((preview) => {
+              const previewSpacingAdvisories = preview.firstWeek
+                ? getTrainingPlanSpacingAdvisories({
+                    weeks: [{ ...preview.firstWeek, week: preview.firstWeek.week || 1 }],
+                  })
+                : [];
+
+              return (
+                <View key={preview.id} style={styles.planCard}>
+                  <View style={styles.planHeader}>
+                    <Text style={styles.planName}>{preview.name}</Text>
+                    <View style={styles.planMeta}>
+                      {preview.totalWeeks > 0 && (
+                        <Text style={styles.metaBadge}>{preview.totalWeeks} weeks</Text>
+                      )}
+                      {preview.sessionsPerWeek && (
+                        <Text style={styles.metaBadge}>{preview.sessionsPerWeek} sessions/week</Text>
+                      )}
+                      {preview.goal && (
+                        <Text style={styles.metaBadge}>{preview.goal}</Text>
+                      )}
+                    </View>
+                    {preview.description && (
+                      <Text style={styles.planDescription}>{preview.description}</Text>
                     )}
                   </View>
-                  {preview.description && (
-                    <Text style={styles.planDescription}>{preview.description}</Text>
-                  )}
-                </View>
 
-                {preview.firstWeek && (
-                  <View style={styles.weekPreview}>
-                    <Text style={styles.weekTitle}>Week 1 Preview</Text>
-                    <View style={styles.daysContainer}>
-                      {preview.firstWeek.days?.map((day, index) => (
-                        <View key={index} style={styles.dayCard}>
-                          <Text style={styles.dayHeader}>Day {day.day}</Text>
-                          {day.exercises?.slice(0, 4).map((exercise, exIdx) => (
-                            <View key={exIdx} style={styles.exerciseItem}>
-                              <Text style={styles.exerciseName}>{exercise.name}</Text>
-                              {exercise.sets && exercise.reps && (
-                                <Text style={styles.exerciseDetail}>{exercise.sets}×{exercise.reps}</Text>
-                              )}
-                            </View>
-                          ))}
-                          {day.exercises?.length > 4 && (
-                            <Text style={styles.moreExercises}>+{day.exercises.length - 4} more exercises</Text>
-                          )}
-                        </View>
+                  {preview.firstWeek && (
+                    <View style={styles.weekPreview}>
+                      <Text style={styles.weekTitle}>Week 1 Preview</Text>
+                      <View style={styles.daysContainer}>
+                        {preview.firstWeek.days?.map((day, index) => (
+                          <View key={index} style={styles.dayCard}>
+                            <Text style={styles.dayHeader}>{getTrainingDayLabel(day)}</Text>
+                            {getTrainingDayPreferredWeekday(day) ? (
+                              <Text style={styles.dayWeekday}>
+                                Preferred {getTrainingDayPreferredWeekday(day)}
+                              </Text>
+                            ) : null}
+                            {day.exercises?.slice(0, 4).map((exercise, exIdx) => (
+                              <View key={exIdx} style={styles.exerciseItem}>
+                                <Text style={styles.exerciseName}>{exercise.name}</Text>
+                                {exercise.sets && exercise.reps && (
+                                  <Text style={styles.exerciseDetail}>{exercise.sets}×{exercise.reps}</Text>
+                                )}
+                              </View>
+                            ))}
+                            {day.exercises?.length > 4 && (
+                              <Text style={styles.moreExercises}>+{day.exercises.length - 4} more exercises</Text>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                  {previewSpacingAdvisories.length > 0 ? (
+                    <View style={styles.spacingBox}>
+                      <Text style={styles.spacingTitle}>Spacing advisory</Text>
+                      {previewSpacingAdvisories.map((advisory) => (
+                        <Text key={advisory.key} style={styles.spacingText}>
+                          {advisory.message}
+                        </Text>
                       ))}
                     </View>
-                  </View>
-                )}
+                  ) : null}
 
-                <TouchableOpacity onPress={() => onSelectPlan(preview.id)} style={styles.selectButton}>
-                  <Text style={styles.selectButtonText}>Select This Plan</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+                  <TouchableOpacity onPress={() => onSelectPlan(preview.id)} style={styles.selectButton}>
+                    <Text style={styles.selectButtonText}>Select This Plan</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
           </View>
 
           <View style={styles.footerActions}>
@@ -197,6 +225,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dayHeader: { fontSize: 14, fontWeight: "700", marginBottom: 8, color: "#111" },
+  dayWeekday: { fontSize: 12, color: "#6b7280", marginBottom: 8 },
+  spacingBox: {
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#f59e0b",
+    backgroundColor: "#fffbeb",
+    gap: 6,
+  },
+  spacingTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#92400e",
+  },
+  spacingText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#78350f",
+  },
   exerciseItem: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
   exerciseName: { fontSize: 13, fontWeight: "500", color: "#4b5563" },
   exerciseDetail: { fontSize: 12, color: "#6b7280" },

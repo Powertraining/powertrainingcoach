@@ -8,6 +8,7 @@ import {
   GOAL_OPTIONS,
   PRIMARY_STYLE_OPTIONS,
 } from "../../constants/trainingPreferences.js";
+import { WEEKDAY_OPTIONS } from "../../constants/weekdays.js";
 
 export default function TrainingPreferencesFields({
   title,
@@ -24,6 +25,16 @@ export default function TrainingPreferencesFields({
       ...resolvedValues,
       [field]: value,
     });
+  }
+
+  function updatePreferredWeekday(index, value) {
+    const nextPreferredWeekdays = Array.from(
+      { length: resolvedValues.daysPerWeek },
+      (_, currentIndex) => resolvedValues.preferredWeekdays[currentIndex] || ""
+    );
+
+    nextPreferredWeekdays[index] = value;
+    updateField("preferredWeekdays", nextPreferredWeekdays);
   }
 
   return (
@@ -80,6 +91,33 @@ export default function TrainingPreferencesFields({
         values={resolvedValues}
         onChange={onChange}
       />
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Preferred weekdays</Text>
+        <Text style={styles.helperText}>
+          Optional. The plan still runs as Day 1, Day 2, Day 3, and so on. These only add calendar guidance.
+        </Text>
+        <View style={styles.preferenceGrid}>
+          {Array.from({ length: resolvedValues.daysPerWeek }, (_, index) => (
+            <View key={`preferred-weekday-${index + 1}`} style={styles.preferenceItem}>
+              <Text style={styles.preferenceLabel}>Day {index + 1}</Text>
+              <Picker
+                selectedValue={resolvedValues.preferredWeekdays[index] || ""}
+                onValueChange={(value) => updatePreferredWeekday(index, value)}
+                style={styles.input}
+              >
+                {WEEKDAY_OPTIONS.map((option) => (
+                  <Picker.Item
+                    key={`${option.value || "none"}-${index + 1}`}
+                    label={option.label}
+                    value={option.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+          ))}
+        </View>
+      </View>
 
       <View style={styles.field}>
         <Text style={styles.label}>Goal</Text>
@@ -143,6 +181,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#111827",
   },
+  helperText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#6b7280",
+  },
   input: {
     height: 46,
     borderRadius: 10,
@@ -159,5 +202,16 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     backgroundColor: "#f9fafb",
+  },
+  preferenceGrid: {
+    gap: 10,
+  },
+  preferenceItem: {
+    gap: 6,
+  },
+  preferenceLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
   },
 });

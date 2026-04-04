@@ -20,13 +20,17 @@ Apply explosive training methods with adequate recovery between high-intensity e
 const local_substitutes = `# Substitutes
 For somewhat complex, inconvenient, or hard-to-access exercises, always provide pragmatic substitutes that stay in the same movement category and training emphasis. Do not swap to unrelated patterns. For example: High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat. Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips. Power Clean -> Power Snatch.`;
 
+const local_session_spacing = `# Session Spacing
+Once the athlete has spread out their training sessions, estimate session similarity and avoid placing highly overlapping sessions too close together when practical. Similarity should be based on shared region, shared training quality, and shared stress level rather than exercise names alone. Sessions with high overlap in force, power, or fatigue demands, especially for the same region, should generally be separated by about 48 hours when possible. This spacing rule is advisory, not absolute, because real-world schedules vary.`;
+
 const instructionPriority = [
     "general_rules",
     "reps_intensity",
     "compound_lifts",
     "plyometrics_loading_jumps",
     "ballistic_training",
-    "substitutes"
+    "substitutes",
+    "session_spacing"
 ];
 
 /**
@@ -43,7 +47,8 @@ export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions 
         compound_lifts: local_compound,
         plyometrics_loading_jumps: local_plyo,
         ballistic_training: local_ballistic,
-        substitutes: local_substitutes
+        substitutes: local_substitutes,
+        session_spacing: local_session_spacing
     };
 
     const liveInstructionEntries = Object.entries(liveInstructions || {}).filter(
@@ -96,7 +101,30 @@ ${instructionImages.map((image) => `- ${image.name}`).join("\n")}
   - High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat
   - Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips
   - Power Clean -> Power Snatch
-- Every substitution option must be a full exercise object with "name", "sets", "reps", "notes", and "videoUrl".
+- Every substitution option must be a full exercise object with "name", "sets", "reps", and "notes".
+`;
+
+    const sessionStructureInstructions = `
+### SESSION STRUCTURE RULES:
+- Organize every week by sequential session labels: Day 1, Day 2, Day 3, Day 4, and so on.
+- The program logic MUST stay session-based, not calendar-based.
+- Use the numeric "day" field only for session order inside the week.
+- Never use weekday names such as Monday, Wednesday, or Friday as the primary identifier for a training day.
+- Set "sessionLabel" to match the session order exactly, for example "Day 1".
+- If the user provides preferred weekdays, include them only as secondary guidance in "preferredWeekday".
+- If the user does not provide preferred weekdays, set "preferredWeekday" to an empty string.
+`;
+
+    const sessionProfileInstructions = `
+### SESSION PROFILE RULES:
+- Every training day MUST include a "sessionProfile" object so the app can evaluate session spacing.
+- "sessionProfile" must summarize the session's likely demands using:
+  - "regions": array of one or more from "upper_body", "lower_body", "full_body", "core"
+  - "qualities": array of one or more from "force", "power", "fatigue", "speed", "hypertrophy", "recovery"
+  - "stressLevel": one of "low", "moderate", "high"
+- When preferred weekdays are provided, use this profile to avoid placing highly overlapping sessions too close together when practical.
+- If two sessions strongly overlap in region plus force/power/fatigue demands, try to leave about 48 hours between them when possible.
+- This spacing rule is advisory, not absolute.
 `;
 
     // Combine everything into the final prompt
@@ -109,6 +137,8 @@ Given two equivalent exercises, prioritize the exercise that is easier to perfor
 ${guidelines}
 ${imageInstructions}
 ${substitutionSchemaInstructions}
+${sessionStructureInstructions}
+${sessionProfileInstructions}
 
 ---
 
@@ -121,8 +151,9 @@ ${JSON.stringify(userInput, null, 2)}
 - Respond ONLY in valid JSON.
 - Follow the structure below EXACTLY.
 - Do not include commentary or explanation.
-- Every exercise MUST include a valid "videoUrl".
 - Every exercise MUST include a "substitutionOptions" array.
+- The number of sessions inside each week's "days" array should match the athlete's requested weekly training frequency.
+- Every training day MUST include a "sessionProfile" object.
 
 {
   "weeks": [
@@ -131,6 +162,13 @@ ${JSON.stringify(userInput, null, 2)}
       "days": [
         {
           "day": 1,
+          "sessionLabel": "Day 1",
+          "preferredWeekday": "Monday",
+          "sessionProfile": {
+            "regions": ["lower_body"],
+            "qualities": ["force", "power"],
+            "stressLevel": "high"
+          },
           "exercises": [
             {
               "name": "Exercise Name",
@@ -142,7 +180,7 @@ ${JSON.stringify(userInput, null, 2)}
                   "name": "Comparable Alternative",
                   "sets": "3–5",
                   "reps": "8–12",
-                  "notes": "Short instruction or coaching cue",
+                  "notes": "Short instruction or coaching cue"
                 }
               ]
             }

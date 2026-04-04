@@ -1,5 +1,10 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import {
+  getTrainingDayLabel,
+  getTrainingDayPreferredWeekday,
+  getTrainingPlanSpacingAdvisories,
+} from "../../services/utils/trainingPlan.js";
 
 export default function ProgramOverviewView({ plan, onSelectDay, onBack, currentDay, completedDays }) {
   if (!plan) {
@@ -14,6 +19,8 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
       </QuestionnaireShell>
     );
   }
+
+  const spacingAdvisories = getTrainingPlanSpacingAdvisories(plan);
 
   return (
     <QuestionnaireShell>
@@ -32,46 +39,69 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
           </View>
 
           <View style={styles.weeks}>
-            {plan.weeks?.map((week) => (
-              <View key={week.week} style={styles.weekBlock}>
-                <Text style={styles.weekHeader}>Week {week.week}</Text>
-                <View style={styles.daysGrid}>
-                  {week.days?.map((day) => {
-                    const key = `${week.week}-${day.day}`;
-                    const isCurrent =
-                      currentDay &&
-                      currentDay.week === week.week &&
-                      currentDay.day === day.day;
-                    const isDone = completedDays?.has(key);
+            {plan.weeks?.map((week) => {
+              const weekSpacingAdvisories = spacingAdvisories.filter(
+                (advisory) => advisory.week === week.week
+              );
 
-                    return (
-                      <TouchableOpacity
-                        key={day.day}
-                        onPress={() => onSelectDay(week.week, day.day)}
-                        style={[
-                          styles.dayButton,
-                          isCurrent && styles.dayButtonCurrent,
-                          isDone && styles.dayButtonDone,
-                        ]}
-                      >
-                        <Text
+              return (
+                <View key={week.week} style={styles.weekBlock}>
+                  <Text style={styles.weekHeader}>Week {week.week}</Text>
+                  <View style={styles.daysGrid}>
+                    {week.days?.map((day) => {
+                      const key = `${week.week}-${day.day}`;
+                      const isCurrent =
+                        currentDay &&
+                        currentDay.week === week.week &&
+                        currentDay.day === day.day;
+                      const isDone = completedDays?.has(key);
+                      const dayLabel = getTrainingDayLabel(day);
+                      const preferredWeekday = getTrainingDayPreferredWeekday(day);
+
+                      return (
+                        <TouchableOpacity
+                          key={day.day}
+                          onPress={() => onSelectDay(week.week, day.day)}
                           style={[
-                            styles.dayButtonText,
-                            isDone && styles.dayButtonDoneText,
+                            styles.dayButton,
+                            isCurrent && styles.dayButtonCurrent,
+                            isDone && styles.dayButtonDone,
                           ]}
                         >
-                          Day {day.day}
+                          <Text
+                            style={[
+                              styles.dayButtonText,
+                              isDone && styles.dayButtonDoneText,
+                            ]}
+                          >
+                            {dayLabel}
+                          </Text>
+                          {preferredWeekday ? (
+                            <Text style={styles.dayPreferenceText}>
+                              Preferred {preferredWeekday}
+                            </Text>
+                          ) : null}
+                          {isDone && <Text style={styles.doneTag}>Finished</Text>}
+                          {!isDone && isCurrent && (
+                            <Text style={styles.currentTag}>Current</Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  {weekSpacingAdvisories.length > 0 ? (
+                    <View style={styles.spacingBox}>
+                      <Text style={styles.spacingTitle}>Spacing advisory</Text>
+                      {weekSpacingAdvisories.map((advisory) => (
+                        <Text key={advisory.key} style={styles.spacingText}>
+                          {advisory.message}
                         </Text>
-                        {isDone && <Text style={styles.doneTag}>Finished</Text>}
-                        {!isDone && isCurrent && (
-                          <Text style={styles.currentTag}>Current</Text>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
+                      ))}
+                    </View>
+                  ) : null}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
       </ScrollView>
@@ -173,6 +203,30 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 15,
     fontWeight: "500",
+  },
+  dayPreferenceText: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 11,
+    marginTop: 4,
+  },
+  spacingBox: {
+    marginTop: 2,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#f59e0b",
+    backgroundColor: "#fffbeb",
+    gap: 6,
+  },
+  spacingTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#92400e",
+  },
+  spacingText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#78350f",
   },
   dayButtonDoneText: {
     color: "#e5e7eb",

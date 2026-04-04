@@ -8,7 +8,7 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
             <View style={styles.container}>
-                <TitleText>How many days a week do you exercise?</TitleText>
+                <TitleText>How many strength sessions per week do you want?</TitleText>
 
                 <View>
                     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -27,7 +27,7 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                         style = {styles.slider}
                     />
 
-                    <StandardText>Selected: {value}</StandardText>
+                    <StandardText>Selected: {value} sessions per week</StandardText>
                 </View>
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
