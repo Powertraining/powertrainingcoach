@@ -17,6 +17,16 @@ const runtimeEnv = typeof process !== "undefined" ? process.env ?? {} : {};
 const getEnv = (expoPublicValue, runtimeKey, fallback) =>
   expoPublicValue || runtimeEnv[runtimeKey] || fallback;
 
+function normalizeFirestoreDatabaseId(value) {
+  const normalizedValue = String(value ?? "").trim();
+
+  if (!normalizedValue || normalizedValue === "default") {
+    return "(default)";
+  }
+
+  return normalizedValue;
+}
+
 // Firebase JS SDK uses this config on Android, iOS, and web.
 // These values must come from the Firebase Web app config because this project
 // uses the Firebase JavaScript SDK, not the native RN Firebase SDK.
@@ -58,11 +68,11 @@ const firebaseConfig = {
   ),
 };
 
-const firestoreDatabaseId = getEnv(
+const firestoreDatabaseId = normalizeFirestoreDatabaseId(getEnv(
   process.env.EXPO_PUBLIC_FIRESTORE_DATABASE_ID,
   "FIRESTORE_DATABASE_ID",
-  "default"
-);
+  "(default)"
+));
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const reactNativeAuthPersistence = getReactNativePersistence(AsyncStorage);
@@ -95,9 +105,15 @@ authPersistenceReadyPromise = setPersistence(
   });
 
 try {
-  dbInstance = initializeFirestore(app, {}, firestoreDatabaseId);
+  dbInstance =
+    firestoreDatabaseId === "(default)" ?
+      initializeFirestore(app, {}) :
+      initializeFirestore(app, {}, firestoreDatabaseId);
 } catch (error) {
-  dbInstance = getFirestore(app, firestoreDatabaseId);
+  dbInstance =
+    firestoreDatabaseId === "(default)" ?
+      getFirestore(app) :
+      getFirestore(app, firestoreDatabaseId);
 }
 
 export const auth = authInstance;

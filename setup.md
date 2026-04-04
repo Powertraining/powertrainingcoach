@@ -35,6 +35,7 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
    - Create a Firestore database
    - Add `google-services.json` for Android and `GoogleService-Info.plist` for iOS
   - Configure Firebase JS SDK values with `EXPO_PUBLIC_FIREBASE_*` environment variables if you need to override the defaults in `src/services/config/firebase.js`
+  - If you set `EXPO_PUBLIC_FIRESTORE_DATABASE_ID`, leave it unset for the default Firestore database or set it to `"(default)"`, not `"default"`
   - Configure Stripe client-safe values with Expo environment variables if needed
   - Stripe function endpoints default to `https://us-central1-${EXPO_PUBLIC_FIREBASE_PROJECT_ID}.cloudfunctions.net`
     and can be overridden with `EXPO_PUBLIC_STRIPE_FUNCTIONS_BASE_URL` if you use a different project or region

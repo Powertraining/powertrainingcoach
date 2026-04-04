@@ -47,7 +47,7 @@ function getFirebaseProjectId() {
 }
 
 function getFirestoreDatabaseId() {
-  return FIRESTORE_DATABASE_ID || "default";
+  return FIRESTORE_DATABASE_ID || "(default)";
 }
 
 function shouldUseFirestoreRestFallback() {

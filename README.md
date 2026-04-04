@@ -20,6 +20,8 @@ npm --prefix functions install
 
 If you already have the shared `.env.local`, no extra Firebase setup is needed to start developing. The repo already includes `google-services.json`, `GoogleService-Info.plist`, and default Firebase JS config values in `src/services/config/firebase.js`.
 
+If you override `EXPO_PUBLIC_FIRESTORE_DATABASE_ID`, use `"(default)"` for the default Firestore database or leave it unset.
+
 ## Run the app
 
 Start the Expo dev server:
