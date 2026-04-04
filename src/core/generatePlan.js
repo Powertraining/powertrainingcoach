@@ -4,6 +4,7 @@ import { db } from "../services/config/firebase.js";
 import { getFunctions, httpsCallable } from "../services/config/firebaseSdk.js";
 import { buildTrainingPrompt } from "../services/utils/promptBuilder.js";
 import { getLiveInstructions } from "../services/models/dbService.js";
+import { normalizeTrainingPlan } from "../services/utils/trainingPlan.js";
 
 export async function generatePlan(userInput, oldPlan = null) {
     let liveInstructions = null;
@@ -57,6 +58,6 @@ export async function generatePlan(userInput, oldPlan = null) {
             throw new Error("No training plan returned from the server.");
         }
 
-        return result.data.plan;
+        return normalizeTrainingPlan(result.data.plan);
     });
 }

@@ -69,6 +69,19 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     router.back();
   }
 
+  function handleReplaceExercise(exerciseIndex, substitutionId) {
+    if (!selectedDay || !substitutionId) {
+      return;
+    }
+
+    model.replaceTrainingPlanExercise?.(
+      selectedDay.week,
+      selectedDay.day,
+      exerciseIndex,
+      substitutionId
+    );
+  }
+
   function handleFinish() {
     if (!selectedDay) return;
 
@@ -119,6 +132,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
         day={selectedDay.day}
         exercises={selectedDay.exercises}
         onBack={handleBack}
+        onReplaceExercise={handleReplaceExercise}
         onFinish={handleFinish}
       />
     </View>

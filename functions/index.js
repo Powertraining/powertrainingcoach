@@ -3181,6 +3181,19 @@ Follow these domain rules:
   **per week. No more, no less.**
 - **CRITICAL: Every exercise MUST have a videoUrl pointing to a**
   **real YouTube tutorial video for that exact exercise.**
+- Apply the substitutes.md logic, but encode substitute ideas directly in each
+  exercise's "substitutionOptions" array so the app can render them as
+  selectable replacements.
+- Every exercise MUST include "substitutionOptions". Use an empty array when
+  no pragmatic alternatives are needed.
+- For exercises that are somewhat complex, inconvenient, or commonly
+  inaccessible, include 2-5 pragmatic substitute options.
+- Keep every substitute in the same movement category and training emphasis.
+  Never swap to an unrelated pattern.
+- Good examples:
+  - High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat
+  - Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips
+  - Power Clean -> Power Snatch
 
 Adapt the plan to:
 - primary combat sport and style focus (striking/grappling/balanced)
@@ -3209,6 +3222,9 @@ ${JSON.stringify(userInput, null, 2)}
   **in the days array.**
 - **IMPORTANT: Every exercise MUST include a videoUrl with a real**
   **YouTube URL for an instructional video of that exercise.**
+- **IMPORTANT: Every exercise MUST include a substitutionOptions array.**
+- **IMPORTANT: Each substitution option must be a full exercise object with**
+  **name, sets, reps, notes, and videoUrl.**
 
 {
   "summary": "Brief description of this training phase (batch ${batch})",
@@ -3224,7 +3240,16 @@ ${JSON.stringify(userInput, null, 2)}
               "sets": "3–5",
               "reps": "8–12",
               "notes": "Short instruction or coaching cue",
-              "videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID"
+              "videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID",
+              "substitutionOptions": [
+                {
+                  "name": "Comparable Alternative",
+                  "sets": "3–5",
+                  "reps": "8–12",
+                  "notes": "Short instruction or coaching cue",
+                  "videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID"
+                }
+              ]
             }
           ]
         }
@@ -3240,6 +3265,7 @@ Now generate the training plan JSON with ${numWeeks} weeks total.
 **training days (${userInput.daysPerWeek} days objects in the "days" array).**
 **CRITICAL: Every exercise MUST have a valid videoUrl field with a real**
 **YouTube URL (https://www.youtube.com/watch?v=...) for that exercise.**
+**CRITICAL: Every exercise MUST include a substitutionOptions array.**
 Start week numbering at ${startingWeek}.
 Follow periodization principles for ${numWeeks} weeks of training.
 `;

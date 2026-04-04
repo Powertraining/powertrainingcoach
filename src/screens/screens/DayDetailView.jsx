@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { WebView } from "react-native-webview";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import {
+    getExerciseSubstitutionOptions,
+    normalizeExercise,
+} from "../../services/utils/trainingPlan.js";
 
 function toYouTubeEmbed(url) {
     try {
@@ -22,12 +27,27 @@ function toYouTubeEmbed(url) {
     }
 }
 
-export default function DayDetailView({ week, day, exercises = [], onBack, onFinish }) {
+export default function DayDetailView({
+    week,
+    day,
+    exercises = [],
+    onBack,
+    onReplaceExercise,
+    onFinish,
+}) {
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
+    const normalizedExercises = Array.isArray(exercises)
+        ? exercises.map((exercise) => normalizeExercise(exercise))
+        : [];
+    const activeExerciseIndex = Math.min(
+        selectedExerciseIndex,
+        Math.max(normalizedExercises.length - 1, 0)
+    );
 
-    if (!exercises || exercises.length === 0) return null;
+    if (normalizedExercises.length === 0) return null;
 
-    const selectedExercise = exercises[selectedExerciseIndex];
+    const selectedExercise = normalizedExercises[activeExerciseIndex];
+    const substitutionOptions = getExerciseSubstitutionOptions(selectedExercise);
     const embedUrl = selectedExercise?.videoUrl ? toYouTubeEmbed(selectedExercise.videoUrl) : null;
     const summaryText = selectedExercise
         ? `${selectedExercise.name} – ${selectedExercise.sets} x ${selectedExercise.reps}`
@@ -79,15 +99,45 @@ export default function DayDetailView({ week, day, exercises = [], onBack, onFin
                                 <Text style={styles.notesText}>{selectedExercise.notes}</Text>
                             </View>
                         )}
+
+                        {substitutionOptions.length > 1 && onReplaceExercise ? (
+                            <View style={styles.substitutionBox}>
+                                <Text style={styles.substitutionLabel}>Exercise options</Text>
+                                <View style={styles.substitutionPickerShell}>
+                                    <Picker
+                                        selectedValue={selectedExercise.selectedSubstitutionId}
+                                        onValueChange={(value) => {
+                                            if (!value) {
+                                                return;
+                                            }
+
+                                            onReplaceExercise(activeExerciseIndex, value);
+                                        }}
+                                        style={styles.substitutionPicker}
+                                    >
+                                        {substitutionOptions.map((option) => (
+                                            <Picker.Item
+                                                key={option.id}
+                                                label={option.name}
+                                                value={option.id}
+                                            />
+                                        ))}
+                                    </Picker>
+                                </View>
+                                <Text style={styles.substitutionHelper}>
+                                    Choose a comparable variation from the same category.
+                                </Text>
+                            </View>
+                        ) : null}
                     </View>
 
                     <View style={styles.exerciseTabs}>
-                        <Text style={styles.tabsLabel}>All exercises ({exercises.length}):</Text>
+                        <Text style={styles.tabsLabel}>All exercises ({normalizedExercises.length}):</Text>
                         <View style={styles.tabsContainer}>
-                            {exercises.map((ex, i) => (
+                            {normalizedExercises.map((ex, i) => (
                                 <TouchableOpacity
                                     key={i}
-                                    style={[styles.tabButton, i === selectedExerciseIndex ? styles.tabButtonActive : styles.tabButtonInactive]}
+                                    style={[styles.tabButton, i === activeExerciseIndex ? styles.tabButtonActive : styles.tabButtonInactive]}
                                     onPress={() => setSelectedExerciseIndex(i)}
                                 >
                                     <View style={styles.tabButtonContent}>
@@ -106,11 +156,11 @@ export default function DayDetailView({ week, day, exercises = [], onBack, onFin
 
                     <View style={styles.listBlock}>
                         <Text style={styles.listLabel}>Complete workout breakdown:</Text>
-                        {exercises.map((ex, i) => (
+                        {normalizedExercises.map((ex, i) => (
                             <View key={i} style={styles.exerciseRow}>
                                 <View>
                                     <Text style={styles.exerciseName}>{ex.name}</Text>
-                                    <Text style={styles.exerciseNotes}>{ex.notes}</Text>
+                                    {ex.notes ? <Text style={styles.exerciseNotes}>{ex.notes}</Text> : null}
                                 </View>
                                 <Text style={styles.exerciseSets}>{ex.sets} x {ex.reps}</Text>
                             </View>
@@ -197,6 +247,30 @@ const styles = StyleSheet.create({
     },
     notesLabel: { fontSize: 14, fontWeight: '600', opacity: 0.9 },
     notesText: { fontSize: 14, lineHeight: 21, opacity: 0.85 },
+    substitutionBox: {
+        gap: 6,
+        padding: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.08)',
+        backgroundColor: '#f9fafb',
+    },
+    substitutionLabel: { fontSize: 14, fontWeight: '600', color: '#111827' },
+    substitutionPickerShell: {
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(17,24,39,0.14)',
+        backgroundColor: 'white',
+        overflow: 'hidden',
+    },
+    substitutionPicker: {
+        height: 46,
+    },
+    substitutionHelper: {
+        fontSize: 13,
+        lineHeight: 19,
+        color: '#4b5563',
+    },
     exerciseTabs: {
         gap: 10,
         paddingTop: 8,

@@ -39,6 +39,7 @@ import {
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
 import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
+import { replaceTrainingPlanExercise } from "../utils/trainingPlan.js";
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -577,6 +578,20 @@ export const model = {
 
     resolvePromise(prms, this.trainingPlanPromiseState);
     return prms;
+  },
+
+  replaceTrainingPlanExercise(weekNumber, dayNumber, exerciseIndex, substitutionId) {
+    if (!this.trainingPlan) {
+      return;
+    }
+
+    this.trainingPlan = replaceTrainingPlanExercise(
+      this.trainingPlan,
+      weekNumber,
+      dayNumber,
+      exerciseIndex,
+      substitutionId
+    );
   },
 
   isSubscribed() {

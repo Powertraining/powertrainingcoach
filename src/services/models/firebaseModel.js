@@ -9,6 +9,7 @@ import {
   createDefaultForumFilters,
   normalizeForumProfile,
 } from "./forumModel";
+import { normalizeTrainingPlan } from "../utils/trainingPlan.js";
 
 // To subscribe to the login/logout event
 import { subscribeToAuthChanges } from "./authService";
@@ -35,7 +36,9 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     }
     model.primaryCombatSport = persistedData.primaryCombatSport ?? "";
     model.sessionsPerWeek = persistedData.sessionsPerWeek ?? 3;
-    model.trainingPlan = persistedData.trainingPlan ?? null;
+    model.trainingPlan = persistedData.trainingPlan ?
+      normalizeTrainingPlan(persistedData.trainingPlan) :
+      null;
     model.completedDays = persistedData.completedDays ?? [];
     model.trainingPlanBatch = persistedData.trainingPlanBatch ?? 1;
     model.completedWeeks = persistedData.completedWeeks ?? 0;

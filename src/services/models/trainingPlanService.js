@@ -3,6 +3,7 @@
  */
 import { storage } from "../config/firebase.js";
 import { getDownloadURL, listAll, ref } from "../config/firebaseSdk.js";
+import { normalizeTrainingPlan } from "../utils/trainingPlan.js";
 
 /**
  * Fetches all base training plans from Firebase Storage
@@ -17,7 +18,7 @@ export async function fetchBaseTrainingPlans() {
       result.items.map(async (itemRef) => {
         const url = await getDownloadURL(itemRef);
         const response = await fetch(url);
-        const plan = await response.json();
+        const plan = normalizeTrainingPlan(await response.json());
         return {
           ...plan,
           id: itemRef.name.replace(".json", ""),

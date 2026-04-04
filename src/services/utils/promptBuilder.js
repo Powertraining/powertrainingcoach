@@ -17,12 +17,16 @@ Progress from lower intensity to higher intensity movements following proper per
 const local_ballistic = `# Ballistic Training
 Apply explosive training methods with adequate recovery between high-intensity efforts.`;
 
+const local_substitutes = `# Substitutes
+For somewhat complex, inconvenient, or hard-to-access exercises, always provide pragmatic substitutes that stay in the same movement category and training emphasis. Do not swap to unrelated patterns. For example: High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat. Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips. Power Clean -> Power Snatch.`;
+
 const instructionPriority = [
     "general_rules",
     "reps_intensity",
     "compound_lifts",
     "plyometrics_loading_jumps",
-    "ballistic_training"
+    "ballistic_training",
+    "substitutes"
 ];
 
 /**
@@ -38,7 +42,8 @@ export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions 
         reps_intensity: local_reps,
         compound_lifts: local_compound,
         plyometrics_loading_jumps: local_plyo,
-        ballistic_training: local_ballistic
+        ballistic_training: local_ballistic,
+        substitutes: local_substitutes
     };
 
     const liveInstructionEntries = Object.entries(liveInstructions || {}).filter(
@@ -81,6 +86,19 @@ ${instructionImages.map((image) => `- ${image.name}`).join("\n")}
 `
         : "";
 
+    const substitutionSchemaInstructions = `
+### EXERCISE SUBSTITUTION RULES:
+- Apply the substitutes.md logic, but encode substitute ideas directly in each exercise's "substitutionOptions" array so the app can render them as selectable replacements.
+- Every exercise MUST include "substitutionOptions". Use an empty array when no pragmatic alternatives are needed.
+- For exercises that are somewhat complex, inconvenient, or commonly inaccessible, include 2-5 pragmatic substitute options.
+- Keep every substitute in the same movement category and training emphasis. Never swap to an unrelated pattern.
+- Good examples:
+  - High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat
+  - Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips
+  - Power Clean -> Power Snatch
+- Every substitution option must be a full exercise object with "name", "sets", "reps", "notes", and "videoUrl".
+`;
+
     // Combine everything into the final prompt
     const prompt = `
 You are **PowerTrainingCoach**, an expert AI specializing in creating safe, effective, and personalized strength & conditioning training programs for combat athletes.
@@ -90,6 +108,7 @@ Given two equivalent exercises, prioritize the exercise that is easier to perfor
 
 ${guidelines}
 ${imageInstructions}
+${substitutionSchemaInstructions}
 
 ---
 
@@ -102,6 +121,8 @@ ${JSON.stringify(userInput, null, 2)}
 - Respond ONLY in valid JSON.
 - Follow the structure below EXACTLY.
 - Do not include commentary or explanation.
+- Every exercise MUST include a valid "videoUrl".
+- Every exercise MUST include a "substitutionOptions" array.
 
 {
   "weeks": [
@@ -115,7 +136,15 @@ ${JSON.stringify(userInput, null, 2)}
               "name": "Exercise Name",
               "sets": "3–5",
               "reps": "8–12",
-              "notes": "Short instruction or coaching cue"
+              "notes": "Short instruction or coaching cue",
+              "substitutionOptions": [
+                {
+                  "name": "Comparable Alternative",
+                  "sets": "3–5",
+                  "reps": "8–12",
+                  "notes": "Short instruction or coaching cue",
+                }
+              ]
             }
           ]
         }
