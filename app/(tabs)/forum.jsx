@@ -13,6 +13,7 @@ import ForumView from "../../src/screens/screens/forum/ForumView.jsx";
 const ForumScreen = observer(function ForumScreen() {
   const model = reactiveModel;
   const router = useRouter();
+  const [selectedPostId, setSelectedPostId] = useState(null);
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,11 @@ const ForumScreen = observer(function ForumScreen() {
     model.forumFeed.length === 0 &&
     !feedError &&
     !model.forumFeedPromiseState?.data;
+
+  const coachComments =
+    selectedPostId === model.forumSelectedPost?.id ?
+      model.forumComments.filter((comment) => comment?.isCoachVerified) :
+      [];
 
   async function handleRetry() {
     try {
@@ -60,6 +66,10 @@ const ForumScreen = observer(function ForumScreen() {
   function showCoachResponseView(postId) {
     setSelectedPostId(postId);
     setIsCoachResponseVisible(true);
+
+    model.loadForumPostThread(postId).catch((error) => {
+      console.warn(`Could not load the forum thread for ${postId}:`, error);
+    });
   }
 
   function hideCoachResponseView() {
@@ -106,7 +116,7 @@ const ForumScreen = observer(function ForumScreen() {
       {isCoachResponseVisible ? (
         <CoachResponseView
           onClose={hideCoachResponseView}
-          comments={getCoachCommentsByPostId(selectedPostId)}
+          comments={coachComments}
         />
       ) : null}
     </View>

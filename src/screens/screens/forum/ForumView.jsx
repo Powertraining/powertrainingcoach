@@ -7,7 +7,6 @@ export default function ForumView({
   posts = [],
   onTogglePostLike,
   onTogglePostSave,
-  onToggleCoachResponse,
 }) {
   return (
     <QuestionnaireShell>
@@ -27,26 +26,14 @@ export default function ForumView({
             </View>
           </View>
            
-          {posts.length === 0 ? (
-            <View style={styles.emptyState}>
-              <StandardText textColor="#fff" fontSize={20}>
-                No forum posts yet.
-              </StandardText>
-              <StandardText textColor="rgba(255, 255, 255, 0.72)" fontSize={16}>
-                Once posts are stored in Firestore, they will appear here.
-              </StandardText>
-            </View>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onTogglePostLike={onTogglePostLike}
-                onTogglePostSave={onTogglePostSave}
-                onToggleCoachResponse={onToggleCoachResponse}
-              />
-            ))
-          )}
+          {posts.map((_, index) => (
+            <PostCard
+              key={posts[index].id}
+              post={posts[index]}
+              onTogglePostLike={onTogglePostLike}
+              onTogglePostSave={onTogglePostSave}
+            />
+          ))}
         </ScrollView>
         <TouchableOpacity style={styles.postButton}>
           <Image
@@ -71,16 +58,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 8,
     paddingBottom: 120,
-  },
-  emptyState: {
-    marginHorizontal: 24,
-    marginTop: 12,
-    gap: 8,
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.16)",
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
   },
 
   // Search
