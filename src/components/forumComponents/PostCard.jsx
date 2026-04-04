@@ -3,7 +3,12 @@ import StandardText from "../textComponents/StandardText.jsx";
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
 
 
-export default function PostCard({ post, onTogglePostLike, onTogglePostSave }) {
+export default function PostCard({
+  post,
+  onTogglePostLike,
+  onTogglePostSave,
+  onToggleCoachResponse,
+}) {
   const isPostLiked = Boolean(post?.isLiked);
   const isPostSaved = Boolean(post?.isSaved);
 
@@ -60,7 +65,7 @@ export default function PostCard({ post, onTogglePostLike, onTogglePostSave }) {
               <StandardText fontSize={18}>{post?.commentsCount}</StandardText>
             </TouchableOpacity>
             {post?.coachResponseStatus === "responded" ? (
-              <TouchableOpacity>
+              <TouchableOpacity onPress={onToggleCoachResponse}>
                 <GoldGradient style={styles.coachResponseStatus}>
                   <StandardText style={styles.coachResponseText} textColor="#111111">
                     Coach Response

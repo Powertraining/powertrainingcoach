@@ -7,6 +7,7 @@ export default function ForumView({
   posts = [],
   onTogglePostLike,
   onTogglePostSave,
+  onToggleCoachResponse,
 }) {
   return (
     <QuestionnaireShell>
@@ -32,6 +33,7 @@ export default function ForumView({
               post={posts[index]}
               onTogglePostLike={onTogglePostLike}
               onTogglePostSave={onTogglePostSave}
+              onToggleCoachResponse={onToggleCoachResponse}
             />
           ))}
         </ScrollView>
