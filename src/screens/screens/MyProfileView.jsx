@@ -1,12 +1,13 @@
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import StandardText from "../../components/textComponents/StandardText";
 
 export function MyProfileView(props) {
   return (
     <View>
-      <Text>My Profile</Text>
+      <StandardText fontSize={24}>My Profile</StandardText>
 
       <View>
-        <Text>Username:</Text>
+        <StandardText>Username:</StandardText>
         <TextInput
           value={props.username}
           placeholder={props.usernamePlaceholder}
@@ -16,7 +17,7 @@ export function MyProfileView(props) {
       </View>
 
       <View>
-        <Text>E-mail:</Text>
+        <StandardText>E-mail:</StandardText>
         <TextInput
           value={props.email}
           placeholder={props.emailPlaceholder}
@@ -28,7 +29,7 @@ export function MyProfileView(props) {
 
       {!props.hidePassword && (
         <View>
-          <Text>Password:</Text>
+          <StandardText>Password:</StandardText>
           <TextInput
             value={props.password}
             onChangeText={props.onPasswordChange}
@@ -45,15 +46,15 @@ export function MyProfileView(props) {
         onPress={props.onSave}
         disabled={props.isSubmitting || !props.canSave}
       >
-        <Text>{props.isSubmitting ? "Saving..." : "Save changes"}</Text>
+        <StandardText>{props.isSubmitting ? "Saving..." : "Save changes"}</StandardText>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={props.onCancel} disabled={props.isSubmitting}>
-        <Text>Cancel</Text>
+        <StandardText>Cancel</StandardText>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={props.onLogout} disabled={props.isSubmitting}>
-        <Text>Logout</Text>
+        <StandardText>Logout</StandardText>
       </TouchableOpacity>
     </View>
   );
