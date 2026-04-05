@@ -1,6 +1,7 @@
 import { StyleSheet, View, Image, TouchableOpacity, Text } from "react-native";
 import StandardText from "../textComponents/StandardText.jsx";
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
+import VerifiedBadge from "./VerifiedBadge.jsx";
 
 
 export default function PostCard({
@@ -19,13 +20,7 @@ export default function PostCard({
           <View style={styles.postHeader}>
             <TouchableOpacity style={styles.authorButton}>
               {post?.isCoachVerified ? (
-                <View style={styles.verifiedBadge}>
-                  <GoldGradient />
-                  <Image
-                    source={require("../../assets/icons/check.png")}
-                    style={styles.verifiedIcon}
-                  />
-                </View>
+                <VerifiedBadge />
               ) : null}
               <StandardText style={styles.postAuthor}>{post?.authorDisplayName}</StandardText>
             </TouchableOpacity>
@@ -106,19 +101,6 @@ const styles = StyleSheet.create({
   postAuthor: {
     color: "#ffffff",
     fontSize: 18,
-  },
-  verifiedBadge: {
-    width: 16,
-    height: 16,
-    borderRadius: 120,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  verifiedIcon: {
-    width: 9,
-    height: 9,
-    tintColor: "#000",
   },
   dot: {
     width: 6,

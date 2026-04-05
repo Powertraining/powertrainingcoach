@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   box: {
     width: "85%",
     alignItems: "center",
-    backgroundColor: "#1f1f1f",
+    backgroundColor: "#121212",
     borderRadius: 45,
     padding: 40,
   },
