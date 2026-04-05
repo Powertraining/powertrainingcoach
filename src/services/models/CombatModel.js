@@ -44,6 +44,120 @@ import {
   getTrainingDayPreferredWeekday,
   replaceTrainingPlanExercise,
 } from "../utils/trainingPlan.js";
+
+const DEFAULT_FAKE_FORUM_COACH_COMMENTS = [
+  "Keep the volume honest. If bar speed drops hard after the second work set, cut one set and keep the quality high.",
+  "Your week should support your sport practice, not compete with it. Put the hardest lower-body lift furthest away from the toughest sparring day.",
+  "If you want better carryover, treat the main lift like skill work. Tight setup, aggressive intent, and stop grinding ugly reps.",
+];
+
+const DEFAULT_FAKE_FORUM_USER_COMMENTS = [
+  "I had the same issue when I pushed both heavy squats and hard sparring in the same 48 hours.",
+  "What helped me was dropping one accessory and keeping the main work explosive.",
+  "I would also look at sleep and food before changing the whole plan.",
+];
+
+function createFakeForumId(prefix = "fake") {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function getIsoDateMinutesAgo(minutesAgo = 0) {
+  return new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
+}
+
+function buildFakeForumThread(options = {}) {
+  const ownerName = options.ownerDisplayName || "Alex Ramos";
+  const ownerId = options.ownerId || createFakeForumId("owner");
+  const topic = options.topic || "strength";
+  const title = options.title || "How hard should I push lower-body strength during a heavy sparring week?";
+  const body =
+    options.body ||
+    "I am training MMA four days per week and sparring hard twice. I still want to push my squat and trap-bar work, but my legs feel flat on the mats when I go too heavy. How would you balance strength progress without killing the quality of fight practice?";
+  const likesCount =
+    Number.isFinite(options.likesCount) && options.likesCount >= 0 ?
+      Math.floor(options.likesCount) :
+      27;
+  const savesCount =
+    Number.isFinite(options.savesCount) && options.savesCount >= 0 ?
+      Math.floor(options.savesCount) :
+      6;
+  const tagSource =
+    Array.isArray(options.tags) && options.tags.length > 0 ?
+      options.tags :
+      ["mma", "strength", "recovery"];
+  const postId = options.id || createFakeForumId("post");
+  const now = getIsoDateMinutesAgo(0);
+  const coachComments =
+    Array.isArray(options.coachComments) && options.coachComments.length > 0 ?
+      options.coachComments :
+      DEFAULT_FAKE_FORUM_COACH_COMMENTS.slice(0, 2);
+  const userComments =
+    Array.isArray(options.comments) && options.comments.length > 0 ?
+      options.comments :
+      DEFAULT_FAKE_FORUM_USER_COMMENTS.slice(0, 2);
+  const allComments = [
+    ...coachComments.map((commentBody, index) => ({
+      id: createFakeForumId("comment"),
+      postId,
+      authorId: `coach-${index + 1}`,
+      authorDisplayName: index === 0 ? "Coach Marcus" : `Coach ${index + 2}`,
+      authorAvatarUrl: "",
+      authorRole: "admin",
+      isCoachVerified: true,
+      body: String(commentBody),
+      createdAt: getIsoDateMinutesAgo(40 - index * 7),
+      updatedAt: getIsoDateMinutesAgo(40 - index * 7),
+    })),
+    ...userComments.map((commentBody, index) => ({
+      id: createFakeForumId("comment"),
+      postId,
+      authorId: `user-${index + 1}`,
+      authorDisplayName: ["Jordan", "Mika", "Sam", "Noah"][index] || `User ${index + 1}`,
+      authorAvatarUrl: "",
+      authorRole: "user",
+      isCoachVerified: false,
+      body: String(commentBody),
+      createdAt: getIsoDateMinutesAgo(18 - index * 5),
+      updatedAt: getIsoDateMinutesAgo(18 - index * 5),
+    })),
+  ].sort(
+    (left, right) =>
+      (Date.parse(left.createdAt) || 0) - (Date.parse(right.createdAt) || 0)
+  );
+
+  return {
+    post: {
+      id: postId,
+      authorId: ownerId,
+      authorDisplayName: ownerName,
+      authorAvatarUrl: "",
+      authorRole: options.ownerRole || "user",
+      isCoachVerified: Boolean(options.ownerIsCoachVerified),
+      title,
+      body,
+      topic,
+      exerciseId: options.exerciseId || "",
+      exerciseName: options.exerciseName || "",
+      mediaUrl: "",
+      mediaType: "none",
+      tags: tagSource,
+      coachResponseRequested: true,
+      coachResponseStatus:
+        allComments.some((comment) => comment.isCoachVerified) ? "responded" : "requested",
+      featured: Boolean(options.featured),
+      priorityScore:
+        Number.isFinite(options.priorityScore) && options.priorityScore >= 0 ?
+          Math.floor(options.priorityScore) :
+          0,
+      likesCount,
+      savesCount,
+      commentsCount: allComments.length,
+      createdAt: options.createdAt || getIsoDateMinutesAgo(55),
+      updatedAt: options.updatedAt || now,
+    },
+    comments: allComments,
+  };
+}
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -73,6 +187,7 @@ export const model = {
   forumFeed: [],
   forumSelectedPost: null,
   forumComments: [],
+  forumLocalThreads: {},
   forumFeedPromiseState: {},
   forumSelectedPostPromiseState: {},
   forumCommentsPromiseState: {},
@@ -180,6 +295,7 @@ export const model = {
     this.forumFeed = [];
     this.forumSelectedPost = null;
     this.forumComments = [];
+    this.forumLocalThreads = {};
     this.forumFeedPromiseState = {};
     this.forumSelectedPostPromiseState = {};
     this.forumCommentsPromiseState = {};
@@ -323,6 +439,19 @@ export const model = {
   },
 
   async loadForumPost(postId) {
+    const localPost =
+      this.forumFeed.find((post) => post?.id === postId) ||
+      (this.forumSelectedPost?.id === postId ? this.forumSelectedPost : null);
+
+    if (this.forumLocalThreads[postId] && localPost) {
+      const normalizedLocalPost = normalizeForumPost(
+        localPost,
+        this.getNormalizedForumProfile()
+      );
+      this.forumSelectedPost = normalizedLocalPost;
+      return normalizedLocalPost;
+    }
+
     const prms = getForumPost(postId).then((result) => {
       if (!result.success || !result.data) {
         throw result.error || new Error("Could not load the selected post.");
@@ -344,6 +473,14 @@ export const model = {
     postId,
     { limitCount = 50 } = {}
   ) {
+    if (this.forumLocalThreads[postId]) {
+      const normalizedComments = this.forumLocalThreads[postId]
+        .slice(0, limitCount)
+        .map(normalizeForumComment);
+      this.forumComments = normalizedComments;
+      return normalizedComments;
+    }
+
     const prms = getForumComments(postId, { limitCount }).then((result) => {
       if (!result.success) {
         throw result.error || new Error("Could not load forum comments.");
@@ -398,6 +535,29 @@ export const model = {
     this.resetForumComposer();
 
     return normalizedPost;
+  },
+
+  createFakeForumPost(options = {}) {
+    const thread = buildFakeForumThread(options);
+    const normalizedProfile = this.getNormalizedForumProfile();
+    const normalizedPost = normalizeForumPost(thread.post, normalizedProfile);
+    const normalizedComments = thread.comments.map(normalizeForumComment);
+
+    this.forumLocalThreads = {
+      ...this.forumLocalThreads,
+      [normalizedPost.id]: normalizedComments,
+    };
+    this.forumFeed = [normalizedPost, ...this.forumFeed.filter((post) => post.id !== normalizedPost.id)].slice(
+      0,
+      this.forumFilters.limit || 25
+    );
+    this.forumSelectedPost = normalizedPost;
+    this.forumComments = normalizedComments;
+
+    return {
+      post: normalizedPost,
+      comments: normalizedComments,
+    };
   },
 
   async addForumComment(postId, body) {

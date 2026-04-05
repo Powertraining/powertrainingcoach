@@ -7,6 +7,8 @@ export default function ForumView({
   posts = [],
   onTogglePostLike,
   onTogglePostSave,
+  onToggleCoachResponse,
+  onPressPostButton,
 }) {
   return (
     <QuestionnaireShell>
@@ -32,10 +34,11 @@ export default function ForumView({
               post={posts[index]}
               onTogglePostLike={onTogglePostLike}
               onTogglePostSave={onTogglePostSave}
+              onToggleCoachResponse={onToggleCoachResponse}
             />
           ))}
         </ScrollView>
-        <TouchableOpacity style={styles.postButton}>
+        <TouchableOpacity style={styles.postButton} onPress={onPressPostButton}>
           <Image
             source={require("../../../assets/icons/post.png")}
             style={styles.postButtonIcon}

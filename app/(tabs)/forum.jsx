@@ -63,6 +63,14 @@ const ForumScreen = observer(function ForumScreen() {
     }
   }
 
+  function handlePressPostButton() {
+    try {
+      model.createFakeForumPost();
+    } catch (error) {
+      console.warn("Could not create the fake forum post:", error);
+    }
+  }
+
   function showCoachResponseView(postId) {
     setSelectedPostId(postId);
     setIsCoachResponseVisible(true);
@@ -112,6 +120,7 @@ const ForumScreen = observer(function ForumScreen() {
         onTogglePostLike={handleTogglePostLike}
         onTogglePostSave={handleTogglePostSave}
         onToggleCoachResponse={showCoachResponseView}
+        onPressPostButton={handlePressPostButton}
       />
       {isCoachResponseVisible ? (
         <CoachResponseView
