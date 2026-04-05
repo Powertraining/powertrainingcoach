@@ -74,6 +74,7 @@ const ForumScreen = observer(function ForumScreen() {
   function showCoachResponseView(postId) {
     setSelectedPostId(postId);
     setIsCoachResponseVisible(true);
+    model.setForumOverlayVisible(true);
 
     model.loadForumPostThread(postId).catch((error) => {
       console.warn(`Could not load the forum thread for ${postId}:`, error);
@@ -83,6 +84,7 @@ const ForumScreen = observer(function ForumScreen() {
   function hideCoachResponseView() {
     setSelectedPostId(null);
     setIsCoachResponseVisible(false);
+    model.setForumOverlayVisible(false);
   }
 
   if (!model.ready || isFeedLoading) {

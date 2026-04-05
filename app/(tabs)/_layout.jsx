@@ -192,6 +192,7 @@ const TabsLayout = observer(function TabsLayout() {
           }}
         />
       </Tabs>
+      {model.forumOverlayVisible ? <View pointerEvents="auto" style={styles.tabBarDisabledOverlay} /> : null}
     </View>
   );
 });
@@ -212,6 +213,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
     padding: 6,
+  },
+  tabBarDisabledOverlay: {
+    backgroundColor: "rgba(0, 0, 0, 0.72)",
+    height: 70,
+    marginHorizontal: 16,
+    marginVertical: 20,
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 120,
+    zIndex: 20,
   },
   tabBarLabel: {
     fontSize: 12,

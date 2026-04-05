@@ -188,6 +188,7 @@ export const model = {
   forumSelectedPost: null,
   forumComments: [],
   forumLocalThreads: {},
+  forumOverlayVisible: false,
   forumFeedPromiseState: {},
   forumSelectedPostPromiseState: {},
   forumCommentsPromiseState: {},
@@ -296,9 +297,14 @@ export const model = {
     this.forumSelectedPost = null;
     this.forumComments = [];
     this.forumLocalThreads = {};
+    this.forumOverlayVisible = false;
     this.forumFeedPromiseState = {};
     this.forumSelectedPostPromiseState = {};
     this.forumCommentsPromiseState = {};
+  },
+
+  setForumOverlayVisible(value) {
+    this.forumOverlayVisible = Boolean(value);
   },
 
   setForumFilters(nextFilters = {}) {
