@@ -8,11 +8,13 @@ export default function CoachResponseView({ onClose, comments = [] }) {
       <View style={styles.overlay}>
         <View style={styles.backdrop} />
         <TouchableWithoutFeedback onPress={() => {}}>
-          <View style={styles.box}>
-            <StandardText textColor="#C9B259" fontSize={24}>Coach Response</StandardText>
-            <Text style={{fontSize: 17,  color: "#C9B259", marginTop: 10, textAlign: "center" }}>
-              Coach Response shows that a verified coach has contributed to the thread, so you can weigh the advice with more confidence.
-            </Text>
+          <View style={styles.content}>
+            <View style={styles.box}>
+              <StandardText textColor="#C9B259" fontSize={24}>Coach Response</StandardText>
+              <Text style={styles.description}>
+                Coach Response shows that a verified coach has contributed to the thread, so you can weigh the advice with more confidence.
+              </Text>
+            </View>
             <View style={styles.commentsList}>
               {comments.map((comment) => (
                 <Comment key={comment.id} comment={comment} />
@@ -37,15 +39,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     opacity: 0.75,
   },
-  box: {
+  content: {
     width: "85%",
-    alignItems: "center",
     backgroundColor: "#121212",
     borderRadius: 45,
     padding: 40,
   },
+  box: {
+    alignItems: "center",
+  },
+  description: {
+    fontSize: 17,
+    color: "#C9B259",
+    marginTop: 10,
+    textAlign: "center",
+  },
   commentsList: {
-    width: "100%",
+    alignSelf: "stretch",
     marginTop: 20,
+    marginHorizontal: -40,
   },
 });
