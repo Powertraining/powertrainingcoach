@@ -26,6 +26,14 @@ const ForumScreen = observer(function ForumScreen() {
     });
   }, [model, model.forumFeed.length, model.ready, model.user]);
 
+  useEffect(() => {
+    if (!isCoachResponseVisible) {
+      return;
+    }
+
+    hideCoachResponseView();
+  }, [model.forumOverlayDismissCount]);
+
   const feedError = model.forumFeedPromiseState?.error;
   const isFeedLoading =
     model.ready &&

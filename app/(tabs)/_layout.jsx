@@ -1,6 +1,6 @@
 import { Tabs, Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
@@ -192,7 +192,12 @@ const TabsLayout = observer(function TabsLayout() {
           }}
         />
       </Tabs>
-      {model.forumOverlayVisible ? <View pointerEvents="auto" style={styles.tabBarDisabledOverlay} /> : null}
+      {model.forumOverlayVisible ? (
+        <Pressable
+          onPress={() => model.requestForumOverlayDismiss()}
+          style={styles.tabBarDisabledOverlay}
+        />
+      ) : null}
     </View>
   );
 });
