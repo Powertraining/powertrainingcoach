@@ -23,6 +23,9 @@ For somewhat complex, inconvenient, or hard-to-access exercises, always provide 
 const local_session_spacing = `# Session Spacing
 Once the athlete has spread out their training sessions, estimate session similarity and avoid placing highly overlapping sessions too close together when practical. Similarity should be based on shared region, shared training quality, and shared stress level rather than exercise names alone. Sessions with high overlap in force, power, or fatigue demands, especially for the same region, should generally be separated by about 48 hours when possible. This spacing rule is advisory, not absolute, because real-world schedules vary.`;
 
+const local_missed_sessions = `# Missed Sessions
+Preserve the weekly structure first. Preserve session order second. Preserve the main stimulus third. Rescue missed work inside the same training week only when there is still room. If there is only one viable slot left, trim the session from the bottom: power or plyo or med-ball first, then the main compound lift, then the main weighted row or primary pull, then high-stimulus core, with accessories sacrificed first. Do not cram two full missed sessions together. Near competition or taper periods, replace missed work with a short primer rather than catch-up volume.`;
+
 const instructionPriority = [
     "general_rules",
     "reps_intensity",
@@ -30,27 +33,25 @@ const instructionPriority = [
     "plyometrics_loading_jumps",
     "ballistic_training",
     "substitutes",
-    "session_spacing"
+    "session_spacing",
+    "missed_session_logic"
 ];
 
-/**
- * Builds the complete system prompt for generating training programs.
- * * @param {object} userInput - Clean structured input from frontend.
- * @param {object} oldPlan - Previous training plan for progression (if any).
- * @param {object} liveInstructions - Object containing instructions fetched from Firebase (optional).
- * @returns {string} - The complete prompt string.
- */
-export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions = null) {
-    const fallbackInstructions = {
+function getFallbackInstructions() {
+    return {
         general_rules: local_general,
         reps_intensity: local_reps,
         compound_lifts: local_compound,
         plyometrics_loading_jumps: local_plyo,
         ballistic_training: local_ballistic,
         substitutes: local_substitutes,
-        session_spacing: local_session_spacing
+        session_spacing: local_session_spacing,
+        missed_session_logic: local_missed_sessions,
     };
+}
 
+function getOrderedMergedInstructions(liveInstructions = null) {
+    const fallbackInstructions = getFallbackInstructions();
     const liveInstructionEntries = Object.entries(liveInstructions || {}).filter(
         ([, text]) => typeof text === "string" && text.trim().length > 0
     );
@@ -76,20 +77,42 @@ export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions 
         }
     });
 
-    const guidelines = Array.from(mergedInstructions.values())
-        .filter(text => text && typeof text === 'string') 
-        .join("\n\n");
+    return mergedInstructions;
+}
 
-    const instructionImages = Array.isArray(liveInstructions?.__images)
+function getGuidelinesText(liveInstructions = null) {
+    return Array.from(getOrderedMergedInstructions(liveInstructions).values())
+        .filter((text) => text && typeof text === "string")
+        .join("\n\n");
+}
+
+function getInstructionImages(liveInstructions = null) {
+    return Array.isArray(liveInstructions?.__images)
         ? liveInstructions.__images.filter((image) => image?.url && image?.name)
         : [];
+}
 
-    const imageInstructions = instructionImages.length > 0
+function getImageInstructionsText(liveInstructions = null) {
+    const instructionImages = getInstructionImages(liveInstructions);
+
+    return instructionImages.length > 0
         ? `
 Additional reference images are attached separately and are part of the instruction set. Use them when relevant:
 ${instructionImages.map((image) => `- ${image.name}`).join("\n")}
 `
         : "";
+}
+
+/**
+ * Builds the complete system prompt for generating training programs.
+ * * @param {object} userInput - Clean structured input from frontend.
+ * @param {object} oldPlan - Previous training plan for progression (if any).
+ * @param {object} liveInstructions - Object containing instructions fetched from Firebase (optional).
+ * @returns {string} - The complete prompt string.
+ */
+export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions = null) {
+    const guidelines = getGuidelinesText(liveInstructions);
+    const imageInstructions = getImageInstructionsText(liveInstructions);
 
     const substitutionSchemaInstructions = `
 ### EXERCISE SUBSTITUTION RULES:
@@ -202,4 +225,102 @@ Now generate the training plan JSON.
 `;
 
     return prompt;
+}
+
+/**
+ * Builds a focused prompt for rewriting a single rescue or re-entry session.
+ * @param {object} adjustmentInput
+ * @param {object} liveInstructions
+ * @returns {string}
+ */
+export function buildMissedSessionAdjustmentPrompt(adjustmentInput = {}, liveInstructions = null) {
+    const guidelines = getGuidelinesText(liveInstructions);
+    const imageInstructions = getImageInstructionsText(liveInstructions);
+    const {
+        questionnaire = {},
+        currentPlan = {},
+        currentWeek = {},
+        sourceDay = {},
+        targetDay = {},
+        mode = "",
+        reason = "",
+        missedSessionCount = 1,
+    } = adjustmentInput;
+
+    const modeInstructions =
+        mode === "taper_primer"
+            ? "Build a short primer only. Keep volume low, intensity reasonably sharp, and fatigue minimal."
+            : mode === "re_entry"
+                ? "Build a conservative re-entry session. Use reduced volume, lower-end RPE, and no heroics."
+                : mode === "priority_rescue"
+                    ? "Build one meaningful rescue session around the week's highest-priority stimulus. Cut lower-value work aggressively."
+                    : "Build a late-week rescue session by trimming from the bottom while preserving the main stimulus.";
+
+    return `
+You are **PowerTrainingCoach**, updating a single training day inside an existing weekly plan after missed sessions.
+
+Follow ALL of the domain rules and instructions below:
+${guidelines}
+${imageInstructions}
+
+### MISSED-SESSION ADJUSTMENT GOAL:
+- Rewrite ONLY one training-day JSON object.
+- Keep the session in the same movement category and training emphasis as the source day.
+- Preserve the highest-value work first: power/plyo/med-ball, then the main compound lift, then the main weighted row or primary pull, then high-stimulus core, then accessories last.
+- Keep substitutions comparable. Do not add random filler.
+- ${modeInstructions}
+- If the miss reason was fatigue or illness, keep the notes conservative and recovery-aware.
+
+### CONTEXT:
+Questionnaire:
+${JSON.stringify(questionnaire, null, 2)}
+
+Current plan:
+${JSON.stringify(currentPlan, null, 2)}
+
+Current week:
+${JSON.stringify(currentWeek, null, 2)}
+
+Source day to preserve/adapt:
+${JSON.stringify(sourceDay, null, 2)}
+
+Target slot to fill:
+${JSON.stringify(targetDay, null, 2)}
+
+Miss reason: ${reason || "schedule_travel"}
+Missed session count this week: ${missedSessionCount}
+Adjustment mode: ${mode || "late_week_rescue"}
+
+### OUTPUT INSTRUCTIONS:
+- Respond ONLY in valid JSON.
+- Return a single training-day object, not a full plan.
+- Keep the target slot's "day" number and preferredWeekday.
+- Keep "sessionLabel" aligned with the rescued session identity if it was moved.
+- Include "sessionProfile".
+- Every exercise MUST include "substitutionOptions".
+
+{
+  "day": ${targetDay?.day || 1},
+  "sessionLabel": "Day 2",
+  "preferredWeekday": "${targetDay?.preferredWeekday || ""}",
+  "sessionProfile": {
+    "regions": ["lower_body"],
+    "qualities": ["force", "power"],
+    "stressLevel": "moderate"
+  },
+  "status": "rescheduled",
+  "rescueMode": "${mode || "late_week_rescue"}",
+  "adjustmentReason": "${reason || "schedule_travel"}",
+  "adjustmentSummary": "Short explanation of the rescue or re-entry choice.",
+  "exercises": [
+    {
+      "name": "Exercise Name",
+      "sets": "2-3",
+      "reps": "3-5",
+      "notes": "Coaching cue or adjustment note",
+      "substitutionOptions": []
+    }
+  ]
+}
+`;
 }

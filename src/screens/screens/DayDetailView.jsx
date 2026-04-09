@@ -14,10 +14,15 @@ export default function DayDetailView({
     day,
     preferredWeekday,
     sessionLabel,
+    status = "pending",
+    rescueMode = "",
+    adjustmentSummary = "",
     exercises = [],
     onBack,
     onReplaceExercise,
     onFinish,
+    onMissed,
+    updatingPlan = false,
 }) {
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
     const normalizedExercises = Array.isArray(exercises)
@@ -28,19 +33,21 @@ export default function DayDetailView({
         Math.max(normalizedExercises.length - 1, 0)
     );
 
-    if (normalizedExercises.length === 0) return null;
-
-    const selectedExercise = normalizedExercises[activeExerciseIndex];
-    const substitutionOptions = getExerciseSubstitutionOptions(selectedExercise);
     const resolvedDay =
         day && typeof day === "object"
             ? day
-            : { day, preferredWeekday, sessionLabel };
+            : { day, preferredWeekday, sessionLabel, status, rescueMode, adjustmentSummary };
     const dayLabel = getTrainingDayLabel(resolvedDay);
     const preferredWeekdayLabel = getTrainingDayPreferredWeekday(resolvedDay);
+    const selectedExercise = normalizedExercises[activeExerciseIndex];
+    const substitutionOptions = selectedExercise
+        ? getExerciseSubstitutionOptions(selectedExercise)
+        : [];
     const summaryText = selectedExercise
         ? `${selectedExercise.name} – ${selectedExercise.sets} x ${selectedExercise.reps}`
         : `No exercises available for ${dayLabel} yet.`;
+    const isSkipped = status === "skipped";
+    const isRescheduled = status === "rescheduled";
 
     return (
         <QuestionnaireShell>
@@ -60,12 +67,61 @@ export default function DayDetailView({
                             <TouchableOpacity style={styles.backButton} onPress={onBack}>
                                 <Text style={styles.backButtonText}>Back</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.finishButton} onPress={onFinish}>
+                            {onMissed ? (
+                                <TouchableOpacity
+                                    style={styles.missedButton}
+                                    onPress={onMissed}
+                                    disabled={updatingPlan || isSkipped}
+                                >
+                                    <Text style={styles.missedButtonText}>
+                                        {updatingPlan ? "Updating..." : "Missed"}
+                                    </Text>
+                                </TouchableOpacity>
+                            ) : null}
+                            <TouchableOpacity
+                                style={[
+                                    styles.finishButton,
+                                    (updatingPlan || isSkipped) && styles.finishButtonDisabled,
+                                ]}
+                                onPress={onFinish}
+                                disabled={updatingPlan || isSkipped}
+                            >
                                 <Text style={styles.finishButtonText}>Finish</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
 
+                    {(adjustmentSummary || isRescheduled || isSkipped) ? (
+                        <View
+                            style={[
+                                styles.adjustmentBox,
+                                isSkipped ? styles.adjustmentBoxSkipped : styles.adjustmentBoxRescue,
+                            ]}
+                        >
+                            <Text style={styles.adjustmentTitle}>
+                                {isSkipped ? "Session skipped" : isRescheduled ? "Rescheduled session" : "Plan update"}
+                            </Text>
+                            <Text style={styles.adjustmentText}>
+                                {adjustmentSummary ||
+                                    (isRescheduled
+                                        ? "This session was moved after a missed slot."
+                                        : "This slot no longer counts toward the current training week.")}
+                            </Text>
+                            {rescueMode ? (
+                                <Text style={styles.adjustmentMeta}>Mode: {rescueMode.replace(/_/g, " ")}</Text>
+                            ) : null}
+                        </View>
+                    ) : null}
+
+                    {normalizedExercises.length === 0 ? (
+                        <View style={styles.emptyState}>
+                            <Text style={styles.emptyStateTitle}>No active workout in this slot.</Text>
+                            <Text style={styles.emptyStateText}>
+                                This slot has already been skipped or absorbed by a later rescue decision for the week.
+                            </Text>
+                        </View>
+                    ) : (
+                        <>
                     <View style={styles.contentBlock}>
                         <Text style={styles.subtitle}>Current Exercise:</Text>
                         <Text style={styles.summary}>{summaryText}</Text>
@@ -143,6 +199,8 @@ export default function DayDetailView({
                             </View>
                         ))}
                     </View>
+                        </>
+                    )}
                 </View>
             </ScrollView>
         </QuestionnaireShell>
@@ -197,7 +255,52 @@ const styles = StyleSheet.create({
         borderColor: '#111',
         backgroundColor: '#111',
     },
+    finishButtonDisabled: {
+        opacity: 0.5,
+    },
     finishButtonText: { fontSize: 16, color: 'white' },
+    missedButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#b45309',
+        backgroundColor: '#fff7ed',
+    },
+    missedButtonText: {
+        fontSize: 16,
+        color: '#9a3412',
+        fontWeight: '600',
+    },
+    adjustmentBox: {
+        gap: 6,
+        padding: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+    },
+    adjustmentBoxRescue: {
+        borderColor: '#0f766e',
+        backgroundColor: '#ecfeff',
+    },
+    adjustmentBoxSkipped: {
+        borderColor: '#9ca3af',
+        backgroundColor: '#f3f4f6',
+    },
+    adjustmentTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    adjustmentText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#374151',
+    },
+    adjustmentMeta: {
+        fontSize: 12,
+        color: '#4b5563',
+        textTransform: 'capitalize',
+    },
     contentBlock: { flexDirection: 'column', gap: 10 },
     subtitle: { fontSize: 16, opacity: 0.8 },
     summary: { fontSize: 20, fontWeight: '600' },
@@ -258,6 +361,24 @@ const styles = StyleSheet.create({
         borderTopColor: 'rgba(0,0,0,0.08)',
     },
     listLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
+    emptyState: {
+        gap: 8,
+        padding: 18,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.08)',
+        backgroundColor: '#f9fafb',
+    },
+    emptyStateTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    emptyStateText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#4b5563',
+    },
     exerciseRow: {
         padding: 12,
         borderRadius: 10,

@@ -34,25 +34,8 @@ const OverviewScreen = observer(function OverviewScreen() {
 
   // Keep hook order stable when auth state changes during logout.
   const currentDayPointer = useMemo(() => {
-    if (!plan?.weeks) return null;
-
-    const flattenedDays = plan.weeks
-      .slice()
-      .sort((a, b) => a.week - b.week)
-      .flatMap((week) =>
-        (week.days || [])
-          .slice()
-          .sort((a, b) => a.day - b.day)
-          .map((day) => ({
-            week: week.week,
-            day: day.day,
-          }))
-      );
-
-    return (
-      flattenedDays.find((d) => !completedDays.has(`${d.week}-${d.day}`)) || null
-    );
-  }, [plan, completedDays]);
+    return model.getCurrentTrainingDay?.(Array.from(completedDays)) || null;
+  }, [completedDays, model, plan]);
 
   if (!model.ready) {
     return (

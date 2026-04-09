@@ -44,6 +44,10 @@ PowerTrainingCoach is a native mobile application that generates personalized, A
     `firebase functions:secrets:set STRIPE_WEBHOOK_SECRET`
   - Store the OpenAI server secret in Firebase Secret Manager:
     `firebase functions:secrets:set OPENAI_API_KEY`
+  - Optional Expo env vars for model selection:
+    `EXPO_PUBLIC_OPENAI_PLAN_GENERATION_MODEL` defaults to `gpt-5.4` for initial plan generation and plan extensions
+    `EXPO_PUBLIC_OPENAI_PROGRAM_UPDATE_MODEL` defaults to `gpt-5.4-mini` for in-program updates such as missed-session rewrites
+    `EXPO_PUBLIC_OPENAI_API_MODEL` is still supported as a legacy fallback for full plan generation if the split generation var is not set
   - Optional consultation-booking runtime env vars for Cloud Functions:
     `CONSULTATION_CHECKOUT_HOLD_MINUTES`
     `CONSULTATION_CANCELLATION_WINDOW_HOURS`

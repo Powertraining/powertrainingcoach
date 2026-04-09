@@ -22,6 +22,12 @@ If you already have the shared `.env.local`, no extra Firebase setup is needed t
 
 If you override `EXPO_PUBLIC_FIRESTORE_DATABASE_ID`, use `"(default)"` for the default Firestore database or leave it unset.
 
+If you want to override OpenAI model selection locally, use these Expo env vars:
+
+- `EXPO_PUBLIC_OPENAI_PLAN_GENERATION_MODEL` for initial plan generation and plan extensions. Default: `gpt-5.4`
+- `EXPO_PUBLIC_OPENAI_PROGRAM_UPDATE_MODEL` for in-program updates such as missed-session rewrites. Default: `gpt-5.4-mini`
+- `EXPO_PUBLIC_OPENAI_API_MODEL` is still accepted as a legacy fallback for full plan generation if the split generation var is unset
+
 ## Run the app
 
 Start the Expo dev server:

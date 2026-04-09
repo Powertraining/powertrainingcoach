@@ -1,5 +1,8 @@
 import { resolvePromise } from "../../core/resolvePromise.js";
-import { generatePlan } from "../../core/generatePlan.js";
+import {
+  adjustTrainingDayForMissedSession,
+  generatePlan,
+} from "../../core/generatePlan.js";
 
 import {
   getUserRole,
@@ -41,7 +44,11 @@ import {
 import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
 import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
 import {
+  applyMissedSessionAdjustment,
+  countTrackableTrainingDays,
+  getCurrentTrainingDay,
   getTrainingDayPreferredWeekday,
+  replaceTrainingPlanDay,
   replaceTrainingPlanExercise,
 } from "../utils/trainingPlan.js";
 
@@ -775,6 +782,80 @@ export const model = {
       exerciseIndex,
       substitutionId
     );
+  },
+
+  getCurrentTrainingDay(completedDays = this.completedDays) {
+    return getCurrentTrainingDay(this.trainingPlan, completedDays);
+  },
+
+  getTrackableTrainingDayCount() {
+    return countTrackableTrainingDays(this.trainingPlan);
+  },
+
+  async reportMissedSession({
+    weekNumber,
+    dayNumber,
+    reason = "schedule_travel",
+    daysUnavailable = 0,
+  } = {}) {
+    if (!this.trainingPlan) {
+      return null;
+    }
+
+    const questionnaire =
+      this.questionnaire && typeof this.questionnaire === "object" ?
+        this.questionnaire :
+        {};
+    const adjustment = applyMissedSessionAdjustment(this.trainingPlan, {
+      completedDays: this.completedDays,
+      weekNumber,
+      dayNumber,
+      reason,
+      daysUnavailable,
+      trainingPhase: questionnaire.trainingPhase,
+      competitionTimeline: questionnaire.competitionTimeline,
+    });
+
+    let nextPlan = adjustment.plan;
+    const nextCompletedDays = Array.isArray(adjustment.completedDays) ?
+      adjustment.completedDays :
+      Array.from(this.completedDays || []);
+
+    if (adjustment.aiAdjustment) {
+      try {
+        const rewrittenDay = await adjustTrainingDayForMissedSession({
+          questionnaire,
+          currentPlan: nextPlan,
+          currentWeek: adjustment.aiAdjustment.currentWeek,
+          sourceDay: adjustment.aiAdjustment.sourceDay,
+          targetDay: adjustment.aiAdjustment.targetDay,
+          mode: adjustment.aiAdjustment.mode,
+          reason: adjustment.aiAdjustment.reason,
+          missedSessionCount: adjustment.aiAdjustment.missedSessionCount,
+        });
+
+        nextPlan = replaceTrainingPlanDay(
+          nextPlan,
+          adjustment.aiAdjustment.weekNumber,
+          adjustment.aiAdjustment.dayNumber,
+          rewrittenDay
+        );
+      } catch (error) {
+        console.warn(
+          "[CombatModel.reportMissedSession] AI rescue rewrite failed, keeping the local fallback adjustment:",
+          error
+        );
+      }
+    }
+
+    this.trainingPlan = nextPlan;
+    this.completedDays = nextCompletedDays;
+
+    return {
+      action: adjustment.action || "skip_session",
+      plan: nextPlan,
+      completedDays: nextCompletedDays,
+    };
   },
 
   isSubscribed() {

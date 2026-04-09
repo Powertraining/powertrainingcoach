@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { View, StyleSheet } from "react-native";
@@ -12,6 +12,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
+  const [updatingPlan, setUpdatingPlan] = useState(false);
 
   const weekNumber = parseInt(params.week, 10);
   const dayNumber = parseInt(params.day, 10);
@@ -31,15 +32,20 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     return {
       week: weekNumber,
       day: dayNumber,
+      dayData: day,
       exercises: day.exercises || [],
+      preferredWeekday: day.preferredWeekday || "",
+      sessionLabel: day.sessionLabel || "",
+      status: day.status || "pending",
+      rescueMode: day.rescueMode || "",
+      adjustmentSummary: day.adjustmentSummary || "",
     };
   }, [plan, weekNumber, dayNumber]);
 
   // Compute total days for progress tracking
   const totalDays = useMemo(() => {
-    if (!plan?.weeks) return 0;
-    return plan.weeks.reduce((acc, week) => acc + (week.days?.length || 0), 0);
-  }, [plan]);
+    return model.getTrackableTrainingDayCount?.() || 0;
+  }, [model, plan]);
 
   useEffect(() => {
     if (model.user && model.ready && (!plan || !selectedDay)) {
@@ -80,6 +86,26 @@ const DayDetailScreen = observer(function DayDetailScreen() {
       exerciseIndex,
       substitutionId
     );
+  }
+
+  async function handleMissed() {
+    if (!selectedDay || updatingPlan) {
+      return;
+    }
+
+    setUpdatingPlan(true);
+
+    try {
+      await model.reportMissedSession?.({
+        weekNumber: selectedDay.week,
+        dayNumber: selectedDay.day,
+      });
+      router.replace("/(tabs)/overview");
+    } catch (error) {
+      console.error("Could not update missed session logic:", error);
+    } finally {
+      setUpdatingPlan(false);
+    }
   }
 
   function handleFinish() {
@@ -129,11 +155,18 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     <View style={styles.container}>
       <DayDetailView
         week={selectedDay.week}
-        day={selectedDay.day}
+        day={selectedDay.dayData}
         exercises={selectedDay.exercises}
+        preferredWeekday={selectedDay.preferredWeekday}
+        sessionLabel={selectedDay.sessionLabel}
+        status={selectedDay.status}
+        rescueMode={selectedDay.rescueMode}
+        adjustmentSummary={selectedDay.adjustmentSummary}
         onBack={handleBack}
         onReplaceExercise={handleReplaceExercise}
         onFinish={handleFinish}
+        onMissed={handleMissed}
+        updatingPlan={updatingPlan}
       />
     </View>
   );

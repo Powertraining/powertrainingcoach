@@ -3049,7 +3049,7 @@ exports.generateTrainingPlan = functions.https.onCall(
           buildOpenAiMessagesFromData(data);
         const model = typeof data.model === "string" && data.model ?
           data.model :
-          "gpt-4o-mini";
+          "gpt-5.4";
         const temperature = typeof data.temperature === "number" ?
           data.temperature :
           0.7;

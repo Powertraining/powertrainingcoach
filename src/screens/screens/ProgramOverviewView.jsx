@@ -3,6 +3,7 @@ import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import {
   getTrainingDayLabel,
   getTrainingDayPreferredWeekday,
+  getTrainingDayStatus,
   getTrainingPlanSpacingAdvisories,
 } from "../../services/utils/trainingPlan.js";
 
@@ -55,6 +56,9 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
                         currentDay.week === week.week &&
                         currentDay.day === day.day;
                       const isDone = completedDays?.has(key);
+                      const dayStatus = getTrainingDayStatus(day);
+                      const isSkipped = dayStatus === "skipped";
+                      const isRescheduled = dayStatus === "rescheduled";
                       const dayLabel = getTrainingDayLabel(day);
                       const preferredWeekday = getTrainingDayPreferredWeekday(day);
 
@@ -64,26 +68,42 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
                           onPress={() => onSelectDay(week.week, day.day)}
                           style={[
                             styles.dayButton,
-                            isCurrent && styles.dayButtonCurrent,
+                            isCurrent && !isSkipped && styles.dayButtonCurrent,
                             isDone && styles.dayButtonDone,
+                            isSkipped && styles.dayButtonSkipped,
+                            isRescheduled && styles.dayButtonRescheduled,
                           ]}
                         >
                           <Text
                             style={[
                               styles.dayButtonText,
+                              isSkipped && styles.dayButtonSkippedText,
+                              isRescheduled && styles.dayButtonRescheduledText,
                               isDone && styles.dayButtonDoneText,
                             ]}
                           >
                             {dayLabel}
                           </Text>
                           {preferredWeekday ? (
-                            <Text style={styles.dayPreferenceText}>
+                            <Text
+                              style={[
+                                styles.dayPreferenceText,
+                                (isSkipped || isRescheduled) &&
+                                  styles.dayPreferenceTextMuted,
+                              ]}
+                            >
                               Preferred {preferredWeekday}
                             </Text>
                           ) : null}
                           {isDone && <Text style={styles.doneTag}>Finished</Text>}
-                          {!isDone && isCurrent && (
+                          {!isDone && !isSkipped && isCurrent && (
                             <Text style={styles.currentTag}>Current</Text>
+                          )}
+                          {!isDone && isSkipped && (
+                            <Text style={styles.skippedTag}>Skipped</Text>
+                          )}
+                          {!isDone && !isSkipped && isRescheduled && (
+                            <Text style={styles.rescheduledTag}>Rescheduled</Text>
                           )}
                         </TouchableOpacity>
                       );
@@ -199,6 +219,14 @@ const styles = StyleSheet.create({
     borderColor: "#6b7280",
     backgroundColor: "#1f2937",
   },
+  dayButtonSkipped: {
+    borderColor: "#9ca3af",
+    backgroundColor: "#f3f4f6",
+  },
+  dayButtonRescheduled: {
+    borderColor: "#0f766e",
+    backgroundColor: "#ecfeff",
+  },
   dayButtonText: {
     color: "white",
     fontSize: 15,
@@ -208,6 +236,9 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.8)",
     fontSize: 11,
     marginTop: 4,
+  },
+  dayPreferenceTextMuted: {
+    color: "#6b7280",
   },
   spacingBox: {
     marginTop: 2,
@@ -231,6 +262,12 @@ const styles = StyleSheet.create({
   dayButtonDoneText: {
     color: "#e5e7eb",
   },
+  dayButtonSkippedText: {
+    color: "#374151",
+  },
+  dayButtonRescheduledText: {
+    color: "#134e4a",
+  },
   currentTag: {
     fontSize: 10,
     color: "#10b981",
@@ -240,6 +277,18 @@ const styles = StyleSheet.create({
   doneTag: {
     fontSize: 10,
     color: "#9ca3af",
+    marginTop: 4,
+    fontWeight: "700",
+  },
+  skippedTag: {
+    fontSize: 10,
+    color: "#6b7280",
+    marginTop: 4,
+    fontWeight: "700",
+  },
+  rescheduledTag: {
+    fontSize: 10,
+    color: "#0f766e",
     marginTop: 4,
     fontWeight: "700",
   },
