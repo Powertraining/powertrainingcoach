@@ -170,6 +170,108 @@ function parsePositiveInteger(value) {
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
 }
 
+function parseWeekRange(value) {
+  const numericMatches = normalizeString(value).match(/\d+/g);
+
+  if (!numericMatches || numericMatches.length === 0) {
+    return {
+      weekStart: null,
+      weekEnd: null,
+    };
+  }
+
+  const firstWeek = parsePositiveInteger(numericMatches[0]);
+  const secondWeek = parsePositiveInteger(
+    numericMatches[numericMatches.length > 1 ? 1 : 0]
+  );
+
+  if (!firstWeek || !secondWeek) {
+    return {
+      weekStart: null,
+      weekEnd: null,
+    };
+  }
+
+  return {
+    weekStart: Math.min(firstWeek, secondWeek),
+    weekEnd: Math.max(firstWeek, secondWeek),
+  };
+}
+
+function normalizePlanPhase(phase = {}, phaseIndex = 0) {
+  const safePhase = phase && typeof phase === "object" ? phase : {};
+  const parsedRange = parseWeekRange(
+    safePhase.weeks || safePhase.weekRange || safePhase.range
+  );
+  const candidateStart =
+    parsePositiveInteger(safePhase.weekStart) ||
+    parsePositiveInteger(safePhase.startWeek) ||
+    parsedRange.weekStart ||
+    phaseIndex + 1;
+  const candidateEnd =
+    parsePositiveInteger(safePhase.weekEnd) ||
+    parsePositiveInteger(safePhase.endWeek) ||
+    parsedRange.weekEnd ||
+    candidateStart;
+
+  return {
+    ...safePhase,
+    label: normalizeString(
+      safePhase.label,
+      normalizeString(safePhase.phase || safePhase.name, `Phase ${phaseIndex + 1}`)
+    ),
+    weekStart: Math.min(candidateStart, candidateEnd),
+    weekEnd: Math.max(candidateStart, candidateEnd),
+    focus: normalizeString(
+      safePhase.focus,
+      normalizeString(
+        safePhase.rationale || safePhase.summary || safePhase.description
+      )
+    ),
+  };
+}
+
+function resolveTrainingPlanPhaseOverview(plan = {}) {
+  const safePlan = plan && typeof plan === "object" ? plan : {};
+  const rawPhaseOverview = Array.isArray(safePlan.phaseOverview)
+    ? safePlan.phaseOverview
+    : Array.isArray(safePlan.phases)
+      ? safePlan.phases
+      : [];
+
+  if (rawPhaseOverview.length > 0) {
+    return rawPhaseOverview
+      .map((phase, phaseIndex) => normalizePlanPhase(phase, phaseIndex))
+      .filter(
+        (phase) =>
+          phase.label ||
+          phase.focus ||
+          Number.isFinite(phase.weekStart) ||
+          Number.isFinite(phase.weekEnd)
+      );
+  }
+
+  const summary = normalizeString(safePlan.summary);
+  const resolvedWeeks = Array.isArray(safePlan.weeks)
+    ? safePlan.weeks.map((week, weekIndex) =>
+        Number.isFinite(week?.week) && week.week > 0 ? week.week : weekIndex + 1
+      )
+    : [];
+
+  if (!summary || resolvedWeeks.length === 0) {
+    return [];
+  }
+
+  return [
+    {
+      label: "Overall Program",
+      weekStart: resolvedWeeks[0],
+      weekEnd: resolvedWeeks[resolvedWeeks.length - 1],
+      focus: summary,
+    },
+  ];
+}
+
 function resolveTrainingDayNumber(day = {}, dayIndex = 0) {
   return (
     parsePositiveInteger(day?.day) ||
@@ -1233,6 +1335,7 @@ export function normalizeTrainingPlan(plan = {}) {
   return {
     ...safePlan,
     summary: normalizeString(safePlan.summary),
+    phaseOverview: resolveTrainingPlanPhaseOverview(safePlan),
     weeks: Array.isArray(safePlan.weeks)
       ? safePlan.weeks.map((week, weekIndex) => ({
           ...week,
@@ -1247,6 +1350,55 @@ export function normalizeTrainingPlan(plan = {}) {
         }))
       : [],
   };
+}
+
+export function getTrainingPlanPhaseOverview(plan = {}) {
+  return normalizeTrainingPlan(plan).phaseOverview;
+}
+
+export function getCurrentTrainingWeek(plan = {}, completedDays = []) {
+  const normalizedPlan = normalizeTrainingPlan(plan);
+
+  if (normalizedPlan.weeks.length === 0) {
+    return null;
+  }
+
+  const currentDay = getCurrentTrainingDay(normalizedPlan, completedDays);
+
+  if (!currentDay?.week) {
+    return normalizedPlan.weeks[normalizedPlan.weeks.length - 1];
+  }
+
+  return (
+    normalizedPlan.weeks.find((week) => week.week === currentDay.week) ||
+    normalizedPlan.weeks[0]
+  );
+}
+
+export function getCurrentTrainingPhase(plan = {}, completedDays = []) {
+  const normalizedPlan = normalizeTrainingPlan(plan);
+
+  if (normalizedPlan.phaseOverview.length === 0) {
+    return null;
+  }
+
+  const currentWeek = getCurrentTrainingWeek(normalizedPlan, completedDays);
+  const currentWeekNumber =
+    currentWeek?.week ||
+    normalizedPlan.weeks[0]?.week ||
+    normalizedPlan.phaseOverview[0]?.weekStart ||
+    1;
+
+  return (
+    normalizedPlan.phaseOverview.find(
+      (phase) =>
+        currentWeekNumber >= phase.weekStart && currentWeekNumber <= phase.weekEnd
+    ) ||
+    normalizedPlan.phaseOverview.find(
+      (phase) => currentWeekNumber <= phase.weekEnd
+    ) ||
+    normalizedPlan.phaseOverview[normalizedPlan.phaseOverview.length - 1]
+  );
 }
 
 export function getTrainingDayLabel(day = {}) {

@@ -150,6 +150,19 @@ export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions 
 - This spacing rule is advisory, not absolute.
 `;
 
+    const phaseOverviewInstructions = `
+### PROGRAM RATIONALE RULES:
+- Include a top-level "summary" that explains the overall purpose of the training program in 1-3 concise sentences.
+- Include a top-level "phaseOverview" array that explains how the full program progresses across phases or blocks.
+- Every phase entry MUST include:
+  - "label": short phase name such as "Building", "Intensification", "Power / Speed", or "Taper"
+  - "weekStart": positive integer for the first week in that phase
+  - "weekEnd": positive integer for the last week in that phase
+  - "focus": short rationale explaining what that phase is trying to build or express
+- Make the phase ranges cover the generated program logically without overlapping.
+- The phase overview should describe the whole training arc, while the weekly "days" arrays still contain the detailed sessions.
+`;
+
     // Combine everything into the final prompt
     const prompt = `
 You are **PowerTrainingCoach**, an expert AI specializing in creating safe, effective, and personalized strength & conditioning training programs for combat athletes.
@@ -162,6 +175,7 @@ ${imageInstructions}
 ${substitutionSchemaInstructions}
 ${sessionStructureInstructions}
 ${sessionProfileInstructions}
+${phaseOverviewInstructions}
 
 ---
 
@@ -174,11 +188,27 @@ ${JSON.stringify(userInput, null, 2)}
 - Respond ONLY in valid JSON.
 - Follow the structure below EXACTLY.
 - Do not include commentary or explanation.
+- Include both a top-level "summary" and a top-level "phaseOverview" array.
 - Every exercise MUST include a "substitutionOptions" array.
 - The number of sessions inside each week's "days" array should match the athlete's requested weekly training frequency.
 - Every training day MUST include a "sessionProfile" object.
 
 {
+  "summary": "Brief explanation of the overall program direction and rationale.",
+  "phaseOverview": [
+    {
+      "label": "Building",
+      "weekStart": 1,
+      "weekEnd": 4,
+      "focus": "Build general strength, tissue tolerance, and technical consistency before intensifying."
+    },
+    {
+      "label": "Intensification",
+      "weekStart": 5,
+      "weekEnd": 8,
+      "focus": "Shift toward heavier loading and higher neural demand while trimming lower-value volume."
+    }
+  ],
   "weeks": [
     {
       "week": 1,

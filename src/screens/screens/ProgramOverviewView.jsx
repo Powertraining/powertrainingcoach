@@ -1,9 +1,12 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import {
+  getCurrentTrainingPhase,
+  getCurrentTrainingWeek,
   getTrainingDayLabel,
   getTrainingDayPreferredWeekday,
   getTrainingDayStatus,
+  getTrainingPlanPhaseOverview,
   getTrainingPlanSpacingAdvisories,
 } from "../../services/utils/trainingPlan.js";
 
@@ -21,7 +24,26 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
     );
   }
 
+  const completedDayEntries =
+    completedDays instanceof Set
+      ? Array.from(completedDays)
+      : Array.isArray(completedDays)
+        ? completedDays
+        : [];
+  const completedDaySet = new Set(completedDayEntries);
+  const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
+  const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
+  const phaseOverview = getTrainingPlanPhaseOverview(plan);
   const spacingAdvisories = getTrainingPlanSpacingAdvisories(plan);
+  const visibleWeeks = currentWeek ? [currentWeek] : [];
+
+  function getPhaseRangeLabel(phase = {}) {
+    if (phase.weekStart === phase.weekEnd) {
+      return `Week ${phase.weekStart}`;
+    }
+
+    return `Weeks ${phase.weekStart}-${phase.weekEnd}`;
+  }
 
   return (
     <QuestionnaireShell>
@@ -39,8 +61,74 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
             )}
           </View>
 
+          {phaseOverview.length > 0 ? (
+            <View style={styles.phaseSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Program Rationale</Text>
+                {currentPhase ? (
+                  <Text style={styles.sectionBadge}>
+                    Current phase: {currentPhase.label}
+                  </Text>
+                ) : null}
+              </View>
+              <View style={styles.phaseList}>
+                {phaseOverview.map((phase) => {
+                  const phaseKey = `${phase.weekStart}-${phase.weekEnd}-${phase.label}`;
+                  const isActivePhase =
+                    currentPhase &&
+                    currentPhase.weekStart === phase.weekStart &&
+                    currentPhase.weekEnd === phase.weekEnd &&
+                    currentPhase.label === phase.label;
+
+                  return (
+                    <View
+                      key={phaseKey}
+                      style={[
+                        styles.phaseCard,
+                        isActivePhase && styles.phaseCardActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.phaseRange,
+                          isActivePhase && styles.phaseRangeActive,
+                        ]}
+                      >
+                        {getPhaseRangeLabel(phase)}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.phaseLabel,
+                          isActivePhase && styles.phaseLabelActive,
+                        ]}
+                      >
+                        {phase.label}
+                      </Text>
+                      {phase.focus ? (
+                        <Text
+                          style={[
+                            styles.phaseFocus,
+                            isActivePhase && styles.phaseFocusActive,
+                          ]}
+                        >
+                          {phase.focus}
+                        </Text>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              {currentWeek ? `Current Week: Week ${currentWeek.week}` : "Current Week"}
+            </Text>
+          </View>
+
           <View style={styles.weeks}>
-            {plan.weeks?.map((week) => {
+            {visibleWeeks.map((week) => {
               const weekSpacingAdvisories = spacingAdvisories.filter(
                 (advisory) => advisory.week === week.week
               );
@@ -55,7 +143,7 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
                         currentDay &&
                         currentDay.week === week.week &&
                         currentDay.day === day.day;
-                      const isDone = completedDays?.has(key);
+                      const isDone = completedDaySet.has(key);
                       const dayStatus = getTrainingDayStatus(day);
                       const isSkipped = dayStatus === "skipped";
                       const isRescheduled = dayStatus === "rescheduled";
@@ -179,6 +267,70 @@ const styles = StyleSheet.create({
   },
   weeks: {
     gap: 14,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111",
+  },
+  sectionBadge: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#065f46",
+    backgroundColor: "#d1fae5",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+  },
+  phaseSection: {
+    gap: 12,
+  },
+  phaseList: {
+    gap: 10,
+  },
+  phaseCard: {
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
+    backgroundColor: "#f9fafb",
+    gap: 6,
+  },
+  phaseCardActive: {
+    borderColor: "#10b981",
+    backgroundColor: "#ecfdf5",
+  },
+  phaseRange: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    color: "#6b7280",
+  },
+  phaseRangeActive: {
+    color: "#047857",
+  },
+  phaseLabel: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  phaseLabelActive: {
+    color: "#065f46",
+  },
+  phaseFocus: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#374151",
+  },
+  phaseFocusActive: {
+    color: "#065f46",
   },
   weekBlock: {
     padding: 14,
