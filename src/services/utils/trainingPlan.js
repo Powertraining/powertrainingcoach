@@ -145,6 +145,16 @@ const WEEKDAY_INDEX_LOOKUP = Object.freeze({
   Saturday: 6,
 });
 
+const DISALLOWED_TRAINING_PLAN_WRAPPER_KEYS = Object.freeze([
+  "plan",
+  "plans",
+  "trainingPlan",
+  "program",
+  "planOptions",
+  "options",
+  "programs",
+]);
+
 function normalizeString(value, fallback = "") {
   if (typeof value !== "string") {
     return fallback;
@@ -168,6 +178,14 @@ function parsePositiveInteger(value) {
     typeof value === "number" ? value : Number.parseInt(value, 10);
 
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function isPlainObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function hasOwnProperty(value, key) {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 function parseWeekRange(value) {
@@ -1327,6 +1345,254 @@ export function normalizeTrainingDay(day = {}, dayIndex = 0) {
       ? safeDay.exercises.map((exercise) => normalizeExercise(exercise))
       : [],
   };
+}
+
+function normalizeGeneratedPhase(phase = {}, phaseIndex = 0) {
+  if (!isPlainObject(phase)) {
+    throw new Error(
+      `Training plan phase ${phaseIndex + 1} must be an object.`
+    );
+  }
+
+  return normalizePlanPhase(
+    {
+      label: phase.label,
+      phase: phase.phase,
+      name: phase.name,
+      weeks: phase.weeks,
+      weekRange: phase.weekRange,
+      range: phase.range,
+      weekStart: phase.weekStart,
+      startWeek: phase.startWeek,
+      weekEnd: phase.weekEnd,
+      endWeek: phase.endWeek,
+      focus: phase.focus,
+      rationale: phase.rationale,
+      summary: phase.summary,
+      description: phase.description,
+    },
+    phaseIndex
+  );
+}
+
+function getStrictSubstitutionSource(exercise = {}) {
+  const sourceFields = ["substitutionOptions", "substitutes", "alternatives"];
+
+  for (const field of sourceFields) {
+    if (!hasOwnProperty(exercise, field)) {
+      continue;
+    }
+
+    if (!Array.isArray(exercise[field])) {
+      throw new Error(
+        `Training plan exercise field "${field}" must be an array when provided.`
+      );
+    }
+
+    return exercise[field];
+  }
+
+  return [];
+}
+
+function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
+  if (!isPlainObject(exercise)) {
+    throw new Error(
+      `Training plan exercise ${exerciseIndex + 1} must be an object.`
+    );
+  }
+
+  const fallbackExercise = {
+    name: exercise.name,
+    sets: exercise.sets,
+    reps: exercise.reps,
+    notes: exercise.notes,
+  };
+
+  const substitutionOptions = getStrictSubstitutionSource(exercise).map(
+    (option, optionIndex) => {
+      if (!isPlainObject(option)) {
+        throw new Error(
+          `Training plan substitution option ${optionIndex + 1} must be an object.`
+        );
+      }
+
+      return normalizeExerciseOption(option, fallbackExercise);
+    }
+  );
+
+  return normalizeExercise({
+    name: exercise.name,
+    sets: exercise.sets,
+    reps: exercise.reps,
+    notes: exercise.notes,
+    selectedSubstitutionId: exercise.selectedSubstitutionId,
+    selectedSubstitutionName: exercise.selectedSubstitutionName,
+    substitutionOptions,
+  });
+}
+
+function normalizeGeneratedTrainingDay(day = {}, dayIndex = 0) {
+  if (!isPlainObject(day)) {
+    throw new Error(`Training plan day ${dayIndex + 1} must be an object.`);
+  }
+
+  if (!Array.isArray(day.exercises) || day.exercises.length === 0) {
+    throw new Error(
+      `Training plan day ${dayIndex + 1} must include a non-empty exercises array.`
+    );
+  }
+
+  if (
+    hasOwnProperty(day, "sessionProfile") &&
+    day.sessionProfile != null &&
+    !isPlainObject(day.sessionProfile)
+  ) {
+    throw new Error(
+      `Training plan day ${dayIndex + 1} has an invalid sessionProfile.`
+    );
+  }
+
+  return normalizeTrainingDay(
+    {
+      day: day.day,
+      originalDayNumber: day.originalDayNumber,
+      sessionLabel: day.sessionLabel,
+      preferredWeekday: day.preferredWeekday,
+      sessionProfile: day.sessionProfile ?
+        {
+          regions: day.sessionProfile.regions,
+          qualities: day.sessionProfile.qualities,
+          focusRegions: day.sessionProfile.focusRegions,
+          trainingQualities: day.sessionProfile.trainingQualities,
+          stressLevel: day.sessionProfile.stressLevel,
+          sessionStress: day.sessionProfile.sessionStress,
+        } :
+        undefined,
+      status: day.status,
+      rescueMode: day.rescueMode,
+      adjustmentReason: day.adjustmentReason,
+      adjustmentSummary: day.adjustmentSummary,
+      exercises: day.exercises.map((exercise, exerciseIndex) =>
+        normalizeGeneratedExercise(exercise, exerciseIndex)
+      ),
+    },
+    dayIndex
+  );
+}
+
+function normalizeGeneratedAdjustmentState(adjustmentState = {}, weekIndex = 0) {
+  if (!isPlainObject(adjustmentState)) {
+    throw new Error(
+      `Training plan week ${weekIndex + 1} has an invalid adjustmentState.`
+    );
+  }
+
+  return {
+    missedSessionCount: adjustmentState.missedSessionCount,
+    originalPlannedSessions: adjustmentState.originalPlannedSessions,
+    originalWeekSnapshot: hasOwnProperty(adjustmentState, "originalWeekSnapshot") ?
+      normalizeGeneratedTrainingWeek(
+        adjustmentState.originalWeekSnapshot,
+        weekIndex,
+        { allowAdjustmentState: false, contextLabel: "originalWeekSnapshot" }
+      ) :
+      undefined,
+    lastMissedReason: adjustmentState.lastMissedReason,
+    lastAction: adjustmentState.lastAction,
+  };
+}
+
+function normalizeGeneratedTrainingWeek(
+  week = {},
+  weekIndex = 0,
+  options = {}
+) {
+  const {
+    allowAdjustmentState = true,
+    contextLabel = "week",
+  } = options;
+
+  if (!isPlainObject(week)) {
+    throw new Error(`Training plan ${contextLabel} ${weekIndex + 1} must be an object.`);
+  }
+
+  if (!Array.isArray(week.days) || week.days.length === 0) {
+    throw new Error(
+      `Training plan ${contextLabel} ${weekIndex + 1} must include a non-empty days array.`
+    );
+  }
+
+  const normalizedWeek = {
+    week: week.week,
+    days: week.days.map((day, dayIndex) =>
+      normalizeGeneratedTrainingDay(day, dayIndex)
+    ),
+  };
+
+  if (allowAdjustmentState && hasOwnProperty(week, "adjustmentState")) {
+    normalizedWeek.adjustmentState =
+      week.adjustmentState == null ?
+        undefined :
+        normalizeGeneratedAdjustmentState(week.adjustmentState, weekIndex);
+  }
+
+  return normalizedWeek;
+}
+
+function assertNoDisallowedTrainingPlanWrappers(plan = {}) {
+  const disallowedKey = DISALLOWED_TRAINING_PLAN_WRAPPER_KEYS.find((key) =>
+    hasOwnProperty(plan, key)
+  );
+
+  if (disallowedKey) {
+    throw new Error(
+      `Training plan response must be a direct plan object, not wrapped in "${disallowedKey}".`
+    );
+  }
+}
+
+export function parseGeneratedTrainingPlan(plan = {}) {
+  if (!isPlainObject(plan)) {
+    throw new Error("Training plan response must be a single JSON object.");
+  }
+
+  assertNoDisallowedTrainingPlanWrappers(plan);
+
+  if (!Array.isArray(plan.weeks) || plan.weeks.length === 0) {
+    throw new Error("Training plan response did not include any training weeks.");
+  }
+
+  if (hasOwnProperty(plan, "phaseOverview") && !Array.isArray(plan.phaseOverview)) {
+    throw new Error("Training plan response has an invalid phaseOverview.");
+  }
+
+  if (hasOwnProperty(plan, "phases") && !Array.isArray(plan.phases)) {
+    throw new Error("Training plan response has an invalid phases array.");
+  }
+
+  const phaseSource = Array.isArray(plan.phaseOverview) ?
+    plan.phaseOverview :
+    Array.isArray(plan.phases) ?
+      plan.phases :
+      [];
+  const normalizedPlan = normalizeTrainingPlan({
+    summary: plan.summary,
+    phaseOverview: phaseSource.map((phase, phaseIndex) =>
+      normalizeGeneratedPhase(phase, phaseIndex)
+    ),
+    weeks: plan.weeks.map((week, weekIndex) =>
+      normalizeGeneratedTrainingWeek(week, weekIndex)
+    ),
+  });
+
+  if (!normalizedPlan.weeks.some((week) => Array.isArray(week.days) && week.days.length > 0)) {
+    throw new Error(
+      "The generated response did not include a usable training plan."
+    );
+  }
+
+  return normalizedPlan;
 }
 
 export function normalizeTrainingPlan(plan = {}) {

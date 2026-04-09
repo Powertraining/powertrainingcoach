@@ -186,8 +186,10 @@ ${JSON.stringify(userInput, null, 2)}
 
 ### OUTPUT INSTRUCTIONS:
 - Respond ONLY in valid JSON.
+- Return EXACTLY one training plan object.
 - Follow the structure below EXACTLY.
 - Do not include commentary or explanation.
+- Never return multiple plans, comparisons, or wrapper keys such as "plans", "options", or "planChoices".
 - Include both a top-level "summary" and a top-level "phaseOverview" array.
 - Every exercise MUST include a "substitutionOptions" array.
 - The number of sessions inside each week's "days" array should match the athlete's requested weekly training frequency.
@@ -251,7 +253,7 @@ ${oldPlan ? JSON.stringify(oldPlan, null, 2) : "No previous plan provided."}
 
 ###
 
-Now generate the training plan JSON.
+Now generate exactly one training plan JSON object.
 `;
 
     return prompt;

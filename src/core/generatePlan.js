@@ -13,8 +13,12 @@ import {
 import { getLiveInstructions } from "../services/models/dbService.js";
 import {
     normalizeTrainingDay,
-    normalizeTrainingPlan,
+    parseGeneratedTrainingPlan,
 } from "../services/utils/trainingPlan.js";
+
+function normalizeGeneratedPlan(plan = {}) {
+    return parseGeneratedTrainingPlan(plan);
+}
 
 async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLAN_GENERATION_MODEL) {
     const functions = getFunctions(db.app, "us-central1");
@@ -89,7 +93,7 @@ export async function generatePlan(userInput, oldPlan = null) {
     return getTrainingCallableResponse(
         messages,
         OPENAI_PLAN_GENERATION_MODEL
-    ).then((plan) => normalizeTrainingPlan(plan));
+    ).then((plan) => normalizeGeneratedPlan(plan));
 }
 
 export async function adjustTrainingDayForMissedSession(adjustmentInput = {}) {

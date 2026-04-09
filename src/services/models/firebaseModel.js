@@ -9,7 +9,7 @@ import {
   createDefaultForumFilters,
   normalizeForumProfile,
 } from "./forumModel";
-import { normalizeTrainingPlan } from "../utils/trainingPlan.js";
+import { parseGeneratedTrainingPlan } from "../utils/trainingPlan.js";
 
 // To subscribe to the login/logout event
 import { subscribeToAuthChanges } from "./authService";
@@ -36,9 +36,21 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     }
     model.primaryCombatSport = persistedData.primaryCombatSport ?? "";
     model.sessionsPerWeek = persistedData.sessionsPerWeek ?? 3;
-    model.trainingPlan = persistedData.trainingPlan ?
-      normalizeTrainingPlan(persistedData.trainingPlan) :
-      null;
+    if (persistedData.trainingPlan) {
+      try {
+        model.trainingPlan = parseGeneratedTrainingPlan(
+          persistedData.trainingPlan
+        );
+      } catch (error) {
+        console.warn(
+          "[firebaseModel.applyPersistedUserData] Ignoring invalid persisted training plan:",
+          error
+        );
+        model.trainingPlan = null;
+      }
+    } else {
+      model.trainingPlan = null;
+    }
     model.completedDays = persistedData.completedDays ?? [];
     model.trainingPlanBatch = persistedData.trainingPlanBatch ?? 1;
     model.completedWeeks = persistedData.completedWeeks ?? 0;

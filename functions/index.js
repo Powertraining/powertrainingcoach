@@ -3025,6 +3025,271 @@ exports.stripeWebhook = functions.https.onRequest(
  * Uses OpenAI API to generate a personalized training plan based on user inputs
  * Server-side to protect API key and handle rate limiting
  */
+const DISALLOWED_TRAINING_PLAN_WRAPPER_KEYS = Object.freeze([
+  "plan",
+  "plans",
+  "trainingPlan",
+  "program",
+  "planOptions",
+  "options",
+  "programs",
+]);
+
+function isPlainObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function hasOwnProperty(value, key) {
+  return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function normalizeStringValue(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function parsePositiveIntegerValue(value) {
+  const parsedValue =
+    typeof value === "number" ? value : Number.parseInt(value, 10);
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function sanitizePhase(phase, phaseIndex) {
+  if (!isPlainObject(phase)) {
+    throw new Error(`Training plan phase ${phaseIndex + 1} must be an object.`);
+  }
+
+  const fallbackLabel = normalizeStringValue(phase.phase) ||
+    normalizeStringValue(phase.name) ||
+    `Phase ${phaseIndex + 1}`;
+  const fallbackFocus = normalizeStringValue(phase.focus) ||
+    normalizeStringValue(phase.rationale) ||
+    normalizeStringValue(phase.summary) ||
+    normalizeStringValue(phase.description);
+  const weekStart = parsePositiveIntegerValue(phase.weekStart) ||
+    parsePositiveIntegerValue(phase.startWeek) ||
+    phaseIndex + 1;
+  const weekEnd = parsePositiveIntegerValue(phase.weekEnd) ||
+    parsePositiveIntegerValue(phase.endWeek) ||
+    weekStart;
+
+  return {
+    label: normalizeStringValue(phase.label) || fallbackLabel,
+    weekStart: Math.min(weekStart, weekEnd),
+    weekEnd: Math.max(weekStart, weekEnd),
+    focus: fallbackFocus,
+  };
+}
+
+function sanitizeExerciseOption(option, optionIndex, fallbackExercise) {
+  if (!isPlainObject(option)) {
+    throw new Error(
+        `Training plan substitution option ${optionIndex + 1} must be an object.`,
+    );
+  }
+
+  return {
+    name: normalizeStringValue(option.name) || fallbackExercise.name,
+    sets: normalizeStringValue(option.sets) || fallbackExercise.sets,
+    reps: normalizeStringValue(option.reps) || fallbackExercise.reps,
+    notes: normalizeStringValue(option.notes) || fallbackExercise.notes,
+  };
+}
+
+function getStrictSubstitutionSource(exercise) {
+  for (const field of ["substitutionOptions", "substitutes", "alternatives"]) {
+    if (!hasOwnProperty(exercise, field)) {
+      continue;
+    }
+
+    if (!Array.isArray(exercise[field])) {
+      throw new Error(
+          `Training plan exercise field "${field}" must be an array when provided.`,
+      );
+    }
+
+    return exercise[field];
+  }
+
+  return [];
+}
+
+function sanitizeExercise(exercise, exerciseIndex) {
+  if (!isPlainObject(exercise)) {
+    throw new Error(
+        `Training plan exercise ${exerciseIndex + 1} must be an object.`,
+    );
+  }
+
+  const fallbackExercise = {
+    name: normalizeStringValue(exercise.name),
+    sets: normalizeStringValue(exercise.sets),
+    reps: normalizeStringValue(exercise.reps),
+    notes: normalizeStringValue(exercise.notes),
+  };
+
+  return {
+    ...fallbackExercise,
+    substitutionOptions: getStrictSubstitutionSource(exercise).map(
+        (option, optionIndex) =>
+          sanitizeExerciseOption(option, optionIndex, fallbackExercise),
+    ),
+    selectedSubstitutionId: normalizeStringValue(exercise.selectedSubstitutionId),
+  };
+}
+
+function sanitizeTrainingDay(day, dayIndex) {
+  if (!isPlainObject(day)) {
+    throw new Error(`Training plan day ${dayIndex + 1} must be an object.`);
+  }
+
+  if (!Array.isArray(day.exercises) || day.exercises.length === 0) {
+    throw new Error(
+        `Training plan day ${dayIndex + 1} must include a non-empty exercises array.`,
+    );
+  }
+
+  if (
+    hasOwnProperty(day, "sessionProfile") &&
+    day.sessionProfile != null &&
+    !isPlainObject(day.sessionProfile)
+  ) {
+    throw new Error(
+        `Training plan day ${dayIndex + 1} has an invalid sessionProfile.`,
+    );
+  }
+
+  return {
+    day: parsePositiveIntegerValue(day.day) || dayIndex + 1,
+    originalDayNumber: parsePositiveIntegerValue(day.originalDayNumber) ||
+      parsePositiveIntegerValue(day.day) ||
+      dayIndex + 1,
+    sessionLabel: normalizeStringValue(day.sessionLabel) || `Day ${dayIndex + 1}`,
+    preferredWeekday: normalizeStringValue(day.preferredWeekday),
+    sessionProfile: day.sessionProfile ?
+      {
+        regions: Array.isArray(day.sessionProfile.regions) ?
+          day.sessionProfile.regions :
+          [],
+        qualities: Array.isArray(day.sessionProfile.qualities) ?
+          day.sessionProfile.qualities :
+          [],
+        stressLevel: normalizeStringValue(day.sessionProfile.stressLevel),
+      } :
+      {regions: [], qualities: [], stressLevel: ""},
+    status: normalizeStringValue(day.status),
+    rescueMode: normalizeStringValue(day.rescueMode),
+    adjustmentReason: normalizeStringValue(day.adjustmentReason),
+    adjustmentSummary: normalizeStringValue(day.adjustmentSummary),
+    exercises: day.exercises.map((exercise, exerciseIndex) =>
+      sanitizeExercise(exercise, exerciseIndex),
+    ),
+  };
+}
+
+function sanitizeTrainingWeek(week, weekIndex, options = {}) {
+  const {allowAdjustmentState = true, contextLabel = "week"} = options;
+
+  if (!isPlainObject(week)) {
+    throw new Error(
+        `Training plan ${contextLabel} ${weekIndex + 1} must be an object.`,
+    );
+  }
+
+  if (!Array.isArray(week.days) || week.days.length === 0) {
+    throw new Error(
+        `Training plan ${contextLabel} ${weekIndex + 1} must include a non-empty days array.`,
+    );
+  }
+
+  const sanitizedWeek = {
+    week: parsePositiveIntegerValue(week.week) || weekIndex + 1,
+    days: week.days.map((day, dayIndex) => sanitizeTrainingDay(day, dayIndex)),
+  };
+
+  if (allowAdjustmentState && hasOwnProperty(week, "adjustmentState")) {
+    if (week.adjustmentState != null && !isPlainObject(week.adjustmentState)) {
+      throw new Error(
+          `Training plan week ${weekIndex + 1} has an invalid adjustmentState.`,
+      );
+    }
+
+    if (isPlainObject(week.adjustmentState)) {
+      sanitizedWeek.adjustmentState = {
+        missedSessionCount: parsePositiveIntegerValue(
+            week.adjustmentState.missedSessionCount,
+        ) || 0,
+        originalPlannedSessions: parsePositiveIntegerValue(
+            week.adjustmentState.originalPlannedSessions,
+        ) || sanitizedWeek.days.length,
+        originalWeekSnapshot: hasOwnProperty(
+            week.adjustmentState,
+            "originalWeekSnapshot",
+        ) ?
+          sanitizeTrainingWeek(
+              week.adjustmentState.originalWeekSnapshot,
+              weekIndex,
+              {
+                allowAdjustmentState: false,
+                contextLabel: "originalWeekSnapshot",
+              },
+          ) :
+          undefined,
+        lastMissedReason: normalizeStringValue(
+            week.adjustmentState.lastMissedReason,
+        ),
+        lastAction: normalizeStringValue(week.adjustmentState.lastAction),
+      };
+    }
+  }
+
+  return sanitizedWeek;
+}
+
+function parseDirectTrainingPlanResponse(value) {
+  if (!isPlainObject(value)) {
+    throw new Error("Training plan response must be a single JSON object.");
+  }
+
+  const disallowedKey = DISALLOWED_TRAINING_PLAN_WRAPPER_KEYS.find((key) =>
+    hasOwnProperty(value, key),
+  );
+
+  if (disallowedKey) {
+    throw new Error(
+        `Training plan response must be a direct plan object, not wrapped in "${disallowedKey}".`,
+    );
+  }
+
+  if (!Array.isArray(value.weeks) || value.weeks.length === 0) {
+    throw new Error("Training plan response did not include any training weeks.");
+  }
+
+  if (hasOwnProperty(value, "phaseOverview") && !Array.isArray(value.phaseOverview)) {
+    throw new Error("Training plan response has an invalid phaseOverview.");
+  }
+
+  if (hasOwnProperty(value, "phases") && !Array.isArray(value.phases)) {
+    throw new Error("Training plan response has an invalid phases array.");
+  }
+
+  const phaseSource = Array.isArray(value.phaseOverview) ?
+    value.phaseOverview :
+    Array.isArray(value.phases) ?
+      value.phases :
+      [];
+
+  return {
+    summary: normalizeStringValue(value.summary),
+    phaseOverview: phaseSource.map((phase, phaseIndex) =>
+      sanitizePhase(phase, phaseIndex),
+    ),
+    weeks: value.weeks.map((week, weekIndex) =>
+      sanitizeTrainingWeek(week, weekIndex),
+    ),
+  };
+}
+
 exports.generateTrainingPlan = functions.https.onCall(
     {secrets: [openAiApiKeyParam]},
     async (request) => {
@@ -3085,7 +3350,7 @@ exports.generateTrainingPlan = functions.https.onCall(
           throw new Error("No content in API response");
         }
 
-        const plan = JSON.parse(content);
+        const plan = parseDirectTrainingPlanResponse(JSON.parse(content));
         console.log("Successfully generated training plan");
         return {success: true, plan};
       } catch (error) {
@@ -3215,8 +3480,10 @@ ${JSON.stringify(userInput, null, 2)}
 
 ### OUTPUT INSTRUCTIONS:
 - Respond ONLY in valid JSON.
+- Return EXACTLY one training plan object.
 - Follow the structure below EXACTLY.
 - Do not include commentary or explanation.
+- Never return multiple plans, comparisons, or wrapper keys such as "plans", "options", or "planChoices".
 - Week numbers should start at ${startingWeek}
 - **IMPORTANT: Each week MUST have EXACTLY ${userInput.daysPerWeek} days**
   **in the days array.**
@@ -3260,7 +3527,7 @@ ${JSON.stringify(userInput, null, 2)}
 
 ---
 
-Now generate the training plan JSON with ${numWeeks} weeks total.
+Now generate exactly one training plan JSON object with ${numWeeks} weeks total.
 **CRITICAL: Each week must include EXACTLY ${userInput.daysPerWeek}**
 **training days (${userInput.daysPerWeek} days objects in the "days" array).**
 **CRITICAL: Every exercise MUST have a valid videoUrl field with a real**
