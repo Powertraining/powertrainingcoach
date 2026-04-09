@@ -1,5 +1,8 @@
 # Plyometrics and Loaded Jumps
-## Plyometric Exercise Selection
+##  Plyometric Exercise Selection & Impact Categorization
+Depending on the athlete’s experience and competency and where they are in the program, begin with low impact plyometrics, and progress into medium and high impact. 
+
+Core rule: Start with low-impact plyometrics and only progress to medium or high impact when the athlete has enough training experience, movement competency, and is far enough along in the program phase. ALTERNATIVELY, HAS EXPLICITLY STATED THEY ARE EXPERIENCED IN PLYOMETRICS.
 
 ### Bilateral (two-leg)
 Countermovement jump (CMJ)
