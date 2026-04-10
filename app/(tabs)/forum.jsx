@@ -8,6 +8,7 @@ import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
 import ErrorView from "../../src/screens/screens/ErrorView.jsx";
 import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import CoachResponseView from "../../src/screens/screens/forum/coachResponseView.jsx";
+import CommentsView from "../../src/screens/screens/forum/commentsView.jsx";
 import ForumView from "../../src/screens/screens/forum/ForumView.jsx";
 
 const ForumScreen = observer(function ForumScreen() {
@@ -15,6 +16,7 @@ const ForumScreen = observer(function ForumScreen() {
   const router = useRouter();
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
+  const [isCommentsVisible, setIsCommentsVisible] = useState(false);
 
   useEffect(() => {
     if (!model.ready || !model.user || model.forumFeed.length > 0) {
@@ -27,11 +29,11 @@ const ForumScreen = observer(function ForumScreen() {
   }, [model, model.forumFeed.length, model.ready, model.user]);
 
   useEffect(() => {
-    if (!isCoachResponseVisible) {
+    if (!isCoachResponseVisible && !isCommentsVisible) {
       return;
     }
 
-    hideCoachResponseView();
+    hideForumOverlay();
   }, [model.forumOverlayDismissCount]);
 
   const feedError = model.forumFeedPromiseState?.error;
@@ -89,9 +91,32 @@ const ForumScreen = observer(function ForumScreen() {
     });
   }
 
+  function showCommentsView(postId) {
+    setSelectedPostId(postId);
+    setIsCommentsVisible(true);
+    model.setForumOverlayVisible(true);
+
+    model.loadForumPostThread(postId).catch((error) => {
+      console.warn(`Could not load the forum thread for ${postId}:`, error);
+    });
+  }
+
   function hideCoachResponseView() {
     setSelectedPostId(null);
     setIsCoachResponseVisible(false);
+    model.setForumOverlayVisible(false);
+  }
+
+  function hideCommentsView() {
+    setSelectedPostId(null);
+    setIsCommentsVisible(false);
+    model.setForumOverlayVisible(false);
+  }
+
+  function hideForumOverlay() {
+    setSelectedPostId(null);
+    setIsCoachResponseVisible(false);
+    setIsCommentsVisible(false);
     model.setForumOverlayVisible(false);
   }
 
@@ -131,11 +156,20 @@ const ForumScreen = observer(function ForumScreen() {
         onTogglePostSave={handleTogglePostSave}
         onToggleCoachResponse={showCoachResponseView}
         onPressPostButton={handlePressPostButton}
+        onPressComments={showCommentsView}
       />
       {isCoachResponseVisible ? (
         <CoachResponseView
           onClose={hideCoachResponseView}
           comments={coachComments}
+        />
+      ) : null}
+      {isCommentsVisible ? (
+        <CommentsView
+          onClose={hideCommentsView}
+          comments={
+            selectedPostId === model.forumSelectedPost?.id ? model.forumComments : []
+          }
         />
       ) : null}
     </View>

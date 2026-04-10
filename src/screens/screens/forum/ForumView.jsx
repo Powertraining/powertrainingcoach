@@ -8,6 +8,7 @@ export default function ForumView({
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
+  onPressComments,
   onPressPostButton,
 }) {
   return (
@@ -35,6 +36,7 @@ export default function ForumView({
               onTogglePostLike={onTogglePostLike}
               onTogglePostSave={onTogglePostSave}
               onToggleCoachResponse={onToggleCoachResponse}
+              onPressComments={onPressComments}
             />
           ))}
         </ScrollView>

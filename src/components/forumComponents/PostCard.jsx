@@ -9,6 +9,7 @@ export default function PostCard({
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
+  onPressComments,
 }) {
   const isPostLiked = Boolean(post?.isLiked);
   const isPostSaved = Boolean(post?.isSaved);
@@ -55,7 +56,10 @@ export default function PostCard({
                 {post?.likesCount}
               </StandardText>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.countButton}>
+            <TouchableOpacity
+              style={styles.countButton}
+              onPress={() => onPressComments?.(post.id)}
+            >
               <Image source={require("../../assets/icons/conversation.png")} style={styles.buttonIcon} />
               <StandardText fontSize={18}>{post?.commentsCount}</StandardText>
             </TouchableOpacity>
