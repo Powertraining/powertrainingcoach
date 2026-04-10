@@ -1,4 +1,5 @@
-import { Image, StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import StandardText from "../textComponents/StandardText.jsx";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 
@@ -6,6 +7,9 @@ export default function Comment({ comment }) {
   if (!comment) {
     return null;
   }
+
+  const [expanded, setExpanded] = useState(false);
+  const bodyLines = expanded ? undefined : 3;
 
   const avatarSource =
     comment?.authorAvatarUrl ?
@@ -23,7 +27,12 @@ export default function Comment({ comment }) {
           {comment?.isCoachVerified ? <VerifiedBadge /> : null}
           <StandardText style={styles.name}>{comment?.authorDisplayName}</StandardText>
         </View>
-        <StandardText style={styles.body}>{comment?.body}</StandardText>
+        <StandardText lines={bodyLines} style={styles.body}>{comment?.body}</StandardText>
+        <TouchableOpacity onPress={() => setExpanded((current) => !current)}>
+          <StandardText style={styles.readMore}>
+            {expanded ? "Show less" : "Show more"}
+          </StandardText>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -71,5 +80,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#fff",
     lineHeight: 22,
+  },
+  readMore: {
+    marginTop: 8,
+    fontSize: 15,
   },
 });

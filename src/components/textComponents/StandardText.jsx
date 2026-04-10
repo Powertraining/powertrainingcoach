@@ -1,8 +1,8 @@
 import { Text } from "react-native";
 
-export default function StandardText({ style, children, fontSize, center = false, textColor = "#fff", ...props }) {
+export default function StandardText({ lines = undefined, style, children, fontSize, center = false, textColor = "#fff", ...props }) {
   return (
-    <Text
+    <Text numberOfLines={lines}
       style={[
         { color: textColor, fontFamily: "BebasNeue" },
         fontSize ? { fontSize } : null,
