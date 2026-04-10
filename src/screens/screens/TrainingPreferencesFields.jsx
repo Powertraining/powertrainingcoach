@@ -6,6 +6,7 @@ import {
   EXPERIENCE_OPTIONS,
   getTrainingPreferencesFormState,
   GOAL_OPTIONS,
+  PLYOMETRICS_EXPERIENCE_OPTIONS,
   PRIMARY_STYLE_OPTIONS,
 } from "../../constants/trainingPreferences.js";
 import { WEEKDAY_OPTIONS } from "../../constants/weekdays.js";
@@ -144,6 +145,23 @@ export default function TrainingPreferencesFields({
           style={styles.input}
         >
           {EXPERIENCE_OPTIONS.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+            />
+          ))}
+        </Picker>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Experience in plyometrics</Text>
+        <Picker
+          selectedValue={resolvedValues.plyometricsExperience}
+          onValueChange={(value) => updateField("plyometricsExperience", value)}
+          style={styles.input}
+        >
+          {PLYOMETRICS_EXPERIENCE_OPTIONS.map((option) => (
             <Picker.Item
               key={option.value}
               label={option.label}

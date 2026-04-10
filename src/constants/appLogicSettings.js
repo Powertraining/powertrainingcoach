@@ -38,6 +38,27 @@ export const LIFT_INTENSITY_METHOD_OPTIONS = Object.freeze([
   },
 ]);
 
+export const PERCENTAGE_REFERENCE_METHOD_OPTIONS = Object.freeze([
+  {
+    label: "1. True 1RM tests",
+    value: "true_1rm",
+    description:
+      "Rare, most precise, and only suitable far from competition for experienced lifters.",
+  },
+  {
+    label: "2. 2-5RM + Epley estimate",
+    value: "multi_rm",
+    description:
+      "Use a hard set of 2-5 reps, then estimate 1RM with Epley's formula for future percentage work.",
+  },
+  {
+    label: "3. Heavy single @RPE 8-9",
+    value: "heavy_single",
+    description:
+      "Default option. Estimate 1RM from a heavy single using roughly 2.5% per RPE point with much less fatigue.",
+  },
+]);
+
 export const DELOAD_STRATEGY_OPTIONS = Object.freeze([
   {
     label: "Maintain intensity, reduce volume 30-50%",
@@ -83,6 +104,7 @@ export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   combatTrainingIntensity: "moderate",
   competencyAndLimitations: [],
   liftIntensityMethod: "percentage",
+  percentageReferenceMethod: "heavy_single",
   deloadStrategy: "maintain_intensity_reduce_volume",
   loadingStrategy: "flat_loading",
 });
@@ -145,6 +167,12 @@ function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = fal
     )
       ? safeSource.liftIntensityMethod
       : APP_LOGIC_SETTINGS_DEFAULTS.liftIntensityMethod,
+    percentageReferenceMethod: isAllowedValue(
+      safeSource.percentageReferenceMethod,
+      PERCENTAGE_REFERENCE_METHOD_OPTIONS
+    )
+      ? safeSource.percentageReferenceMethod
+      : APP_LOGIC_SETTINGS_DEFAULTS.percentageReferenceMethod,
     deloadStrategy: isAllowedValue(
       safeSource.deloadStrategy,
       DELOAD_STRATEGY_OPTIONS
@@ -200,6 +228,8 @@ export function areAppLogicSettingsEqual(left, right) {
       normalizedRight.combatTrainingIntensity &&
     normalizedLeft.liftIntensityMethod ===
       normalizedRight.liftIntensityMethod &&
+    normalizedLeft.percentageReferenceMethod ===
+      normalizedRight.percentageReferenceMethod &&
     normalizedLeft.deloadStrategy === normalizedRight.deloadStrategy &&
     normalizedLeft.loadingStrategy === normalizedRight.loadingStrategy &&
     normalizedLeft.competencyAndLimitations.length ===

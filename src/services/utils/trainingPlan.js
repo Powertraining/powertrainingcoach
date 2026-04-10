@@ -2,6 +2,7 @@ import {
   getNormalizedWeekday,
   getWeekdayNameFromIndex,
 } from "../../constants/weekdays.js";
+import { normalizeStrengthAssessmentConfig } from "./strengthAssessment.js";
 
 const SESSION_REGION_DEFINITIONS = Object.freeze([
   {
@@ -718,6 +719,10 @@ export function normalizeExercise(exercise = {}) {
     sets: selectedOption.sets,
     reps: selectedOption.reps,
     notes: selectedOption.notes,
+    strengthAssessment: normalizeStrengthAssessmentConfig(
+      safeExercise.strengthAssessment,
+      selectedOption.name
+    ),
     selectedSubstitutionId: selectedOption.id,
     substitutionOptions: normalizedOptions,
   };
@@ -725,6 +730,10 @@ export function normalizeExercise(exercise = {}) {
 
 export function getExerciseSubstitutionOptions(exercise = {}) {
   return normalizeExercise(exercise).substitutionOptions;
+}
+
+export function getExerciseStrengthAssessment(exercise = {}) {
+  return normalizeExercise(exercise).strengthAssessment;
 }
 
 export function applyExerciseSubstitution(exercise = {}, substitutionId = "") {
@@ -1426,6 +1435,7 @@ function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
     sets: exercise.sets,
     reps: exercise.reps,
     notes: exercise.notes,
+    strengthAssessment: exercise.strengthAssessment,
     selectedSubstitutionId: exercise.selectedSubstitutionId,
     selectedSubstitutionName: exercise.selectedSubstitutionName,
     substitutionOptions,

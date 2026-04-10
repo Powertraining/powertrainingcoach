@@ -41,6 +41,11 @@ const DayDetailScreen = observer(function DayDetailScreen() {
       adjustmentSummary: day.adjustmentSummary || "",
     };
   }, [plan, weekNumber, dayNumber]);
+  const sessionAssessmentResults = useMemo(
+    () =>
+      model.getStrengthAssessmentSessionResults?.(weekNumber, dayNumber) || [],
+    [dayNumber, model, model.strengthAssessmentState, weekNumber]
+  );
 
   // Compute total days for progress tracking
   const totalDays = useMemo(() => {
@@ -108,8 +113,15 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     }
   }
 
-  function handleFinish() {
+  function handleFinish(assessmentResults = []) {
     if (!selectedDay) return;
+
+    model.saveStrengthAssessmentResults?.({
+      weekNumber: selectedDay.week,
+      dayNumber: selectedDay.day,
+      exercises: selectedDay.exercises,
+      results: assessmentResults,
+    });
 
     const key = `${selectedDay.week}-${selectedDay.day}`;
 
@@ -162,6 +174,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
         status={selectedDay.status}
         rescueMode={selectedDay.rescueMode}
         adjustmentSummary={selectedDay.adjustmentSummary}
+        initialAssessmentResults={sessionAssessmentResults}
         onBack={handleBack}
         onReplaceExercise={handleReplaceExercise}
         onFinish={handleFinish}

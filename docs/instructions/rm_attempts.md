@@ -3,8 +3,32 @@ The athlete will have three options for gauging strength level for future % pres
 1.    	True 1RM tests
 2.    	Multiple RM tests (up to 5) then estimating 1RM using Epley’s formula
 3.    	Estimatign 1RM using a heay single (RPE 8-9)—with one RPE point counting as 2.5%
+Remember, maxing out is only necessary when using the percentage system. Not RPE. Because RPE is by default autoregulatory. 
+Use this hierarchy:
+Heavy single @8–9 RPE = frequent/default
+2–5RM test = occasional
+True 1RM = rare
+Heavy single @8–9
+Can be used more frequently if desired. In an appropriate buildup depending on the program structure. 
+Embedded as the top set of the session
+None in deload week
+Remove if it coincides with a match within the weeks. 
+This matches your 3:1 block logic well.
+2–5 RM test
+Every 4–6 weeks
+Allowed in off-season and early/mid camp
+Blocked in final 5 weeks before fight
+That gives enough flexibility without letting the app spam hard tests.
+True 1RM
+Be more cautious with this alternative, as it has limited utility for fighters. It’ll be more useful for other sports (E.g., powerlifters, strongmen, weightlifters—but we haven’t added these yet).
+Every 12–16 weeks (if athlete explicitly desires this method)--expection is if the program explicitly has worked on 1-rep style sets prior, e.g., 5-10 sets of 1, then it can probably be done more frequently. But this rep scheme is rare, and is an exception. 
+Max 2–3 times per year per lift
+Only off-season / general strength phase
+Never close to competition
+Max 1 true 1RM test in any week
+
 Here are the explanations for each method to be shown in the app:
-Option 1 – True 1RM Test
+## Option 1 – True 1RM Test
 What it is
 You work up to a single, all-out rep (RPE 10) on a key lift (e.g., squat, deadlift, bench). The heaviest successful rep that day is your 1RM.
 Why use it?
@@ -26,7 +50,7 @@ You’re in fight camp or your training load is already very high.
 You have a history of back, knee, or shoulder issues that worsen with heavy singles.
 Max attempts make you overly anxious or cause you to lose form.
 
-Option 2 – 2–5RM Test (Estimated 1RM)
+## Option 2 – 2–5RM Test (Estimated 1RM)
 What it is
 You work up to a heavy set of 2–5 reps (RPE 9–10). The app uses your load and reps (Epley formula) to estimate your 1RM and adjust your training weights.
 Why use it?
@@ -48,7 +72,7 @@ You’re very close to a fight and need to minimize fatigue.
 You struggle to keep technique tight when pushing near failure.
 You dislike very hard sets and tend to stop too early or go too far past RPE 9–10.
 
-Option 3 – Heavy Single @RPE 8–9 (Estimated 1RM)
+## Option 3 – Heavy Single @RPE 8–9 (Estimated 1RM)
 What it is
 You work up to one heavy but submax single (RPE 8–9 – tough, but not a grind). The app assumes each RPE point ≈ 2.5% of your max and uses that single to estimate your 1RM and update your training weights.
 Why use it?
@@ -81,9 +105,6 @@ Phase restriction
 Only in off-season / general strength phases.
 Never within 3–4 weeks of a fight.
 Never inside a high-fatigue peak sparring block.
-Frequency cap
-Max 1 true 1RM test per lift every 3–4 months.
-Max 2–3 true 1RM tests total in any 12-month period per lift.
 Lift selection
 Only on primary strength lifts (e.g., trap bar deadlift, squat/front squat, bench, bench variant).
 No 1RM tests on isolation or accessory lifts.
@@ -243,6 +264,14 @@ Confidence with big weights
 Technical consistency under load
 Works even in camp
 Unlike 1RMs or 2–5RMs, the HS method is acceptable deeper into camp as long as RPE stays 8–9 and total volume is controlled.
+
+## User-Facing Explanation (for inside the app)
+You can use or adapt this as tooltip / info text.
+Why you’re doing a heavy single today
+In some sessions, we’ll ask you to perform a heavy single (1 rep) that feels like RPE 8–9 – heavy, but not a true max.
+From this single, the app estimates your current 1-rep max and quietly updates your training weights. We use a simple rule: each RPE step is about 2.5% of your max. So a single at RPE 8 is roughly 95% of your max, and a single at RPE 9 is roughly 97.5%.
+This lets us track your strength and keep your percentages accurate without constant max testing, and with much less fatigue – important when you also have hard pads, sparring, and wrestling in your week.
+
 
 ## How Often the App Will Test Your Strength (Once You Choose a Method)
 1. Heavy Single @ RPE 8–9 (Default Method)

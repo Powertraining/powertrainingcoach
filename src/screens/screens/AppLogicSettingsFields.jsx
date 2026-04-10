@@ -8,6 +8,7 @@ import {
   getAppLogicSettingsFormState,
   LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
+  PERCENTAGE_REFERENCE_METHOD_OPTIONS,
   TRAINING_PHASE_OPTIONS,
 } from "../../constants/appLogicSettings.js";
 
@@ -164,6 +165,37 @@ export default function AppLogicSettingsFields({
           value={resolvedValues.liftIntensityMethod}
         />
       </View>
+
+      {resolvedValues.liftIntensityMethod === "percentage" && (
+        <View style={styles.field}>
+          <Text style={styles.label}>How should the app gauge strength for % work?</Text>
+          <Text style={styles.helperText}>
+            Choose how main lifts get their % references. The app will schedule these conservatively and store the results for future plan updates.
+          </Text>
+          <Picker
+            selectedValue={resolvedValues.percentageReferenceMethod}
+            onValueChange={(value) =>
+              updateField("percentageReferenceMethod", value)
+            }
+            style={styles.input}
+          >
+            {PERCENTAGE_REFERENCE_METHOD_OPTIONS.map((option) => (
+              <Picker.Item
+                key={option.value}
+                label={option.label}
+                value={option.value}
+              />
+            ))}
+          </Picker>
+          <OptionDescription
+            options={PERCENTAGE_REFERENCE_METHOD_OPTIONS}
+            value={resolvedValues.percentageReferenceMethod}
+          />
+          <Text style={styles.helperText}>
+            Heavy singles are the default and can appear about every 3rd loading week. 2-5RM tests are occasional, and true 1RMs are rare plus limited to suitable off-camp phases.
+          </Text>
+        </View>
+      )}
 
       <View style={styles.field}>
         <Text style={styles.label}>Deload strategy</Text>

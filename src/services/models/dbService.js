@@ -27,6 +27,7 @@ import {
   DEFAULT_FORUM_FEED_LIMIT,
 } from "./forumModel.js";
 import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
+import { createDefaultStrengthAssessmentState } from "../utils/strengthAssessment.js";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
@@ -266,6 +267,7 @@ export function createDefaultUserData() {
     completedWeeks: 0,
     subscription: false,
     subscriptionEndDate: null,
+    strengthAssessmentState: createDefaultStrengthAssessmentState(),
     forumProfile: createDefaultForumProfile(),
   };
 }
