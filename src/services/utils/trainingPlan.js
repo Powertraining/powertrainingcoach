@@ -2,6 +2,8 @@ import {
   getNormalizedWeekday,
   getWeekdayNameFromIndex,
 } from "../../constants/weekdays.js";
+import { normalizePerformanceTarget } from "./trainingPerformance.js";
+import { normalizePercentagePrescription } from "./percentagePrescription.js";
 import { normalizeStrengthAssessmentConfig } from "./strengthAssessment.js";
 
 const SESSION_REGION_DEFINITIONS = Object.freeze([
@@ -719,6 +721,15 @@ export function normalizeExercise(exercise = {}) {
     sets: selectedOption.sets,
     reps: selectedOption.reps,
     notes: selectedOption.notes,
+    performanceTarget: normalizePerformanceTarget(
+      safeExercise.performanceTarget,
+      selectedOption.name,
+      safeExercise
+    ),
+    percentagePrescription: normalizePercentagePrescription(
+      safeExercise.percentagePrescription,
+      selectedOption.name
+    ),
     strengthAssessment: normalizeStrengthAssessmentConfig(
       safeExercise.strengthAssessment,
       selectedOption.name
@@ -734,6 +745,14 @@ export function getExerciseSubstitutionOptions(exercise = {}) {
 
 export function getExerciseStrengthAssessment(exercise = {}) {
   return normalizeExercise(exercise).strengthAssessment;
+}
+
+export function getExercisePercentagePrescription(exercise = {}) {
+  return normalizeExercise(exercise).percentagePrescription;
+}
+
+export function getExercisePerformanceTarget(exercise = {}) {
+  return normalizeExercise(exercise).performanceTarget;
 }
 
 export function applyExerciseSubstitution(exercise = {}, substitutionId = "") {
@@ -1435,6 +1454,8 @@ function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
     sets: exercise.sets,
     reps: exercise.reps,
     notes: exercise.notes,
+    performanceTarget: exercise.performanceTarget,
+    percentagePrescription: exercise.percentagePrescription,
     strengthAssessment: exercise.strengthAssessment,
     selectedSubstitutionId: exercise.selectedSubstitutionId,
     selectedSubstitutionName: exercise.selectedSubstitutionName,

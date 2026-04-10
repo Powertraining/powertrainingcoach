@@ -3054,6 +3054,68 @@ function parsePositiveIntegerValue(value) {
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
 }
 
+function parsePositiveNumberValue(value) {
+  const parsedValue =
+    typeof value === "number" ? value : Number.parseFloat(value);
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function roundToTenthValue(value) {
+  return Number.isFinite(value) ? Math.round(value * 10) / 10 : null;
+}
+
+const RELATIVE_INTENSITY_ALPHA_BY_REPS = Object.freeze({
+  1: 1,
+  2: 0.95,
+  3: 0.925,
+  4: 0.9,
+  5: 0.875,
+  6: 0.85,
+  7: 0.825,
+  8: 0.8,
+  9: 0.775,
+  10: 0.75,
+});
+
+const VALID_LOADING_STRATEGIES = new Set([
+  "flat_loading",
+  "ascending_pyramid",
+  "descending_pyramid",
+  "double_pyramid",
+]);
+
+function calculateRelativeIntensityFromPercentOneRepMaxValue(percent1RM, reps) {
+  const normalizedPercent = parsePositiveNumberValue(percent1RM);
+  const normalizedReps = parsePositiveIntegerValue(reps);
+  const alpha = normalizedReps ?
+    RELATIVE_INTENSITY_ALPHA_BY_REPS[normalizedReps] || null :
+    null;
+
+  if (!normalizedPercent || !alpha) {
+    return null;
+  }
+
+  return roundToTenthValue(normalizedPercent / alpha);
+}
+
+function calculatePercentOneRepMaxFromRelativeIntensityValue(
+    relativeIntensity,
+    reps,
+) {
+  const normalizedRelativeIntensity = parsePositiveNumberValue(relativeIntensity);
+  const normalizedReps = parsePositiveIntegerValue(reps);
+  const alpha = normalizedReps ?
+    RELATIVE_INTENSITY_ALPHA_BY_REPS[normalizedReps] || null :
+    null;
+
+  if (!normalizedRelativeIntensity || !alpha) {
+    return null;
+  }
+
+  return roundToTenthValue(normalizedRelativeIntensity * alpha);
+}
+
 function sanitizePhase(phase, phaseIndex) {
   if (!isPlainObject(phase)) {
     throw new Error(`Training plan phase ${phaseIndex + 1} must be an object.`);
@@ -3144,6 +3206,125 @@ function sanitizeStrengthAssessment(strengthAssessment, fallbackLiftName = "") {
   };
 }
 
+function sanitizePerformanceTarget(performanceTarget, fallbackLiftName = "") {
+  if (performanceTarget == null) {
+    return null;
+  }
+
+  if (!isPlainObject(performanceTarget)) {
+    throw new Error("Training plan performanceTarget must be an object.");
+  }
+
+  const strategy = normalizeStringValue(performanceTarget.strategy);
+  const validStrategies = new Set(["e1rm", "best_set", "fixed_rpe"]);
+
+  if (!validStrategies.has(strategy)) {
+    throw new Error(
+        `Training plan performanceTarget strategy "${strategy}" is invalid.`,
+    );
+  }
+
+  return {
+    strategy,
+    liftName:
+      normalizeStringValue(performanceTarget.liftName) ||
+      normalizeStringValue(performanceTarget.referenceLift) ||
+      fallbackLiftName,
+    repTarget:
+      parsePositiveIntegerValue(
+          performanceTarget.repTarget || performanceTarget.reps,
+      ) || null,
+    targetRpe:
+      parsePositiveNumberValue(
+          performanceTarget.targetRpe || performanceTarget.rpe,
+      ) || null,
+    prompt: normalizeStringValue(performanceTarget.prompt),
+  };
+}
+
+function sanitizePercentageWorkingSet(workingSet, workingSetIndex) {
+  if (!isPlainObject(workingSet)) {
+    throw new Error(
+        `Training plan percentage working set ${workingSetIndex + 1} must be an object.`,
+    );
+  }
+
+  const reps = parsePositiveIntegerValue(workingSet.reps);
+  const explicitPercent1RM = parsePositiveNumberValue(
+      workingSet.percent1RM || workingSet.percent || workingSet.intensity,
+  );
+  const explicitRelativeIntensity = parsePositiveNumberValue(
+      workingSet.relativeIntensity || workingSet.ri || workingSet.RI,
+  );
+  const percent1RM = explicitPercent1RM ||
+    calculatePercentOneRepMaxFromRelativeIntensityValue(
+        explicitRelativeIntensity,
+        reps,
+    );
+
+  if (!reps || !percent1RM) {
+    throw new Error(
+        `Training plan percentage working set ${workingSetIndex + 1} must include reps and either percent1RM or relativeIntensity.`,
+    );
+  }
+
+  return {
+    count: parsePositiveIntegerValue(workingSet.count || workingSet.sets) || 1,
+    reps,
+    percent1RM: roundToTenthValue(percent1RM),
+    relativeIntensity:
+      calculateRelativeIntensityFromPercentOneRepMaxValue(percent1RM, reps) ||
+      roundToTenthValue(explicitRelativeIntensity),
+  };
+}
+
+function sanitizePercentagePrescription(
+    percentagePrescription,
+    fallbackLiftName = "",
+) {
+  if (percentagePrescription == null) {
+    return null;
+  }
+
+  if (!isPlainObject(percentagePrescription)) {
+    throw new Error("Training plan percentagePrescription must be an object.");
+  }
+
+  const workingSetsSource = Array.isArray(percentagePrescription.workingSets) ?
+    percentagePrescription.workingSets :
+    Array.isArray(percentagePrescription.workSets) ?
+      percentagePrescription.workSets :
+      Array.isArray(percentagePrescription.sets) ?
+        percentagePrescription.sets :
+        null;
+
+  if (!workingSetsSource || workingSetsSource.length === 0) {
+    throw new Error(
+        "Training plan percentagePrescription must include a non-empty workingSets array.",
+    );
+  }
+
+  const loadingStrategy = normalizeStringValue(
+      percentagePrescription.loadingStrategy,
+  ) ||
+    normalizeStringValue(percentagePrescription.strategy) ||
+    normalizeStringValue(percentagePrescription.scheme);
+
+  return {
+    referenceLiftName:
+      normalizeStringValue(percentagePrescription.referenceLiftName) ||
+      normalizeStringValue(percentagePrescription.liftName) ||
+      normalizeStringValue(percentagePrescription.referenceLift) ||
+      fallbackLiftName,
+    loadingStrategy: VALID_LOADING_STRATEGIES.has(loadingStrategy) ?
+      loadingStrategy :
+      "",
+    workingSets: workingSetsSource.map((workingSet, workingSetIndex) =>
+      sanitizePercentageWorkingSet(workingSet, workingSetIndex),
+    ),
+  };
+}
+
 function sanitizeExercise(exercise, exerciseIndex) {
   if (!isPlainObject(exercise)) {
     throw new Error(
@@ -3160,6 +3341,14 @@ function sanitizeExercise(exercise, exerciseIndex) {
 
   return {
     ...fallbackExercise,
+    performanceTarget: sanitizePerformanceTarget(
+        exercise.performanceTarget,
+        fallbackExercise.name,
+    ),
+    percentagePrescription: sanitizePercentagePrescription(
+        exercise.percentagePrescription,
+        fallbackExercise.name,
+    ),
     strengthAssessment: sanitizeStrengthAssessment(
         exercise.strengthAssessment,
         fallbackExercise.name,

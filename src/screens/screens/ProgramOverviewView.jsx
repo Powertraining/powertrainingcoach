@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
 import {
   getCurrentTrainingPhase,
   getCurrentTrainingWeek,
@@ -10,7 +11,17 @@ import {
   getTrainingPlanSpacingAdvisories,
 } from "../../services/utils/trainingPlan.js";
 
-export default function ProgramOverviewView({ plan, onSelectDay, onBack, currentDay, completedDays }) {
+export default function ProgramOverviewView({
+  plan,
+  onSelectDay,
+  onBack,
+  currentDay,
+  completedDays,
+  pendingTrainingCheckIn,
+  onSubmitTrainingCheckIn,
+  trainingCheckInSubmitting = false,
+  questionnaire,
+}) {
   if (!plan) {
     return (
       <QuestionnaireShell>
@@ -119,6 +130,17 @@ export default function ProgramOverviewView({ plan, onSelectDay, onBack, current
                 })}
               </View>
             </View>
+          ) : null}
+
+          {pendingTrainingCheckIn ? (
+            <TrainingCheckInCard
+              prompt={pendingTrainingCheckIn}
+              questionnaire={questionnaire}
+              plan={plan}
+              completedDays={completedDayEntries}
+              isSubmitting={trainingCheckInSubmitting}
+              onSubmit={onSubmitTrainingCheckIn}
+            />
           ) : null}
 
           <View style={styles.sectionHeader}>
