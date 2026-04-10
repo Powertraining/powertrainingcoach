@@ -9,6 +9,7 @@ export default function Comment({ comment }) {
   }
 
   const [expanded, setExpanded] = useState(false);
+  const [needsToggle, setNeedsToggle] = useState(false);
   const bodyLines = expanded ? undefined : 3;
 
   const avatarSource =
@@ -27,12 +28,34 @@ export default function Comment({ comment }) {
           {comment?.isCoachVerified ? <VerifiedBadge /> : null}
           <StandardText style={styles.name}>{comment?.authorDisplayName}</StandardText>
         </View>
-        <StandardText lines={bodyLines} style={styles.body}>{comment?.body}</StandardText>
-        <TouchableOpacity onPress={() => setExpanded((current) => !current)}>
-          <StandardText style={styles.readMore}>
-            {expanded ? "Show less" : "Show more"}
-          </StandardText>
-        </TouchableOpacity>
+        <StandardText
+          lines={bodyLines}
+          style={styles.body}
+          onTextLayout={(event) => {
+            if (expanded) {
+              return;
+            }
+
+            const nextNeedsToggle = event.nativeEvent.lines.length > 3;
+            setNeedsToggle((current) =>
+              current === nextNeedsToggle ? current : nextNeedsToggle
+            );
+          }}
+        >
+          {comment?.body}
+        </StandardText>
+        <View style={styles.buttons}>
+        <TouchableOpacity>
+          <StandardText style={styles.readMore}>Reply</StandardText>
+        </TouchableOpacity>r
+        {needsToggle ? (
+          <TouchableOpacity onPress={() => setExpanded((current) => !current)}>
+            <StandardText style={styles.readMore}>
+              {expanded ? "Less" : "More"}
+            </StandardText>
+          </TouchableOpacity>
+        ) : null}
+        </View>
       </View>
     </View>
   );
@@ -81,8 +104,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     lineHeight: 22,
   },
-  readMore: {
+  buttons: {
+    flexDirection: "row",
+    gap: 12,
     marginTop: 8,
+  },
+  readMore: {
     fontSize: 15,
   },
 });
