@@ -119,3 +119,116 @@ Not to a dead bug or yoga flow by default.
 Why you see more “old-school” abs and fewer fancy drills
 For combat athletes, we prioritize high-tension, high-stimulus core work like rollouts, strict leg raises, and weighted sit-ups. These give a much stronger strength and robustness stimulus than low-load physio-style core drills.
 Lighter “activation” exercises (like dead bugs or yoga-style variations) are only used in warm-ups, deloads, or rehab contexts – not as your main core training.
+
+## Rule: RPE and/or Feel-based for smaller accessories, even if the user chooses the percentage method. 
+Make small/accessory work default to RPE or feel-based loading, even when the user selects the percentage method for main lifts. Because %-based loading is most practical for bigger compound lifts, while accessory and stabilization work are less suitable for 1RM-based prescription. 
+Main lifts: user’s chosen strength method
+Small accessories: always use one of these instead
+RPE for heavier, still-trainable accessories
+RPE as a simpler user-facing variant of RPE
+Feel-based for small/isolation/stability work where precision is fake anyway
+Time/tension-based for isometrics and rehab-style slots
+
+Here’s the category-by-category version I’d use.
+Category
+Best method
+Good default
+Unilateral lower accessory (Bulgarian split squat, step-up, SLRDL, lunge)
+RPE
+RPE 7–8
+Posterior-chain accessory (RDL, back extension, good morning, hip thrust)
+RPE
+RPE 7–8
+Primary weighted row accessory (DB row, chest-supported row, cable row)
+RPE
+RPE 8
+Low-load shoulder/scap/prehab pulls (band row, face pull, pull-apart, external rotation)
+Feel
+Feel
+Delts / small upper-body isolation (lateral raise, rear delt raise, front raise)
+Feel or RPE
+Feel / 2 RPE
+Arms (curl, hammer curl, pushdown, skull crusher)
+Feel or RPE
+1–3 RPE
+Calves
+Feel
+Feel
+Neck
+Feel
+Feel
+Grip / forearms (wrist curl, reverse wrist curl, grippers, pinches, hangs)
+Feel or timed effort
+Feel / time
+Primary high-stim core (rollout, strict leg raise, weighted sit-up, cable crunch, heavy carry)
+RPE or hard effort
+RPE 7–9
+Low-stim core / activation (dead bug, bird dog, easy Copenhagen, physio drills)
+Feel / quality only
+Feel
+Bodyweight accessories (pull-ups, ring rows, dips, push-ups)
+Feel / RPE
+1–3 RPE
+
+### As for the sets and rep ranges: 
+Biggish accessories: 2–4 sets of 4–10
+Small/isolation accessories: 2–4 sets of 8–20
+Very small / rehab / neck / cuff / tibialis: 2–4 sets of 10–25 or short holds
+Primary core: 2–4 sets of 6–15+ (depending on the variation in question, e..g, sit ups can be done for tons of reps, while toes to bar or barbell rollouts should be kept less. Just keep as a guideline, the default should be feel. 
+Activation core: 1–3 sets of 6–12 or short holds
+
+A practical app logic version would be:
+1. Heavy accessory, still loadable
+ Use RPE
+unilateral leg work
+RDL/back extension/good morning
+DB/cable/chest-supported rows
+weighted core
+2. Small isolation / stabilization
+ Use Feel or RPE
+raises
+curls/extensions
+band work
+wrist/forearm work
+neck
+calves/tibialis
+3. Activation / rehab / low-stim
+ Use quality-based feel
+easy core drills
+cuff work
+light rehab
+tempo/isometric holds
+
+I’d word the in-app rule like this:
+Accessory Loading Rule
+ Even if you choose percentage-based loading for main lifts, smaller accessory exercises are prescribed by RPE or feel instead of %1RM.
+ Why: accessory, isolation, and stabilization lifts are less suitable for max testing and benefit more from autoregulated effort. Main lifts use precision; accessories use practicality.
+And then define them simply:
+RPE: best for heavier accessories that can be progressively loaded
+RPE: simpler version for users who dislike RPE numbers
+Feel: best for small/isolation/stability work
+Quality-based: best for rehab, activation, and low-load core
+
+## Neck Exercises Selection & Rules
+For neck exercises, remember to include concrete exercise names and specifics. Not just movement patterns. Here are some examples: 
+Best simple app-ready neck exercise names
+Plate Neck Curl (Flat Bench)
+Plate Prone Neck Extension (Flat Bench)
+Plate Side-Lying Neck Lateral Flexion
+Plate Side-Lying Neck Lateral Extension
+Band Neck Flexion
+Band Neck Extension
+Band Neck Lateral Flexion
+Band Neck Lateral Extension
+Harness Neck Extension
+Bodyweight Neck Flexion
+Bodyweight Neck Extension
+Bodyweight Side-Lying Neck Lateral Flexion
+For the cleanest shortlist for actual use, I’d narrow it to these 6:
+Plate Neck Curl (Flat Bench)
+Plate Prone Neck Extension (Flat Bench)
+Plate Side-Lying Neck Lateral Flexion
+Band Neck Flexion
+Band Neck Extension
+Harness Neck Extension
+

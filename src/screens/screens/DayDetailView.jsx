@@ -1,13 +1,56 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import {
+    getExerciseStrengthAssessment,
     getExerciseSubstitutionOptions,
     getTrainingDayLabel,
     getTrainingDayPreferredWeekday,
     normalizeExercise,
 } from "../../services/utils/trainingPlan.js";
+import {
+    getStrengthAssessmentMethodLabel,
+    getStrengthAssessmentRequirements,
+} from "../../services/utils/strengthAssessment.js";
+
+function buildAssessmentDrafts(exercises = [], initialAssessmentResults = []) {
+    const drafts = {};
+    const normalizedResults = Array.isArray(initialAssessmentResults)
+        ? initialAssessmentResults
+        : [];
+
+    normalizedResults.forEach((result) => {
+        if (!Number.isInteger(result?.exerciseIndex) || result.exerciseIndex < 0) {
+            return;
+        }
+
+        drafts[result.exerciseIndex] = {
+            exerciseIndex: result.exerciseIndex,
+            loadKg: result?.loadKg != null ? String(result.loadKg) : "",
+            reps: result?.reps != null ? String(result.reps) : "",
+            rpe: result?.rpe != null ? String(result.rpe) : "",
+        };
+    });
+
+    exercises.forEach((exercise, exerciseIndex) => {
+        const strengthAssessment = getExerciseStrengthAssessment(exercise);
+        if (!strengthAssessment) {
+            return;
+        }
+
+        if (!drafts[exerciseIndex]) {
+            drafts[exerciseIndex] = {
+                exerciseIndex,
+                loadKg: "",
+                reps: "",
+                rpe: "",
+            };
+        }
+    });
+
+    return drafts;
+}
 
 export default function DayDetailView({
     week,
@@ -18,6 +61,7 @@ export default function DayDetailView({
     rescueMode = "",
     adjustmentSummary = "",
     exercises = [],
+    initialAssessmentResults = [],
     onBack,
     onReplaceExercise,
     onFinish,
@@ -25,13 +69,26 @@ export default function DayDetailView({
     updatingPlan = false,
 }) {
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
-    const normalizedExercises = Array.isArray(exercises)
-        ? exercises.map((exercise) => normalizeExercise(exercise))
-        : [];
+    const normalizedExercises = useMemo(
+        () =>
+            Array.isArray(exercises)
+                ? exercises.map((exercise) => normalizeExercise(exercise))
+                : [],
+        [exercises]
+    );
+    const [assessmentDrafts, setAssessmentDrafts] = useState(() =>
+        buildAssessmentDrafts(normalizedExercises, initialAssessmentResults)
+    );
     const activeExerciseIndex = Math.min(
         selectedExerciseIndex,
         Math.max(normalizedExercises.length - 1, 0)
     );
+
+    useEffect(() => {
+        setAssessmentDrafts(
+            buildAssessmentDrafts(normalizedExercises, initialAssessmentResults)
+        );
+    }, [initialAssessmentResults, normalizedExercises]);
 
     const resolvedDay =
         day && typeof day === "object"
@@ -48,6 +105,29 @@ export default function DayDetailView({
         : `No exercises available for ${dayLabel} yet.`;
     const isSkipped = status === "skipped";
     const isRescheduled = status === "rescheduled";
+    const assessmentExercises = normalizedExercises
+        .map((exercise, exerciseIndex) => ({
+            exercise,
+            exerciseIndex,
+            strengthAssessment: getExerciseStrengthAssessment(exercise),
+        }))
+        .filter((item) => item.strengthAssessment);
+    const savedAssessmentResults = new Map(
+        (Array.isArray(initialAssessmentResults) ? initialAssessmentResults : [])
+            .filter((result) => Number.isInteger(result?.exerciseIndex))
+            .map((result) => [result.exerciseIndex, result])
+    );
+
+    function updateAssessmentDraft(exerciseIndex, field, value) {
+        setAssessmentDrafts((currentDrafts) => ({
+            ...currentDrafts,
+            [exerciseIndex]: {
+                exerciseIndex,
+                ...(currentDrafts[exerciseIndex] || {}),
+                [field]: value,
+            },
+        }));
+    }
 
     return (
         <QuestionnaireShell>
@@ -83,7 +163,19 @@ export default function DayDetailView({
                                     styles.finishButton,
                                     (updatingPlan || isSkipped) && styles.finishButtonDisabled,
                                 ]}
-                                onPress={onFinish}
+                                onPress={() =>
+                                    onFinish?.(
+                                        assessmentExercises.map(({ exerciseIndex }) => ({
+                                            exerciseIndex,
+                                            ...(assessmentDrafts[exerciseIndex] || {
+                                                exerciseIndex,
+                                                loadKg: "",
+                                                reps: "",
+                                                rpe: "",
+                                            }),
+                                        }))
+                                    )
+                                }
                                 disabled={updatingPlan || isSkipped}
                             >
                                 <Text style={styles.finishButtonText}>Finish</Text>
@@ -186,6 +278,119 @@ export default function DayDetailView({
                             ))}
                         </View>
                     </View>
+
+                    {assessmentExercises.length > 0 ? (
+                        <View style={styles.assessmentBox}>
+                            <Text style={styles.assessmentTitle}>Strength check-in</Text>
+                            <Text style={styles.assessmentDescription}>
+                                This session includes a tracked top set. Save the result here so future percentage-based loading can adapt.
+                            </Text>
+                            {assessmentExercises.map(({ exercise, exerciseIndex, strengthAssessment }) => {
+                                const requirements = getStrengthAssessmentRequirements(
+                                    strengthAssessment.method
+                                );
+                                const draft = assessmentDrafts[exerciseIndex] || {
+                                    exerciseIndex,
+                                    loadKg: "",
+                                    reps: "",
+                                    rpe: "",
+                                };
+                                const savedResult = savedAssessmentResults.get(exerciseIndex);
+
+                                return (
+                                    <View
+                                        key={`strength-assessment-${exerciseIndex}`}
+                                        style={styles.assessmentCard}
+                                    >
+                                        <View style={styles.assessmentHeader}>
+                                            <Text style={styles.assessmentLiftName}>
+                                                {strengthAssessment.liftName || exercise.name}
+                                            </Text>
+                                            <Text style={styles.assessmentMethodTag}>
+                                                {getStrengthAssessmentMethodLabel(
+                                                    strengthAssessment.method
+                                                )}
+                                            </Text>
+                                        </View>
+                                        <Text style={styles.assessmentPrompt}>
+                                            {strengthAssessment.prompt}
+                                        </Text>
+                                        <View style={styles.assessmentInputRow}>
+                                            <View style={styles.assessmentField}>
+                                                <Text style={styles.assessmentFieldLabel}>
+                                                    {requirements.loadLabel}
+                                                </Text>
+                                                <TextInput
+                                                    value={draft.loadKg}
+                                                    onChangeText={(value) =>
+                                                        updateAssessmentDraft(
+                                                            exerciseIndex,
+                                                            "loadKg",
+                                                            value
+                                                        )
+                                                    }
+                                                    keyboardType="decimal-pad"
+                                                    placeholder="e.g. 150"
+                                                    style={styles.assessmentInput}
+                                                />
+                                            </View>
+
+                                            {requirements.requiresReps ? (
+                                                <View style={styles.assessmentField}>
+                                                    <Text style={styles.assessmentFieldLabel}>
+                                                        {requirements.repsLabel}
+                                                    </Text>
+                                                    <TextInput
+                                                        value={draft.reps}
+                                                        onChangeText={(value) =>
+                                                            updateAssessmentDraft(
+                                                                exerciseIndex,
+                                                                "reps",
+                                                                value
+                                                            )
+                                                        }
+                                                        keyboardType="number-pad"
+                                                        placeholder="2-5"
+                                                        style={styles.assessmentInput}
+                                                    />
+                                                </View>
+                                            ) : null}
+
+                                            {requirements.requiresRpe ? (
+                                                <View style={styles.assessmentField}>
+                                                    <Text style={styles.assessmentFieldLabel}>
+                                                        {requirements.rpeLabel}
+                                                    </Text>
+                                                    <TextInput
+                                                        value={draft.rpe}
+                                                        onChangeText={(value) =>
+                                                            updateAssessmentDraft(
+                                                                exerciseIndex,
+                                                                "rpe",
+                                                                value
+                                                            )
+                                                        }
+                                                        keyboardType="decimal-pad"
+                                                        placeholder="8-9"
+                                                        style={styles.assessmentInput}
+                                                    />
+                                                </View>
+                                            ) : null}
+                                        </View>
+                                        {savedResult ? (
+                                            <Text style={styles.assessmentSaved}>
+                                                Saved estimate: {savedResult.estimatedOneRepMaxKg} kg 1RM, {savedResult.trainingMaxKg} kg training max.
+                                            </Text>
+                                        ) : (
+                                            <Text style={styles.assessmentSaved}>
+                                                Leave blank if you did not perform the assessment today.
+                                            </Text>
+                                        )}
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    ) : null}
 
                     <View style={styles.listBlock}>
                         <Text style={styles.listLabel}>Complete workout breakdown:</Text>
@@ -337,6 +542,88 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 19,
         color: '#4b5563',
+    },
+    assessmentBox: {
+        gap: 12,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(0,0,0,0.08)',
+    },
+    assessmentTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    assessmentDescription: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#4b5563',
+    },
+    assessmentCard: {
+        gap: 10,
+        padding: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#dbeafe',
+        backgroundColor: '#eff6ff',
+    },
+    assessmentHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 10,
+        flexWrap: 'wrap',
+    },
+    assessmentLiftName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    assessmentMethodTag: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#1d4ed8',
+        backgroundColor: 'white',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#bfdbfe',
+    },
+    assessmentPrompt: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#1f2937',
+    },
+    assessmentInputRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    assessmentField: {
+        minWidth: 180,
+        flex: 1,
+        gap: 6,
+    },
+    assessmentFieldLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#1f2937',
+    },
+    assessmentInput: {
+        height: 44,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#bfdbfe',
+        backgroundColor: 'white',
+        paddingHorizontal: 12,
+        fontSize: 16,
+        color: '#111827',
+    },
+    assessmentSaved: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: '#1d4ed8',
     },
     exerciseTabs: {
         gap: 10,

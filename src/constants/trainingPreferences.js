@@ -24,9 +24,17 @@ export const EXPERIENCE_OPTIONS = Object.freeze([
   { label: "Advanced", value: "advanced" },
 ]);
 
+export const PLYOMETRICS_EXPERIENCE_OPTIONS = Object.freeze([
+  { label: "No experience", value: "none" },
+  { label: "Beginner", value: "beginner" },
+  { label: "Intermediate", value: "intermediate" },
+  { label: "Advanced", value: "advanced" },
+]);
+
 export const TRAINING_PREFERENCES_DEFAULTS = Object.freeze({
   goal: "hypertrophy",
   experience: "beginner",
+  plyometricsExperience: "none",
   daysPerWeek: 3,
   preferredWeekdays: [],
   weightClass: "",
@@ -97,6 +105,12 @@ export function getTrainingPreferencesFormState(source = {}) {
     experience: isAllowedValue(safeSource.experience, EXPERIENCE_OPTIONS)
       ? safeSource.experience
       : TRAINING_PREFERENCES_DEFAULTS.experience,
+    plyometricsExperience: isAllowedValue(
+      safeSource.plyometricsExperience,
+      PLYOMETRICS_EXPERIENCE_OPTIONS
+    )
+      ? safeSource.plyometricsExperience
+      : TRAINING_PREFERENCES_DEFAULTS.plyometricsExperience,
     daysPerWeek,
     preferredWeekdays: normalizePreferredWeekdays(safeSource, daysPerWeek),
     weightClass:
@@ -128,6 +142,12 @@ export function normalizeTrainingPreferences(source = {}) {
     experience: isAllowedValue(safeSource.experience, EXPERIENCE_OPTIONS)
       ? safeSource.experience
       : TRAINING_PREFERENCES_DEFAULTS.experience,
+    plyometricsExperience: isAllowedValue(
+      safeSource.plyometricsExperience,
+      PLYOMETRICS_EXPERIENCE_OPTIONS
+    )
+      ? safeSource.plyometricsExperience
+      : TRAINING_PREFERENCES_DEFAULTS.plyometricsExperience,
     daysPerWeek,
     preferredWeekdays: normalizePreferredWeekdays(safeSource, daysPerWeek),
     weightClass:
@@ -165,6 +185,8 @@ export function areTrainingPreferencesEqual(left, right) {
   return (
     normalizedLeft.goal === normalizedRight.goal &&
     normalizedLeft.experience === normalizedRight.experience &&
+    normalizedLeft.plyometricsExperience ===
+      normalizedRight.plyometricsExperience &&
     normalizedLeft.daysPerWeek === normalizedRight.daysPerWeek &&
     normalizedLeft.preferredWeekdays.length ===
       normalizedRight.preferredWeekdays.length &&

@@ -3114,6 +3114,36 @@ function getStrictSubstitutionSource(exercise) {
   return [];
 }
 
+function sanitizeStrengthAssessment(strengthAssessment, fallbackLiftName = "") {
+  if (strengthAssessment == null) {
+    return null;
+  }
+
+  if (!isPlainObject(strengthAssessment)) {
+    throw new Error("Training plan strengthAssessment must be an object.");
+  }
+
+  const method = normalizeStringValue(strengthAssessment.method);
+  const validMethods = new Set(["true_1rm", "multi_rm", "heavy_single"]);
+
+  if (!validMethods.has(method)) {
+    throw new Error(
+        `Training plan strengthAssessment method "${method}" is invalid.`,
+    );
+  }
+
+  const liftName =
+    normalizeStringValue(strengthAssessment.liftName) ||
+    normalizeStringValue(strengthAssessment.lift) ||
+    fallbackLiftName;
+
+  return {
+    method,
+    liftName,
+    prompt: normalizeStringValue(strengthAssessment.prompt),
+  };
+}
+
 function sanitizeExercise(exercise, exerciseIndex) {
   if (!isPlainObject(exercise)) {
     throw new Error(
@@ -3130,6 +3160,10 @@ function sanitizeExercise(exercise, exerciseIndex) {
 
   return {
     ...fallbackExercise,
+    strengthAssessment: sanitizeStrengthAssessment(
+        exercise.strengthAssessment,
+        fallbackExercise.name,
+    ),
     substitutionOptions: getStrictSubstitutionSource(exercise).map(
         (option, optionIndex) =>
           sanitizeExerciseOption(option, optionIndex, fallbackExercise),

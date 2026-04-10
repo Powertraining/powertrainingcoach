@@ -51,6 +51,16 @@ import {
   replaceTrainingPlanDay,
   replaceTrainingPlanExercise,
 } from "../utils/trainingPlan.js";
+import {
+  createDefaultStrengthAssessmentState,
+  createStrengthAssessmentEntry,
+  getStrengthAssessmentLiftKey,
+  getStrengthAssessmentSessionResults,
+  getStrengthAssessmentSummary,
+  normalizeStrengthAssessmentConfig,
+  normalizeStrengthAssessmentState,
+  upsertStrengthAssessmentSessionResults,
+} from "../utils/strengthAssessment.js";
 
 const DEFAULT_FAKE_FORUM_COACH_COMMENTS = [
   "Keep the volume honest. If bar speed drops hard after the second work set, cut one set and keep the quality high.",
@@ -185,6 +195,7 @@ export const model = {
 
   subscription: false,
   subscriptionEndDate: null,
+  strengthAssessmentState: createDefaultStrengthAssessmentState(),
 
   trainingPlanPromiseState: {},
 
@@ -680,6 +691,91 @@ export const model = {
     this.questionnaire = mergeTrainingPreferences({}, questionnaire);
   },
 
+  getStrengthAssessmentSessionKey(weekNumber, dayNumber) {
+    const parsedWeekNumber = Number.parseInt(weekNumber, 10);
+    const parsedDayNumber = Number.parseInt(dayNumber, 10);
+
+    if (!Number.isFinite(parsedWeekNumber) || !Number.isFinite(parsedDayNumber)) {
+      return "";
+    }
+
+    return `${parsedWeekNumber}-${parsedDayNumber}`;
+  },
+
+  getStrengthAssessmentSessionResults(weekNumber, dayNumber) {
+    return getStrengthAssessmentSessionResults(
+      this.strengthAssessmentState,
+      this.getStrengthAssessmentSessionKey(weekNumber, dayNumber)
+    );
+  },
+
+  getStrengthAssessmentSummary() {
+    return getStrengthAssessmentSummary(this.strengthAssessmentState);
+  },
+
+  saveStrengthAssessmentResults({
+    weekNumber,
+    dayNumber,
+    exercises = [],
+    results = [],
+    performedAt = new Date().toISOString(),
+  } = {}) {
+    const sessionKey = this.getStrengthAssessmentSessionKey(weekNumber, dayNumber);
+    if (!sessionKey) {
+      return createDefaultStrengthAssessmentState();
+    }
+
+    const baseStrengthAssessmentState = upsertStrengthAssessmentSessionResults(
+      this.strengthAssessmentState,
+      sessionKey,
+      []
+    );
+    const latestByLift = normalizeStrengthAssessmentState(
+      baseStrengthAssessmentState
+    ).latestByLift;
+    const nextEntries = Array.isArray(results)
+      ? results
+          .map((result) => {
+            const exerciseIndex = Number.parseInt(result?.exerciseIndex, 10);
+            const exercise = Array.isArray(exercises) ? exercises[exerciseIndex] : null;
+            const normalizedStrengthAssessment = normalizeStrengthAssessmentConfig(
+              exercise?.strengthAssessment,
+              exercise?.name
+            );
+
+            if (!normalizedStrengthAssessment) {
+              return null;
+            }
+
+            const previousTrainingMaxKg =
+              latestByLift[
+                getStrengthAssessmentLiftKey(normalizedStrengthAssessment.liftName)
+              ]?.trainingMaxKg ?? null;
+
+            return createStrengthAssessmentEntry({
+              metadata: normalizedStrengthAssessment,
+              result,
+              previousTrainingMaxKg,
+              sessionKey,
+              weekNumber,
+              dayNumber,
+              exerciseIndex,
+              sourceExerciseName: exercise?.name,
+              performedAt,
+            });
+          })
+          .filter(Boolean)
+      : [];
+
+    this.strengthAssessmentState = upsertStrengthAssessmentSessionResults(
+      baseStrengthAssessmentState,
+      sessionKey,
+      nextEntries
+    );
+
+    return this.strengthAssessmentState;
+  },
+
   buildTrainingPlanInput(questionnaire = this.questionnaire) {
     const source =
       questionnaire && typeof questionnaire === "object" ? questionnaire : {};
@@ -737,6 +833,7 @@ export const model = {
         (normalizedAppLogicSettings.trainingPhase === "in_camp" ?
           "fight_camp" :
           "off_season"),
+      strengthAssessmentSummary: this.getStrengthAssessmentSummary(),
       numWeeks:
         Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
           weeksFromSubscription :

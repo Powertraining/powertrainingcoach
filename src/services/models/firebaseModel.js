@@ -10,6 +10,7 @@ import {
   normalizeForumProfile,
 } from "./forumModel";
 import { parseGeneratedTrainingPlan } from "../utils/trainingPlan.js";
+import { normalizeStrengthAssessmentState } from "../utils/strengthAssessment.js";
 
 // To subscribe to the login/logout event
 import { subscribeToAuthChanges } from "./authService";
@@ -56,6 +57,9 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     model.completedWeeks = persistedData.completedWeeks ?? 0;
     model.subscription = hasActiveSubscription;
     model.subscriptionEndDate = normalizedSubscriptionEndDate;
+    model.strengthAssessmentState = normalizeStrengthAssessmentState(
+      persistedData.strengthAssessmentState
+    );
     model.forumProfile = normalizeForumProfile(persistedData.forumProfile);
     if (typeof model.resetForumRuntimeState === "function") {
       model.resetForumRuntimeState();
@@ -83,6 +87,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.completedDays,
       model.trainingPlanBatch,
       model.completedWeeks,
+      model.strengthAssessmentState,
       model.forumProfile,
     ];
     console.log('[firebaseModel.modelDataToCheckACB] Tracked data:', {
@@ -112,6 +117,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         completedDays: Array.from(model.completedDays || []),
         trainingPlanBatch: model.trainingPlanBatch,
         completedWeeks: model.completedWeeks,
+        strengthAssessmentState: model.strengthAssessmentState,
         forumProfile: normalizeForumProfile(model.forumProfile),
       };
       console.log('[firebaseModel.saveToCloudACB] Saving to Firestore:', {
@@ -212,6 +218,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.subscriptionEndDate = null;
       model.primaryCombatSport = "";
       model.sessionsPerWeek = 3;
+      model.strengthAssessmentState = normalizeStrengthAssessmentState();
       model.forumProfile = normalizeForumProfile();
       if (typeof model.resetForumRuntimeState === "function") {
         model.resetForumRuntimeState();
