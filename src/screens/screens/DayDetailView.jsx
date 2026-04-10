@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from 
 import { Picker } from "@react-native-picker/picker";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import {
+    getExercisePerformanceTarget,
+    getExercisePercentagePrescription,
     getExerciseStrengthAssessment,
     getExerciseSubstitutionOptions,
     getTrainingDayLabel,
@@ -10,17 +12,28 @@ import {
     normalizeExercise,
 } from "../../services/utils/trainingPlan.js";
 import {
+    getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
+    getStrengthAssessmentReferenceOneRepMaxKg,
     getStrengthAssessmentRequirements,
 } from "../../services/utils/strengthAssessment.js";
+import { calculateTargetLoadFromPercentOneRepMax } from "../../services/utils/percentagePrescription.js";
 
-function buildAssessmentDrafts(exercises = [], initialAssessmentResults = []) {
+function buildTrackingDrafts(
+    exercises = [],
+    initialPerformanceResults = [],
+    initialAssessmentResults = []
+) {
     const drafts = {};
-    const normalizedResults = Array.isArray(initialAssessmentResults)
+    const normalizedPerformanceResults = Array.isArray(initialPerformanceResults)
+        ? initialPerformanceResults
+        : [];
+    const normalizedAssessmentResults = Array.isArray(initialAssessmentResults)
         ? initialAssessmentResults
         : [];
+    const allResults = [...normalizedPerformanceResults, ...normalizedAssessmentResults];
 
-    normalizedResults.forEach((result) => {
+    allResults.forEach((result) => {
         if (!Number.isInteger(result?.exerciseIndex) || result.exerciseIndex < 0) {
             return;
         }
@@ -35,7 +48,9 @@ function buildAssessmentDrafts(exercises = [], initialAssessmentResults = []) {
 
     exercises.forEach((exercise, exerciseIndex) => {
         const strengthAssessment = getExerciseStrengthAssessment(exercise);
-        if (!strengthAssessment) {
+        const performanceTarget = getExercisePerformanceTarget(exercise);
+
+        if (!strengthAssessment && !performanceTarget) {
             return;
         }
 
@@ -61,7 +76,9 @@ export default function DayDetailView({
     rescueMode = "",
     adjustmentSummary = "",
     exercises = [],
+    initialPerformanceResults = [],
     initialAssessmentResults = [],
+    strengthAssessmentSummary = null,
     onBack,
     onReplaceExercise,
     onFinish,
@@ -76,8 +93,12 @@ export default function DayDetailView({
                 : [],
         [exercises]
     );
-    const [assessmentDrafts, setAssessmentDrafts] = useState(() =>
-        buildAssessmentDrafts(normalizedExercises, initialAssessmentResults)
+    const [trackingDrafts, setTrackingDrafts] = useState(() =>
+        buildTrackingDrafts(
+            normalizedExercises,
+            initialPerformanceResults,
+            initialAssessmentResults
+        )
     );
     const activeExerciseIndex = Math.min(
         selectedExerciseIndex,
@@ -85,10 +106,14 @@ export default function DayDetailView({
     );
 
     useEffect(() => {
-        setAssessmentDrafts(
-            buildAssessmentDrafts(normalizedExercises, initialAssessmentResults)
+        setTrackingDrafts(
+            buildTrackingDrafts(
+                normalizedExercises,
+                initialPerformanceResults,
+                initialAssessmentResults
+            )
         );
-    }, [initialAssessmentResults, normalizedExercises]);
+    }, [initialAssessmentResults, initialPerformanceResults, normalizedExercises]);
 
     const resolvedDay =
         day && typeof day === "object"
@@ -97,6 +122,9 @@ export default function DayDetailView({
     const dayLabel = getTrainingDayLabel(resolvedDay);
     const preferredWeekdayLabel = getTrainingDayPreferredWeekday(resolvedDay);
     const selectedExercise = normalizedExercises[activeExerciseIndex];
+    const selectedExercisePercentagePrescription = selectedExercise ?
+        getExercisePercentagePrescription(selectedExercise) :
+        null;
     const substitutionOptions = selectedExercise
         ? getExerciseSubstitutionOptions(selectedExercise)
         : [];
@@ -105,21 +133,56 @@ export default function DayDetailView({
         : `No exercises available for ${dayLabel} yet.`;
     const isSkipped = status === "skipped";
     const isRescheduled = status === "rescheduled";
-    const assessmentExercises = normalizedExercises
+    const trackedExercises = normalizedExercises
         .map((exercise, exerciseIndex) => ({
             exercise,
             exerciseIndex,
+            performanceTarget: getExercisePerformanceTarget(exercise),
             strengthAssessment: getExerciseStrengthAssessment(exercise),
         }))
-        .filter((item) => item.strengthAssessment);
+        .filter((item) => item.strengthAssessment || item.performanceTarget);
+    const assessmentExercises = trackedExercises.filter(
+        (item) => item.strengthAssessment
+    );
     const savedAssessmentResults = new Map(
         (Array.isArray(initialAssessmentResults) ? initialAssessmentResults : [])
             .filter((result) => Number.isInteger(result?.exerciseIndex))
             .map((result) => [result.exerciseIndex, result])
     );
+    const savedPerformanceResults = new Map(
+        (Array.isArray(initialPerformanceResults) ? initialPerformanceResults : [])
+            .filter((result) => Number.isInteger(result?.exerciseIndex))
+            .map((result) => [result.exerciseIndex, result])
+    );
+    const strengthReferenceOneRepMaxByLift = useMemo(
+        () =>
+            (Array.isArray(strengthAssessmentSummary?.latestByLift) ?
+                strengthAssessmentSummary.latestByLift :
+                []
+            ).reduce((accumulator, entry) => {
+                const liftKey = getStrengthAssessmentLiftKey(entry?.liftName || "");
+                const referenceOneRepMaxKg =
+                    getStrengthAssessmentReferenceOneRepMaxKg(entry);
 
-    function updateAssessmentDraft(exerciseIndex, field, value) {
-        setAssessmentDrafts((currentDrafts) => ({
+                if (liftKey && referenceOneRepMaxKg) {
+                    accumulator[liftKey] = referenceOneRepMaxKg;
+                }
+
+                return accumulator;
+            }, {}),
+        [strengthAssessmentSummary]
+    );
+    const percentageReferenceLiftName =
+        selectedExercisePercentagePrescription?.referenceLiftName ||
+        selectedExercise?.name ||
+        "";
+    const referenceOneRepMaxKg =
+        strengthReferenceOneRepMaxByLift[
+            getStrengthAssessmentLiftKey(percentageReferenceLiftName)
+        ] || null;
+
+    function updateTrackingDraft(exerciseIndex, field, value) {
+        setTrackingDrafts((currentDrafts) => ({
             ...currentDrafts,
             [exerciseIndex]: {
                 exerciseIndex,
@@ -165,9 +228,9 @@ export default function DayDetailView({
                                 ]}
                                 onPress={() =>
                                     onFinish?.(
-                                        assessmentExercises.map(({ exerciseIndex }) => ({
+                                        trackedExercises.map(({ exerciseIndex }) => ({
                                             exerciseIndex,
-                                            ...(assessmentDrafts[exerciseIndex] || {
+                                            ...(trackingDrafts[exerciseIndex] || {
                                                 exerciseIndex,
                                                 loadKg: "",
                                                 reps: "",
@@ -225,6 +288,60 @@ export default function DayDetailView({
                             </View>
                         )}
 
+                        {selectedExercisePercentagePrescription ? (
+                            <View style={styles.percentageBox}>
+                                <Text style={styles.percentageTitle}>Percentage prescription</Text>
+                                <Text style={styles.percentageDescription}>
+                                    {selectedExercisePercentagePrescription.loadingStrategy ?
+                                        `Loading strategy: ${selectedExercisePercentagePrescription.loadingStrategy.replace(/_/g, " ")}.` :
+                                        "Percentage-based working sets."
+                                    }{" "}
+                                    Reference lift: {percentageReferenceLiftName}.
+                                </Text>
+                                {selectedExercisePercentagePrescription.workingSets.map(
+                                    (workingSet, index) => {
+                                        const estimatedLoadKg = referenceOneRepMaxKg ?
+                                            calculateTargetLoadFromPercentOneRepMax(
+                                                referenceOneRepMaxKg,
+                                                workingSet.percent1RM
+                                            ) :
+                                            null;
+
+                                        return (
+                                            <View
+                                                key={`percentage-working-set-${index}`}
+                                                style={styles.percentageRow}
+                                            >
+                                                <Text style={styles.percentageRowPrimary}>
+                                                    {workingSet.count > 1 ?
+                                                        `${workingSet.count} sets of ${workingSet.reps}` :
+                                                        `${workingSet.reps} reps`
+                                                    }
+                                                </Text>
+                                                <Text style={styles.percentageRowSecondary}>
+                                                    {workingSet.percent1RM}% 1RM
+                                                    {workingSet.relativeIntensity ?
+                                                        ` | RI ${workingSet.relativeIntensity}%` :
+                                                        ""
+                                                    }
+                                                    {estimatedLoadKg ?
+                                                        ` | ~${estimatedLoadKg} kg` :
+                                                        ""
+                                                    }
+                                                </Text>
+                                            </View>
+                                        );
+                                    }
+                                )}
+                                <Text style={styles.percentageHelper}>
+                                    {referenceOneRepMaxKg ?
+                                        `Load estimates are based on your latest stored ${percentageReferenceLiftName} reference max.` :
+                                        "Load estimates unlock after you log a recent strength assessment for this lift."
+                                    }
+                                </Text>
+                            </View>
+                        ) : null}
+
                         {substitutionOptions.length > 1 && onReplaceExercise ? (
                             <View style={styles.substitutionBox}>
                                 <Text style={styles.substitutionLabel}>Exercise options</Text>
@@ -279,23 +396,35 @@ export default function DayDetailView({
                         </View>
                     </View>
 
-                    {assessmentExercises.length > 0 ? (
+                    {trackedExercises.length > 0 ? (
                         <View style={styles.assessmentBox}>
-                            <Text style={styles.assessmentTitle}>Strength check-in</Text>
+                            <Text style={styles.assessmentTitle}>Tracked top sets</Text>
                             <Text style={styles.assessmentDescription}>
-                                This session includes a tracked top set. Save the result here so future percentage-based loading can adapt.
+                                Save the main monitored set here so the app can track e1RM trend, best-set performance, fixed-RPE load, skipped top sets, and future percentage updates.
                             </Text>
-                            {assessmentExercises.map(({ exercise, exerciseIndex, strengthAssessment }) => {
-                                const requirements = getStrengthAssessmentRequirements(
-                                    strengthAssessment.method
+                            {trackedExercises.map(({ exercise, exerciseIndex, performanceTarget, strengthAssessment }) => {
+                                const strengthRequirements = strengthAssessment ?
+                                    getStrengthAssessmentRequirements(
+                                        strengthAssessment.method
+                                    ) :
+                                    null;
+                                const requiresReps = Boolean(
+                                    performanceTarget ||
+                                    strengthRequirements?.requiresReps
                                 );
-                                const draft = assessmentDrafts[exerciseIndex] || {
+                                const requiresRpe = Boolean(
+                                    performanceTarget ||
+                                    strengthRequirements?.requiresRpe
+                                );
+                                const draft = trackingDrafts[exerciseIndex] || {
                                     exerciseIndex,
                                     loadKg: "",
                                     reps: "",
                                     rpe: "",
                                 };
                                 const savedResult = savedAssessmentResults.get(exerciseIndex);
+                                const savedPerformanceResult =
+                                    savedPerformanceResults.get(exerciseIndex);
 
                                 return (
                                     <View
@@ -304,26 +433,42 @@ export default function DayDetailView({
                                     >
                                         <View style={styles.assessmentHeader}>
                                             <Text style={styles.assessmentLiftName}>
-                                                {strengthAssessment.liftName || exercise.name}
+                                                {performanceTarget?.liftName ||
+                                                    strengthAssessment?.liftName ||
+                                                    exercise.name}
                                             </Text>
-                                            <Text style={styles.assessmentMethodTag}>
-                                                {getStrengthAssessmentMethodLabel(
-                                                    strengthAssessment.method
-                                                )}
-                                            </Text>
+                                            {strengthAssessment ? (
+                                                <Text style={styles.assessmentMethodTag}>
+                                                    {getStrengthAssessmentMethodLabel(
+                                                        strengthAssessment.method
+                                                    )}
+                                                </Text>
+                                            ) : performanceTarget ? (
+                                                <Text style={styles.assessmentMethodTag}>
+                                                    {performanceTarget.strategy.replace(/_/g, " ")}
+                                                </Text>
+                                            ) : null}
                                         </View>
-                                        <Text style={styles.assessmentPrompt}>
-                                            {strengthAssessment.prompt}
-                                        </Text>
+                                        {performanceTarget?.prompt ? (
+                                            <Text style={styles.assessmentPrompt}>
+                                                {performanceTarget.prompt}
+                                            </Text>
+                                        ) : null}
+                                        {strengthAssessment?.prompt &&
+                                        strengthAssessment.prompt !== performanceTarget?.prompt ? (
+                                            <Text style={styles.assessmentPromptSecondary}>
+                                                {strengthAssessment.prompt}
+                                            </Text>
+                                        ) : null}
                                         <View style={styles.assessmentInputRow}>
                                             <View style={styles.assessmentField}>
                                                 <Text style={styles.assessmentFieldLabel}>
-                                                    {requirements.loadLabel}
+                                                    {strengthRequirements?.loadLabel || "Load used (kg)"}
                                                 </Text>
                                                 <TextInput
                                                     value={draft.loadKg}
                                                     onChangeText={(value) =>
-                                                        updateAssessmentDraft(
+                                                        updateTrackingDraft(
                                                             exerciseIndex,
                                                             "loadKg",
                                                             value
@@ -335,15 +480,15 @@ export default function DayDetailView({
                                                 />
                                             </View>
 
-                                            {requirements.requiresReps ? (
+                                            {requiresReps ? (
                                                 <View style={styles.assessmentField}>
                                                     <Text style={styles.assessmentFieldLabel}>
-                                                        {requirements.repsLabel}
+                                                        {strengthRequirements?.repsLabel || "Reps completed"}
                                                     </Text>
                                                     <TextInput
                                                         value={draft.reps}
                                                         onChangeText={(value) =>
-                                                            updateAssessmentDraft(
+                                                            updateTrackingDraft(
                                                                 exerciseIndex,
                                                                 "reps",
                                                                 value
@@ -356,15 +501,15 @@ export default function DayDetailView({
                                                 </View>
                                             ) : null}
 
-                                            {requirements.requiresRpe ? (
+                                            {requiresRpe ? (
                                                 <View style={styles.assessmentField}>
                                                     <Text style={styles.assessmentFieldLabel}>
-                                                        {requirements.rpeLabel}
+                                                        {strengthRequirements?.rpeLabel || "RPE"}
                                                     </Text>
                                                     <TextInput
                                                         value={draft.rpe}
                                                         onChangeText={(value) =>
-                                                            updateAssessmentDraft(
+                                                            updateTrackingDraft(
                                                                 exerciseIndex,
                                                                 "rpe",
                                                                 value
@@ -377,15 +522,30 @@ export default function DayDetailView({
                                                 </View>
                                             ) : null}
                                         </View>
+                                        {savedPerformanceResult ? (
+                                            <Text style={styles.assessmentSaved}>
+                                                Saved performance: {savedPerformanceResult.loadKg} kg x {savedPerformanceResult.reps}
+                                                {savedPerformanceResult.rpe ? ` @RPE ${savedPerformanceResult.rpe}` : ""}
+                                                {savedPerformanceResult.estimatedOneRepMaxKg ?
+                                                    ` | e1RM ${savedPerformanceResult.estimatedOneRepMaxKg} kg` :
+                                                    ""
+                                                }
+                                                {savedPerformanceResult.rpeDrift != null ?
+                                                    ` | drift ${savedPerformanceResult.rpeDrift > 0 ? "+" : ""}${savedPerformanceResult.rpeDrift}` :
+                                                    ""
+                                                }
+                                            </Text>
+                                        ) : null}
                                         {savedResult ? (
                                             <Text style={styles.assessmentSaved}>
                                                 Saved estimate: {savedResult.estimatedOneRepMaxKg} kg 1RM, {savedResult.trainingMaxKg} kg training max.
                                             </Text>
-                                        ) : (
+                                        ) : null}
+                                        {!savedResult && !savedPerformanceResult ? (
                                             <Text style={styles.assessmentSaved}>
-                                                Leave blank if you did not perform the assessment today.
+                                                Leave blank if you did not perform the tracked top set today.
                                             </Text>
-                                        )}
+                                        ) : null}
                                     </View>
                                 );
                             })}
@@ -519,6 +679,43 @@ const styles = StyleSheet.create({
     },
     notesLabel: { fontSize: 14, fontWeight: '600', opacity: 0.9 },
     notesText: { fontSize: 14, lineHeight: 21, opacity: 0.85 },
+    percentageBox: {
+        gap: 8,
+        padding: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#cbd5e1',
+        backgroundColor: '#f8fafc',
+    },
+    percentageTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#0f172a',
+    },
+    percentageDescription: {
+        fontSize: 13,
+        lineHeight: 19,
+        color: '#334155',
+    },
+    percentageRow: {
+        gap: 2,
+        paddingVertical: 4,
+    },
+    percentageRowPrimary: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#111827',
+    },
+    percentageRowSecondary: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: '#475569',
+    },
+    percentageHelper: {
+        fontSize: 12,
+        lineHeight: 18,
+        color: '#64748b',
+    },
     substitutionBox: {
         gap: 6,
         padding: 12,
@@ -594,6 +791,11 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 20,
         color: '#1f2937',
+    },
+    assessmentPromptSecondary: {
+        fontSize: 13,
+        lineHeight: 19,
+        color: '#475569',
     },
     assessmentInputRow: {
         flexDirection: 'row',

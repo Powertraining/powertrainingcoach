@@ -64,6 +64,7 @@ One can progress RI across weeks (e.g., 82.5 → 87.5 → 92.5) while adjusting 
 
 Or you can keep RI constant but vary reps (e.g., swap 8 reps at a lower %1RM for 6 reps at a higher %1RM) to keep the “difficulty relative to rep max” roughly stable (e.g., to give the body something new/keep enthusiasm while at the same time varying intensity legitimately). 
 We must be aware, those nRM↔1RM tables vary a lot by lifters experience, the lift in question, etc… Perhaps we can include it as a disclaimer. RI is best treated as a useful approximation.
+
 Below is an example script via ChatGPT to display it on the app. Manually assess it: 
 RELATIVE INTENSITY (RI) — APP INSTRUCTIONS (DISPLAYED ALONGSIDE %1RM)
 

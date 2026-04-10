@@ -61,6 +61,24 @@ import {
   normalizeStrengthAssessmentState,
   upsertStrengthAssessmentSessionResults,
 } from "../utils/strengthAssessment.js";
+import {
+  createDefaultTrainingPerformanceState,
+  createTrainingPerformanceEntry,
+  getTrainingPerformanceSessionResults,
+  getTrainingPerformanceSummary,
+  normalizePerformanceTarget,
+  normalizeTrainingPerformanceState,
+  upsertTrainingPerformanceSessionResults,
+} from "../utils/trainingPerformance.js";
+import {
+  applyTrainingCheckInAction,
+  buildTrainingCheckInObjectiveSummary,
+  buildTrainingCheckInRecommendation,
+  createDefaultTrainingCheckInState,
+  createTrainingCheckInHistoryEntry,
+  getPendingTrainingCheckIn,
+  normalizeTrainingCheckInState,
+} from "../utils/trainingCheckIn.js";
 
 const DEFAULT_FAKE_FORUM_COACH_COMMENTS = [
   "Keep the volume honest. If bar speed drops hard after the second work set, cut one set and keep the quality high.",
@@ -195,7 +213,9 @@ export const model = {
 
   subscription: false,
   subscriptionEndDate: null,
+  trainingPerformanceState: createDefaultTrainingPerformanceState(),
   strengthAssessmentState: createDefaultStrengthAssessmentState(),
+  trainingCheckInState: createDefaultTrainingCheckInState(),
 
   trainingPlanPromiseState: {},
 
@@ -713,6 +733,175 @@ export const model = {
     return getStrengthAssessmentSummary(this.strengthAssessmentState);
   },
 
+  getTrainingPerformanceSessionResults(weekNumber, dayNumber) {
+    return getTrainingPerformanceSessionResults(
+      this.trainingPerformanceState,
+      this.getStrengthAssessmentSessionKey(weekNumber, dayNumber)
+    );
+  },
+
+  getTrainingPerformanceSummary() {
+    return getTrainingPerformanceSummary(this.trainingPerformanceState);
+  },
+
+  saveTrainingPerformanceResults({
+    weekNumber,
+    dayNumber,
+    exercises = [],
+    results = [],
+    performedAt = new Date().toISOString(),
+  } = {}) {
+    const sessionKey = this.getStrengthAssessmentSessionKey(weekNumber, dayNumber);
+
+    if (!sessionKey) {
+      return createDefaultTrainingPerformanceState();
+    }
+
+    const nextEntries = Array.isArray(results) ?
+      results
+        .map((result) => {
+          const exerciseIndex = Number.parseInt(result?.exerciseIndex, 10);
+          const exercise = Array.isArray(exercises) ? exercises[exerciseIndex] : null;
+          const performanceTarget = normalizePerformanceTarget(
+            exercise?.performanceTarget,
+            exercise?.name,
+            exercise
+          );
+
+          if (!performanceTarget) {
+            return null;
+          }
+
+          return createTrainingPerformanceEntry({
+            metadata: performanceTarget,
+            result,
+            sessionKey,
+            weekNumber,
+            dayNumber,
+            exerciseIndex,
+            sourceExerciseName: exercise?.name,
+            performedAt,
+          });
+        })
+        .filter(Boolean) :
+      [];
+
+    this.trainingPerformanceState = upsertTrainingPerformanceSessionResults(
+      this.trainingPerformanceState,
+      sessionKey,
+      nextEntries
+    );
+
+    return this.trainingPerformanceState;
+  },
+
+  getNormalizedTrainingCheckInState() {
+    return normalizeTrainingCheckInState(this.trainingCheckInState);
+  },
+
+  getPendingTrainingCheckIn() {
+    const prompt = getPendingTrainingCheckIn({
+      plan: this.trainingPlan,
+      completedDays: this.completedDays,
+      questionnaire: this.questionnaire,
+      trainingCheckInState: this.trainingCheckInState,
+    });
+
+    if (!prompt) {
+      return null;
+    }
+
+    return {
+      ...prompt,
+      objectiveSummary: buildTrainingCheckInObjectiveSummary({
+        plan: this.trainingPlan,
+        completedDays: this.completedDays,
+        prompt,
+        trainingPerformanceState: this.trainingPerformanceState,
+        strengthAssessmentState: this.strengthAssessmentState,
+      }),
+    };
+  },
+
+  previewTrainingCheckInRecommendation({
+    prompt = this.getPendingTrainingCheckIn(),
+    answers = {},
+  } = {}) {
+    if (!prompt) {
+      return null;
+    }
+
+    return buildTrainingCheckInRecommendation({
+      prompt,
+      questionnaire: this.questionnaire,
+      plan: this.trainingPlan,
+      completedDays: this.completedDays,
+      answers,
+      objectiveSummary: prompt.objectiveSummary,
+    });
+  },
+
+  completeTrainingCheckIn({
+    prompt = this.getPendingTrainingCheckIn(),
+    answers = {},
+    action = {},
+  } = {}) {
+    if (!prompt) {
+      return null;
+    }
+
+    const recommendation = this.previewTrainingCheckInRecommendation({
+      prompt,
+      answers,
+    });
+
+    if (!recommendation) {
+      return null;
+    }
+
+    const normalizedAction =
+      action && typeof action === "object" && action.type ?
+        action :
+        recommendation.recommendedAction;
+    const adjustmentResult = applyTrainingCheckInAction({
+      plan: this.trainingPlan,
+      completedDays: this.completedDays,
+      action: normalizedAction,
+    });
+
+    this.trainingPlan = adjustmentResult.plan;
+
+    if (normalizedAction?.type === "change_scheme" && normalizedAction?.targetLoadingStrategy) {
+      this.setQuestionnaire?.(
+        mergeTrainingPreferences(this.questionnaire, {
+          loadingStrategy: normalizedAction.targetLoadingStrategy,
+        })
+      );
+    }
+
+    const historyEntry = createTrainingCheckInHistoryEntry({
+      prompt,
+      answers: recommendation.answers,
+      objectiveSummary: prompt.objectiveSummary,
+      recommendation: recommendation.recommendedAction,
+      appliedAction: normalizedAction,
+      resultSummary: adjustmentResult.resultSummary,
+    });
+
+    this.trainingCheckInState = normalizeTrainingCheckInState({
+      history: [
+        ...this.getNormalizedTrainingCheckInState().history,
+        ...(historyEntry ? [historyEntry] : []),
+      ],
+    });
+
+    return {
+      entry: historyEntry,
+      resultSummary: adjustmentResult.resultSummary,
+      plan: this.trainingPlan,
+    };
+  },
+
   saveStrengthAssessmentResults({
     weekNumber,
     dayNumber,
@@ -833,6 +1022,7 @@ export const model = {
         (normalizedAppLogicSettings.trainingPhase === "in_camp" ?
           "fight_camp" :
           "off_season"),
+      trainingPerformanceSummary: this.getTrainingPerformanceSummary(),
       strengthAssessmentSummary: this.getStrengthAssessmentSummary(),
       numWeeks:
         Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
@@ -1192,6 +1382,8 @@ export const model = {
     this.completedWeeks = 0;
     this.trainingPlan = null;
     this.completedDays = [];
+    this.trainingPerformanceState = createDefaultTrainingPerformanceState();
+    this.trainingCheckInState = createDefaultTrainingCheckInState();
     console.log('[CombatModel.resetTrainingProgress] Progress reset');
   },
 

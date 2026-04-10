@@ -310,6 +310,20 @@ export function getStrengthAssessmentLiftKey(liftName = "", fallback = "main_lif
   return toLiftKey(liftName, fallback);
 }
 
+export function getStrengthAssessmentReferenceOneRepMaxKg(entry = {}) {
+  const estimatedOneRepMaxKg = parsePositiveNumber(entry?.estimatedOneRepMaxKg);
+
+  if (estimatedOneRepMaxKg) {
+    return roundToTenth(estimatedOneRepMaxKg);
+  }
+
+  const trainingMaxKg = parsePositiveNumber(entry?.trainingMaxKg);
+
+  return trainingMaxKg ?
+    roundToTenth(trainingMaxKg / DEFAULT_TRAINING_MAX_BUFFER) :
+    null;
+}
+
 export function createDefaultStrengthAssessmentState() {
   return {
     sessionResults: {},

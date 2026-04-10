@@ -46,6 +46,15 @@ const DayDetailScreen = observer(function DayDetailScreen() {
       model.getStrengthAssessmentSessionResults?.(weekNumber, dayNumber) || [],
     [dayNumber, model, model.strengthAssessmentState, weekNumber]
   );
+  const sessionPerformanceResults = useMemo(
+    () =>
+      model.getTrainingPerformanceSessionResults?.(weekNumber, dayNumber) || [],
+    [dayNumber, model, model.trainingPerformanceState, weekNumber]
+  );
+  const strengthAssessmentSummary = useMemo(
+    () => model.getStrengthAssessmentSummary?.() || null,
+    [model, model.strengthAssessmentState]
+  );
 
   // Compute total days for progress tracking
   const totalDays = useMemo(() => {
@@ -113,14 +122,20 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     }
   }
 
-  function handleFinish(assessmentResults = []) {
+  function handleFinish(trackedResults = []) {
     if (!selectedDay) return;
 
+    model.saveTrainingPerformanceResults?.({
+      weekNumber: selectedDay.week,
+      dayNumber: selectedDay.day,
+      exercises: selectedDay.exercises,
+      results: trackedResults,
+    });
     model.saveStrengthAssessmentResults?.({
       weekNumber: selectedDay.week,
       dayNumber: selectedDay.day,
       exercises: selectedDay.exercises,
-      results: assessmentResults,
+      results: trackedResults,
     });
 
     const key = `${selectedDay.week}-${selectedDay.day}`;
@@ -174,7 +189,9 @@ const DayDetailScreen = observer(function DayDetailScreen() {
         status={selectedDay.status}
         rescueMode={selectedDay.rescueMode}
         adjustmentSummary={selectedDay.adjustmentSummary}
+        initialPerformanceResults={sessionPerformanceResults}
         initialAssessmentResults={sessionAssessmentResults}
+        strengthAssessmentSummary={strengthAssessmentSummary}
         onBack={handleBack}
         onReplaceExercise={handleReplaceExercise}
         onFinish={handleFinish}

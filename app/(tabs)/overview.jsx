@@ -14,6 +14,7 @@ const OverviewScreen = observer(function OverviewScreen() {
 
   const plan = model.trainingPlan;
   const [completedDays, setCompletedDays] = useState(new Set());
+  const [trainingCheckInSubmitting, setTrainingCheckInSubmitting] = useState(false);
 
   // Sync completed days from model
   useEffect(() => {
@@ -36,6 +37,10 @@ const OverviewScreen = observer(function OverviewScreen() {
   const currentDayPointer = useMemo(() => {
     return model.getCurrentTrainingDay?.(Array.from(completedDays)) || null;
   }, [completedDays, model, plan]);
+  const pendingTrainingCheckIn = useMemo(
+    () => model.getPendingTrainingCheckIn?.() || null,
+    [completedDays, model, model.completedDays, model.questionnaire, model.strengthAssessmentState, model.trainingCheckInState, plan]
+  );
 
   if (!model.ready) {
     return (
@@ -78,6 +83,22 @@ const OverviewScreen = observer(function OverviewScreen() {
     router.back();
   }
 
+  async function handleSubmitTrainingCheckIn(payload) {
+    if (!payload || trainingCheckInSubmitting) {
+      return;
+    }
+
+    setTrainingCheckInSubmitting(true);
+
+    try {
+      await model.completeTrainingCheckIn?.(payload);
+    } catch (error) {
+      console.error("Could not complete training check-in:", error);
+    } finally {
+      setTrainingCheckInSubmitting(false);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <ProgramOverviewView
@@ -86,6 +107,10 @@ const OverviewScreen = observer(function OverviewScreen() {
         onBack={handleBack}
         currentDay={currentDayPointer}
         completedDays={completedDays}
+        pendingTrainingCheckIn={pendingTrainingCheckIn}
+        onSubmitTrainingCheckIn={handleSubmitTrainingCheckIn}
+        trainingCheckInSubmitting={trainingCheckInSubmitting}
+        questionnaire={model.questionnaire}
       />
     </View>
   );
