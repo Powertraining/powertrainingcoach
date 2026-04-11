@@ -12,6 +12,7 @@ import CommentsView from "../../src/screens/screens/forum/commentsView.jsx";
 import ForumView from "../../src/screens/screens/forum/ForumView.jsx";
 import MakePostView from "../../src/screens/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/screens/forum/postView.jsx";
+import SearchFiltersView from "../../src/screens/screens/forum/searchFiltersView.jsx";
 
 const ForumScreen = observer(function ForumScreen() {
   const model = reactiveModel;
@@ -25,6 +26,7 @@ const ForumScreen = observer(function ForumScreen() {
   const [commentDraft, setCommentDraft] = useState("");
   const [isCreatingComment, setIsCreatingComment] = useState(false);
   const [createCommentError, setCreateCommentError] = useState(null);
+  const [isSearchFiltersVisible, setIsSearchFiltersVisible] = useState(false);
 
   useEffect(() => {
     if (!model.ready || !model.user || model.forumFeed.length > 0) {
@@ -219,6 +221,45 @@ const ForumScreen = observer(function ForumScreen() {
     }
   }
 
+  async function handleSearchQueryChange(searchQuery) {
+    try {
+      model.setForumFilters({ searchQuery });
+      await model.loadForumFeed({ searchQuery });
+    } catch (error) {
+      console.warn("Could not update the forum search query:", error);
+    }
+  }
+
+  function showSearchFiltersView() {
+    setIsSearchFiltersVisible(true);
+  }
+
+  function hideSearchFiltersView() {
+    setIsSearchFiltersVisible(false);
+  }
+
+  async function handleForumFilterChange(filterPatch = {}) {
+    try {
+      const nextFilters = {
+        ...model.forumFilters,
+        ...(filterPatch || {}),
+      };
+      model.setForumFilters(nextFilters);
+      await model.loadForumFeed(nextFilters);
+    } catch (error) {
+      console.warn("Could not update the forum filters:", error);
+    }
+  }
+
+  async function handleResetForumFilters() {
+    try {
+      model.resetForumFilters();
+      await model.loadForumFeed(model.forumFilters);
+    } catch (error) {
+      console.warn("Could not reset the forum filters:", error);
+    }
+  }
+
   if (!model.ready || isFeedLoading) {
     return (
       <View style={styles.container}>
@@ -252,6 +293,9 @@ const ForumScreen = observer(function ForumScreen() {
       {currentView === "feed" ? (
         <ForumView
           posts={model.forumFeed}
+          searchQuery={model.forumFilters?.searchQuery || ""}
+          onChangeSearchQuery={handleSearchQueryChange}
+          onPressSearchFiltersButton={showSearchFiltersView}
           onTogglePostLike={handleTogglePostLike}
           onTogglePostSave={handleTogglePostSave}
           onToggleCoachResponse={showCoachResponseView}
@@ -307,6 +351,16 @@ const ForumScreen = observer(function ForumScreen() {
           isSubmittingComment={isCreatingComment}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
+        />
+      ) : null}
+      {isSearchFiltersVisible ? (
+        <SearchFiltersView
+          visible={isSearchFiltersVisible}
+          filters={model.forumFilters}
+          onClose={hideSearchFiltersView}
+          onChangeTopic={(topic) => handleForumFilterChange({ topic })}
+          onChangeSortBy={(sortBy) => handleForumFilterChange({ sortBy })}
+          onReset={handleResetForumFilters}
         />
       ) : null}
     </View>

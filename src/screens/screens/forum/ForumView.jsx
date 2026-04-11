@@ -5,6 +5,9 @@ import QuestionnaireShell from "../QuestionnaireShell.jsx";
 
 export default function ForumView({
   posts = [],
+  searchQuery = "",
+  onChangeSearchQuery,
+  onPressSearchFiltersButton,
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
@@ -22,8 +25,14 @@ export default function ForumView({
                 source={require("../../../assets/icons/search.png")}
                 style={styles.searchIcon}
               />
-              <TextInput selectionColor="#fff"  style={styles.searchInput} />
-              <TouchableOpacity>
+              <TextInput
+                selectionColor="#fff"
+                placeholderTextColor="rgba(255, 255, 255, 0.65)"
+                value={searchQuery}
+                onChangeText={onChangeSearchQuery}
+                style={styles.searchInput}
+              />
+              <TouchableOpacity onPress={onPressSearchFiltersButton}>
                 <Image source={require("../../../assets/icons/filter.png")} style={{width: 30, height: 30}} />
               </TouchableOpacity>
               
