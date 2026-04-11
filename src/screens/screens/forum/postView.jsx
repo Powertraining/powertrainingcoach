@@ -1,4 +1,4 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import QuestionnaireShell from "../QuestionnaireShell.jsx";
 import StandardText from "../../../components/textComponents/StandardText.jsx";
 import VerifiedBadge from "../../../components/forumComponents/VerifiedBadge.jsx";
@@ -8,7 +8,13 @@ import GoldGradient from "../../../components/colorComponents/GoldGradient.jsx";
 export default function PostView({
   post,
   comments = [],
+  commentValue = "",
+  commentError = null,
+  currentUserPhotoUrl = "",
+  isSubmittingComment = false,
   onBack,
+  onChangeCommentText,
+  onCreateComment,
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
@@ -19,6 +25,10 @@ export default function PostView({
 
   const isPostLiked = Boolean(post?.isLiked);
   const isPostSaved = Boolean(post?.isSaved);
+  const avatarSource =
+    currentUserPhotoUrl ?
+      { uri: currentUserPhotoUrl } :
+      require("../../../assets/icons/user.png");
 
   return (
     <QuestionnaireShell>
@@ -74,6 +84,36 @@ export default function PostView({
 
           <View style={styles.commentsSection}>
             <StandardText textColor="#C9B259" fontSize={22}>Comments</StandardText>
+            <View style={styles.commentComposer}>
+              <Image source={avatarSource} style={styles.commentAvatar} />
+              <View style={styles.commentComposerBody}>
+                <TextInput
+                  multiline
+                  value={commentValue}
+                  onChangeText={onChangeCommentText}
+                  editable={!isSubmittingComment}
+                  placeholder="Write a comment"
+                  placeholderTextColor="#8A8A8A"
+                  selectionColor="#fff"
+                  style={styles.commentInput}
+                />
+                <TouchableOpacity
+                  style={styles.commentSubmitButton}
+                  onPress={onCreateComment}
+                  disabled={isSubmittingComment}
+                >
+                  <StandardText
+                    fontSize={16}
+                    textColor="#000"
+                  >
+                    {isSubmittingComment ? "Posting..." : "Post Comment"}
+                  </StandardText>
+                </TouchableOpacity>
+                {commentError ? (
+                  <StandardText style={styles.commentError}>{commentError}</StandardText>
+                ) : null}
+              </View>
+            </View>
             <View style={styles.commentsList}>
               {comments.map((comment) => (
                 <Comment key={comment.id} comment={comment} />
@@ -141,6 +181,46 @@ const styles = StyleSheet.create({
   },
   commentsList: {
     marginHorizontal: -24,
+  },
+  commentComposer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    marginTop: 4,
+  },
+  commentAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#2A2A2A",
+  },
+  commentComposerBody: {
+    flex: 1,
+    gap: 10,
+  },
+  commentInput: {
+    minHeight: 90,
+    borderWidth: 1,
+    borderColor: "#4A4A4A",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: "#fff",
+    fontSize: 16,
+    textAlignVertical: "top",
+  },
+  commentSubmitButton: {
+    alignSelf: "flex-start",
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: 120,
+    backgroundColor: "#C9B259",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  commentError: {
+    color: "#FF7A7A",
+    fontSize: 15,
   },
   coachResponseStatus: {
     alignSelf: "flex-start",

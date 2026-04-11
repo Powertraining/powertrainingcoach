@@ -22,6 +22,9 @@ const ForumScreen = observer(function ForumScreen() {
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [createPostError, setCreatePostError] = useState(null);
+  const [commentDraft, setCommentDraft] = useState("");
+  const [isCreatingComment, setIsCreatingComment] = useState(false);
+  const [createCommentError, setCreateCommentError] = useState(null);
 
   useEffect(() => {
     if (!model.ready || !model.user || model.forumFeed.length > 0) {
@@ -164,6 +167,7 @@ const ForumScreen = observer(function ForumScreen() {
 
   function showPostView(postId) {
     setSelectedPostId(postId);
+    setCreateCommentError(null);
     setCurrentView("post");
 
     model.loadForumPostThread(postId).catch((error) => {
@@ -183,6 +187,8 @@ const ForumScreen = observer(function ForumScreen() {
 
   function hidePostView() {
     setSelectedPostId(null);
+    setCommentDraft("");
+    setCreateCommentError(null);
     setCurrentView("feed");
   }
 
@@ -190,6 +196,27 @@ const ForumScreen = observer(function ForumScreen() {
     setIsCoachResponseVisible(false);
     setIsCommentsVisible(false);
     model.setForumOverlayVisible(false);
+  }
+
+  async function handleCreateComment() {
+    if (!selectedPost?.id || isCreatingComment) {
+      return;
+    }
+
+    setCreateCommentError(null);
+    setIsCreatingComment(true);
+
+    try {
+      await model.addForumComment(selectedPost.id, commentDraft);
+      setCommentDraft("");
+    } catch (error) {
+      console.warn("Could not create the forum comment:", error);
+      setCreateCommentError(
+        error?.message || "Could not create the forum comment."
+      );
+    } finally {
+      setIsCreatingComment(false);
+    }
   }
 
   if (!model.ready || isFeedLoading) {
@@ -249,7 +276,13 @@ const ForumScreen = observer(function ForumScreen() {
         <PostView
           post={selectedPost}
           comments={selectedPostId === model.forumSelectedPost?.id ? model.forumComments : []}
+          commentValue={commentDraft}
+          commentError={createCommentError}
+          currentUserPhotoUrl={model.user?.photoURL || ""}
+          isSubmittingComment={isCreatingComment}
           onBack={hidePostView}
+          onChangeCommentText={setCommentDraft}
+          onCreateComment={handleCreateComment}
           onTogglePostLike={handleTogglePostLike}
           onTogglePostSave={handleTogglePostSave}
           onToggleCoachResponse={showCoachResponseView}
@@ -268,6 +301,12 @@ const ForumScreen = observer(function ForumScreen() {
           comments={
             selectedPostId === model.forumSelectedPost?.id ? model.forumComments : []
           }
+          commentValue={commentDraft}
+          commentError={createCommentError}
+          currentUserPhotoUrl={model.user?.photoURL || ""}
+          isSubmittingComment={isCreatingComment}
+          onChangeCommentText={setCommentDraft}
+          onCreateComment={handleCreateComment}
         />
       ) : null}
     </View>
