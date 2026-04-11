@@ -112,6 +112,7 @@ export const model = {
   forumSelectedPost: null,
   forumComments: [],
   forumOverlayVisible: false,
+  forumTabBarHidden: false,
   forumOverlayDismissCount: 0,
   forumFeedPromiseState: {},
   forumSelectedPostPromiseState: {},
@@ -221,6 +222,7 @@ export const model = {
     this.forumSelectedPost = null;
     this.forumComments = [];
     this.forumOverlayVisible = false;
+    this.forumTabBarHidden = false;
     this.forumOverlayDismissCount = 0;
     this.forumFeedPromiseState = {};
     this.forumSelectedPostPromiseState = {};
@@ -229,6 +231,10 @@ export const model = {
 
   setForumOverlayVisible(value) {
     this.forumOverlayVisible = Boolean(value);
+  },
+
+  setForumTabBarHidden(value) {
+    this.forumTabBarHidden = Boolean(value);
   },
 
   requestForumOverlayDismiss() {

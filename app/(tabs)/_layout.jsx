@@ -56,6 +56,7 @@ const TabsLayout = observer(function TabsLayout() {
   const pathname = usePathname();
   const params = useLocalSearchParams();
   const activeTabName = getActiveTabName(pathname);
+  const isTabBarHidden = model.forumTabBarHidden;
 
   function buildProtectedReturnTo() {
     if (typeof pathname !== "string" || !pathname.startsWith("/")) {
@@ -103,7 +104,7 @@ const TabsLayout = observer(function TabsLayout() {
         screenOptions={{
           headerShown: false,
           sceneStyle: { backgroundColor: "transparent" },
-          tabBarStyle: styles.tabBar,
+          tabBarStyle: isTabBarHidden ? [styles.tabBar, styles.tabBarHidden] : styles.tabBar,
           tabBarLabelStyle: styles.tabBarLabel,
           tabBarShowLabel: false,
           tabBarIconStyle: styles.tabBarIconWrapper,
@@ -230,6 +231,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 120,
     zIndex: 20,
+  },
+  tabBarHidden: {
+    display: "none",
   },
   tabBarLabel: {
     fontSize: 12,
