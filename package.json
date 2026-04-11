@@ -52,6 +52,7 @@
     "react-native": "0.76.9",
     "react-native-safe-area-context": "4.14.0",
     "react-native-screens": "~4.4.0",
+    "react-native-svg": "^15.15.4",
     "react-native-webview": "13.12.5",
     "stripe": "^20.1.0"
   }
