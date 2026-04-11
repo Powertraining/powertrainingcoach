@@ -79,11 +79,11 @@ const ForumScreen = observer(function ForumScreen() {
     }
   }
 
-  function handlePressPostButton() {
+  async function handlePressPostButton() {
     try {
-      model.createFakeForumPost();
+      await model.createForumPost(model.getDefaultForumPostDraft());
     } catch (error) {
-      console.warn("Could not create the fake forum post:", error);
+      console.warn("Could not create the forum post:", error);
     }
   }
 
