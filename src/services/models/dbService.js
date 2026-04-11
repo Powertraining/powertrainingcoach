@@ -27,6 +27,7 @@ import {
   DEFAULT_FORUM_FEED_LIMIT,
 } from "./forumModel.js";
 import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
+import { sanitizeFirestoreData } from "../utils/firestoreData.js";
 import { createDefaultTrainingPerformanceState } from "../utils/trainingPerformance.js";
 import { createDefaultStrengthAssessmentState } from "../utils/strengthAssessment.js";
 import { createDefaultTrainingCheckInState } from "../utils/trainingCheckIn.js";
@@ -229,6 +230,7 @@ async function getUserDataViaRest(uid) {
 async function saveUserDataViaRest(uid, dataToSave) {
   const docPath = getCombatModelDocPath(uid);
   const url = getFirestoreDocumentUrl(COLLECTION_NAME, uid);
+  const sanitizedDataToSave = sanitizeFirestoreData(dataToSave);
 
   console.log(
     `[dbService.saveUserData] Using REST fallback for ${docPath} in Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
@@ -239,7 +241,7 @@ async function saveUserDataViaRest(uid, dataToSave) {
     headers: await getFirestoreRestHeaders(),
     body: JSON.stringify({
       fields: toFirestoreFields({
-        ...dataToSave,
+        ...sanitizedDataToSave,
         updatedAt: new Date().toISOString(),
       }),
     }),
@@ -361,13 +363,14 @@ export async function saveUserData(uid, dataToSave) {
 
   try {
     const docReference = doc(db, COLLECTION_NAME, uid);
+    const sanitizedDataToSave = sanitizeFirestoreData(dataToSave);
     console.log(
       `[dbService.saveUserData] Writing ${getCombatModelDocPath(uid)} in Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
     );
     await setDoc(
       docReference,
       {
-        ...dataToSave,
+        ...sanitizedDataToSave,
         updatedAt: serverTimestamp(),
       },
       { merge: true }

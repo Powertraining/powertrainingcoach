@@ -191,6 +191,12 @@ function hasOwnProperty(value, key) {
   return Object.prototype.hasOwnProperty.call(value, key);
 }
 
+function omitUndefinedObjectFields(value = {}) {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined)
+  );
+}
+
 function parseWeekRange(value) {
   const numericMatches = normalizeString(value).match(/\d+/g);
 
@@ -235,7 +241,7 @@ function normalizePlanPhase(phase = {}, phaseIndex = 0) {
     parsedRange.weekEnd ||
     candidateStart;
 
-  return {
+  return omitUndefinedObjectFields({
     ...safePhase,
     label: normalizeString(
       safePhase.label,
@@ -249,7 +255,7 @@ function normalizePlanPhase(phase = {}, phaseIndex = 0) {
         safePhase.rationale || safePhase.summary || safePhase.description
       )
     ),
-  };
+  });
 }
 
 function resolveTrainingPlanPhaseOverview(plan = {}) {
@@ -1458,7 +1464,9 @@ function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
     percentagePrescription: exercise.percentagePrescription,
     strengthAssessment: exercise.strengthAssessment,
     selectedSubstitutionId: exercise.selectedSubstitutionId,
-    selectedSubstitutionName: exercise.selectedSubstitutionName,
+    ...(hasOwnProperty(exercise, "selectedSubstitutionName") ?
+      { selectedSubstitutionName: exercise.selectedSubstitutionName } :
+      {}),
     substitutionOptions,
   });
 }
