@@ -1,9 +1,9 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import QuestionnaireShell from "./QuestionnaireShell.jsx";
-import StandardText from "../components/textComponents/StandardText.jsx";
-import TitleText from "../components/textComponents/TitleText.jsx"
-import GoldGradient from "../components/colorComponents/GoldGradient.jsx"
-import Dotted from '../components/colorComponents/Dotted.jsx';
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import QuestionnaireShell from "../QuestionnaireShell.jsx";
+import StandardText from "../../components/textComponents/StandardText.jsx";
+import TitleText from "../../components/textComponents/TitleText.jsx";
+import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
+import Dotted from "../../components/colorComponents/Dotted.jsx";
 
 export default function StartView({ onStart }) {
     return (

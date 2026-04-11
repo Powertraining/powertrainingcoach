@@ -5,7 +5,7 @@ import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
-import StartView from "../../src/screens/StartView.jsx";
+import StartView from "../../src/screens/home/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/QuestionnaireSportView.jsx";
 import QuestionnaireFrequencyView from "../../src/screens/QuestionnaireFrequencyView.jsx";
 import InputFormView from "../../src/screens/InputFormView.jsx";
