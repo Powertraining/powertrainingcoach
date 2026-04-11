@@ -4,15 +4,15 @@ import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
-import ErrorView from "../../src/screens/screens/ErrorView.jsx";
-import LoadingView from "../../src/screens/screens/LoadingView.jsx";
-import CoachResponseView from "../../src/screens/screens/forum/coachResponseView.jsx";
-import CommentsView from "../../src/screens/screens/forum/commentsView.jsx";
-import ForumView from "../../src/screens/screens/forum/ForumView.jsx";
-import MakePostView from "../../src/screens/screens/forum/makePostView.jsx";
-import PostView from "../../src/screens/screens/forum/postView.jsx";
-import SearchFiltersView from "../../src/screens/screens/forum/searchFiltersView.jsx";
+import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
+import ErrorView from "../../src/screens/ErrorView.jsx";
+import LoadingView from "../../src/screens/LoadingView.jsx";
+import CoachResponseView from "../../src/screens/forum/coachResponseView.jsx";
+import CommentsView from "../../src/screens/forum/commentsView.jsx";
+import ForumView from "../../src/screens/forum/ForumView.jsx";
+import MakePostView from "../../src/screens/forum/makePostView.jsx";
+import PostView from "../../src/screens/forum/postView.jsx";
+import SearchFiltersView from "../../src/screens/forum/searchFiltersView.jsx";
 
 const ForumScreen = observer(function ForumScreen() {
   const model = reactiveModel;

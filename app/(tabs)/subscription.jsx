@@ -4,11 +4,11 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-import SubscriptionPlanView from "../../src/screens/screens/SubscriptionPlanView";
-import PaymentSuccessView from "../../src/screens/screens/PaymentSuccessView.jsx";
-import MessageView from "../../src/screens/screens/MessageView.jsx";
-import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
-import LoadingView from "../../src/screens/screens/LoadingView.jsx";
+import SubscriptionPlanView from "../../src/screens/SubscriptionPlanView";
+import PaymentSuccessView from "../../src/screens/PaymentSuccessView.jsx";
+import MessageView from "../../src/screens/MessageView.jsx";
+import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
+import LoadingView from "../../src/screens/LoadingView.jsx";
 import { verifyCheckoutSession } from "../../src/services/utils/stripeClient.js";
 
 const SubscriptionScreen = observer(function SubscriptionScreen() {

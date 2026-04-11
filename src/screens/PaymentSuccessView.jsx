@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
-import { createPortalSession } from '../../services/utils/stripeClient.js';
+import { createPortalSession } from '../services/utils/stripeClient.js';
 
 export default function PaymentSuccessView({ customerId, sessionId, onContinue }) {
   const handleManageBilling = async () => {

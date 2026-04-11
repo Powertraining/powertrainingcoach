@@ -5,13 +5,13 @@ import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
-import StartView from "../../src/screens/screens/StartView.jsx";
-import QuestionnaireSportView from "../../src/screens/screens/QuestionnaireSportView.jsx";
-import QuestionnaireFrequencyView from "../../src/screens/screens/QuestionnaireFrequencyView.jsx";
-import InputFormView from "../../src/screens/screens/InputFormView.jsx";
-import LoadingView from "../../src/screens/screens/LoadingView.jsx";
-import ErrorView from "../../src/screens/screens/ErrorView.jsx";
-import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
+import StartView from "../../src/screens/StartView.jsx";
+import QuestionnaireSportView from "../../src/screens/QuestionnaireSportView.jsx";
+import QuestionnaireFrequencyView from "../../src/screens/QuestionnaireFrequencyView.jsx";
+import InputFormView from "../../src/screens/InputFormView.jsx";
+import LoadingView from "../../src/screens/LoadingView.jsx";
+import ErrorView from "../../src/screens/ErrorView.jsx";
+import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 

@@ -7,7 +7,7 @@ import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
 import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
-} from "../../constants/trainingPreferences.js";
+} from "../constants/trainingPreferences.js";
 
 export default function InputFormView({
     onSubmit,

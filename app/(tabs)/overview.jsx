@@ -4,9 +4,9 @@ import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-import ProgramOverviewView from "../../src/screens/screens/ProgramOverviewView.jsx";
-import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
-import LoadingView from "../../src/screens/screens/LoadingView.jsx";
+import ProgramOverviewView from "../../src/screens/ProgramOverviewView.jsx";
+import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
+import LoadingView from "../../src/screens/LoadingView.jsx";
 
 const OverviewScreen = observer(function OverviewScreen() {
   const model = reactiveModel;

@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
-import logo from "../../assets/logo.png";
+import logo from "../assets/logo.png";
 
 export function UpBarView(props) {
     const { isAuthenticated, isSubscribed, path, onLogoClick, onNavigate } = props;
@@ -51,7 +51,7 @@ export function UpBarView(props) {
 }
 
 // // src/views/UpBarView.jsx
-// import logo from "../../assets/logo.png";
+// import logo from "../assets/logo.png";
 // import { useNavigate } from "react-router-dom";
 
 // export function UpBarView(props) {

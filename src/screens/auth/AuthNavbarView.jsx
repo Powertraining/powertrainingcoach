@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { TouchableOpacity, View, Keyboard } from "react-native";
-import StandardText from "../../../components/textComponents/StandardText";
+import StandardText from "../../components/textComponents/StandardText.jsx";
 
 export default function AuthNavbar({ onTabChange, onSubmitLogin, onSubmitSignup }) {
   const [active, setActive] = useState(1);

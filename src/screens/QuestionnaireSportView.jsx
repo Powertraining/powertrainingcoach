@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView} from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
+import TitleText from "../components/textComponents/TitleText.jsx";
 
 export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick }) {
     const canContinue = Boolean(value);
@@ -21,7 +21,7 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
                             onPress={() => onChange(value === s ? null : s)}
                             style={[styles.option, value === s && styles.optionSelected]}
                         >
-                            <Image source={value === s ? require("../../assets/icons/fistSelected.png"):require("../../assets/icons/fist.png")} style={styles.imageStyle} />
+                            <Image source={value === s ? require("../assets/icons/fistSelected.png") : require("../assets/icons/fist.png")} style={styles.imageStyle} />
                             <Text style={value === s ? styles.optionTextSelected : styles.optionText}>{s}</Text>
 
                         </TouchableOpacity>

@@ -8,8 +8,8 @@ import {
   GOAL_OPTIONS,
   PLYOMETRICS_EXPERIENCE_OPTIONS,
   PRIMARY_STYLE_OPTIONS,
-} from "../../constants/trainingPreferences.js";
-import { WEEKDAY_OPTIONS } from "../../constants/weekdays.js";
+} from "../constants/trainingPreferences.js";
+import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
 
 export default function TrainingPreferencesFields({
   title,

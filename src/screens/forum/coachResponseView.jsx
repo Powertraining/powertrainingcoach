@@ -1,6 +1,6 @@
 import { StyleSheet, TouchableWithoutFeedback, View, Text } from "react-native";
-import Comment from "../../../components/forumComponents/Comment.jsx";
-import StandardText from "../../../components/textComponents/StandardText.jsx";
+import Comment from "../../components/forumComponents/Comment.jsx";
+import StandardText from "../../components/textComponents/StandardText.jsx";
 
 export default function CoachResponseView({ onClose, comments = [] }) {
   return (

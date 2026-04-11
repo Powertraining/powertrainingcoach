@@ -10,7 +10,7 @@ import {
   LOADING_STRATEGY_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
   TRAINING_PHASE_OPTIONS,
-} from "../../constants/appLogicSettings.js";
+} from "../constants/appLogicSettings.js";
 
 function OptionDescription({ options, value }) {
   const selectedOption = options.find((option) => option.value === value);

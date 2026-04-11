@@ -1,6 +1,6 @@
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View, TextInput } from "react-native";
-import PostCard from "../../../components/forumComponents/PostCard.jsx";
-import StandardText from "../../../components/textComponents/StandardText.jsx";
+import PostCard from "../../components/forumComponents/PostCard.jsx";
+import StandardText from "../../components/textComponents/StandardText.jsx";
 import QuestionnaireShell from "../QuestionnaireShell.jsx";
 
 export default function ForumView({
@@ -22,7 +22,7 @@ export default function ForumView({
           <View style={styles.searchBarWrapper}>
             <View style={styles.searchBar}>
               <Image
-                source={require("../../../assets/icons/search.png")}
+                source={require("../../assets/icons/search.png")}
                 style={styles.searchIcon}
               />
               <TextInput
@@ -33,7 +33,7 @@ export default function ForumView({
                 style={styles.searchInput}
               />
               <TouchableOpacity onPress={onPressSearchFiltersButton}>
-                <Image source={require("../../../assets/icons/filter.png")} style={{width: 30, height: 30}} />
+                <Image source={require("../../assets/icons/filter.png")} style={{width: 30, height: 30}} />
               </TouchableOpacity>
               
             </View>
@@ -53,7 +53,7 @@ export default function ForumView({
         </ScrollView>
         <TouchableOpacity style={styles.postButton} onPress={onPressPostButton}>
           <Image
-            source={require("../../../assets/icons/post.png")}
+            source={require("../../assets/icons/post.png")}
             style={styles.postButtonIcon}
           />
         </TouchableOpacity>

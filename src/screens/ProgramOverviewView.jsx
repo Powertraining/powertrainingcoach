@@ -9,7 +9,7 @@ import {
   getTrainingDayStatus,
   getTrainingPlanPhaseOverview,
   getTrainingPlanSpacingAdvisories,
-} from "../../services/utils/trainingPlan.js";
+} from "../services/utils/trainingPlan.js";
 
 export default function ProgramOverviewView({
   plan,

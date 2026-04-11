@@ -4,11 +4,11 @@ import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-import { MyProfileView } from "../../src/screens/screens/MyProfileView.jsx";
-import QuestionnaireFrequencyView from "../../src/screens/screens/QuestionnaireFrequencyView.jsx";
-import QuestionnaireSportView from "../../src/screens/screens/QuestionnaireSportView.jsx";
-import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
-import LoadingView from "../../src/screens/screens/LoadingView.jsx";
+import { MyProfileView } from "../../src/screens/MyProfileView.jsx";
+import QuestionnaireFrequencyView from "../../src/screens/QuestionnaireFrequencyView.jsx";
+import QuestionnaireSportView from "../../src/screens/QuestionnaireSportView.jsx";
+import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
+import LoadingView from "../../src/screens/LoadingView.jsx";
 import {
   areTrainingPreferencesEqual,
   getTrainingPreferencesFormState,

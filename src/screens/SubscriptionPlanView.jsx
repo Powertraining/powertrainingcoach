@@ -4,7 +4,7 @@ import { Linking, View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import {
   createCheckoutSession,
   listSubscriptionPlans,
-} from "../../services/utils/stripeClient.js";
+} from "../services/utils/stripeClient.js";
 
 export default function SubscriptionPlanView({ onCheckoutSuccess, returnTo = "" }) {
   const [plans, setPlans] = useState([]);
