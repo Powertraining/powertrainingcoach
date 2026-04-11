@@ -4,7 +4,7 @@ import Svg, { Defs, Pattern, Circle, Rect } from 'react-native-svg';
 
 const Dotted = ({ children }) => {
   return (
-    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+    <View style={{ flex: 1, backgroundColor: 'transparent',}}>
       {/* 1. The SVG Pattern Layer */}
       <Svg style={StyleSheet.absoluteFill}>
         <Defs>

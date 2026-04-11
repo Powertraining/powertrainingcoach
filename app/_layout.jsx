@@ -56,7 +56,7 @@ const RootLayout = observer(function RootLayout() {
       <View style={styles.root}>
         <BlackGradient />
         <SafeAreaProvider style={styles.provider}>
-          <StatusBar style="light" backgroundColor="transparent" />
+          <StatusBar style="light" backgroundColor="transparent" hidden/>
           <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
             {isLoading && (
               <View style={styles.loadingOverlay}>
