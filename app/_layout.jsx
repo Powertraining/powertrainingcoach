@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { observer } from "mobx-react-lite";
 import { View, StyleSheet } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as NavigationBar from "expo-navigation-bar";
@@ -57,7 +57,7 @@ const RootLayout = observer(function RootLayout() {
         <BlackGradient />
         <SafeAreaProvider style={styles.provider}>
           <StatusBar style="light" backgroundColor="transparent" hidden/>
-          <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+          <View style={styles.container}>
             {isLoading && (
               <View style={styles.loadingOverlay}>
                 <LoadingView />
@@ -82,7 +82,7 @@ const RootLayout = observer(function RootLayout() {
                 }}
               />
             </Stack>
-          </SafeAreaView>
+          </View>
         </SafeAreaProvider>
       </View>
     </StripeProviderWrapper>
