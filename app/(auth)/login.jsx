@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { LoginView } from "../../src/screens/screens/auth/LoginView.jsx";
+import { LoginView } from "../../src/screens/auth/LoginView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { useGoogleIdTokenProvider } from "../../src/services/auth/googleIdentity";
 

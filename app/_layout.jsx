@@ -11,7 +11,7 @@ import * as NavigationBar from "expo-navigation-bar";
 
 
 import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
-import LoadingView from "../src/screens/screens/LoadingView.jsx";
+import LoadingView from "../src/screens/LoadingView.jsx";
 import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
 import BlackGradient from "../src/components/colorComponents/BlackGradient.jsx";
 

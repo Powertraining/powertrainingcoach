@@ -10,14 +10,14 @@ import {
     getTrainingDayLabel,
     getTrainingDayPreferredWeekday,
     normalizeExercise,
-} from "../../services/utils/trainingPlan.js";
+} from "../services/utils/trainingPlan.js";
 import {
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
     getStrengthAssessmentReferenceOneRepMaxKg,
     getStrengthAssessmentRequirements,
-} from "../../services/utils/strengthAssessment.js";
-import { calculateTargetLoadFromPercentOneRepMax } from "../../services/utils/percentagePrescription.js";
+} from "../services/utils/strengthAssessment.js";
+import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 
 function buildTrackingDrafts(
     exercises = [],

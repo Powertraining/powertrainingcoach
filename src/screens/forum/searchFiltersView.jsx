@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import StandardText from "../../../components/textComponents/StandardText.jsx";
-import { FORUM_TOPIC_SUGGESTIONS } from "../../../services/models/forumModel.js";
+import StandardText from "../../components/textComponents/StandardText.jsx";
+import { FORUM_TOPIC_SUGGESTIONS } from "../../services/models/forumModel.js";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },

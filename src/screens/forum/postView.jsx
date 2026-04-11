@@ -1,9 +1,9 @@
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import QuestionnaireShell from "../QuestionnaireShell.jsx";
-import StandardText from "../../../components/textComponents/StandardText.jsx";
-import VerifiedBadge from "../../../components/forumComponents/VerifiedBadge.jsx";
-import Comment from "../../../components/forumComponents/Comment.jsx";
-import GoldGradient from "../../../components/colorComponents/GoldGradient.jsx";
+import StandardText from "../../components/textComponents/StandardText.jsx";
+import VerifiedBadge from "../../components/forumComponents/VerifiedBadge.jsx";
+import Comment from "../../components/forumComponents/Comment.jsx";
+import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
 
 export default function PostView({
   post,
@@ -28,7 +28,7 @@ export default function PostView({
   const avatarSource =
     currentUserPhotoUrl ?
       { uri: currentUserPhotoUrl } :
-      require("../../../assets/icons/user.png");
+      require("../../assets/icons/user.png");
 
   return (
     <QuestionnaireShell>
@@ -55,7 +55,7 @@ export default function PostView({
               onPress={() => onTogglePostSave?.(post.id)}
             >
               <Image
-                source={require("../../../assets/icons/save.png")}
+                source={require("../../assets/icons/save.png")}
                 style={[styles.buttonIcon, isPostSaved ? styles.buttonIconActive : null]}
               />
             </TouchableOpacity>
@@ -64,7 +64,7 @@ export default function PostView({
               onPress={() => onTogglePostLike?.(post.id)}
             >
               <Image
-                source={require("../../../assets/icons/like.png")}
+                source={require("../../assets/icons/like.png")}
                 style={[styles.buttonIcon, isPostLiked ? styles.buttonIconActive : null]}
               />
               <StandardText fontSize={18} textColor={isPostLiked ? "#000" : "#fff"}>

@@ -2,9 +2,9 @@ import { useState } from "react";
 import { View } from "react-native";
 import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
-import { LoginView } from "../../src/screens/screens/auth/LoginView.jsx";
-import { SignUpView } from "../../src/screens/screens/auth/SignUpView.jsx";
-import AuthNavbar from "../../src/screens/screens/auth/AuthNavbarView.jsx";
+import { LoginView } from "../../src/screens/auth/LoginView.jsx";
+import { SignUpView } from "../../src/screens/auth/SignUpView.jsx";
+import AuthNavbar from "../../src/screens/auth/AuthNavbarView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { useGoogleIdTokenProvider } from "../../src/services/auth/googleIdentity";
 

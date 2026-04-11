@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import {
   buildTrainingCheckInRecommendation,
   TRAINING_CHECK_IN_FIELD_OPTIONS,
-} from "../../services/utils/trainingCheckIn.js";
+} from "../services/utils/trainingCheckIn.js";
 
 const DEFAULT_ANSWERS = Object.freeze({
   progress: "not_sure",

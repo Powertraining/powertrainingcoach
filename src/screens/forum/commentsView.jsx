@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Comment from "../../../components/forumComponents/Comment.jsx";
-import StandardText from "../../../components/textComponents/StandardText.jsx";
+import Comment from "../../components/forumComponents/Comment.jsx";
+import StandardText from "../../components/textComponents/StandardText.jsx";
 
 export default function CommentsView({
   onClose,
@@ -24,7 +24,7 @@ export default function CommentsView({
   const avatarSource =
     currentUserPhotoUrl ?
       { uri: currentUserPhotoUrl } :
-      require("../../../assets/icons/user.png");
+      require("../../assets/icons/user.png");
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>

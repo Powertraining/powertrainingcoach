@@ -1,8 +1,8 @@
 import { Text, Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import QuestionnaireShell from "../QuestionnaireShell.jsx";
-import StandardText from "../../../components/textComponents/StandardText.jsx";
+import StandardText from "../../components/textComponents/StandardText.jsx";
 
-const stockProfileImage = require("../../../assets/icons/user.png");
+const stockProfileImage = require("../../assets/icons/user.png");
 
 export default function MakePostView({
   value = "",
@@ -17,7 +17,7 @@ export default function MakePostView({
   const avatarSource =
     userPhotoUrl ?
       { uri: userPhotoUrl } :
-      require("../../../assets/icons/user.png");
+      require("../../assets/icons/user.png");
 
   return (
     <View style={styles.container}>

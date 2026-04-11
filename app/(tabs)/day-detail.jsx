@@ -4,9 +4,9 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-import DayDetailView from "../../src/screens/screens/DayDetailView.jsx";
-import AuthGateView from "../../src/screens/screens/auth/AuthGateView.jsx";
-import LoadingView from "../../src/screens/screens/LoadingView.jsx";
+import DayDetailView from "../../src/screens/DayDetailView.jsx";
+import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
+import LoadingView from "../../src/screens/LoadingView.jsx";
 
 const DayDetailScreen = observer(function DayDetailScreen() {
   const model = reactiveModel;
