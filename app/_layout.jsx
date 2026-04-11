@@ -31,8 +31,8 @@ const RootLayout = observer(function RootLayout() {
   useEffect(() => {
     model.startDateChangeDetector?.();
 
-    NavigationBar.setPositionAsync("relative");
-    NavigationBar.setBackgroundColorAsync("#000");
+    NavigationBar.setPositionAsync("absolute");
+    NavigationBar.setBackgroundColorAsync("transparent");
     NavigationBar.setButtonStyleAsync("light");
     
 
@@ -56,7 +56,7 @@ const RootLayout = observer(function RootLayout() {
       <View style={styles.root}>
         <BlackGradient />
         <SafeAreaProvider style={styles.provider}>
-          <StatusBar style="light" backgroundColor="#000000" />
+          <StatusBar style="light" backgroundColor="transparent" />
           <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
             {isLoading && (
               <View style={styles.loadingOverlay}>

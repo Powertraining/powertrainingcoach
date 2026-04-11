@@ -2,6 +2,7 @@ import { Tabs, Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import { useLocalSearchParams, usePathname } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
 function TabIcon({ source, size, focused, label }) {
@@ -51,12 +52,80 @@ function getActiveTabName(pathname) {
   return null;
 }
 
+const VISIBLE_TAB_ROUTES = new Set(["index", "overview", "forum", "profile"]);
+
+function getTabBarBottomOffset(bottomInset) {
+  return Math.max(Math.round(bottomInset / 2), 12);
+}
+
+function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {
+  if (hidden) {
+    return null;
+  }
+
+  const visibleRoutes = state.routes.filter((route) => VISIBLE_TAB_ROUTES.has(route.name));
+
+  return (
+    <View style={[styles.customTabBar, { bottom: bottomOffset }]}>
+      {visibleRoutes.map((route) => {
+        const options = descriptors[route.key]?.options ?? {};
+        const focused = activeTabName === route.name;
+
+        function onPress() {
+          const event = navigation.emit({
+            type: "tabPress",
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!focused && !event.defaultPrevented) {
+            navigation.navigate(route.name, route.params);
+          }
+        }
+
+        function onLongPress() {
+          navigation.emit({
+            type: "tabLongPress",
+            target: route.key,
+          });
+        }
+
+        return (
+          <Pressable
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={focused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarButtonTestID}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            style={[
+              styles.tabBarButton,
+              focused ? styles.tabBarButtonActive : styles.tabBarButtonInactive,
+            ]}
+          >
+            {typeof options.tabBarIcon === "function"
+              ? options.tabBarIcon({
+                  focused,
+                  color: focused ? "#fff" : "#000",
+                  size: 24,
+                })
+              : null}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 const TabsLayout = observer(function TabsLayout() {
   const model = reactiveModel;
   const pathname = usePathname();
   const params = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const activeTabName = getActiveTabName(pathname);
   const isTabBarHidden = model.forumTabBarHidden;
+  const tabBarBottomOffset = getTabBarBottomOffset(insets.bottom);
 
   function buildProtectedReturnTo() {
     if (typeof pathname !== "string" || !pathname.startsWith("/")) {
@@ -101,21 +170,23 @@ const TabsLayout = observer(function TabsLayout() {
   return (
     <View style={styles.container}>
       <Tabs
+        tabBar={(props) => (
+          <CustomTabBar
+            {...props}
+            activeTabName={activeTabName}
+            hidden={isTabBarHidden}
+            bottomOffset={tabBarBottomOffset}
+          />
+        )}
         screenOptions={{
           headerShown: false,
           sceneStyle: { backgroundColor: "transparent" },
-          tabBarStyle: isTabBarHidden ? [styles.tabBar, styles.tabBarHidden] : styles.tabBar,
-          tabBarLabelStyle: styles.tabBarLabel,
-          tabBarShowLabel: false,
-          tabBarIconStyle: styles.tabBarIconWrapper,
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
             title: "Home",
-            tabBarItemStyle:
-              activeTabName === "index" ? styles.tabBarItemActive : [styles.tabBarItemInactive, {paddingLeft: 20}],
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/home.png")}
@@ -130,8 +201,6 @@ const TabsLayout = observer(function TabsLayout() {
           name="overview"
           options={{
             title: "Plan",
-            tabBarItemStyle:
-              activeTabName === "overview" ? styles.tabBarItemActive : styles.tabBarItemInactive,
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/sport.png")}
@@ -146,8 +215,6 @@ const TabsLayout = observer(function TabsLayout() {
           name="forum"
           options={{
             title: "Forum",
-            tabBarItemStyle:
-              activeTabName === "forum" ? styles.tabBarItemActive : styles.tabBarItemInactive,
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/conversation.png")}
@@ -162,8 +229,6 @@ const TabsLayout = observer(function TabsLayout() {
           name="profile"
           options={{
             title: "Profile",
-            tabBarItemStyle:
-              activeTabName === "profile" ? styles.tabBarItemActive : [styles.tabBarItemInactive, {paddingRight: 10}],
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
                 source={require("../../src/assets/icons/user.png")}
@@ -193,10 +258,10 @@ const TabsLayout = observer(function TabsLayout() {
           }}
         />
       </Tabs>
-      {model.forumOverlayVisible ? (
+      {model.forumOverlayVisible && !isTabBarHidden ? (
         <Pressable
           onPress={() => model.requestForumOverlayDismiss()}
-          style={styles.tabBarDisabledOverlay}
+          style={[styles.tabBarDisabledOverlay, { bottom: tabBarBottomOffset }]}
         />
       ) : null}
     </View>
@@ -209,48 +274,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tabBar: {
+  customTabBar: {
+    position: "absolute",
+    left: 16,
+    right: 16,
     backgroundColor: "#fff",
     height: 70,
-    marginHorizontal: 16,
-    marginVertical: 20,
-    position: "absolute",
     borderRadius: 120,
-    justifyContent: "center",
     overflow: "hidden",
     padding: 6,
+    flexDirection: "row",
+    zIndex: 10,
+    marginBottom: 5,
   },
   tabBarDisabledOverlay: {
     backgroundColor: "rgba(0, 0, 0, 0.72)",
     height: 70,
-    marginHorizontal: 16,
-    marginVertical: 20,
     position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
+    left: 16,
+    right: 16,
     borderRadius: 120,
     zIndex: 20,
   },
-  tabBarHidden: {
-    display: "none",
-  },
-  tabBarLabel: {
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  tabBarItemInactive: {
-    flex: 1,
+  tabBarButton: {
     height: "100%",
+    borderRadius: 120,
+    overflow: "hidden",
+    flex: 1,
   },
-  tabBarItemActive: {
+  tabBarButtonInactive: {
+    flex: 1,
+  },
+  tabBarButtonActive: {
     flex: 3,
-    height: "100%",
-  },
-  tabBarIconWrapper: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
   },
   tabIcon: {
     flex: 1,
