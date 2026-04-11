@@ -10,11 +10,13 @@ import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import CoachResponseView from "../../src/screens/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/screens/forum/commentsView.jsx";
 import ForumView from "../../src/screens/screens/forum/ForumView.jsx";
+import PostView from "../../src/screens/screens/forum/postView.jsx";
 
 const ForumScreen = observer(function ForumScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [currentView, setCurrentView] = useState("feed");
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
 
@@ -48,6 +50,10 @@ const ForumScreen = observer(function ForumScreen() {
     selectedPostId === model.forumSelectedPost?.id ?
       model.forumComments.filter((comment) => comment?.isCoachVerified) :
       [];
+  const selectedPost =
+    (selectedPostId === model.forumSelectedPost?.id ? model.forumSelectedPost : null) ||
+    model.forumFeed.find((post) => post?.id === selectedPostId) ||
+    null;
 
   async function handleRetry() {
     try {
@@ -101,20 +107,31 @@ const ForumScreen = observer(function ForumScreen() {
     });
   }
 
+  function showPostView(postId) {
+    setSelectedPostId(postId);
+    setCurrentView("post");
+
+    model.loadForumPostThread(postId).catch((error) => {
+      console.warn(`Could not load the forum thread for ${postId}:`, error);
+    });
+  }
+
   function hideCoachResponseView() {
-    setSelectedPostId(null);
     setIsCoachResponseVisible(false);
     model.setForumOverlayVisible(false);
   }
 
   function hideCommentsView() {
-    setSelectedPostId(null);
     setIsCommentsVisible(false);
     model.setForumOverlayVisible(false);
   }
 
-  function hideForumOverlay() {
+  function hidePostView() {
     setSelectedPostId(null);
+    setCurrentView("feed");
+  }
+
+  function hideForumOverlay() {
     setIsCoachResponseVisible(false);
     setIsCommentsVisible(false);
     model.setForumOverlayVisible(false);
@@ -150,14 +167,28 @@ const ForumScreen = observer(function ForumScreen() {
 
   return (
     <View style={styles.container}>
-      <ForumView
-        posts={model.forumFeed}
-        onTogglePostLike={handleTogglePostLike}
-        onTogglePostSave={handleTogglePostSave}
-        onToggleCoachResponse={showCoachResponseView}
-        onPressPostButton={handlePressPostButton}
-        onPressComments={showCommentsView}
-      />
+      {currentView === "feed" ? (
+        <ForumView
+          posts={model.forumFeed}
+          onTogglePostLike={handleTogglePostLike}
+          onTogglePostSave={handleTogglePostSave}
+          onToggleCoachResponse={showCoachResponseView}
+          onPressPostButton={handlePressPostButton}
+          onPressComments={showCommentsView}
+          onPressPost={showPostView}
+        />
+      ) : null}
+      {currentView === "post" ? (
+        <PostView
+          post={selectedPost}
+          comments={selectedPostId === model.forumSelectedPost?.id ? model.forumComments : []}
+          onBack={hidePostView}
+          onTogglePostLike={handleTogglePostLike}
+          onTogglePostSave={handleTogglePostSave}
+          onToggleCoachResponse={showCoachResponseView}
+          onPressComments={showCommentsView}
+        />
+      ) : null}
       {isCoachResponseVisible ? (
         <CoachResponseView
           onClose={hideCoachResponseView}

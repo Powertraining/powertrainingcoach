@@ -10,6 +10,7 @@ export default function PostCard({
   onTogglePostSave,
   onToggleCoachResponse,
   onPressComments,
+  onPressPost,
 }) {
   const isPostLiked = Boolean(post?.isLiked);
   const isPostSaved = Boolean(post?.isSaved);
@@ -17,7 +18,7 @@ export default function PostCard({
   return (
     <View style={styles.card}>
       <View style={styles.cardContent}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => onPressPost?.(post.id)}>
           <View style={styles.postHeader}>
             <TouchableOpacity style={styles.authorButton}>
               {post?.isCoachVerified ? (

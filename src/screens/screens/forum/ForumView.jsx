@@ -9,6 +9,7 @@ export default function ForumView({
   onTogglePostSave,
   onToggleCoachResponse,
   onPressComments,
+  onPressPost,
   onPressPostButton,
 }) {
   return (
@@ -37,6 +38,7 @@ export default function ForumView({
               onTogglePostSave={onTogglePostSave}
               onToggleCoachResponse={onToggleCoachResponse}
               onPressComments={onPressComments}
+              onPressPost={onPressPost}
             />
           ))}
         </ScrollView>
