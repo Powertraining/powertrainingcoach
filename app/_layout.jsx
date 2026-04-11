@@ -5,6 +5,9 @@ import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
+import * as NavigationBar from "expo-navigation-bar";
+
+
 
 
 import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
@@ -27,6 +30,12 @@ const RootLayout = observer(function RootLayout() {
   // Start the background date change detector when app mounts
   useEffect(() => {
     model.startDateChangeDetector?.();
+
+    NavigationBar.setPositionAsync("relative");
+    NavigationBar.setBackgroundColorAsync("#000");
+    NavigationBar.setButtonStyleAsync("light");
+    
+
     return () => {
       model.stopDateChangeDetector?.();
     };
