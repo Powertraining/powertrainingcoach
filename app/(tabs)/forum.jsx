@@ -10,6 +10,7 @@ import LoadingView from "../../src/screens/screens/LoadingView.jsx";
 import CoachResponseView from "../../src/screens/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/screens/forum/commentsView.jsx";
 import ForumView from "../../src/screens/screens/forum/ForumView.jsx";
+import MakePostView from "../../src/screens/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/screens/forum/postView.jsx";
 
 const ForumScreen = observer(function ForumScreen() {
@@ -19,6 +20,8 @@ const ForumScreen = observer(function ForumScreen() {
   const [currentView, setCurrentView] = useState("feed");
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [createPostError, setCreatePostError] = useState(null);
 
   useEffect(() => {
     if (!model.ready || !model.user || model.forumFeed.length > 0) {
@@ -79,11 +82,55 @@ const ForumScreen = observer(function ForumScreen() {
     }
   }
 
-  async function handlePressPostButton() {
+  function handlePressPostButton() {
+    model.resetForumComposer();
+    model.updateForumComposer(model.getDefaultForumPostDraft());
+    setCreatePostError(null);
+    setCurrentView("compose");
+  }
+
+  function handleComposeTextChange(body) {
+    const normalizedBody = String(body ?? "");
+    const derivedTitle =
+      normalizedBody
+        .trim()
+        .split(/\r?\n/)[0]
+        ?.trim()
+        .slice(0, 140) || model.getDefaultForumPostDraft().title;
+
+    model.updateForumComposer({
+      title: derivedTitle,
+      body: normalizedBody,
+    });
+  }
+
+  function handleDiscardPost() {
+    if (isCreatingPost) {
+      return;
+    }
+
+    setCreatePostError(null);
+    model.resetForumComposer();
+    setCurrentView("feed");
+  }
+
+  function handleUploadImage() {
+    console.warn("Image upload is not wired yet.");
+  }
+
+  async function handleCreatePost() {
+    setCreatePostError(null);
+    setIsCreatingPost(true);
+
     try {
-      await model.createForumPost(model.getDefaultForumPostDraft());
+      const createdPost = await model.createForumPost();
+      setSelectedPostId(createdPost?.id || null);
+      setCurrentView("post");
     } catch (error) {
       console.warn("Could not create the forum post:", error);
+      setCreatePostError(error?.message || "Could not create the forum post.");
+    } finally {
+      setIsCreatingPost(false);
     }
   }
 
@@ -176,6 +223,18 @@ const ForumScreen = observer(function ForumScreen() {
           onPressPostButton={handlePressPostButton}
           onPressComments={showCommentsView}
           onPressPost={showPostView}
+        />
+      ) : null}
+      {currentView === "compose" ? (
+        <MakePostView
+          value={model.forumComposer?.body || ""}
+          userPhotoUrl={model.user?.photoURL || ""}
+          isSubmitting={isCreatingPost}
+          error={createPostError}
+          onChangeText={handleComposeTextChange}
+          onPost={handleCreatePost}
+          onUploadImage={handleUploadImage}
+          onDiscard={handleDiscardPost}
         />
       ) : null}
       {currentView === "post" ? (
