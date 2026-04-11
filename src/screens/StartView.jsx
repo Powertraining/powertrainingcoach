@@ -3,10 +3,12 @@ import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import TitleText from "../components/textComponents/TitleText.jsx"
 import GoldGradient from "../components/colorComponents/GoldGradient.jsx"
+import Dotted from '../components/colorComponents/Dotted.jsx';
 
 export default function StartView({ onStart }) {
     return (
         <QuestionnaireShell>
+        <Dotted>
             <View>
                 <TitleText>Lets start by creating your program</TitleText>
                 <TouchableOpacity onPress={onStart} style={styles.bigButton}>
@@ -14,6 +16,7 @@ export default function StartView({ onStart }) {
                     <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
                 </TouchableOpacity>
             </View>
+        </Dotted>
         </QuestionnaireShell>
     );
 }
