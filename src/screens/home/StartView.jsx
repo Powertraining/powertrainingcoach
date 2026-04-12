@@ -8,7 +8,6 @@ import RowCard from "../../components/homeComponents/RowCard.jsx";
 
 export default function StartView({ onStart }) {
     return (
-        <QuestionnaireShell>
             <Dotted>
                 <ScrollView
                     contentContainerStyle={styles.content}
@@ -32,7 +31,6 @@ export default function StartView({ onStart }) {
                     </View>
                 </ScrollView>
             </Dotted>
-        </QuestionnaireShell>
     );
 }
 
