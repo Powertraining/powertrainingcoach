@@ -1,7 +1,7 @@
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View, TextInput } from "react-native";
 import PostCard from "../../components/forumComponents/PostCard.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
-import QuestionnaireShell from "../QuestionnaireShell.jsx";
+import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 
 export default function ForumView({
   posts = [],

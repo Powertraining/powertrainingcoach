@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
-import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
 import {
   getCurrentTrainingPhase,

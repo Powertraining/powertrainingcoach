@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView} from "react-native";
-import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TitleText from "../components/textComponents/TitleText.jsx";
 
 export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick }) {

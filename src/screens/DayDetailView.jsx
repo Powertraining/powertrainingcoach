@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
     getExercisePerformanceTarget,
     getExercisePercentagePrescription,

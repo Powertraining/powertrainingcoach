@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
-import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
 import {
     getTrainingPreferencesFormState,

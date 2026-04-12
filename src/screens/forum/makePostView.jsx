@@ -1,5 +1,4 @@
 import { Text, Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
-import QuestionnaireShell from "../QuestionnaireShell.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 
 const stockProfileImage = require("../../assets/icons/user.png");

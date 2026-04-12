@@ -1,5 +1,5 @@
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import QuestionnaireShell from "../QuestionnaireShell.jsx";
+import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import VerifiedBadge from "../../components/forumComponents/VerifiedBadge.jsx";
 import Comment from "../../components/forumComponents/Comment.jsx";

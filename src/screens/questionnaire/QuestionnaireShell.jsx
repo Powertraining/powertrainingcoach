@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { reactiveModel } from "../services/models/mobxReactiveModel.js";
+import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
 
 export default function QuestionnaireShell({ children, onLogoClick }) {
     useEffect(() => {
