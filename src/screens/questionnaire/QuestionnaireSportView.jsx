@@ -8,9 +8,11 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
             <View>
+            <View style={[styles.decorativeCircle,{left: -105, top: -105, width:180, borderRadius: 75, borderColor: "#C9B259"}]} />
+            <View style={styles.decorativeCircle} />
     
             <ScrollView>
-            <TitleText>select your primary combat sport</TitleText>
+            <TitleText >select your primary combat sport</TitleText>
                 <View >
                     <View  style={styles.grid}>
                     {options.map((option) => {
@@ -36,7 +38,7 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
                 style={canContinue ? styles.continueButton : styles.bottomBackButton}
             >
                 <Text style={[styles.buttonText, !canContinue && styles.bottomBackButtonText]}>
-                    {canContinue ? "Continue" : "Back"}
+                    {canContinue ? "Continue" : "Go back"}
                 </Text>
             </TouchableOpacity>
         </QuestionnaireShell>
@@ -108,5 +110,15 @@ const styles = StyleSheet.create({
     },
     bottomBackButtonText: {
         color: "#585858"
+    },
+    decorativeCircle: {
+        position: "absolute",
+        top: -95,
+        left: -95,
+        width: 190,
+        aspectRatio: 1,
+        borderRadius: 10000,
+        borderWidth: 5,
+        borderColor: "#fff",
     }
 });
