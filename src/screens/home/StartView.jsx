@@ -1,22 +1,37 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import QuestionnaireShell from "../QuestionnaireShell.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
+import RowCard from "../../components/homeComponents/RowCard.jsx";
 
 export default function StartView({ onStart }) {
     return (
         <QuestionnaireShell>
-        <Dotted>
-            <View>
-                <TitleText>Lets start by creating your program</TitleText>
-                <TouchableOpacity onPress={onStart} style={styles.bigButton}>
-                    <GoldGradient style={{borderRadius: styles.bigButton.borderRadius}}/>
-                    <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
-                </TouchableOpacity>
-            </View>
-        </Dotted>
+            <Dotted>
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View>
+                        <TitleText>Lets start by creating your program</TitleText>
+                        <TouchableOpacity onPress={onStart} style={styles.bigButton}>
+                            <GoldGradient style={{borderRadius: styles.bigButton.borderRadius}}/>
+                            <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <View style={styles.row}>
+                        <RowCard/>
+                        <RowCard/>
+                    </View>
+                    <View style={styles.row}>
+                        <RowCard/>
+                        <RowCard/>
+                    </View>
+                </ScrollView>
+            </Dotted>
         </QuestionnaireShell>
     );
 }
@@ -46,12 +61,23 @@ export default function StartView({ onStart }) {
 // }
 
 const styles = StyleSheet.create({
+    content: {
+        paddingBottom: 24,
+    },
     bigButton: {backgroundColor: "#fff",
-        height: 75,
+        height: "75",
         marginHorizontal: 70,
         borderRadius: 120,
         alignItems: "center",
         justifyContent: "center",
         marginTop: 20,
+        marginBottom: 120,
     },
+    row: {
+        flexDirection: "row",
+        gap: 15,
+        marginHorizontal: 20,
+        marginBottom: 15,
+    }
+
 })
