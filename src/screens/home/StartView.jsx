@@ -1,4 +1,5 @@
 import { View, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
@@ -15,10 +16,13 @@ export default function StartView({ onStart }) {
                 >
                     <View>
                         <TitleText>Lets start by creating your program</TitleText>
-                        <TouchableOpacity onPress={onStart} style={styles.bigButton}>
-                            <GoldGradient style={{borderRadius: styles.bigButton.borderRadius}}/>
-                            <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
-                        </TouchableOpacity>
+                        <View style={styles.buttonShadow}>
+                        
+                                <TouchableOpacity onPress={onStart} style={styles.bigButton}>
+                                    <GoldGradient style={{ borderRadius: styles.bigButton.borderRadius }} />
+                                    <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
+                                </TouchableOpacity>
+                        </View>
                     </View>
                     
                     <View style={styles.row}>
@@ -62,14 +66,19 @@ const styles = StyleSheet.create({
     content: {
         paddingBottom: 24,
     },
+    buttonShadow: {
+        alignSelf: "center",
+        marginTop: 20,
+        marginBottom: 120,
+        borderRadius: 120,
+        boxShadow: "0px 0px 100px -25px #fff",
+    },
     bigButton: {backgroundColor: "#fff",
-        height: "75",
-        marginHorizontal: 70,
+        height: 75,
+        paddingHorizontal: 70,
         borderRadius: 120,
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 20,
-        marginBottom: 120,
     },
     column:{marginBottom: 70},
     row: {
