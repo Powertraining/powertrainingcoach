@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 16,
         borderRadius: 30,
-        borderWidth: 1.8,
+        borderWidth: 1.2,
         borderColor: "#585858",
         borderStyle: "dashed",
         color: "#585858",
@@ -62,18 +62,17 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     nonSelctedImageStyle: {
-        width:"60%", height: "60%", marginBottom: 10, tintColor: "#fff"},
+        width:"60%", height: "60%", marginBottom: 10, tintColor: "#8E8E8E"},
     selectedImageStyle:{
         width:"60%", height: "60%", marginBottom: 10, tintColor: "#000"
     },
     optionSelected: {
         backgroundColor: "#fff",
-        borderColor: "#000",
         borderStyle: "solid",
         
     },
     optionText: {
-        color: "white",
+        color: "#8E8E8E",
         fontFamily: "BebasNeue",
         fontSize:20,
     },
@@ -97,9 +96,9 @@ const styles = StyleSheet.create({
     continueButton : {
         color: "#000",
         backgroundColor: "#fff",
-        width: "90%",
+        width: "50%",
         margin:"auto",
-        height: 75,
+        height: 60,
         borderRadius: 120,
         alignItems: "center",
         justifyContent: "center",
