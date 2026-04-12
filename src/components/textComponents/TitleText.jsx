@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 
-export default function TitleText({ style, children, height = 250, ...props }) {
+export default function TitleText({ style, children, height = 280, ...props }) {
   return (
     <View
       style={{ width: 175, alignSelf: "center", height: height, justifyContent: "center" }}
