@@ -14,7 +14,7 @@ const Dotted = ({ children }) => {
             height="10"
             patternUnits="userSpaceOnUse"
           >
-            <Circle cx="2" cy="2" r="1" fill="#CCCCCC" opacity={0.1}/>
+            <Circle cx="2" cy="2" r="1" fill="#CCCCCC" opacity={0.07}/>
           </Pattern>
         </Defs>
         <Rect width="100%" height="100%" fill="url(#dotPattern)" />

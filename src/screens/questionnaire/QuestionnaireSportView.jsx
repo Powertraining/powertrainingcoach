@@ -31,15 +31,14 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
                 </View>
             </ScrollView>
             </View>
-            <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                            <Text style={[styles.buttonText,{color:"#585858"}]}>Back</Text>
-                        </TouchableOpacity>
-            {value !== null ? 
-                    <TouchableOpacity onPress={onContinue} disabled={!canContinue} style={styles.continueButton}>
-                        <Text style={styles.buttonText}>Continue</Text>
-                    </TouchableOpacity> 
-                    
-                    : null}
+            <TouchableOpacity
+                onPress={canContinue ? onContinue : onBack}
+                style={canContinue ? styles.continueButton : styles.bottomBackButton}
+            >
+                <Text style={[styles.buttonText, !canContinue && styles.bottomBackButtonText]}>
+                    {canContinue ? "Continue" : "Back"}
+                </Text>
+            </TouchableOpacity>
         </QuestionnaireShell>
     );
 }
@@ -81,14 +80,6 @@ const styles = StyleSheet.create({
         fontFamily: "BebasNeue",
         fontSize:20
     },
-    backButton: {
-        alignSelf: "flex-start",
-        margin: 10,
-        position: "absolute",
-        width: 40,
-        height: 30,
-        zIndex: 10,
-    },
     buttonText: {
         fontFamily: "BebasNeue",
         fontSize: 22
@@ -107,4 +98,15 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         alignSelf: "center"
     },
+    bottomBackButton: {
+        position: "absolute",
+        bottom: 0,
+        marginBottom: 20,
+        alignSelf: "center",
+        height: 60,
+        justifyContent: "center",
+    },
+    bottomBackButtonText: {
+        color: "#585858"
+    }
 });
