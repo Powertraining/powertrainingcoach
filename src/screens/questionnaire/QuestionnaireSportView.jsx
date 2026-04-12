@@ -15,17 +15,20 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
             <TitleText>select your primary combat sport</TitleText>
                 <View >
                     <View  style={styles.grid}>
-                    {options.map((s) => (
+                    {options.map((option) => {
+                        const isSelected = value === option.value;
+
+                        return (
                         <TouchableOpacity
-                            key={s}
-                            onPress={() => onChange(value === s ? null : s)}
-                            style={[styles.option, value === s && styles.optionSelected]}
+                            key={option.id}
+                            onPress={() => onChange(isSelected ? null : option.value)}
+                            style={[styles.option, isSelected && styles.optionSelected]}
                         >
-                            <Image source={value === s ? require("../../assets/icons/fistSelected.png") : require("../../assets/icons/fist.png")} style={styles.imageStyle} />
-                            <Text style={value === s ? styles.optionTextSelected : styles.optionText}>{s}</Text>
+                            <Image source={option.image} style={styles.imageStyle} resizeMode="contain" />
+                            <Text style={isSelected ? styles.optionTextSelected : styles.optionText}>{option.label}</Text>
 
                         </TouchableOpacity>
-                    ))}
+                    )})}
                 </View>
                 </View>
             </ScrollView>
