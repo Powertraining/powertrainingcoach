@@ -26,10 +26,6 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                 <TitleText>How many strength sessions per week do you do?</TitleText>
 
                 <View style={styles.content}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                        <StandardText>total body, comprehensive</StandardText>
-                        <StandardText>more divided, scattered</StandardText>
-                    </View>
 
                     <View
                         style={styles.sliderShell}
@@ -56,7 +52,12 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                             thumbTintColor="transparent"
                             style={styles.slider}
                         />
+                        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                        <StandardText style={styles.leftLable}>Full body</StandardText>
+                        <StandardText style={styles.rightLable}>Precise</StandardText>
                     </View>
+                    </View>
+                     
                 </View>
 
                 <QuestionnaireBottomActionButton layout="stacked" text="Confirm" onContinue={onContinue} onBack={onBack} />
@@ -106,4 +107,14 @@ const styles = StyleSheet.create({
         width: "100%",
         height: 40,
     },
+    leftLable: {
+        textAlign: "left",
+        marginLeft: 20,
+        marginTop: 20,
+    },
+    rightLable: {
+        textAlign: "right",
+        marginRight: 20,
+        marginTop: 20,
+    }
 });
