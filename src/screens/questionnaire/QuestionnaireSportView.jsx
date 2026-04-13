@@ -1,6 +1,9 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView} from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
+import QuestionnaireDecorativeRing from "../../components/questionnaireComponents/QuestionnaireDecorativeRing.jsx";
+import QuestionnaireSportOptionButton from "../../components/questionnaireComponents/QuestionnaireSportOptionButton.jsx";
+import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 
 export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick }) {
     const canContinue = Boolean(value);
@@ -8,8 +11,8 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
             <View>
-            <View style={[styles.decorativeCircle,{left: -105, top: -105, width:180, borderRadius: 75, borderColor: "#C9B259"}]} />
-            <View style={styles.decorativeCircle} />
+            <QuestionnaireDecorativeRing style={{ left: -105, top: -105, width: 180, borderRadius: 75, borderColor: "#C9B259" }} />
+            <QuestionnaireDecorativeRing />
     
             <ScrollView>
             <TitleText >select your primary combat sport</TitleText>
@@ -19,28 +22,18 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
                         const isSelected = value === option.value;
 
                         return (
-                        <TouchableOpacity
+                        <QuestionnaireSportOptionButton
                             key={option.id}
+                            option={option}
+                            isSelected={isSelected}
                             onPress={() => onChange(isSelected ? null : option.value)}
-                            style={[styles.option, isSelected && styles.optionSelected]}
-                        >
-                            <Image source={option.image} style={isSelected ? styles.selectedImageStyle: styles.nonSelctedImageStyle} resizeMode="contain" />
-                            <Text style={isSelected ? styles.optionTextSelected : styles.optionText}>{option.label}</Text>
-
-                        </TouchableOpacity>
+                        />
                     )})}
                 </View>
                 </View>
             </ScrollView>
             </View>
-            <TouchableOpacity
-                onPress={canContinue ? onContinue : onBack}
-                style={canContinue ? styles.continueButton : styles.bottomBackButton}
-            >
-                <Text style={[styles.buttonText, !canContinue && styles.bottomBackButtonText]}>
-                    {canContinue ? "Continue" : "Go back"}
-                </Text>
-            </TouchableOpacity>
+            <QuestionnaireBottomActionButton canContinue={canContinue} onContinue={onContinue} onBack={onBack} />
         </QuestionnaireShell>
     );
 }
@@ -48,77 +41,4 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
 const styles = StyleSheet.create({
     grid: { flexDirection: "row", flexWrap: "wrap", gap: 15, justifyContent: "center",
         alignSelf:"center", width: 280},
-    option: {
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 30,
-        borderWidth: 1.2,
-        borderColor: "#585858",
-        borderStyle: "dashed",
-        color: "#585858",
-        width: 125,
-        height: 125,
-        backgroundColor: "#1E1E1E",
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    nonSelctedImageStyle: {
-        width:"60%", height: "60%", marginBottom: 10, tintColor: "#8E8E8E"},
-    selectedImageStyle:{
-        width:"60%", height: "60%", marginBottom: 10, tintColor: "#000"
-    },
-    optionSelected: {
-        backgroundColor: "#fff",
-        borderStyle: "solid",
-        
-    },
-    optionText: {
-        color: "#8E8E8E",
-        fontFamily: "BebasNeue",
-        fontSize:20,
-    },
-    optionTextSelected: {
-        color: "#000",
-        fontFamily: "BebasNeue",
-        fontSize:20
-    },
-    buttonText: {
-        fontFamily: "BebasNeue",
-        fontSize: 22
-    },
-    continueButton : {
-        color: "#000",
-        backgroundColor: "#fff",
-        width: "50%",
-        margin:"auto",
-        height: 60,
-        borderRadius: 120,
-        alignItems: "center",
-        justifyContent: "center",
-        position: "absolute",
-        bottom: 0,
-        marginBottom: 20,
-        alignSelf: "center"
-    },
-    bottomBackButton: {
-        position: "absolute",
-        bottom: 0,
-        marginBottom: 20,
-        alignSelf: "center",
-        height: 60,
-        justifyContent: "center",
-    },
-    bottomBackButtonText: {
-        color: "#585858"
-    },
-    decorativeCircle: {
-        position: "absolute",
-        top: -95,
-        left: -95,
-        width: 190,
-        aspectRatio: 1,
-        borderRadius: 10000,
-        borderWidth: 5,
-        borderColor: "#fff",
-    }
 });
