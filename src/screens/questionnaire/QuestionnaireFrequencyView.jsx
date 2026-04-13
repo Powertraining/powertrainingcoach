@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
@@ -12,8 +12,13 @@ const THUMB_SIZE = 24;
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick }) {
     const [sliderWidth, setSliderWidth] = useState(0);
-    const sliderProgress = (value - MIN_SESSIONS) / (MAX_SESSIONS - MIN_SESSIONS);
+    const [dragValue, setDragValue] = useState(value);
+    const sliderProgress = (dragValue - MIN_SESSIONS) / (MAX_SESSIONS - MIN_SESSIONS);
     const thumbLeft = sliderWidth ? sliderProgress * (sliderWidth - THUMB_SIZE) : 0;
+
+    useEffect(() => {
+        setDragValue(value);
+    }, [value]);
 
     return (
         <QuestionnaireShell onLogoClick={onLogoClick}>
@@ -39,9 +44,13 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                         <Slider
                             minimumValue={MIN_SESSIONS}
                             maximumValue={MAX_SESSIONS}
-                            step={1}
-                            value={value}
-                            onValueChange={(v) => onChange(v)}
+                            value={dragValue}
+                            onValueChange={(v) => setDragValue(v)}
+                            onSlidingComplete={(v) => {
+                                const roundedValue = Math.round(v);
+                                setDragValue(roundedValue);
+                                onChange(roundedValue);
+                            }}
                             minimumTrackTintColor="transparent"
                             maximumTrackTintColor="transparent"
                             thumbTintColor="transparent"
