@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
-import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
-import TitleText from "../components/textComponents/TitleText.jsx"
-import StandardText from "../components/textComponents/StandardText.jsx"
+import QuestionnaireShell from "./QuestionnaireShell.jsx";
+import TitleText from "../../components/textComponents/TitleText.jsx"
+import StandardText from "../../components/textComponents/StandardText.jsx"
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick }) {
     return (

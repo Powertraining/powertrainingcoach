@@ -7,7 +7,7 @@ import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
 import StartView from "../../src/screens/home/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/questionnaire/QuestionnaireSportView.jsx";
-import QuestionnaireFrequencyView from "../../src/screens/QuestionnaireFrequencyView.jsx";
+import QuestionnaireFrequencyView from "../../src/screens/questionnaire/QuestionnaireFrequencyView.jsx";
 import InputFormView from "../../src/screens/InputFormView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/ErrorView.jsx";
