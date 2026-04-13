@@ -1,13 +1,26 @@
-import { Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 
-export default function QuestionnaireBottomActionButton({ canContinue, onContinue, onBack }) {
+export default function QuestionnaireBottomActionButton({ text = "continue", canContinue, onContinue, onBack, layout = "single" }) {
+    if (layout === "stacked") {
+        return (
+            <View style={styles.stackedContainer}>
+                <TouchableOpacity onPress={onBack} style={styles.stackedBackButton}>
+                    <Text style={[styles.buttonText, styles.bottomBackButtonText]}>Back</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onContinue} style={styles.stackedContinueButton}>
+                    <Text style={styles.buttonText}>{text}</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     return (
         <TouchableOpacity
             onPress={canContinue ? onContinue : onBack}
             style={canContinue ? styles.continueButton : styles.bottomBackButton}
         >
             <Text style={[styles.buttonText, !canContinue && styles.bottomBackButtonText]}>
-                {canContinue ? "Continue" : "Go back"}
+                {canContinue ? text : "Go back"}
             </Text>
         </TouchableOpacity>
     );
@@ -31,6 +44,30 @@ const styles = StyleSheet.create({
         bottom: 0,
         marginBottom: 20,
         alignSelf: "center"
+    },
+    stackedContainer: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        marginBottom: 20,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    stackedBackButton: {
+        height: 60,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    stackedContinueButton: {
+        color: "#000",
+        backgroundColor: "#fff",
+        width: "50%",
+        height: 60,
+        borderRadius: 120,
+        alignItems: "center",
+        justifyContent: "center",
     },
     bottomBackButton: {
         position: "absolute",
