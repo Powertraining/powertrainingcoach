@@ -24,6 +24,7 @@ function buildPlanSchemaInstructions(userInput = {}) {
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
 ${includePercentageSchema ? `- On percentage-based primary lifts, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets".
 - Add "strengthAssessment" only when the lift includes a planned heavy single, 2-5RM test, or true 1RM event the app should log for future percentage updates.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
+- When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
 - When a field is not needed, omit it instead of filling it with placeholders.
 `;
 }
@@ -151,7 +152,7 @@ function buildMissedSessionSchemaInstructions(adjustmentInput = {}) {
 - Include "sessionProfile", "status", "rescueMode", "adjustmentReason", and "adjustmentSummary".
 - Preserve "performanceTarget" when the main tracked exposure is still present.
 ${includePercentageSchema ? `- Preserve percentage-based main-lift logic with an updated "percentagePrescription" when the main lift stays in the session.
-- Preserve "strengthAssessment" only when the rescued or re-entry session should still include the planned assessment exposure.` : `- Do not add percentagePrescription or strengthAssessment unless they already remain relevant.`}
+- Preserve "strengthAssessment" only when the rescued or re-entry session should still include the planned assessment exposure.` : `- Do not add or preserve percentagePrescription or strengthAssessment on RPE-based plans.`}
 `;
 }
 

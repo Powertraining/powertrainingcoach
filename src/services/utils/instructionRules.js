@@ -38,7 +38,8 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,
   rpe_rationale: `# RPE adjustment rules
 - In low-rep strength work, 1 RPE point is roughly a 2.5% load change.
-- Use that rule for heavy singles, 1-5 rep top sets, and small RPE-based load adjustments on monitored lifts.
+- Use that rule for 1-5 rep top sets and small RPE-based load adjustments on monitored lifts.
+- Do not turn RPE-based plans into RM tests or heavy-single strength assessments unless the athlete explicitly chose the percentage system.
 - A reference set at the same rep target can move about plus or minus 2.5% per RPE point while staying in the same strength zone.`,
   close_grip_bench_press: `# Close-grip bench press reference rule
 - Only apply this when the athlete selected the percentage system.

@@ -61,6 +61,7 @@ import {
   getTrainingDayPreferredWeekday,
   replaceTrainingPlanDay,
   replaceTrainingPlanExercise,
+  sanitizeTrainingPlanForQuestionnaire,
 } from "../utils/trainingPlan.js";
 import {
   createDefaultStrengthAssessmentState,
@@ -630,6 +631,13 @@ export const model = {
 
   setQuestionnaire(questionnaire = {}) {
     this.questionnaire = mergeTrainingPreferences({}, questionnaire);
+
+    if (this.trainingPlan) {
+      this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+        this.trainingPlan,
+        this.questionnaire
+      );
+    }
   },
 
   getStrengthAssessmentSessionKey(weekNumber, dayNumber) {
@@ -790,7 +798,10 @@ export const model = {
       action: normalizedAction,
     });
 
-    this.trainingPlan = adjustmentResult.plan;
+    this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+      adjustmentResult.plan,
+      this.questionnaire
+    );
 
     if (normalizedAction?.type === "change_scheme" && normalizedAction?.targetLoadingStrategy) {
       this.setQuestionnaire?.(
@@ -1043,14 +1054,17 @@ export const model = {
 
     const prms = generatePlan(userInput).then((plan) => {
       if (this.trainingPlanPromiseState.promise === prms) {
-        this.trainingPlan = applySportLoadLevelToPlanWeek(
-          plan,
-          1,
-          userInput?.sportLoadLevel,
-          {
-            completedDays: [],
-            skipCompletedDays: false,
-          }
+        this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+          applySportLoadLevelToPlanWeek(
+            plan,
+            1,
+            userInput?.sportLoadLevel,
+            {
+              completedDays: [],
+              skipCompletedDays: false,
+            }
+          ),
+          userInput
         );
         this.completedDays = [];
       }
@@ -1140,12 +1154,15 @@ export const model = {
       }
     }
 
-    this.trainingPlan = nextPlan;
+    this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+      nextPlan,
+      questionnaire
+    );
     this.completedDays = nextCompletedDays;
 
     return {
       action: adjustment.action || "skip_session",
-      plan: nextPlan,
+      plan: this.trainingPlan,
       completedDays: nextCompletedDays,
     };
   },

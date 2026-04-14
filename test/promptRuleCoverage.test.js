@@ -45,3 +45,41 @@ test("missed-session prompt embeds rescue priority rules", () => {
   assert.match(prompt, /conservative re-entry session/i);
   assert.match(prompt, /rescueMode/i);
 });
+
+test("RPE prompt explicitly blocks percentage prescriptions and strength assessments", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    goal: "strength",
+    experience: "intermediate",
+    liftIntensityMethod: "rpe",
+    loadingStrategy: "flat_loading",
+  });
+
+  assert.match(
+    prompt,
+    /do not add "percentagePrescription" or "strengthAssessment"/i
+  );
+  assert.doesNotMatch(prompt, /heavy_single is the default/i);
+});
+
+test("RPE missed-session prompt blocks preserving strength assessments", () => {
+  const prompt = buildMissedSessionAdjustmentPrompt({
+    questionnaire: {
+      primaryCombatSport: "Boxing",
+      liftIntensityMethod: "rpe",
+    },
+    targetDay: {
+      day: 2,
+      preferredWeekday: "Wednesday",
+    },
+    mode: "re_entry",
+    reason: "illness",
+    missedSessionCount: 1,
+  });
+
+  assert.match(
+    prompt,
+    /do not add or preserve percentagePrescription or strengthAssessment/i
+  );
+});
