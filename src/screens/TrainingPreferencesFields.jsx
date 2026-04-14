@@ -3,12 +3,12 @@ import { Picker } from "@react-native-picker/picker";
 
 import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import WeightScroller from "../components/questionnaireComponents/weightBar.jsx";
+import QuestionnairePrimaryStyleView from "./questionnaire/QuestionnairePrimaryStyleView.jsx";
 import {
   EXPERIENCE_OPTIONS,
   getTrainingPreferencesFormState,
   GOAL_OPTIONS,
   PLYOMETRICS_EXPERIENCE_OPTIONS,
-  PRIMARY_STYLE_OPTIONS,
 } from "../constants/trainingPreferences.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
 
@@ -93,22 +93,10 @@ export default function TrainingPreferencesFields({
         </View>
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Primary style focus</Text>
-        <Picker
-          selectedValue={resolvedValues.primaryStyle}
-          onValueChange={(value) => updateField("primaryStyle", value)}
-          style={styles.input}
-        >
-          {PRIMARY_STYLE_OPTIONS.map((option) => (
-            <Picker.Item
-              key={option.value}
-              label={option.label}
-              value={option.value}
-            />
-          ))}
-        </Picker>
-      </View>
+      <QuestionnairePrimaryStyleView
+        value={resolvedValues.primaryStyle}
+        onChange={(value) => updateField("primaryStyle", value)}
+      />
 
       <View style={styles.field}>
         <Text style={styles.label}>Injuries / weaknesses</Text>
