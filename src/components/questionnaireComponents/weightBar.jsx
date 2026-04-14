@@ -5,6 +5,8 @@ import StandardText from "../textComponents/StandardText.jsx";
 
 const TICK_SPACING = 10;
 const MAJOR_TICK_INTERVAL = 5;
+const INDICATOR_EXTENSION = 35;
+const INDICATOR_LABEL_GAP = 8;
 
 function getPrecision(step) {
   const decimals = `${step}`.split(".")[1];
@@ -107,15 +109,23 @@ export default function WeightScroller({
 
   return (
     <View style={styles.container}>
-      <StandardText style={styles.valueText} center>
-        {indexToValue(selectedIndex).toFixed(precision)} {unit}
-      </StandardText>
+      <View style={styles.valueRow}>
+        <StandardText style={styles.valueText}>
+          {indexToValue(selectedIndex).toFixed(precision)}
+        </StandardText>
+        <StandardText style={styles.unitText}>
+          {unit}
+        </StandardText>
+      </View>
 
       <View
         style={styles.ruler}
         onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
       >
         <View pointerEvents="none" style={styles.indicator} />
+        <View pointerEvents="none" style={styles.indicatorLabelWrap}>
+          <StandardText style={styles.indicatorLabel}>Weight class</StandardText>
+        </View>
 
         <ScrollView
           ref={scrollRef}
@@ -169,23 +179,49 @@ const styles = StyleSheet.create({
     height: 300,
     justifyContent: "center",
   },
+  valueRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    gap: 4,
+  },
   valueText: {
+    fontSize: 32,
+    lineHeight: 32,
+    includeFontPadding: false,
+  },
+  unitText: {
     fontSize: 18,
-    textAlign: "center",
-    fontVariant: ["tabular-nums"],
+    includeFontPadding: false,
+    color: "#C9B259",
+    bottom: 4
   },
   ruler: {
     position: "relative",
+    overflow: "visible",
   },
   indicator: {
     position: "absolute",
     top: 0,
-    bottom: -35,
+    bottom: -INDICATOR_EXTENSION,
     left: "50%",
     width: 2,
     marginLeft: -1,
     backgroundColor: "#fff",
     zIndex: 1,
+  },
+  indicatorLabelWrap: {
+    position: "absolute",
+    top: "100%",
+    marginTop: INDICATOR_EXTENSION + INDICATOR_LABEL_GAP,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  indicatorLabel: {
+    fontSize: 28,
+    color: "#d1d1d1",
+    textAlign: "center",
   },
   scrollContent: {
     paddingVertical: 8,
