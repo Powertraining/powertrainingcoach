@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
+import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
+
 import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
@@ -31,13 +33,8 @@ export default function InputFormView({
         <QuestionnaireShell>
             <ScrollView contentContainerStyle={styles.center}>
                 <View style={styles.card}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>Training Preferences</Text>
-                        <Text style={styles.subtitle}>Fine-tune goal, experience, and session structure before we generate your plan. Preferred weekdays stay optional and only act as calendar guidance.</Text>
-                    </View>
-
                     <View style={styles.form}>
-                        {!subscription && (
+                        {/* {!subscription && (
                             <View style={styles.subscriptionAlert}>
                                 <Text style={styles.alertText}>📋 Subscription Required{"\n"}You need an active subscription to generate training plans.</Text>
                                 <TouchableOpacity onPress={handleSubmit} style={styles.subscribeButton}>
@@ -50,7 +47,7 @@ export default function InputFormView({
                             <View style={styles.subscriptionActive}>
                                 <Text style={styles.activeText}>✅ Subscription Active ({daysRemaining} days remaining)</Text>
                             </View>
-                        )}
+                        )} */}
 
                         <TrainingPreferencesFields
                             values={trainingPreferences}
@@ -59,13 +56,9 @@ export default function InputFormView({
                             appLogicDescription="Choose the strength-planning logic you want the app to use for this athlete profile."
                         />
 
-                        <View style={styles.actions}>
-                            {onBack && (
-                                <TouchableOpacity onPress={onBack} style={styles.secondaryButton}>
-                                    <Text style={styles.secondaryButtonText}>Back</Text>
-                                </TouchableOpacity>
-                            )}
-                            <TouchableOpacity
+                    </View>
+                </View>
+                <TouchableOpacity
                                 onPress={handleSubmit}
                                 style={styles.primaryButton}
                             >
@@ -73,9 +66,7 @@ export default function InputFormView({
                                     {subscription ? "Generate My Plan" : "Subscribe & Generate Plan"}
                                 </Text>
                             </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
+                {onBack ? <QuestionnaireBottomActionButton onBack={onBack} /> : null}
             </ScrollView>
         </QuestionnaireShell>
     );
@@ -95,7 +86,6 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         borderWidth: 1,
         borderColor: "rgba(0,0,0,0.08)",
-        backgroundColor: "white",
         gap: 14,
     },
     header: { gap: 6 },
@@ -143,7 +133,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 22,
         borderRadius: 10,
         borderWidth: 2,
-        borderColor: "#111",
+        borderColor: "#000",
+        backgroundColor: "#fff"
     },
     secondaryButtonText: { color: "#111", fontSize: 18 },
 });

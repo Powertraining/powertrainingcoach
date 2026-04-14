@@ -1,5 +1,6 @@
 import { Text, TextInput, View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import TitleText from "../components/textComponents/TitleText.jsx";
 
 import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import {
@@ -48,7 +49,7 @@ export default function TrainingPreferencesFields({
       )}
 
       <View style={styles.field}>
-        <Text style={styles.label}>Weight class</Text>
+        <TitleText>Which weight class do you belong to?</TitleText>
         <TextInput
           placeholder="e.g. -70 kg / Lightweight"
           value={resolvedValues.weightClass}
@@ -177,6 +178,7 @@ export default function TrainingPreferencesFields({
 const styles = StyleSheet.create({
   section: {
     gap: 14,
+    backgroundColor: "transparent"
   },
   header: {
     gap: 6,
@@ -195,8 +197,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    fontSize: 15,
-    fontWeight: "600",
     color: "#111827",
   },
   helperText: {
