@@ -39,10 +39,16 @@ import {
   normalizeForumProfile,
 } from "./forumModel.js";
 import {
+  getSportLoadMultiplier,
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
 import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
 import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
+import {
+  applySportLoadLevelToPlanWeek,
+  deriveSportLoadLevelFromCompletedWeek,
+  isTrainingWeekCompleted,
+} from "../utils/sportLoad.js";
 import {
   applyMissedSessionAdjustment,
   countTrackableTrainingDays,
@@ -811,6 +817,79 @@ export const model = {
     return this.strengthAssessmentState;
   },
 
+  applySportLoadSettingToFollowingWeek() {
+    if (!this.trainingPlan) {
+      return null;
+    }
+
+    const currentWeekNumber =
+      this.getCurrentTrainingDay?.(this.completedDays)?.week ||
+      this.trainingPlan?.weeks?.[0]?.week ||
+      1;
+    const nextWeekNumber = currentWeekNumber + 1;
+
+    if (!this.trainingPlan.weeks?.some((week) => week.week === nextWeekNumber)) {
+      return this.trainingPlan;
+    }
+
+    this.trainingPlan = applySportLoadLevelToPlanWeek(
+      this.trainingPlan,
+      nextWeekNumber,
+      this.questionnaire?.sportLoadLevel,
+      {
+        completedDays: this.completedDays,
+        skipCompletedDays: false,
+      }
+    );
+
+    return this.trainingPlan;
+  },
+
+  updateSportLoadAfterWeekCompletion(weekNumber) {
+    if (
+      !this.trainingPlan ||
+      !isTrainingWeekCompleted({
+        plan: this.trainingPlan,
+        weekNumber,
+        completedDays: this.completedDays,
+      })
+    ) {
+      return null;
+    }
+
+    const derivedSportLoadLevel = deriveSportLoadLevelFromCompletedWeek({
+      plan: this.trainingPlan,
+      weekNumber,
+      completedDays: this.completedDays,
+      sessionsPerWeek: this.sessionsPerWeek,
+    });
+
+    if (!derivedSportLoadLevel) {
+      return null;
+    }
+
+    this.setQuestionnaire?.(
+      mergeTrainingPreferences(this.questionnaire, {
+        sportLoadLevel: derivedSportLoadLevel,
+      })
+    );
+
+    this.trainingPlan = applySportLoadLevelToPlanWeek(
+      this.trainingPlan,
+      weekNumber + 1,
+      derivedSportLoadLevel,
+      {
+        completedDays: this.completedDays,
+        skipCompletedDays: false,
+      }
+    );
+
+    return {
+      sportLoadLevel: derivedSportLoadLevel,
+      nextWeekNumber: weekNumber + 1,
+    };
+  },
+
   buildTrainingPlanInput(questionnaire = this.questionnaire) {
     const source =
       questionnaire && typeof questionnaire === "object" ? questionnaire : {};
@@ -850,6 +929,9 @@ export const model = {
     return {
       ...source,
       ...normalizedAppLogicSettings,
+      sportLoadMultiplier: getSportLoadMultiplier(
+        normalizedAppLogicSettings.sportLoadLevel
+      ),
       primaryCombatSport: source.primaryCombatSport || this.primaryCombatSport || "",
       sessionsPerWeek:
         Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
@@ -892,11 +974,19 @@ export const model = {
 
     const prms = generatePlan(userInput).then((plan) => {
       if (this.trainingPlanPromiseState.promise === prms) {
-        this.trainingPlan = plan;
+        this.trainingPlan = applySportLoadLevelToPlanWeek(
+          plan,
+          1,
+          userInput?.sportLoadLevel,
+          {
+            completedDays: [],
+            skipCompletedDays: false,
+          }
+        );
         this.completedDays = [];
       }
 
-      return plan;
+      return this.trainingPlanPromiseState.promise === prms ? this.trainingPlan : plan;
     });
 
     resolvePromise(prms, this.trainingPlanPromiseState);

@@ -6,9 +6,11 @@ import {
   COMPETENCY_AND_LIMITATION_OPTIONS,
   DELOAD_STRATEGY_OPTIONS,
   getAppLogicSettingsFormState,
+  getSportLoadLevelOption,
   LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
+  SPORT_LOAD_LEVEL_OPTIONS,
   TRAINING_PHASE_OPTIONS,
 } from "../constants/appLogicSettings.js";
 
@@ -114,6 +116,29 @@ export default function AppLogicSettingsFields({
             />
           ))}
         </Picker>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Weekly sport load level</Text>
+        <Text style={styles.helperText}>
+          Higher sport load steals volume from strength work. The app uses this to cut accessories first, then back-off volume, while trying to keep the main intensity exposure.
+        </Text>
+        <Picker
+          selectedValue={resolvedValues.sportLoadLevel}
+          onValueChange={(value) => updateField("sportLoadLevel", value)}
+          style={styles.input}
+        >
+          {SPORT_LOAD_LEVEL_OPTIONS.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={`${option.label} (${option.shortDescription})`}
+              value={option.value}
+            />
+          ))}
+        </Picker>
+        <Text style={styles.helperText}>
+          Volume multiplier: {getSportLoadLevelOption(resolvedValues.sportLoadLevel).multiplier}x.
+        </Text>
       </View>
 
       <View style={styles.field}>

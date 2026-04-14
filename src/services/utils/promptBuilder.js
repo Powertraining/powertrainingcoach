@@ -265,6 +265,7 @@ export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions 
     const loadingStrategyInstructions = `
 ### LOADING STRATEGY RULES:
 - Respect the athlete's selected "loadingStrategy" on their primary percentage-based lifts unless there is a clear sport-specific reason not to.
+- Respect the athlete's "sportLoadLevel" and "sportLoadMultiplier" as a weekly recovery-budget signal. Higher sport-load levels mean less lifting volume, not more.
 - "flat_loading": keep reps and %1RM the same across the working sets.
 - "ascending_pyramid": increase intensity from set to set. Reps may stay the same or climb, but the pattern must be deliberate.
 - "descending_pyramid": start with the hardest or heaviest set, then descend in intensity and/or volume.
