@@ -1,8 +1,8 @@
 import { Text, TextInput, View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import TitleText from "../components/textComponents/TitleText.jsx";
 
 import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
+import WeightScroller from "../components/questionnaireComponents/weightBar.jsx";
 import {
   EXPERIENCE_OPTIONS,
   getTrainingPreferencesFormState,
@@ -11,6 +11,27 @@ import {
   PRIMARY_STYLE_OPTIONS,
 } from "../constants/trainingPreferences.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
+
+const DEFAULT_WEIGHT_VALUE = 65;
+
+function getWeightScrollerValue(weightClass) {
+  if (typeof weightClass !== "string") {
+    return DEFAULT_WEIGHT_VALUE;
+  }
+
+  const match = weightClass.replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+
+  if (!match) {
+    return DEFAULT_WEIGHT_VALUE;
+  }
+
+  const parsedValue = Math.abs(Number.parseFloat(match[0]));
+  return Number.isFinite(parsedValue) ? parsedValue : DEFAULT_WEIGHT_VALUE;
+}
+
+function formatWeightClassValue(value) {
+  return `${value.toFixed(0)} kg`;
+}
 
 export default function TrainingPreferencesFields({
   title,
@@ -21,6 +42,9 @@ export default function TrainingPreferencesFields({
   appLogicDescription,
 }) {
   const resolvedValues = getTrainingPreferencesFormState(values);
+  const selectedWeightValue = getWeightScrollerValue(
+    resolvedValues.weightClass
+  );
 
   function updateField(field, value) {
     onChange?.({
@@ -44,18 +68,29 @@ export default function TrainingPreferencesFields({
       {(title || description) && (
         <View style={styles.header}>
           {title ? <Text style={styles.title}>{title}</Text> : null}
-          {description ? <Text style={styles.description}>{description}</Text> : null}
+          {description ? (
+            <Text style={styles.description}>{description}</Text>
+          ) : null}
         </View>
       )}
 
       <View style={styles.field}>
-        <TitleText>Which weight class do you belong to?</TitleText>
-        <TextInput
-          placeholder="e.g. -70 kg / Lightweight"
-          value={resolvedValues.weightClass}
-          onChangeText={(value) => updateField("weightClass", value)}
-          style={styles.input}
-        />
+        <Text style={styles.label}>Weight class / current bodyweight</Text>
+        <Text style={styles.helperText}>
+          Drag to set your approximate bodyweight in kilograms.
+        </Text>
+        <View style={styles.weightScrollerCard}>
+          <WeightScroller
+            min={30}
+            max={200}
+            step={1}
+            initialValue={selectedWeightValue}
+            unit="kg"
+            onChange={(nextValue) =>
+              updateField("weightClass", formatWeightClassValue(nextValue))
+            }
+          />
+        </View>
       </View>
 
       <View style={styles.field}>
@@ -97,11 +132,15 @@ export default function TrainingPreferencesFields({
       <View style={styles.field}>
         <Text style={styles.label}>Preferred weekdays</Text>
         <Text style={styles.helperText}>
-          Optional. The plan still runs as Day 1, Day 2, Day 3, and so on. These only add calendar guidance.
+          Optional. The plan still runs as Day 1, Day 2, Day 3, and so on.
+          These only add calendar guidance.
         </Text>
         <View style={styles.preferenceGrid}>
           {Array.from({ length: resolvedValues.daysPerWeek }, (_, index) => (
-            <View key={`preferred-weekday-${index + 1}`} style={styles.preferenceItem}>
+            <View
+              key={`preferred-weekday-${index + 1}`}
+              style={styles.preferenceItem}
+            >
               <Text style={styles.preferenceLabel}>Day {index + 1}</Text>
               <Picker
                 selectedValue={resolvedValues.preferredWeekdays[index] || ""}
@@ -159,7 +198,9 @@ export default function TrainingPreferencesFields({
         <Text style={styles.label}>Experience in plyometrics</Text>
         <Picker
           selectedValue={resolvedValues.plyometricsExperience}
-          onValueChange={(value) => updateField("plyometricsExperience", value)}
+          onValueChange={(value) =>
+            updateField("plyometricsExperience", value)
+          }
           style={styles.input}
         >
           {PLYOMETRICS_EXPERIENCE_OPTIONS.map((option) => (
@@ -178,7 +219,7 @@ export default function TrainingPreferencesFields({
 const styles = StyleSheet.create({
   section: {
     gap: 14,
-    backgroundColor: "transparent"
+    backgroundColor: "transparent",
   },
   header: {
     gap: 6,
@@ -220,6 +261,9 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     backgroundColor: "#f9fafb",
+  },
+  weightScrollerCard: {
+    backgroundColor: "transparent",
   },
   preferenceGrid: {
     gap: 10,
