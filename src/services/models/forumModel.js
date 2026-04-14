@@ -239,10 +239,28 @@ export function normalizeForumPost(record = {}, viewerProfile = {}) {
   };
 }
 
-export function normalizeForumComment(record = {}) {
+export function normalizeForumComment(record = {}, depth = 0) {
+  const normalizedReplies =
+    Array.isArray(record.replies) ?
+      record.replies.map((reply) =>
+        normalizeForumComment(
+          {
+            postId: record.postId,
+            rootCommentId: record.rootCommentId || record.id,
+            ...reply,
+          },
+          depth + 1
+        )
+      ) :
+      [];
+
   return {
     id: normalizeString(record.id),
     postId: normalizeString(record.postId),
+    parentCommentId: normalizeString(record.parentCommentId),
+    rootCommentId:
+      normalizeString(record.rootCommentId) || normalizeString(record.id),
+    depth: normalizeNonNegativeInteger(record.depth ?? depth),
     authorId: normalizeString(record.authorId),
     authorDisplayName:
       normalizeString(record.authorDisplayName, 60) || "Anonymous",
@@ -252,6 +270,10 @@ export function normalizeForumComment(record = {}) {
     body: normalizeString(record.body, 2000),
     createdAt: normalizeDateValue(record.createdAt),
     updatedAt: normalizeDateValue(record.updatedAt),
+    replies: normalizedReplies,
+    replyCount: normalizeNonNegativeInteger(
+      record.replyCount ?? normalizedReplies.length
+    ),
   };
 }
 

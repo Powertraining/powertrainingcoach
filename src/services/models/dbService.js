@@ -36,6 +36,8 @@ const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
 const FORUM_POSTS_COLLECTION = "forumPosts";
 const FORUM_COMMENTS_SUBCOLLECTION = "comments";
+const FORUM_COMMENT_REPLIES_SUBCOLLECTION = "replies";
+const FORUM_COMMENT_REPLY_DEPTH = 2;
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
 
 function getCombatModelDocPath(uid) {
@@ -494,13 +496,66 @@ export async function getForumComments(
     );
     const forumCommentsSnapshot = await getDocs(commentsQuery);
 
-    return {
-      success: true,
-      data: forumCommentsSnapshot.docs.map((snapshot) => ({
+    async function loadForumCommentBranch(
+      snapshot,
+      {
+        currentDocPathSegments = [snapshot.id],
+        parentCommentId = "",
+        rootCommentId = snapshot.id,
+        depth = 0,
+      } = {}
+    ) {
+      let replies = [];
+
+      if (depth < FORUM_COMMENT_REPLY_DEPTH) {
+        const repliesQuery = query(
+          collection(
+            db,
+            FORUM_POSTS_COLLECTION,
+            postId,
+            FORUM_COMMENTS_SUBCOLLECTION,
+            ...currentDocPathSegments,
+            FORUM_COMMENT_REPLIES_SUBCOLLECTION
+          ),
+          orderBy("createdAt", "asc")
+        );
+        const repliesSnapshot = await getDocs(repliesQuery);
+
+        replies = await Promise.all(
+          repliesSnapshot.docs.map((replySnapshot) =>
+            loadForumCommentBranch(replySnapshot, {
+              currentDocPathSegments: [
+                ...currentDocPathSegments,
+                FORUM_COMMENT_REPLIES_SUBCOLLECTION,
+                replySnapshot.id,
+              ],
+              parentCommentId: snapshot.id,
+              rootCommentId,
+              depth: depth + 1,
+            })
+          )
+        );
+      }
+
+      return {
         id: snapshot.id,
         postId,
         ...snapshot.data(),
-      })),
+        parentCommentId,
+        rootCommentId,
+        depth,
+        replies,
+        replyCount: replies.length,
+      };
+    }
+
+    const comments = await Promise.all(
+      forumCommentsSnapshot.docs.map((snapshot) => loadForumCommentBranch(snapshot))
+    );
+
+    return {
+      success: true,
+      data: comments,
       error: null,
     };
   } catch (error) {
