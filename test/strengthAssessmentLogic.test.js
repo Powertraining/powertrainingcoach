@@ -6,6 +6,7 @@ import { parseGeneratedTrainingPlan } from "../src/services/utils/trainingPlan.j
 import {
   createStrengthAssessmentEntry,
   getStrengthAssessmentSummary,
+  resolveStrengthAssessmentReferenceOneRepMaxKg,
   upsertStrengthAssessmentSessionResults,
 } from "../src/services/utils/strengthAssessment.js";
 
@@ -149,4 +150,17 @@ test("generated training plans preserve strength assessment metadata on exercise
   assert.equal(assessment.method, "heavy_single");
   assert.equal(assessment.liftName, "Trap Bar Deadlift");
   assert.equal(assessment.prompt, "Log the load and RPE of the top single.");
+});
+
+test("close-grip bench press can estimate its reference max from bench press", () => {
+  const resolvedReference = resolveStrengthAssessmentReferenceOneRepMaxKg(
+    "Close-Grip Bench Press",
+    {
+      bench_press: 120,
+    }
+  );
+
+  assert.equal(resolvedReference.oneRepMaxKg, 114);
+  assert.equal(resolvedReference.source, "estimated_from_bench_press");
+  assert.equal(resolvedReference.sourceLiftName, "Bench Press");
 });

@@ -14,8 +14,9 @@ import {
 import {
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
-    getStrengthAssessmentReferenceOneRepMaxKg,
     getStrengthAssessmentRequirements,
+    getStrengthAssessmentReferenceOneRepMaxKg,
+    resolveStrengthAssessmentReferenceOneRepMaxKg,
 } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 
@@ -176,10 +177,11 @@ export default function DayDetailView({
         selectedExercisePercentagePrescription?.referenceLiftName ||
         selectedExercise?.name ||
         "";
-    const referenceOneRepMaxKg =
-        strengthReferenceOneRepMaxByLift[
-            getStrengthAssessmentLiftKey(percentageReferenceLiftName)
-        ] || null;
+    const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
+        percentageReferenceLiftName,
+        strengthReferenceOneRepMaxByLift
+    );
+    const referenceOneRepMaxKg = referenceLiftDetails.oneRepMaxKg;
 
     function updateTrackingDraft(exerciseIndex, field, value) {
         setTrackingDrafts((currentDrafts) => ({
@@ -334,8 +336,10 @@ export default function DayDetailView({
                                     }
                                 )}
                                 <Text style={styles.percentageHelper}>
-                                    {referenceOneRepMaxKg ?
+                                    {referenceLiftDetails.source === "direct" ?
                                         `Load estimates are based on your latest stored ${percentageReferenceLiftName} reference max.` :
+                                        referenceLiftDetails.source === "estimated_from_bench_press" ?
+                                            `Load estimates are based on an estimated close-grip bench press max set to 95% of your latest Bench Press reference max.` :
                                         "Load estimates unlock after you log a recent strength assessment for this lift."
                                     }
                                 </Text>
