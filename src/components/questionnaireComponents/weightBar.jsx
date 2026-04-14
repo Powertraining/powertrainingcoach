@@ -166,6 +166,8 @@ export default function WeightScroller({
 const styles = StyleSheet.create({
   container: {
     gap: 8,
+    height: 300,
+    justifyContent: "center",
   },
   valueText: {
     fontSize: 18,
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
   indicator: {
     position: "absolute",
     top: 0,
-    bottom: 8,
+    bottom: -35,
     left: "50%",
     width: 2,
     marginLeft: -1,
@@ -215,14 +217,14 @@ const styles = StyleSheet.create({
     height: 22,
   },
   tick: {
-    width: 2,
+    width: 2.5,
+    height: 75,
   },
   majorTick: {
-    height: 50,
-    backgroundColor: "#fff",
+    backgroundColor: "#d1d1d1",
   },
   minorTick: {
-    height: 50,
+    
     backgroundColor: "#666666",
   },
 });
