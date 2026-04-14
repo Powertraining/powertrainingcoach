@@ -2,6 +2,7 @@ export const DEFAULT_FORUM_TOPIC = "general";
 export const DEFAULT_FORUM_SORT_BY = "recent";
 export const DEFAULT_FORUM_FEED_LIMIT = 25;
 export const DEFAULT_FORUM_COMMENT_LIMIT = 50;
+export const MAX_FORUM_COMMENT_REPLY_DEPTH = 3;
 
 const MAX_FORUM_TAGS = 5;
 const MAX_SEARCH_TOKENS = 30;
@@ -275,6 +276,61 @@ export function normalizeForumComment(record = {}, depth = 0) {
       record.replyCount ?? normalizedReplies.length
     ),
   };
+}
+
+export function flattenForumComments(comments = []) {
+  return (Array.isArray(comments) ? comments : []).flatMap((comment) => [
+    comment,
+    ...flattenForumComments(comment?.replies),
+  ]);
+}
+
+export function findForumCommentNode(comments = [], commentId, pathSegments = []) {
+  for (const comment of Array.isArray(comments) ? comments : []) {
+    const nextPathSegments = [...pathSegments, comment.id];
+
+    if (comment?.id === commentId) {
+      return {
+        comment,
+        pathSegments: nextPathSegments,
+      };
+    }
+
+    const nestedMatch = findForumCommentNode(
+      comment?.replies,
+      commentId,
+      [...nextPathSegments, "replies"]
+    );
+
+    if (nestedMatch) {
+      return nestedMatch;
+    }
+  }
+
+  return null;
+}
+
+export function appendForumReply(comments = [], parentCommentId, reply) {
+  return (Array.isArray(comments) ? comments : []).map((comment) => {
+    if (comment?.id === parentCommentId) {
+      const nextReplies = [...(Array.isArray(comment.replies) ? comment.replies : []), reply];
+
+      return normalizeForumComment({
+        ...comment,
+        replies: nextReplies,
+        replyCount: nextReplies.length,
+      });
+    }
+
+    if (!Array.isArray(comment?.replies) || comment.replies.length === 0) {
+      return comment;
+    }
+
+    return normalizeForumComment({
+      ...comment,
+      replies: appendForumReply(comment.replies, parentCommentId, reply),
+    });
+  });
 }
 
 export function applyForumFilters(

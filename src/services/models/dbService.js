@@ -25,6 +25,7 @@ import {
   createDefaultForumProfile,
   DEFAULT_FORUM_COMMENT_LIMIT,
   DEFAULT_FORUM_FEED_LIMIT,
+  MAX_FORUM_COMMENT_REPLY_DEPTH,
 } from "./forumModel.js";
 import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
 import { sanitizeFirestoreData } from "../utils/firestoreData.js";
@@ -37,7 +38,6 @@ const FEEDBACK_COLLECTION = "feedbacks";
 const FORUM_POSTS_COLLECTION = "forumPosts";
 const FORUM_COMMENTS_SUBCOLLECTION = "comments";
 const FORUM_COMMENT_REPLIES_SUBCOLLECTION = "replies";
-const FORUM_COMMENT_REPLY_DEPTH = 2;
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
 
 function getCombatModelDocPath(uid) {
@@ -46,6 +46,30 @@ function getCombatModelDocPath(uid) {
 
 function getForumPostDocPath(postId) {
   return `${FORUM_POSTS_COLLECTION}/${postId}`;
+}
+
+function getForumCommentDocPath(postId, pathSegments = []) {
+  return [
+    FORUM_POSTS_COLLECTION,
+    postId,
+    FORUM_COMMENTS_SUBCOLLECTION,
+    ...pathSegments,
+  ].join("/");
+}
+
+function getForumRepliesCollection(postId, parentPathSegments = []) {
+  if (!Array.isArray(parentPathSegments) || parentPathSegments.length === 0) {
+    throw new Error("A valid parent comment path is required to create a reply.");
+  }
+
+  return collection(
+    db,
+    FORUM_POSTS_COLLECTION,
+    postId,
+    FORUM_COMMENTS_SUBCOLLECTION,
+    ...parentPathSegments,
+    FORUM_COMMENT_REPLIES_SUBCOLLECTION
+  );
 }
 
 function getFirebaseProjectId() {
@@ -507,7 +531,7 @@ export async function getForumComments(
     ) {
       let replies = [];
 
-      if (depth < FORUM_COMMENT_REPLY_DEPTH) {
+      if (depth < MAX_FORUM_COMMENT_REPLY_DEPTH) {
         const repliesQuery = query(
           collection(
             db,
@@ -581,6 +605,9 @@ export async function createForumComment(postId, commentData) {
       {
         ...commentData,
         postId,
+        parentCommentId: "",
+        rootCommentId: commentReference.id,
+        depth: 0,
         createdAt: timestamp,
         updatedAt: timestamp,
       },
@@ -607,6 +634,9 @@ export async function createForumComment(postId, commentData) {
         id: commentReference.id,
         postId,
         ...commentData,
+        parentCommentId: "",
+        rootCommentId: commentReference.id,
+        depth: 0,
         createdAt: now,
         updatedAt: now,
       },
@@ -614,6 +644,85 @@ export async function createForumComment(postId, commentData) {
     };
   } catch (error) {
     console.error("DB create forum comment error:", error);
+    return { success: false, data: null, error };
+  }
+}
+
+export async function createForumReply(
+  postId,
+  replyData,
+  {
+    parentCommentId = "",
+    rootCommentId = "",
+    depth = 1,
+    parentPathSegments = [],
+  } = {}
+) {
+  try {
+    if (!parentCommentId) {
+      throw new Error("A parent comment is required to create a reply.");
+    }
+
+    if (
+      !Number.isInteger(depth) ||
+      depth < 1 ||
+      depth > MAX_FORUM_COMMENT_REPLY_DEPTH
+    ) {
+      throw new Error(
+        `Replies cannot go deeper than ${MAX_FORUM_COMMENT_REPLY_DEPTH} levels.`
+      );
+    }
+
+    const replyReference = doc(getForumRepliesCollection(postId, parentPathSegments));
+    const timestamp = serverTimestamp();
+
+    await setDoc(
+      replyReference,
+      {
+        ...replyData,
+        postId,
+        parentCommentId,
+        rootCommentId: rootCommentId || parentCommentId,
+        depth,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      { merge: true }
+    );
+
+    await setDoc(
+      doc(db, FORUM_POSTS_COLLECTION, postId),
+      {
+        commentsCount: increment(1),
+        updatedAt: serverTimestamp(),
+        ...(replyData.isCoachVerified ?
+          { coachResponseStatus: "responded" } :
+          {}),
+      },
+      { merge: true }
+    );
+
+    const now = new Date().toISOString();
+
+    return {
+      success: true,
+      data: {
+        id: replyReference.id,
+        postId,
+        ...replyData,
+        parentCommentId,
+        rootCommentId: rootCommentId || parentCommentId,
+        depth,
+        createdAt: now,
+        updatedAt: now,
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error(
+      `[dbService.createForumReply] Could not create reply in ${getForumCommentDocPath(postId, parentPathSegments)}:`,
+      error
+    );
     return { success: false, data: null, error };
   }
 }

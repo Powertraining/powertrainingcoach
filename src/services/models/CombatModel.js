@@ -20,6 +20,7 @@ import {
 import {
   createForumComment as persistForumComment,
   createForumPost as persistForumPost,
+  createForumReply as persistForumReply,
   getForumComments,
   getForumPost,
   getForumPosts,
@@ -28,12 +29,16 @@ import {
   saveFeedback,
 } from "./dbService.js";
 import {
+  appendForumReply,
   applyForumFilters,
   buildForumCommentPayload,
   buildForumPostPayload,
   createDefaultForumComposer,
   createDefaultForumFilters,
   createDefaultForumProfile,
+  findForumCommentNode,
+  flattenForumComments,
+  MAX_FORUM_COMMENT_REPLY_DEPTH,
   normalizeForumComment,
   normalizeForumPost,
   normalizeForumProfile,
@@ -420,6 +425,18 @@ export const model = {
     return prms;
   },
 
+  getForumCommentNode(commentId) {
+    if (!commentId) {
+      return null;
+    }
+
+    return findForumCommentNode(this.forumComments, commentId);
+  },
+
+  getFlattenedForumComments() {
+    return flattenForumComments(this.forumComments);
+  },
+
   async loadForumPostThread(postId, options = {}) {
     const [post, comments] = await Promise.all([
       this.loadForumPost(postId),
@@ -485,6 +502,58 @@ export const model = {
     }));
 
     return normalizedComment;
+  },
+
+  async addForumReply(postId, parentCommentId, body) {
+    const parentNode = this.getForumCommentNode(parentCommentId);
+
+    if (!parentNode?.comment) {
+      throw new Error("Could not find the comment you are replying to.");
+    }
+
+    const parentCommentDepth = Number(parentNode.comment.depth) || 0;
+
+    if (parentCommentDepth >= MAX_FORUM_COMMENT_REPLY_DEPTH) {
+      throw new Error(
+        `Replies cannot go deeper than ${MAX_FORUM_COMMENT_REPLY_DEPTH} levels.`
+      );
+    }
+
+    const authorMeta = await this.getForumAuthorMeta();
+    const payload = buildForumCommentPayload({
+      body,
+      author: this.user,
+      authorRole: authorMeta.role,
+      isCoachVerified: authorMeta.isCoachVerified,
+    });
+    const result = await persistForumReply(postId, payload, {
+      parentCommentId: parentNode.comment.id,
+      rootCommentId:
+        parentNode.comment.rootCommentId || parentNode.comment.id,
+      depth: parentCommentDepth + 1,
+      parentPathSegments: parentNode.pathSegments,
+    });
+
+    if (!result.success || !result.data) {
+      throw result.error || new Error("Could not create the forum reply.");
+    }
+
+    const normalizedReply = normalizeForumComment(
+      result.data,
+      parentCommentDepth + 1
+    );
+    this.forumComments = appendForumReply(
+      this.forumComments,
+      parentCommentId,
+      normalizedReply
+    );
+    this.patchForumPostState(postId, (post) => ({
+      commentsCount: (post.commentsCount || 0) + 1,
+      coachResponseStatus:
+        normalizedReply.isCoachVerified ? "responded" : post.coachResponseStatus,
+    }));
+
+    return normalizedReply;
   },
 
   async toggleForumPostLike(postId) {
