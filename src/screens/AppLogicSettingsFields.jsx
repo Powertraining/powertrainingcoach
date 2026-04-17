@@ -1,4 +1,4 @@
-import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import {
@@ -9,7 +9,6 @@ import {
   LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
-  TRAINING_PHASE_OPTIONS,
 } from "../constants/appLogicSettings.js";
 
 function OptionDescription({ options, value }) {
@@ -60,42 +59,6 @@ export default function AppLogicSettingsFields({
         <View style={styles.header}>
           {title ? <Text style={styles.title}>{title}</Text> : null}
           {description ? <Text style={styles.description}>{description}</Text> : null}
-        </View>
-      )}
-
-      <View style={styles.field}>
-        <Text style={styles.label}>Training phase</Text>
-        <Picker
-          selectedValue={resolvedValues.trainingPhase}
-          onValueChange={(value) => updateField("trainingPhase", value)}
-          style={styles.input}
-        >
-          {TRAINING_PHASE_OPTIONS.map((option) => (
-            <Picker.Item
-              key={option.value}
-              label={option.label}
-              value={option.value}
-            />
-          ))}
-        </Picker>
-        <OptionDescription
-          options={TRAINING_PHASE_OPTIONS}
-          value={resolvedValues.trainingPhase}
-        />
-      </View>
-
-      {resolvedValues.trainingPhase === "in_camp" && (
-        <View style={styles.field}>
-          <Text style={styles.label}>When is the planned competition?</Text>
-          <TextInput
-            placeholder="e.g. 2026-06-20 or 8 weeks out"
-            value={resolvedValues.competitionTimeline}
-            onChangeText={(value) => updateField("competitionTimeline", value)}
-            style={styles.input}
-          />
-          <Text style={styles.helperText}>
-            Share a date or timeline so the app can plan the camp appropriately.
-          </Text>
         </View>
       )}
 

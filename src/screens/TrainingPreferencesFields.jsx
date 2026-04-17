@@ -3,6 +3,7 @@ import { Picker } from "@react-native-picker/picker";
 
 import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import WeightScroller from "../components/questionnaireComponents/weightBar.jsx";
+import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
   EXPERIENCE_OPTIONS,
   getTrainingPreferencesFormState,
@@ -73,6 +74,8 @@ export default function TrainingPreferencesFields({
         </View>
       )}
 
+      
+
       <View style={styles.field}>
         <Text style={styles.label}>Weight class / current bodyweight</Text>
         <Text style={styles.helperText}>
@@ -91,6 +94,15 @@ export default function TrainingPreferencesFields({
           />
         </View>
       </View>
+
+      <QuestionnaireTrainingPhaseView
+        value={resolvedValues.trainingPhase}
+        competitionTimeline={resolvedValues.competitionTimeline}
+        onChange={(value) => updateField("trainingPhase", value)}
+        onCompetitionTimelineChange={(value) =>
+          updateField("competitionTimeline", value)
+        }
+      />
 
       <View style={styles.field}>
         <Text style={styles.label}>Injuries / weaknesses</Text>
