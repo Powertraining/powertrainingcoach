@@ -1,5 +1,7 @@
 import { Text, TouchableOpacity, StyleSheet } from "react-native";
 
+const BUTTON_RADIUS = 35;
+
 export default function SideButton({
   label,
   isSelected,
@@ -29,11 +31,11 @@ export default function SideButton({
 
 const styles = StyleSheet.create({
   option: {
-    height: 125,
+    height: 100,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 30,
-    borderWidth: 1.2,
+    borderRadius: BUTTON_RADIUS,
+    borderWidth: 1.6,
     borderColor: "#585858",
     borderStyle: "dashed",
     backgroundColor: "#1E1E1E",
@@ -42,15 +44,11 @@ const styles = StyleSheet.create({
   },
   optionLeft: {
     alignSelf: "flex-start",
-    borderLeftWidth: 0,
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
+    marginLeft: -BUTTON_RADIUS,
   },
   optionRight: {
     alignSelf: "flex-end",
-    borderRightWidth: 0,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
+    marginRight: -BUTTON_RADIUS,
   },
   optionUnselected: {
     width: "50%",
