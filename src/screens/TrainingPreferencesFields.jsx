@@ -3,7 +3,6 @@ import { Picker } from "@react-native-picker/picker";
 
 import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import WeightScroller from "../components/questionnaireComponents/weightBar.jsx";
-import QuestionnairePrimaryStyleView from "./questionnaire/QuestionnairePrimaryStyleView.jsx";
 import {
   EXPERIENCE_OPTIONS,
   getTrainingPreferencesFormState,
@@ -92,11 +91,6 @@ export default function TrainingPreferencesFields({
           />
         </View>
       </View>
-
-      <QuestionnairePrimaryStyleView
-        value={resolvedValues.primaryStyle}
-        onChange={(value) => updateField("primaryStyle", value)}
-      />
 
       <View style={styles.field}>
         <Text style={styles.label}>Injuries / weaknesses</Text>
