@@ -1,7 +1,7 @@
 import { Text, TextInput, View, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 
 import { TRAINING_PHASE_OPTIONS } from "../../constants/appLogicSettings.js";
+import SideButton from "../../components/questionnaireComponents/SideButton.jsx";
 
 function OptionDescription({ value }) {
   const selectedOption = TRAINING_PHASE_OPTIONS.find(
@@ -15,6 +15,16 @@ function OptionDescription({ value }) {
   return <Text style={styles.helperText}>{selectedOption.description}</Text>;
 }
 
+const PHASE_BUTTON_LABELS = Object.freeze({
+  off_camp: "OFF CAMP",
+  in_camp: "IN CAMP",
+});
+
+const PHASE_BUTTON_SIDES = Object.freeze({
+  off_camp: "left",
+  in_camp: "right",
+});
+
 export default function QuestionnaireTrainingPhaseView({
   value,
   competitionTimeline = "",
@@ -25,19 +35,17 @@ export default function QuestionnaireTrainingPhaseView({
     <View style={styles.section}>
       <View style={styles.field}>
         <Text style={styles.label}>Training phase</Text>
-        <Picker
-          selectedValue={value}
-          onValueChange={(nextValue) => onChange?.(nextValue)}
-          style={styles.input}
-        >
+        <View style={styles.phaseButtonRow}>
           {TRAINING_PHASE_OPTIONS.map((option) => (
-            <Picker.Item
+            <SideButton
               key={option.value}
-              label={option.label}
-              value={option.value}
+              label={PHASE_BUTTON_LABELS[option.value] || option.label}
+              isSelected={value === option.value}
+              side={PHASE_BUTTON_SIDES[option.value] || "left"}
+              onPress={() => onChange?.(option.value)}
             />
           ))}
-        </Picker>
+        </View>
         <OptionDescription value={value} />
       </View>
 
@@ -67,6 +75,11 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: 6,
+  },
+  phaseButtonRow: {
+    flexDirection: "column",
+    gap: 10,
+    justifyContent: "center",
   },
   label: {
     fontSize: 15,
