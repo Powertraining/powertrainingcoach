@@ -1,8 +1,9 @@
-import { Text, TextInput, View, StyleSheet } from "react-native";
+import { Text, TextInput, View, StyleSheet, useWindowDimensions } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import WeightScroller from "../components/questionnaireComponents/weightBar.jsx";
+import QuestionnaireNextFightView from "./questionnaire/QuestionnaireNextFightView.jsx";
 import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
   EXPERIENCE_OPTIONS,
@@ -41,6 +42,7 @@ export default function TrainingPreferencesFields({
   appLogicTitle = "App Logic Settings",
   appLogicDescription,
 }) {
+  const { height: screenHeight } = useWindowDimensions();
   const resolvedValues = getTrainingPreferencesFormState(values);
   const selectedWeightValue = getWeightScrollerValue(
     resolvedValues.weightClass
@@ -76,11 +78,8 @@ export default function TrainingPreferencesFields({
 
       
 
-      <View style={styles.field}>
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
         <Text style={styles.label}>Weight class / current bodyweight</Text>
-        <Text style={styles.helperText}>
-          Drag to set your approximate bodyweight in kilograms.
-        </Text>
         <View style={styles.weightScrollerCard}>
           <WeightScroller
             min={30}
@@ -88,6 +87,7 @@ export default function TrainingPreferencesFields({
             step={1}
             initialValue={selectedWeightValue}
             unit="kg"
+            height={screenHeight}
             onChange={(nextValue) =>
               updateField("weightClass", formatWeightClassValue(nextValue))
             }
@@ -97,14 +97,17 @@ export default function TrainingPreferencesFields({
 
       <QuestionnaireTrainingPhaseView
         value={resolvedValues.trainingPhase}
-        competitionTimeline={resolvedValues.competitionTimeline}
         onChange={(value) => updateField("trainingPhase", value)}
-        onCompetitionTimelineChange={(value) =>
-          updateField("competitionTimeline", value)
-        }
       />
 
-      <View style={styles.field}>
+      {resolvedValues.trainingPhase === "in_camp" ? (
+        <QuestionnaireNextFightView
+          value={resolvedValues.competitionTimeline}
+          onChange={(value) => updateField("competitionTimeline", value)}
+        />
+      ) : null}
+
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
         <Text style={styles.label}>Injuries / weaknesses</Text>
         <TextInput
           placeholder="e.g. sore shoulder, weak left kick, knee rehab"
@@ -116,14 +119,16 @@ export default function TrainingPreferencesFields({
         />
       </View>
 
-      <AppLogicSettingsFields
-        title={appLogicTitle}
-        description={appLogicDescription}
-        values={resolvedValues}
-        onChange={onChange}
-      />
+      <View style={[styles.screenSection, { minHeight: screenHeight }]}>
+        <AppLogicSettingsFields
+          title={appLogicTitle}
+          description={appLogicDescription}
+          values={resolvedValues}
+          onChange={onChange}
+        />
+      </View>
 
-      <View style={styles.field}>
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
         <Text style={styles.label}>Preferred weekdays</Text>
         <Text style={styles.helperText}>
           Optional. The plan still runs as Day 1, Day 2, Day 3, and so on.
@@ -154,7 +159,7 @@ export default function TrainingPreferencesFields({
         </View>
       </View>
 
-      <View style={styles.field}>
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
         <Text style={styles.label}>Goal</Text>
         <Picker
           selectedValue={resolvedValues.goal}
@@ -171,7 +176,7 @@ export default function TrainingPreferencesFields({
         </Picker>
       </View>
 
-      <View style={styles.field}>
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
         <Text style={styles.label}>Experience</Text>
         <Picker
           selectedValue={resolvedValues.experience}
@@ -188,7 +193,7 @@ export default function TrainingPreferencesFields({
         </Picker>
       </View>
 
-      <View style={styles.field}>
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
         <Text style={styles.label}>Experience in plyometrics</Text>
         <Picker
           selectedValue={resolvedValues.plyometricsExperience}
@@ -230,6 +235,9 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: 6,
+  },
+  screenSection: {
+    justifyContent: "center",
   },
   label: {
     color: "#111827",

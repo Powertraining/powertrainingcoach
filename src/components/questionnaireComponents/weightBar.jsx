@@ -28,6 +28,7 @@ export default function WeightScroller({
   step = 1,
   initialValue = 65,
   unit = "kg",
+  height = 300,
   onChange,
 }) {
   const scrollRef = useRef(null);
@@ -108,7 +109,7 @@ export default function WeightScroller({
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { height }]}>
       <View style={styles.valueRow}>
         <StandardText style={styles.valueText}>
           {indexToValue(selectedIndex).toFixed(precision)}
@@ -176,7 +177,6 @@ export default function WeightScroller({
 const styles = StyleSheet.create({
   container: {
     gap: 8,
-    height: 300,
     justifyContent: "center",
   },
   valueRow: {

@@ -1,4 +1,4 @@
-import { Text, TextInput, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
 
 import { TRAINING_PHASE_OPTIONS } from "../../constants/appLogicSettings.js";
 import SideButton from "../../components/questionnaireComponents/SideButton.jsx";
@@ -27,12 +27,12 @@ const PHASE_BUTTON_SIDES = Object.freeze({
 
 export default function QuestionnaireTrainingPhaseView({
   value,
-  competitionTimeline = "",
   onChange,
-  onCompetitionTimelineChange,
 }) {
+  const { height: screenHeight } = useWindowDimensions();
+
   return (
-    <View style={styles.section}>
+    <View style={[styles.section, { minHeight: screenHeight }]}>
       <View style={styles.field}>
         <Text style={styles.label}>Training phase</Text>
         <View style={styles.phaseButtonRow}>
@@ -48,23 +48,6 @@ export default function QuestionnaireTrainingPhaseView({
         </View>
         <OptionDescription value={value} />
       </View>
-
-      {value === "in_camp" && (
-        <View style={styles.field}>
-          <Text style={styles.label}>When is the planned competition?</Text>
-          <TextInput
-            placeholder="e.g. 2026-06-20 or 8 weeks out"
-            value={competitionTimeline}
-            onChangeText={(nextValue) =>
-              onCompetitionTimelineChange?.(nextValue)
-            }
-            style={styles.input}
-          />
-          <Text style={styles.helperText}>
-            Share a date or timeline so the app can plan the camp appropriately.
-          </Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -72,6 +55,7 @@ export default function QuestionnaireTrainingPhaseView({
 const styles = StyleSheet.create({
   section: {
     gap: 14,
+    justifyContent: "center",
   },
   field: {
     gap: 6,
@@ -85,15 +69,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: "#111827",
-  },
-  input: {
-    height: 46,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.14)",
-    paddingHorizontal: 12,
-    fontSize: 16,
-    backgroundColor: "#f9fafb",
   },
   helperText: {
     fontSize: 13,
