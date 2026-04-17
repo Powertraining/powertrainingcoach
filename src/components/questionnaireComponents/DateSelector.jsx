@@ -28,25 +28,19 @@ function startOfDay(date) {
   return nextDate;
 }
 
-function compareDates(left, right) {
-  return startOfDay(left).getTime() - startOfDay(right).getTime();
+function isBeforeMinDate(year, month, day, minDate) {
+  return new Date(year, month - 1, day) < minDate;
 }
 
 function clampDateToMin(year, month, day, minDate) {
-  const candidate = new Date(year, month - 1, day);
-
-  if (compareDates(candidate, minDate) < 0) {
-    return {
-      year: minDate.getFullYear(),
-      month: minDate.getMonth() + 1,
-      day: minDate.getDate(),
-    };
+  if (!isBeforeMinDate(year, month, day, minDate)) {
+    return { year, month, day };
   }
 
   return {
-    year,
-    month,
-    day,
+    year: minDate.getFullYear(),
+    month: minDate.getMonth() + 1,
+    day: minDate.getDate(),
   };
 }
 
@@ -207,10 +201,10 @@ export default function DateSelector({
   }, [selectedYear, today]);
 
   const months = useMemo(() => {
-    const startMonth = selectedYear === today.getFullYear() ? today.getMonth() + 1 : 1;
-    return MONTHS.slice(startMonth - 1).map((label, index) => ({
+    const minMonth = selectedYear === today.getFullYear() ? today.getMonth() + 1 : 1;
+    return MONTHS.slice(minMonth - 1).map((label, index) => ({
       label,
-      value: startMonth + index,
+      value: minMonth + index,
     }));
   }, [selectedYear, today]);
 
@@ -251,38 +245,28 @@ export default function DateSelector({
 
   return (
     <View>
-      <View style={styles.wheelShell}>
-        <View style={styles.scrollRow}>
-          <WheelColumn
-            values={days.map((day) => padNumber(day))}
-            selectedIndex={days.findIndex((day) => day === selectedDay)}
-            onSelect={(_, index) => {
-              commitDate(selectedYear, selectedMonth, days[index]);
-            }}
-          />
-          <WheelColumn
-            values={months.map((month) => month.label)}
-            selectedIndex={months.findIndex((month) => month.value === selectedMonth)}
-            onSelect={(_, index) => {
-              commitDate(selectedYear, months[index].value, selectedDay);
-            }}
-            columnStyle={styles.monthColumn}
-          />
-          <WheelColumn
-            values={years.map(String)}
-            selectedIndex={years.findIndex((year) => year === selectedYear)}
-            onSelect={(_, index) => {
-              commitDate(years[index], selectedMonth, selectedDay);
-            }}
-            columnStyle={styles.yearColumn}
-          />
-
-          <View pointerEvents="none" style={styles.overlay}>
-            <View style={styles.selector} />
-            <View style={styles.fadeTop} />
-            <View style={styles.fadeBottom} />
-          </View>
-        </View>
+      <View style={styles.scrollRow}>
+        <WheelColumn
+          values={days.map((day) => padNumber(day))}
+          selectedIndex={days.findIndex((day) => day === selectedDay)}
+          onSelect={(_, index) => {
+            commitDate(selectedYear, selectedMonth, days[index]);
+          }}
+        />
+        <WheelColumn
+          values={months.map((month) => month.label)}
+          selectedIndex={months.findIndex((month) => month.value === selectedMonth)}
+          onSelect={(_, index) => {
+            commitDate(selectedYear, months[index].value, selectedDay);
+          }}
+        />
+        <WheelColumn
+          values={years.map(String)}
+          selectedIndex={years.findIndex((year) => year === selectedYear)}
+          onSelect={(_, index) => {
+            commitDate(years[index], selectedMonth, selectedDay);
+          }}
+        />
       </View>
 
       <TextInput
@@ -298,30 +282,14 @@ export default function DateSelector({
 }
 
 const styles = StyleSheet.create({
-  wheelShell: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.12)",
-    backgroundColor: "#f8fafc",
-    marginBottom: 10,
-    overflow: "hidden",
-  },
   scrollRow: {
     flexDirection: "row",
     height: ITEM_HEIGHT * VISIBLE_ROWS,
-    position: "relative",
+    marginBottom: 8,
   },
   column: {
     flex: 1,
     overflow: "hidden",
-  },
-  monthColumn: {
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: "rgba(17,24,39,0.06)",
-  },
-  yearColumn: {
-    flex: 1.2,
   },
   columnContent: {
     paddingVertical: ITEM_HEIGHT * CENTER_ROW,
@@ -332,55 +300,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   itemText: {
-    color: "#6b7280",
-    fontSize: 17,
-    fontWeight: "500",
+    fontSize: 16,
+    color: "#fff",
+    opacity: 0.5,
   },
   itemTextSelected: {
-    color: "#111827",
-    fontSize: 19,
-    fontWeight: "700",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  selector: {
-    position: "absolute",
-    top: ITEM_HEIGHT * CENTER_ROW,
-    left: 12,
-    right: 12,
-    height: ITEM_HEIGHT,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.12)",
-    backgroundColor: "rgba(255,255,255,0.92)",
-    zIndex: 3,
-  },
-  fadeTop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: ITEM_HEIGHT * CENTER_ROW,
-    backgroundColor: "rgba(248,250,252,0.82)",
-    zIndex: 2,
-  },
-  fadeBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: ITEM_HEIGHT * CENTER_ROW,
-    backgroundColor: "rgba(248,250,252,0.82)",
-    zIndex: 2,
+    fontSize: 16,
+    fontWeight: "600",
+    opacity: 1,
   },
   input: {
-    height: 46,
-    borderRadius: 10,
+    height: 40,
     borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.14)",
-    paddingHorizontal: 12,
-    fontSize: 16,
-    backgroundColor: "#f9fafb",
+    paddingHorizontal: 8,
   },
 });
