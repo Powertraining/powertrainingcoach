@@ -2,37 +2,17 @@ import { Text, TextInput, View, StyleSheet, useWindowDimensions } from "react-na
 import { Picker } from "@react-native-picker/picker";
 
 import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
-import WeightScroller from "../components/questionnaireComponents/weightBar.jsx";
-import QuestionnaireNextFightView from "./questionnaire/QuestionnaireNextFightView.jsx";
 import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
-  EXPERIENCE_OPTIONS,
+  CAPABILITY_RATING_OPTIONS,
+  DESIRED_TRAINING_OPTIONS,
+  EQUIPMENT_OPTIONS,
   getTrainingPreferencesFormState,
-  GOAL_OPTIONS,
-  PLYOMETRICS_EXPERIENCE_OPTIONS,
+  SESSION_DURATION_OPTIONS,
+  STRENGTH_CONDITIONING_EXPERIENCE_OPTIONS,
+  TRAINING_CAPABILITY_GROUPS,
 } from "../constants/trainingPreferences.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
-
-const DEFAULT_WEIGHT_VALUE = 65;
-
-function getWeightScrollerValue(weightClass) {
-  if (typeof weightClass !== "string") {
-    return DEFAULT_WEIGHT_VALUE;
-  }
-
-  const match = weightClass.replace(",", ".").match(/-?\d+(?:\.\d+)?/);
-
-  if (!match) {
-    return DEFAULT_WEIGHT_VALUE;
-  }
-
-  const parsedValue = Math.abs(Number.parseFloat(match[0]));
-  return Number.isFinite(parsedValue) ? parsedValue : DEFAULT_WEIGHT_VALUE;
-}
-
-function formatWeightClassValue(value) {
-  return `${value.toFixed(0)} kg`;
-}
 
 export default function TrainingPreferencesFields({
   title,
@@ -44,9 +24,6 @@ export default function TrainingPreferencesFields({
 }) {
   const { height: screenHeight } = useWindowDimensions();
   const resolvedValues = getTrainingPreferencesFormState(values);
-  const selectedWeightValue = getWeightScrollerValue(
-    resolvedValues.weightClass
-  );
 
   function updateField(field, value) {
     onChange?.({
@@ -65,6 +42,13 @@ export default function TrainingPreferencesFields({
     updateField("preferredWeekdays", nextPreferredWeekdays);
   }
 
+  function updateCapability(capability, rating) {
+    updateField("trainingCapabilities", {
+      ...resolvedValues.trainingCapabilities,
+      [capability]: rating,
+    });
+  }
+
   return (
     <View style={styles.section}>
       {(title || description) && (
@@ -76,23 +60,106 @@ export default function TrainingPreferencesFields({
         </View>
       )}
 
-      
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
+        <Text style={styles.label}>How would you rate your S&C experience?</Text>
+        <Picker
+          selectedValue={resolvedValues.experience}
+          onValueChange={(value) => updateField("experience", value)}
+          style={styles.input}
+        >
+          {STRENGTH_CONDITIONING_EXPERIENCE_OPTIONS.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+            />
+          ))}
+        </Picker>
+      </View>
 
       <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
-        <Text style={styles.label}>Weight class / current bodyweight</Text>
-        <View style={styles.weightScrollerCard}>
-          <WeightScroller
-            min={30}
-            max={200}
-            step={1}
-            initialValue={selectedWeightValue}
-            unit="kg"
-            height={screenHeight}
-            onChange={(nextValue) =>
-              updateField("weightClass", formatWeightClassValue(nextValue))
-            }
-          />
+        <Text style={styles.label}>What can you do safely and confidently?</Text>
+        <View style={styles.capabilityGroups}>
+          {TRAINING_CAPABILITY_GROUPS.map((group) => (
+            <View key={group.title} style={styles.capabilityGroup}>
+              <Text style={styles.groupLabel}>{group.title}</Text>
+              {group.items.map((item) => (
+                <View key={item.value} style={styles.capabilityRow}>
+                  <View style={styles.capabilityText}>
+                    <Text style={styles.capabilityLabel}>{item.label}</Text>
+                    {item.description ? (
+                      <Text style={styles.helperText}>{item.description}</Text>
+                    ) : null}
+                  </View>
+                  <Picker
+                    selectedValue={resolvedValues.trainingCapabilities[item.value]}
+                    onValueChange={(value) => updateCapability(item.value, value)}
+                    style={styles.ratingInput}
+                  >
+                    {CAPABILITY_RATING_OPTIONS.map((option) => (
+                      <Picker.Item
+                        key={`${item.value}-${option.value}`}
+                        label={option.label}
+                        value={option.value}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              ))}
+            </View>
+          ))}
         </View>
+      </View>
+
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
+        <Text style={styles.label}>Desired training</Text>
+        <Picker
+          selectedValue={resolvedValues.desiredTraining}
+          onValueChange={(value) => updateField("desiredTraining", value)}
+          style={styles.input}
+        >
+          {DESIRED_TRAINING_OPTIONS.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+            />
+          ))}
+        </Picker>
+      </View>
+
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
+        <Text style={styles.label}>Duration of each session</Text>
+        <Picker
+          selectedValue={resolvedValues.sessionDuration}
+          onValueChange={(value) => updateField("sessionDuration", value)}
+          style={styles.input}
+        >
+          {SESSION_DURATION_OPTIONS.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+            />
+          ))}
+        </Picker>
+      </View>
+
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
+        <Text style={styles.label}>Equipment available</Text>
+        <Picker
+          selectedValue={resolvedValues.equipment}
+          onValueChange={(value) => updateField("equipment", value)}
+          style={styles.input}
+        >
+          {EQUIPMENT_OPTIONS.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+            />
+          ))}
+        </Picker>
       </View>
 
       <QuestionnaireTrainingPhaseView
@@ -100,12 +167,22 @@ export default function TrainingPreferencesFields({
         onChange={(value) => updateField("trainingPhase", value)}
       />
 
-      {resolvedValues.trainingPhase === "in_camp" ? (
-        <QuestionnaireNextFightView
-          value={resolvedValues.competitionTimeline}
-          onChange={(value) => updateField("competitionTimeline", value)}
+      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
+        <Text style={styles.label}>
+          Which competition(s) or important events are you preparing for?
+        </Text>
+        <Text style={styles.helperText}>
+          Include anything useful, such as event names, dates, or rough timelines.
+        </Text>
+        <TextInput
+          placeholder="e.g. amateur bout on 2026-06-20, regional tournament in September"
+          value={resolvedValues.eventPreparation}
+          onChangeText={(value) => updateField("eventPreparation", value)}
+          multiline
+          numberOfLines={3}
+          style={styles.textarea}
         />
-      ) : null}
+      </View>
 
       <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
         <Text style={styles.label}>Injuries / weaknesses</Text>
@@ -159,58 +236,6 @@ export default function TrainingPreferencesFields({
         </View>
       </View>
 
-      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
-        <Text style={styles.label}>Goal</Text>
-        <Picker
-          selectedValue={resolvedValues.goal}
-          onValueChange={(value) => updateField("goal", value)}
-          style={styles.input}
-        >
-          {GOAL_OPTIONS.map((option) => (
-            <Picker.Item
-              key={option.value}
-              label={option.label}
-              value={option.value}
-            />
-          ))}
-        </Picker>
-      </View>
-
-      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
-        <Text style={styles.label}>Experience</Text>
-        <Picker
-          selectedValue={resolvedValues.experience}
-          onValueChange={(value) => updateField("experience", value)}
-          style={styles.input}
-        >
-          {EXPERIENCE_OPTIONS.map((option) => (
-            <Picker.Item
-              key={option.value}
-              label={option.label}
-              value={option.value}
-            />
-          ))}
-        </Picker>
-      </View>
-
-      <View style={[styles.field, styles.screenSection, { minHeight: screenHeight }]}>
-        <Text style={styles.label}>Experience in plyometrics</Text>
-        <Picker
-          selectedValue={resolvedValues.plyometricsExperience}
-          onValueChange={(value) =>
-            updateField("plyometricsExperience", value)
-          }
-          style={styles.input}
-        >
-          {PLYOMETRICS_EXPERIENCE_OPTIONS.map((option) => (
-            <Picker.Item
-              key={option.value}
-              label={option.label}
-              value={option.value}
-            />
-          ))}
-        </Picker>
-      </View>
     </View>
   );
 }
@@ -264,9 +289,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#f9fafb",
   },
-  weightScrollerCard: {
-    backgroundColor: "transparent",
-  },
   preferenceGrid: {
     gap: 10,
   },
@@ -277,5 +299,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#374151",
+  },
+  capabilityGroups: {
+    gap: 16,
+  },
+  capabilityGroup: {
+    gap: 8,
+  },
+  groupLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  capabilityRow: {
+    gap: 8,
+  },
+  capabilityText: {
+    gap: 2,
+  },
+  capabilityLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  ratingInput: {
+    height: 46,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(17,24,39,0.14)",
+    paddingHorizontal: 12,
+    fontSize: 16,
+    backgroundColor: "#f9fafb",
   },
 });
