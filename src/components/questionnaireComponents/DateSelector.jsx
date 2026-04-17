@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Text, TextInput, StyleSheet, ScrollView, View } from "react-native";
 
-const ITEM_HEIGHT = 48;
+const ITEM_HEIGHT = 65;
 const VISIBLE_ROWS = 5;
 const CENTER_ROW = Math.floor(VISIBLE_ROWS / 2);
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -267,6 +267,7 @@ export default function DateSelector({
             commitDate(years[index], selectedMonth, selectedDay);
           }}
         />
+        <View pointerEvents="none" style={styles.selectedFrame} />
       </View>
 
       <TextInput
@@ -286,6 +287,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: ITEM_HEIGHT * VISIBLE_ROWS,
     marginBottom: 8,
+    position: "relative",
+    width: "65%",
+    alignSelf: "center",
   },
   column: {
     flex: 1,
@@ -300,18 +304,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   itemText: {
-    fontSize: 16,
+    fontSize: 18,
     color: "#fff",
     opacity: 0.5,
   },
   itemTextSelected: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
     opacity: 1,
+  },
+  selectedFrame: {
+    position: "absolute",
+    top: ITEM_HEIGHT * CENTER_ROW,
+    left: 0,
+    right: 0,
+    height: ITEM_HEIGHT,
+    borderWidth: 1,
+    borderRadius: 18,
+    borderColor: "#C9B259",
+    backgroundColor: "transparent",
   },
   input: {
     height: 40,
     borderWidth: 1,
     paddingHorizontal: 8,
+
   },
 });
