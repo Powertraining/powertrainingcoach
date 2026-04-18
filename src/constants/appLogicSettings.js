@@ -17,14 +17,6 @@ export const COMBAT_TRAINING_INTENSITY_OPTIONS = Object.freeze([
   { label: "Intense", value: "intense" },
 ]);
 
-export const COMPETENCY_AND_LIMITATION_OPTIONS = Object.freeze([
-  { label: "Barbells", value: "barbells" },
-  { label: "Machines", value: "machines" },
-  { label: "Dumbbells", value: "dumbbells" },
-  { label: "Olympic lifts", value: "olympic_lifts" },
-  { label: "Ballistic training", value: "ballistic_training" },
-]);
-
 export const LIFT_INTENSITY_METHOD_OPTIONS = Object.freeze([
   {
     label: "% logic",
@@ -102,7 +94,6 @@ export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   trainingPhase: "off_camp",
   competitionTimeline: "",
   combatTrainingIntensity: "moderate",
-  competencyAndLimitations: [],
   liftIntensityMethod: "percentage",
   percentageReferenceMethod: "heavy_single",
   deloadStrategy: "maintain_intensity_reduce_volume",
@@ -119,15 +110,6 @@ function mapLegacyCompetitionPeriodToTrainingPhase(competitionPeriod) {
   }
 
   return APP_LOGIC_SETTINGS_DEFAULTS.trainingPhase;
-}
-
-function getNormalizedCompetencyAndLimitations(values) {
-  const rawValues = Array.isArray(values) ? values : [];
-  const selectedValues = new Set(rawValues);
-
-  return COMPETENCY_AND_LIMITATION_OPTIONS
-    .map((option) => option.value)
-    .filter((value) => selectedValues.has(value));
 }
 
 function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = false } = {}) {
@@ -158,9 +140,6 @@ function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = fal
     )
       ? safeSource.combatTrainingIntensity
       : APP_LOGIC_SETTINGS_DEFAULTS.combatTrainingIntensity,
-    competencyAndLimitations: getNormalizedCompetencyAndLimitations(
-      safeSource.competencyAndLimitations
-    ),
     liftIntensityMethod: isAllowedValue(
       safeSource.liftIntensityMethod,
       LIFT_INTENSITY_METHOD_OPTIONS
@@ -210,9 +189,13 @@ export function mergeAppLogicSettings(questionnaire = {}, patch = {}) {
     ...safeQuestionnaire,
     ...safePatch,
   };
+  const {
+    competencyAndLimitations: _competencyAndLimitations,
+    ...mergedWithoutDeprecatedFields
+  } = merged;
 
   return {
-    ...merged,
+    ...mergedWithoutDeprecatedFields,
     ...normalizeAppLogicSettings(merged),
   };
 }
@@ -231,12 +214,6 @@ export function areAppLogicSettingsEqual(left, right) {
     normalizedLeft.percentageReferenceMethod ===
       normalizedRight.percentageReferenceMethod &&
     normalizedLeft.deloadStrategy === normalizedRight.deloadStrategy &&
-    normalizedLeft.loadingStrategy === normalizedRight.loadingStrategy &&
-    normalizedLeft.competencyAndLimitations.length ===
-      normalizedRight.competencyAndLimitations.length &&
-    normalizedLeft.competencyAndLimitations.every(
-      (value, index) =>
-        value === normalizedRight.competencyAndLimitations[index]
-    )
+    normalizedLeft.loadingStrategy === normalizedRight.loadingStrategy
   );
 }

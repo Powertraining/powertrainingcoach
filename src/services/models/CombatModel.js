@@ -41,7 +41,11 @@ import {
 import {
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
-import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
+import {
+  getNormalizedSessionDuration,
+  getSessionDurationMinutes,
+  mergeTrainingPreferences,
+} from "../../constants/trainingPreferences.js";
 import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
 import {
   applyMissedSessionAdjustment,
@@ -846,9 +850,20 @@ export const model = {
     const preferredWeekdays = Array.from({ length: daysPerWeek }, (_, index) =>
       getNormalizedWeekday(rawPreferredWeekdays[index])
     );
+    const sessionDuration = getNormalizedSessionDuration(source);
+    const sessionDurationMinutes = getSessionDurationMinutes(sessionDuration);
+    const equipment =
+      typeof source.equipment === "string" && source.equipment ?
+        source.equipment :
+        "full_gym";
+    const {
+      primaryStyle: _primaryStyle,
+      weightClass: _weightClass,
+      ...trainingPlanSource
+    } = source;
 
     return {
-      ...source,
+      ...trainingPlanSource,
       ...normalizedAppLogicSettings,
       primaryCombatSport: source.primaryCombatSport || this.primaryCombatSport || "",
       sessionsPerWeek:
@@ -857,6 +872,9 @@ export const model = {
           daysPerWeek,
       daysPerWeek,
       preferredWeekdays,
+      sessionDuration,
+      sessionDurationMinutes,
+      equipment,
       focusEmphasis,
       preferences:
         Array.isArray(source.preferences) && source.preferences.length > 0 ?

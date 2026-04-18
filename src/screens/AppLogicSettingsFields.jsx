@@ -1,9 +1,8 @@
-import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import {
   COMBAT_TRAINING_INTENSITY_OPTIONS,
-  COMPETENCY_AND_LIMITATION_OPTIONS,
   DELOAD_STRATEGY_OPTIONS,
   getAppLogicSettingsFormState,
   LIFT_INTENSITY_METHOD_OPTIONS,
@@ -41,18 +40,6 @@ export default function AppLogicSettingsFields({
     });
   }
 
-  function toggleCompetency(value) {
-    const nextValues = new Set(resolvedValues.competencyAndLimitations);
-
-    if (nextValues.has(value)) {
-      nextValues.delete(value);
-    } else {
-      nextValues.add(value);
-    }
-
-    updateField("competencyAndLimitations", Array.from(nextValues));
-  }
-
   return (
     <View style={styles.section}>
       {(title || description) && (
@@ -77,35 +64,6 @@ export default function AppLogicSettingsFields({
             />
           ))}
         </Picker>
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>Competency and limitations</Text>
-        <Text style={styles.helperText}>Select all that apply.</Text>
-        <View style={styles.chipGroup}>
-          {COMPETENCY_AND_LIMITATION_OPTIONS.map((option) => {
-            const selected = resolvedValues.competencyAndLimitations.includes(
-              option.value
-            );
-
-            return (
-              <TouchableOpacity
-                key={option.value}
-                onPress={() => toggleCompetency(option.value)}
-                style={[styles.chip, selected ? styles.chipSelected : null]}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    selected ? styles.chipTextSelected : null,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
       </View>
 
       <View style={styles.field}>
@@ -243,30 +201,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     color: "#6b7280",
-  },
-  chipGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.12)",
-    backgroundColor: "#ffffff",
-  },
-  chipSelected: {
-    borderColor: "#111827",
-    backgroundColor: "#111827",
-  },
-  chipText: {
-    fontSize: 14,
-    color: "#111827",
-    fontWeight: "500",
-  },
-  chipTextSelected: {
-    color: "#ffffff",
   },
 });

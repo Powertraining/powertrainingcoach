@@ -182,6 +182,27 @@ export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions 
 - This spacing rule is advisory, not absolute.
 `;
 
+    const trainingPreferenceInstructions = `
+### TRAINING PREFERENCE RULES:
+- "experience" is the athlete's strength-and-conditioning experience level, not combat-sport rank.
+- Use "desiredTraining" to choose the plan emphasis:
+  - "strength_power": prioritize strength, power, speed, and explosive qualities with only enough conditioning to support the work.
+  - "endurance": prioritize conditioning and endurance while keeping strength/power work minimal and supportive.
+  - "strength_power_endurance": combine strength/power and endurance in a balanced, recoverable way.
+- Use "trainingCapabilities" to choose safe exercise categories. "yes" means the athlete can perform that category confidently, "somewhat" means use simpler progressions and coaching notes, and "no" means avoid that category or replace it with safer alternatives.
+- If Olympic-lift variations, plyometrics, ballistic training, sprinting, or heavy bag work are marked "no", do not prescribe that category directly.
+- Use "eventPreparation" as context for competitions or important dates the athlete is preparing for. If it includes dates or timelines, align the training arc pragmatically without inventing extra event details.
+- Use "equipment" to choose exercises and substitutions that match the athlete's available setup.
+`;
+
+    const sessionDurationInstructions = `
+### SESSION DURATION RULES:
+- Use "sessionDuration" and "sessionDurationMinutes" from the user input to size each training day.
+- For finite durations, keep warm-up, main work, accessories, and conditioning realistic for that time cap.
+- For 30 or 45 minute sessions, prioritize the highest-value work and trim lower-priority accessories.
+- If "sessionDuration" is "no_time_limit" or "sessionDurationMinutes" is null, treat it as flexible but still pragmatic. Do not create marathon sessions, excessive exercise lists, 10-hour workouts, or unrealistic volumes. Prefer focused sessions that would usually fit within about 90-120 minutes.
+`;
+
     const strengthAssessmentInstructions = `
 ### PERCENTAGE-LOGIC STRENGTH ASSESSMENT RULES:
 - If "liftIntensityMethod" is "percentage", you MUST respect "percentageReferenceMethod" when deciding how main lifts get their reference points for future % prescriptions.
@@ -300,6 +321,8 @@ ${imageInstructions}
 ${substitutionSchemaInstructions}
 ${sessionStructureInstructions}
 ${sessionProfileInstructions}
+${trainingPreferenceInstructions}
+${sessionDurationInstructions}
 ${strengthAssessmentInstructions}
 ${performanceTrackingInstructions}
 ${percentagePrescriptionInstructions}
