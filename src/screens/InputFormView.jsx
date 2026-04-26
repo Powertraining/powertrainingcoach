@@ -1,7 +1,7 @@
 // npx expo install @react-native-picker/picker
 
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
@@ -52,7 +52,7 @@ export default function InputFormView({
 
     return (
         <QuestionnaireShell>
-            <ScrollView contentContainerStyle={styles.center} scrollEnabled={false}>
+            <View style={styles.center}>
                 <View style={styles.card}>
                     <View style={styles.form}>
                         {/* {!subscription && (
@@ -80,22 +80,22 @@ export default function InputFormView({
 
                     </View>
                 </View>
-                <QuestionnaireBottomActionButton
-                    layout="stacked"
-                    text={activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1
-                        ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
-                        : "Continue"}
-                    onContinue={handleContinue}
-                    onBack={handleStepBack}
-                />
-            </ScrollView>
+            </View>
+            <QuestionnaireBottomActionButton
+                layout="stacked"
+                text={activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1
+                    ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
+                    : "Continue"}
+                onContinue={handleContinue}
+                onBack={handleStepBack}
+            />
         </QuestionnaireShell>
     );
 }
 
 const styles = StyleSheet.create({
     center: {
-        flexGrow: 1,
+        flex: 1,
         justifyContent: "center",
         paddingBottom: 120,
     },
