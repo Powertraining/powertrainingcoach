@@ -4,7 +4,9 @@ import { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
-import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
+import TrainingPreferencesFields, {
+    TRAINING_PREFERENCES_SECTION_COUNT,
+} from "./TrainingPreferencesFields.jsx";
 
 import {
     getTrainingPreferencesFormState,
@@ -24,14 +26,33 @@ export default function InputFormView({
     const [trainingPreferences, setTrainingPreferences] = useState(
         getTrainingPreferencesFormState(initialValues)
     );
+    const [activeStep, setActiveStep] = useState(0);
 
     function handleSubmit() {
         onSubmit(normalizeTrainingPreferences(trainingPreferences));
     }
 
+    function handleContinue() {
+        if (activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1) {
+            handleSubmit();
+            return;
+        }
+
+        setActiveStep((currentStep) => currentStep + 1);
+    }
+
+    function handleStepBack() {
+        if (activeStep === 0) {
+            onBack?.();
+            return;
+        }
+
+        setActiveStep((currentStep) => currentStep - 1);
+    }
+
     return (
         <QuestionnaireShell>
-            <ScrollView contentContainerStyle={styles.center}>
+            <ScrollView contentContainerStyle={styles.center} scrollEnabled={false}>
                 <View style={styles.card}>
                     <View style={styles.form}>
                         {/* {!subscription && (
@@ -54,19 +75,19 @@ export default function InputFormView({
                             onChange={setTrainingPreferences}
                             appLogicTitle="App Logic Settings"
                             appLogicDescription="Choose the strength-planning logic you want the app to use for this athlete profile."
+                            activeStep={activeStep}
                         />
 
                     </View>
                 </View>
-                <TouchableOpacity
-                                onPress={handleSubmit}
-                                style={styles.primaryButton}
-                            >
-                                <Text style={styles.primaryButtonText}>
-                                    {subscription ? "Generate My Plan" : "Subscribe & Generate Plan"}
-                                </Text>
-                            </TouchableOpacity>
-                {onBack ? <QuestionnaireBottomActionButton onBack={onBack} /> : null}
+                <QuestionnaireBottomActionButton
+                    layout="stacked"
+                    text={activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1
+                        ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
+                        : "Continue"}
+                    onContinue={handleContinue}
+                    onBack={handleStepBack}
+                />
             </ScrollView>
         </QuestionnaireShell>
     );
@@ -116,23 +137,5 @@ const styles = StyleSheet.create({
     },
     activeText: { fontSize: 14, color: "#065f46", lineHeight: 22 },
     actions: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4, gap: 12, flexWrap: "wrap" },
-    primaryButton: {
-        paddingVertical: 12,
-        paddingHorizontal: 22,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: "#111",
-        backgroundColor: "#111",
-    },
-    primaryButtonText: { color: "white", fontSize: 18 },
-    secondaryButton: {
-        paddingVertical: 12,
-        paddingHorizontal: 22,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: "#000",
-        backgroundColor: "#fff"
-    },
-    secondaryButtonText: { color: "#111", fontSize: 18 },
 });
 

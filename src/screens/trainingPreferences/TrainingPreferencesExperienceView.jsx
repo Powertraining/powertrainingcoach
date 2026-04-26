@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   descriptionText: {
     marginTop: 84,
-    marginBottom: 84,
+    marginBottom: 42,
   },
   buttonsRow: {
     flexDirection: "row",

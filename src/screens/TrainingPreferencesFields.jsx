@@ -23,6 +23,8 @@ import TrainingPreferencesEventPreparationView from "./trainingPreferences/Train
 import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPreferencesInjuriesView.jsx";
 import TrainingPreferencesPreferredWeekdaysView from "./trainingPreferences/TrainingPreferencesPreferredWeekdaysView.jsx";
 
+export const TRAINING_PREFERENCES_SECTION_COUNT = 19;
+
 export default function TrainingPreferencesFields({
   title,
   description,
@@ -30,6 +32,7 @@ export default function TrainingPreferencesFields({
   onChange,
   appLogicTitle = "App Logic Settings",
   appLogicDescription,
+  activeStep,
 }) {
   const { height: screenHeight } = useWindowDimensions();
   const resolvedValues = getTrainingPreferencesFormState(values);
@@ -58,6 +61,143 @@ export default function TrainingPreferencesFields({
     });
   }
 
+  const sections = [
+    (
+      <TrainingPreferencesExperienceView
+        value={resolvedValues.experience}
+        onChange={(sectionValue) => updateField("experience", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesCompoundLiftsView
+        value={resolvedValues.trainingCapabilities.compoundLifts}
+        onChange={(sectionValue) => updateCapability("compoundLifts", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesSingleLegLiftsView
+        value={resolvedValues.trainingCapabilities.singleLegLifts}
+        onChange={(sectionValue) => updateCapability("singleLegLifts", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesPullingWorkView
+        value={resolvedValues.trainingCapabilities.pullingWork}
+        onChange={(sectionValue) => updateCapability("pullingWork", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesOlympicLiftVariationsView
+        value={resolvedValues.trainingCapabilities.olympicLiftVariations}
+        onChange={(sectionValue) =>
+          updateCapability("olympicLiftVariations", sectionValue)
+        }
+      />
+    ),
+    (
+      <TrainingPreferencesPlyometricsView
+        value={resolvedValues.trainingCapabilities.plyometrics}
+        onChange={(sectionValue) => updateCapability("plyometrics", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesBallisticTrainingView
+        value={resolvedValues.trainingCapabilities.ballisticTraining}
+        onChange={(sectionValue) =>
+          updateCapability("ballisticTraining", sectionValue)
+        }
+      />
+    ),
+    (
+      <TrainingPreferencesRunningSprintingView
+        value={resolvedValues.trainingCapabilities.runningSprinting}
+        onChange={(sectionValue) =>
+          updateCapability("runningSprinting", sectionValue)
+        }
+      />
+    ),
+    (
+      <TrainingPreferencesBikeRowerAssaultBikeView
+        value={resolvedValues.trainingCapabilities.bikeRowerAssaultBike}
+        onChange={(sectionValue) =>
+          updateCapability("bikeRowerAssaultBike", sectionValue)
+        }
+      />
+    ),
+    (
+      <TrainingPreferencesCircuitTrainingView
+        value={resolvedValues.trainingCapabilities.circuitTraining}
+        onChange={(sectionValue) =>
+          updateCapability("circuitTraining", sectionValue)
+        }
+      />
+    ),
+    (
+      <TrainingPreferencesHeavyBagView
+        value={resolvedValues.trainingCapabilities.heavyBag}
+        onChange={(sectionValue) => updateCapability("heavyBag", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesDesiredTrainingView
+        value={resolvedValues.desiredTraining}
+        onChange={(sectionValue) => updateField("desiredTraining", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesSessionDurationView
+        value={resolvedValues.sessionDuration}
+        onChange={(sectionValue) => updateField("sessionDuration", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesEquipmentView
+        value={resolvedValues.equipment}
+        onChange={(sectionValue) => updateField("equipment", sectionValue)}
+      />
+    ),
+    (
+      <QuestionnaireTrainingPhaseView
+        value={resolvedValues.trainingPhase}
+        onChange={(sectionValue) => updateField("trainingPhase", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesEventPreparationView
+        value={resolvedValues.eventPreparation}
+        onChange={(sectionValue) => updateField("eventPreparation", sectionValue)}
+      />
+    ),
+    (
+      <TrainingPreferencesInjuriesView
+        value={resolvedValues.injuriesInput}
+        onChange={(sectionValue) => updateField("injuriesInput", sectionValue)}
+      />
+    ),
+    (
+      <View style={{ minHeight: screenHeight, justifyContent: "center" }}>
+        <AppLogicSettingsFields
+          title={appLogicTitle}
+          description={appLogicDescription}
+          values={resolvedValues}
+          onChange={onChange}
+        />
+      </View>
+    ),
+    (
+      <TrainingPreferencesPreferredWeekdaysView
+        daysPerWeek={resolvedValues.daysPerWeek}
+        preferredWeekdays={resolvedValues.preferredWeekdays}
+        onChange={updatePreferredWeekday}
+      />
+    ),
+  ];
+
+  const renderedSections =
+    typeof activeStep === "number"
+      ? sections.slice(activeStep, activeStep + 1)
+      : sections;
+
   return (
     <View style={styles.section}>
       {(title || description) && (
@@ -69,106 +209,11 @@ export default function TrainingPreferencesFields({
         </View>
       )}
 
-      <TrainingPreferencesExperienceView
-        value={resolvedValues.experience}
-        onChange={(value) => updateField("experience", value)}
-      />
-
-      <TrainingPreferencesCompoundLiftsView
-        value={resolvedValues.trainingCapabilities.compoundLifts}
-        onChange={(value) => updateCapability("compoundLifts", value)}
-      />
-
-      <TrainingPreferencesSingleLegLiftsView
-        value={resolvedValues.trainingCapabilities.singleLegLifts}
-        onChange={(value) => updateCapability("singleLegLifts", value)}
-      />
-
-      <TrainingPreferencesPullingWorkView
-        value={resolvedValues.trainingCapabilities.pullingWork}
-        onChange={(value) => updateCapability("pullingWork", value)}
-      />
-
-      <TrainingPreferencesOlympicLiftVariationsView
-        value={resolvedValues.trainingCapabilities.olympicLiftVariations}
-        onChange={(value) => updateCapability("olympicLiftVariations", value)}
-      />
-
-      <TrainingPreferencesPlyometricsView
-        value={resolvedValues.trainingCapabilities.plyometrics}
-        onChange={(value) => updateCapability("plyometrics", value)}
-      />
-
-      <TrainingPreferencesBallisticTrainingView
-        value={resolvedValues.trainingCapabilities.ballisticTraining}
-        onChange={(value) => updateCapability("ballisticTraining", value)}
-      />
-
-      <TrainingPreferencesRunningSprintingView
-        value={resolvedValues.trainingCapabilities.runningSprinting}
-        onChange={(value) => updateCapability("runningSprinting", value)}
-      />
-
-      <TrainingPreferencesBikeRowerAssaultBikeView
-        value={resolvedValues.trainingCapabilities.bikeRowerAssaultBike}
-        onChange={(value) => updateCapability("bikeRowerAssaultBike", value)}
-      />
-
-      <TrainingPreferencesCircuitTrainingView
-        value={resolvedValues.trainingCapabilities.circuitTraining}
-        onChange={(value) => updateCapability("circuitTraining", value)}
-      />
-
-      <TrainingPreferencesHeavyBagView
-        value={resolvedValues.trainingCapabilities.heavyBag}
-        onChange={(value) => updateCapability("heavyBag", value)}
-      />
-
-      <TrainingPreferencesDesiredTrainingView
-        value={resolvedValues.desiredTraining}
-        onChange={(value) => updateField("desiredTraining", value)}
-      />
-
-      <TrainingPreferencesSessionDurationView
-        value={resolvedValues.sessionDuration}
-        onChange={(value) => updateField("sessionDuration", value)}
-      />
-
-      <TrainingPreferencesEquipmentView
-        value={resolvedValues.equipment}
-        onChange={(value) => updateField("equipment", value)}
-      />
-
-      <QuestionnaireTrainingPhaseView
-        value={resolvedValues.trainingPhase}
-        onChange={(value) => updateField("trainingPhase", value)}
-      />
-
-      <TrainingPreferencesEventPreparationView
-        value={resolvedValues.eventPreparation}
-        onChange={(value) => updateField("eventPreparation", value)}
-      />
-
-      <TrainingPreferencesInjuriesView
-        value={resolvedValues.injuriesInput}
-        onChange={(value) => updateField("injuriesInput", value)}
-      />
-
-      <View style={{ minHeight: screenHeight, justifyContent: "center" }}>
-        <AppLogicSettingsFields
-          title={appLogicTitle}
-          description={appLogicDescription}
-          values={resolvedValues}
-          onChange={onChange}
-        />
-      </View>
-
-      <TrainingPreferencesPreferredWeekdaysView
-        daysPerWeek={resolvedValues.daysPerWeek}
-        preferredWeekdays={resolvedValues.preferredWeekdays}
-        onChange={updatePreferredWeekday}
-      />
-
+      {renderedSections.map((section, index) => (
+        <View key={`training-preferences-section-${typeof activeStep === "number" ? activeStep : index}`}>
+          {section}
+        </View>
+      ))}
     </View>
   );
 }
