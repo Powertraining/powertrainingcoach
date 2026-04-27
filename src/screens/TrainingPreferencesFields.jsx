@@ -72,6 +72,36 @@ export default function TrainingPreferencesFields({
     });
   }
 
+  function updateSingleLegLiftsCapability(rating) {
+    onChange?.({
+      ...resolvedValues,
+      trainingCapabilities: {
+        ...resolvedValues.trainingCapabilities,
+        singleLegLifts: rating,
+      },
+    });
+  }
+
+  function updatePullingWorkCapability(rating) {
+    onChange?.({
+      ...resolvedValues,
+      trainingCapabilities: {
+        ...resolvedValues.trainingCapabilities,
+        pullingWork: rating,
+      },
+    });
+  }
+
+  function updateNullableCapability(capability, rating) {
+    onChange?.({
+      ...resolvedValues,
+      trainingCapabilities: {
+        ...resolvedValues.trainingCapabilities,
+        [capability]: rating,
+      },
+    });
+  }
+
   const sections = [
     (
       <TrainingPreferencesExperienceView
@@ -90,35 +120,37 @@ export default function TrainingPreferencesFields({
     ),
     (
       <TrainingPreferencesSingleLegLiftsView
-        value={resolvedValues.trainingCapabilities.singleLegLifts}
-        onChange={(sectionValue) => updateCapability("singleLegLifts", sectionValue)}
+        value={values?.trainingCapabilities?.singleLegLifts ?? null}
+        onChange={updateSingleLegLiftsCapability}
       />
     ),
     (
       <TrainingPreferencesPullingWorkView
-        value={resolvedValues.trainingCapabilities.pullingWork}
-        onChange={(sectionValue) => updateCapability("pullingWork", sectionValue)}
+        value={values?.trainingCapabilities?.pullingWork ?? null}
+        onChange={updatePullingWorkCapability}
       />
     ),
     (
       <TrainingPreferencesOlympicLiftVariationsView
-        value={resolvedValues.trainingCapabilities.olympicLiftVariations}
+        value={values?.trainingCapabilities?.olympicLiftVariations ?? null}
         onChange={(sectionValue) =>
-          updateCapability("olympicLiftVariations", sectionValue)
+          updateNullableCapability("olympicLiftVariations", sectionValue)
         }
       />
     ),
     (
       <TrainingPreferencesPlyometricsView
-        value={resolvedValues.trainingCapabilities.plyometrics}
-        onChange={(sectionValue) => updateCapability("plyometrics", sectionValue)}
+        value={values?.trainingCapabilities?.plyometrics ?? null}
+        onChange={(sectionValue) =>
+          updateNullableCapability("plyometrics", sectionValue)
+        }
       />
     ),
     (
       <TrainingPreferencesBallisticTrainingView
-        value={resolvedValues.trainingCapabilities.ballisticTraining}
+        value={values?.trainingCapabilities?.ballisticTraining ?? null}
         onChange={(sectionValue) =>
-          updateCapability("ballisticTraining", sectionValue)
+          updateNullableCapability("ballisticTraining", sectionValue)
         }
       />
     ),

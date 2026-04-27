@@ -13,6 +13,15 @@ import {
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
 
+const CONFIDENCE_STEP_KEYS = {
+    2: "compoundLifts",
+    3: "singleLegLifts",
+    4: "pullingWork",
+    5: "olympicLiftVariations",
+    6: "plyometrics",
+    7: "ballisticTraining",
+};
+
 export default function InputFormView({
     onSubmit,
     onBack,
@@ -31,11 +40,20 @@ export default function InputFormView({
             trainingCapabilities: {
                 ...formState.trainingCapabilities,
                 compoundLifts: initialValues?.trainingCapabilities?.compoundLifts ?? null,
+                singleLegLifts: initialValues?.trainingCapabilities?.singleLegLifts ?? null,
+                pullingWork: initialValues?.trainingCapabilities?.pullingWork ?? null,
+                olympicLiftVariations: initialValues?.trainingCapabilities?.olympicLiftVariations ?? null,
+                plyometrics: initialValues?.trainingCapabilities?.plyometrics ?? null,
+                ballisticTraining: initialValues?.trainingCapabilities?.ballisticTraining ?? null,
             },
         };
     });
     const [activeStep, setActiveStep] = useState(0);
-    const compoundLiftsSelected = Boolean(trainingPreferences.trainingCapabilities?.compoundLifts);
+    const activeConfidenceKey = CONFIDENCE_STEP_KEYS[activeStep];
+    const confidenceStepSelected = Boolean(
+        activeConfidenceKey &&
+        trainingPreferences.trainingCapabilities?.[activeConfidenceKey]
+    );
 
     function handleSubmit() {
         onSubmit(normalizeTrainingPreferences(trainingPreferences));
@@ -91,8 +109,8 @@ export default function InputFormView({
                 </View>
             </View>
             <QuestionnaireBottomActionButton
-                layout={activeStep === 2 ? "single" : "stacked"}
-                canContinue={activeStep === 2 ? compoundLiftsSelected : undefined}
+                layout={activeConfidenceKey ? "single" : "stacked"}
+                canContinue={activeConfidenceKey ? confidenceStepSelected : undefined}
                 text={activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1
                     ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
                     : "Continue"}
