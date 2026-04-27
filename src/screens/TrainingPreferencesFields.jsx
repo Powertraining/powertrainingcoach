@@ -6,6 +6,7 @@ import {
   getTrainingPreferencesFormState,
 } from "../constants/trainingPreferences.js";
 import TrainingPreferencesExperienceView from "./trainingPreferences/TrainingPreferencesExperienceView.jsx";
+import TrainingPreferencesExerciseEvaluationView from "./trainingPreferences/TrainingPreferencesExerciseEvaluationView.jsx";
 import TrainingPreferencesCompoundLiftsView from "./trainingPreferences/TrainingPreferencesCompoundLiftsView.jsx";
 import TrainingPreferencesSingleLegLiftsView from "./trainingPreferences/TrainingPreferencesSingleLegLiftsView.jsx";
 import TrainingPreferencesPullingWorkView from "./trainingPreferences/TrainingPreferencesPullingWorkView.jsx";
@@ -23,7 +24,7 @@ import TrainingPreferencesEventPreparationView from "./trainingPreferences/Train
 import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPreferencesInjuriesView.jsx";
 import TrainingPreferencesPreferredWeekdaysView from "./trainingPreferences/TrainingPreferencesPreferredWeekdaysView.jsx";
 
-export const TRAINING_PREFERENCES_SECTION_COUNT = 19;
+export const TRAINING_PREFERENCES_SECTION_COUNT = 20;
 
 export default function TrainingPreferencesFields({
   title,
@@ -61,6 +62,16 @@ export default function TrainingPreferencesFields({
     });
   }
 
+  function updateCompoundLiftsCapability(rating) {
+    onChange?.({
+      ...resolvedValues,
+      trainingCapabilities: {
+        ...resolvedValues.trainingCapabilities,
+        compoundLifts: rating,
+      },
+    });
+  }
+
   const sections = [
     (
       <TrainingPreferencesExperienceView
@@ -69,9 +80,12 @@ export default function TrainingPreferencesFields({
       />
     ),
     (
+      <TrainingPreferencesExerciseEvaluationView />
+    ),
+    (
       <TrainingPreferencesCompoundLiftsView
-        value={resolvedValues.trainingCapabilities.compoundLifts}
-        onChange={(sectionValue) => updateCapability("compoundLifts", sectionValue)}
+        value={values?.trainingCapabilities?.compoundLifts ?? null}
+        onChange={updateCompoundLiftsCapability}
       />
     ),
     (

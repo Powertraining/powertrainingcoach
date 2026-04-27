@@ -23,10 +23,19 @@ export default function InputFormView({
     daysRemaining,
     initialValues = {},
 }) {
-    const [trainingPreferences, setTrainingPreferences] = useState(
-        getTrainingPreferencesFormState(initialValues)
-    );
+    const [trainingPreferences, setTrainingPreferences] = useState(() => {
+        const formState = getTrainingPreferencesFormState(initialValues);
+
+        return {
+            ...formState,
+            trainingCapabilities: {
+                ...formState.trainingCapabilities,
+                compoundLifts: initialValues?.trainingCapabilities?.compoundLifts ?? null,
+            },
+        };
+    });
     const [activeStep, setActiveStep] = useState(0);
+    const compoundLiftsSelected = Boolean(trainingPreferences.trainingCapabilities?.compoundLifts);
 
     function handleSubmit() {
         onSubmit(normalizeTrainingPreferences(trainingPreferences));
@@ -82,7 +91,8 @@ export default function InputFormView({
                 </View>
             </View>
             <QuestionnaireBottomActionButton
-                layout="stacked"
+                layout={activeStep === 2 ? "single" : "stacked"}
+                canContinue={activeStep === 2 ? compoundLiftsSelected : undefined}
                 text={activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1
                     ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
                     : "Continue"}
