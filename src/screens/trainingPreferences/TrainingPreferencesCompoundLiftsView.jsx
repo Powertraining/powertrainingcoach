@@ -71,12 +71,9 @@ export default function TrainingPreferencesCompoundLiftsView({
               >
                 <View
                   pointerEvents="none"
-                  style={[
-                    styles.optionShadow,
-                    isSelected ? styles.optionShadowSelected : null,
-                  ]}
+                  style={styles.optionShadow}
                 />
-                <View style={styles.optionFace}>
+                <View style={[styles.optionFace, isSelected ? styles.optionFaceSelected : null]}>
                   <StandardText
                     style={styles.optionButtonText}
                     textColor="#000000"
@@ -162,9 +159,6 @@ const styles = StyleSheet.create({
     transform: [{ translateX: -6 }, { translateY: -6 }],
     zIndex: 0,
   },
-  optionShadowSelected: {
-    backgroundColor: "#C9B259",
-  },
   optionFace: {
     minHeight: 48,
     borderRadius: 8,
@@ -174,6 +168,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#ffffff",
     zIndex: 1,
+  },
+  optionFaceSelected: {
+    transform: [{ translateX: -6 }, { translateY: -6 }],
   },
   optionButtonText: {
     fontSize: 16,
