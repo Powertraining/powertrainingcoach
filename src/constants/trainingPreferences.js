@@ -101,12 +101,13 @@ export const TRAINING_CAPABILITY_GROUPS = Object.freeze([
 ]);
 
 export const SESSION_DURATION_OPTIONS = Object.freeze([
+  { label: "15 min", value: "15_min" },
   { label: "30 min", value: "30_min" },
   { label: "45 min", value: "45_min" },
   { label: "60 min", value: "60_min" },
   { label: "75 min", value: "75_min" },
   { label: "90 min", value: "90_min" },
-  { label: "No time limit", value: "no_time_limit" },
+  { label: "No limit", value: "no_time_limit" },
 ]);
 
 export const EQUIPMENT_OPTIONS = Object.freeze([
@@ -116,6 +117,7 @@ export const EQUIPMENT_OPTIONS = Object.freeze([
 ]);
 
 const SESSION_DURATION_MINUTES = Object.freeze({
+  "15_min": 15,
   "30_min": 30,
   "45_min": 45,
   "60_min": 60,
