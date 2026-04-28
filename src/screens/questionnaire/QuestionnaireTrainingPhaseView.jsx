@@ -1,19 +1,8 @@
-import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 
 import { TRAINING_PHASE_OPTIONS } from "../../constants/appLogicSettings.js";
 import SideButton from "../../components/questionnaireComponents/SideButton.jsx";
-
-function OptionDescription({ value }) {
-  const selectedOption = TRAINING_PHASE_OPTIONS.find(
-    (option) => option.value === value
-  );
-
-  if (!selectedOption?.description) {
-    return null;
-  }
-
-  return <Text style={styles.helperText}>{selectedOption.description}</Text>;
-}
+import TitleText from "../../components/textComponents/TitleText.jsx";
 
 const PHASE_BUTTON_LABELS = Object.freeze({
   off_camp: "OFF CAMP",
@@ -30,11 +19,10 @@ export default function QuestionnaireTrainingPhaseView({
   onChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
-
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
       <View style={styles.field}>
-        <Text style={styles.label}>Training phase</Text>
+        <TitleText height={380}>Training phase</TitleText>
         <View style={styles.phaseButtonRow}>
           {TRAINING_PHASE_OPTIONS.map((option) => (
             <SideButton
@@ -46,7 +34,6 @@ export default function QuestionnaireTrainingPhaseView({
             />
           ))}
         </View>
-        <OptionDescription value={value} />
       </View>
     </View>
   );
@@ -56,6 +43,7 @@ const styles = StyleSheet.create({
   section: {
     gap: 14,
     justifyContent: "center",
+    paddingBottom: 156,
   },
   field: {
     gap: 6,
@@ -63,16 +51,7 @@ const styles = StyleSheet.create({
   phaseButtonRow: {
     flexDirection: "column",
     gap: 10,
+    height: 230,
     justifyContent: "center",
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  helperText: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#6b7280",
   },
 });

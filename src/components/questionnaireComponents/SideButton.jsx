@@ -20,6 +20,7 @@ export default function SideButton({
       <Text
         style={[
           styles.optionText,
+          side === "right" ? styles.optionTextRight : styles.optionTextLeft,
           isSelected ? styles.optionTextSelected : null,
         ]}
       >
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: BUTTON_RADIUS,
-    borderWidth: 1.6,
+    borderWidth: 1.2,
     borderColor: "#585858",
     borderStyle: "dashed",
     backgroundColor: "#1E1E1E",
@@ -61,9 +62,18 @@ const styles = StyleSheet.create({
   optionText: {
     color: "#8E8E8E",
     fontFamily: "BebasNeue",
-    fontSize: 24,
-    lineHeight: 24,
-    textAlign: "center",
+    fontSize: 38,
+    includeFontPadding: false,
+    textAlignVertical: "center",
+    width: "100%",
+  },
+  optionTextLeft: {
+    paddingRight: BUTTON_RADIUS / 2,
+    textAlign: "right",
+  },
+  optionTextRight: {
+    paddingLeft: BUTTON_RADIUS / 2,
+    textAlign: "left",
   },
   optionTextSelected: {
     color: "#000000",
