@@ -25,7 +25,14 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Off-camp means no confirmed competition inside the peak window. Prioritize general athletic development: build strength first, then power, while keeping some speed work present without forcing a speed peak.
 - In-camp means a confirmed competition exists inside the peak window. Back-plan from the event date and shift the final phase toward a speed-dominant peak.
 - "Peak for pure speed" means peak in emphasis, not exclusive training. In striking fight camp, preserve minimum effective doses of strength and power so the athlete does not lose force qualities.
-- Reduce volume before intensity in the taper. In the final 7-10 days, reduce volume roughly 30-60% while keeping intensity, intent, and movement speed high.`,
+- Reduce volume before intensity in the taper. In the final 7-10 days, reduce volume roughly 30-60% while keeping intensity, intent, and movement speed high.
+- Use this striking periodization logic: off-camp raises the force ceiling, early camp builds and converts, mid camp converts strength to power, late camp expresses speed, and fight week prioritizes freshness and sharpness.
+- Far from the fight, train what the athlete lacks. Close to the fight, train what the athlete must express.
+- Late-camp work should ask whether the exercise makes the athlete faster and sharper or just more tired. Reduce or remove work that adds fatigue without improving speed expression.
+- Lower load in late camp does not mean low effort: lighter strength-speed, speed-strength, ballistic, plyometric, and medicine-ball work should move violently fast with maximal concentric intent.
+- Progress striking power work from general to more specific as competition nears: general jumps and throws early, then more lateral, rotational, elastic, reactive, and strike-specific outputs later.
+- Boxing can bias late specific power toward skater jumps, rotational throws, med-ball punch throws, reactive hops, and bag speed bursts. Muay Thai and kickboxing can bias toward scissor jumps, split-squat jumps, single-leg bounds, rotational throws, and explosive kick bursts.
+- Combat-sport load controls lifting volume in camp: when pads, sparring, bag work, footwork, roadwork, clinch, or weight management are high, trim S&C volume before chasing more fitness.`,
   reps_intensity: `# Presentation and clarity rules
 - Make every prescription explicit and readable: no question marks, vague loading, or missing set-rep-intensity details.
 - Number exercises in order and label supersets clearly with 1a, 1b, 2a, 2b, and so on.`,

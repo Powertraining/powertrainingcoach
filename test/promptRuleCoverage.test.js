@@ -104,3 +104,19 @@ test("striking prompt resolves off-camp and in-camp from competition timing", ()
   assert.match(inCampPrompt, /confirmed striking competition is about 8 week/i);
   assert.match(inCampPrompt, /30-60%/i);
 });
+
+test("training prompt includes newly added striking periodization instructions", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "Muay Thai / Kickboxing",
+    daysPerWeek: 3,
+    eventPreparation: "Fight in 8 weeks",
+    numWeeks: 8,
+  });
+
+  assert.match(prompt, /off-camp raises the force ceiling/i);
+  assert.match(prompt, /late camp expresses speed/i);
+  assert.match(prompt, /fight week prioritizes freshness and sharpness/i);
+  assert.match(prompt, /Far from the fight, train what the athlete lacks/i);
+  assert.match(prompt, /move violently fast with maximal concentric intent/i);
+  assert.match(prompt, /scissor jumps, split-squat jumps, single-leg bounds/i);
+});
