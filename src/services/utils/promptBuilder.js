@@ -8,11 +8,22 @@ function shouldIncludePercentageSchema(userInput = {}) {
 
 function buildPlanSchemaInstructions(userInput = {}) {
   const includePercentageSchema = shouldIncludePercentageSchema(userInput);
+  const requestedWeekCount = Number.parseInt(userInput?.numWeeks, 10);
+  const weekCountInstruction =
+    Number.isFinite(requestedWeekCount) && requestedWeekCount > 0
+      ? `Include exactly ${requestedWeekCount} week objects in "weeks".`
+      : 'Include the requested number of week objects in "weeks".';
+  const phaseOverviewInstruction =
+    requestedWeekCount === 12
+      ? '- For a 12-week plan, describe the phaseOverview as Weeks 1-4, Weeks 5-8, and Weeks 9-12.'
+      : "";
 
   return `
 ### APP JSON CONTRACT
 - Return exactly one direct training plan object. No wrapper keys, commentary, markdown, or alternatives.
 - Include top-level "summary" and "phaseOverview".
+- ${weekCountInstruction}
+${phaseOverviewInstruction}
 - Each generated week must contain exactly ${userInput?.daysPerWeek || "the requested"} sessions in "days".
 - Keep the plan session-based: use "day" and "sessionLabel" for order, and use "preferredWeekday" only as secondary scheduling guidance.
 - Every training day must include "sessionProfile" with:

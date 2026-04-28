@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  applyMissedRepPlanAdjustment,
   applyTrainingCheckInAction,
   buildTrainingCheckInObjectiveSummary,
   buildTrainingCheckInRecommendation,
@@ -326,6 +327,44 @@ test("end-of-block flat trend with boredom can recommend a scheme change", () =>
   assert.equal(recommendation.recommendedAction.type, "change_scheme");
 });
 
+test("missed reps freeze progression before scheme changes", () => {
+  const prompt = {
+    type: "end_of_block",
+    weekNumber: 4,
+    title: "End-of-block check-in",
+    summary: "",
+    weeksInScope: [4],
+    objectiveSummary: {
+      performanceTrend: "flat",
+      strengthTrend: "flat",
+      complianceTrend: "strong",
+      missedRepCount: 1,
+      repeatedMissedRepCount: 1,
+    },
+  };
+  const recommendation = buildTrainingCheckInRecommendation({
+    prompt,
+    questionnaire: { loadingStrategy: "flat_loading" },
+    plan: createPlan(5),
+    completedDays: [
+      "1-1", "1-2",
+      "2-1", "2-2",
+      "3-1", "3-2",
+      "4-1", "4-2",
+    ],
+    answers: {
+      progress: "flat",
+      fatigue: "normal",
+      enjoyment: "bored",
+      pain: "none",
+    },
+    objectiveSummary: prompt.objectiveSummary,
+  });
+
+  assert.equal(recommendation.recommendedAction.type, "freeze_progression");
+  assert.equal(recommendation.allowSchemeChange, false);
+});
+
 test("deload action reduces the next week's volume", () => {
   const adjustment = applyTrainingCheckInAction({
     plan: createPlan(3),
@@ -362,4 +401,35 @@ test("scheme change action rewrites the next week's loading strategy", () => {
     "ascending_pyramid"
   );
   assert.equal(updatedPrimaryLift.percentagePrescription.workingSets.length, 3);
+});
+
+test("missed rep plan adjustment lowers the next matching percentage exposure", () => {
+  const plan = createPlan(3);
+  const adjustment = applyMissedRepPlanAdjustment({
+    plan,
+    completedDays: [],
+    sessionKey: "1-1",
+    questionnaire: { liftIntensityMethod: "percentage" },
+    entries: [
+      {
+        missedRep: true,
+        missedRepReason: "too_heavy",
+        liftName: "Back Squat",
+        missedRepRecommendation: {
+          planAdjustment: {
+            type: "reduce_load",
+            loadReductionPercent: 5,
+          },
+        },
+      },
+    ],
+  });
+
+  const nextExposure = adjustment.plan.weeks[0].days[1].exercises[0];
+
+  assert.equal(
+    nextExposure.percentagePrescription.workingSets[0].percent1RM,
+    70
+  );
+  assert.match(nextExposure.notes, /Missed-rep adjustment/i);
 });

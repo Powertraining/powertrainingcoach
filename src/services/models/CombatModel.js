@@ -92,6 +92,7 @@ import {
 } from "../utils/trainingCycle.js";
 import {
   applyTrainingCheckInAction,
+  applyMissedRepPlanAdjustment,
   buildTrainingCheckInObjectiveSummary,
   buildTrainingCheckInRecommendation,
   createDefaultTrainingCheckInState,
@@ -712,6 +713,8 @@ export const model = {
           return createTrainingPerformanceEntry({
             metadata: performanceTarget,
             result,
+            exercise,
+            liftIntensityMethod: this.questionnaire?.liftIntensityMethod,
             sessionKey,
             weekNumber,
             dayNumber,
@@ -728,6 +731,21 @@ export const model = {
       sessionKey,
       nextEntries
     );
+
+    if (nextEntries.some((entry) => entry?.missedRep)) {
+      const adjustmentResult = applyMissedRepPlanAdjustment({
+        plan: this.trainingPlan,
+        completedDays: this.completedDays,
+        sessionKey,
+        entries: nextEntries,
+        questionnaire: this.questionnaire,
+      });
+
+      this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+        adjustmentResult.plan,
+        this.questionnaire
+      );
+    }
 
     return this.trainingPerformanceState;
   },

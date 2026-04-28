@@ -198,6 +198,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
         initialPerformanceResults={sessionPerformanceResults}
         initialAssessmentResults={sessionAssessmentResults}
         strengthAssessmentSummary={strengthAssessmentSummary}
+        questionnaire={model.questionnaire}
         onBack={handleBack}
         onReplaceExercise={handleReplaceExercise}
         onFinish={handleFinish}

@@ -46,6 +46,15 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Use that rule for 1-5 rep top sets and small RPE-based load adjustments on monitored lifts.
 - Do not turn RPE-based plans into RM tests or heavy-single strength assessments unless the athlete explicitly chose the percentage system.
 - A reference set at the same rep target can move about plus or minus 2.5% per RPE point while staying in the same strength zone.`,
+  missed_rep: `# Missed-rep rules
+- When a monitored lift has a missed rep, ask why: too heavy, pain/irritation, or technical error.
+- In RPE-based plans, treat a missed rep as an overshoot: lower load about 2.5-5%, keep the rep target, and avoid automatic scheme changes.
+- In percentage-based plans, offer small load drops of about 2.5%, 5%, or 7.5%; freeze next-week progression unless the miss was clearly technical.
+- Pain-related misses should stop the lift and move toward a pain-free variation before changing the broader program.
+- Olympic-lift misses may be technical; after one technical miss lower load and retry only if sharp, after two misses stop and use a simpler pull, shrug, or throw.
+- Ballistic, plyometric, and speed work should log quality drop rather than force missed-rep progression logic; reduce reps, extend rest, or stop when quality drops.
+- Accessories should stay simple: end the set, reduce load or reps slightly, and repeat until completed cleanly.
+- Repeated misses on the same lift should freeze progression or lower the training max slightly before any full scheme change.`,
   close_grip_bench_press: `# Close-grip bench press reference rule
 - Only apply this when the athlete selected the percentage system.
 - If close-grip bench press is programmed and no specific close-grip max exists, estimate it as 95% of the normal bench press 1RM.
@@ -134,6 +143,7 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "percentage_system",
   "rm_attempts",
   "rpe_rationale",
+  "missed_rep",
   "close_grip_bench_press",
   "compound_lifts",
   "accessory_exercises",
@@ -183,6 +193,7 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
     "reps_intensity",
     "general_strength_training_logic",
     "rpe_rationale",
+    "missed_rep",
     "compound_lifts",
     "accessory_exercises",
     "substitutes",
