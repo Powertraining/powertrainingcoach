@@ -174,6 +174,7 @@ export default function DateSelector({
   value = "",
   onChange,
   placeholder = "e.g. 2026-06-20 or 8 weeks out",
+  showInput = true,
 }) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const maxDate = useMemo(
@@ -337,14 +338,16 @@ export default function DateSelector({
         <View pointerEvents="none" style={styles.selectedFrame} />
       </View>
 
-      <TextInput
-        placeholder={placeholder}
-        value={value}
-        onChangeText={(nextValue) => onChange?.(nextValue)}
-        autoCapitalize="none"
-        autoCorrect={false}
-        style={styles.input}
-      />
+      {showInput ? (
+        <TextInput
+          placeholder={placeholder}
+          value={value}
+          onChangeText={(nextValue) => onChange?.(nextValue)}
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={styles.input}
+        />
+      ) : null}
     </View>
   );
 }
