@@ -12,11 +12,11 @@ const DESIRED_TRAINING_LABELS = Object.freeze({
 const DESIRED_TRAINING_IMAGES = Object.freeze({
   endurance: [require("../../assets/icons/sports/stamina.png")],
   strength_power: [require("../../assets/icons/sports/strength.png")],
-  strength_power_endurance: [],
+  strength_power_endurance: [require("../../assets/icons/sports/balance.png")],
 });
 
 const OPTION_FACE_HEIGHT = 288;
-const OPTION_IMAGE_SIZE = OPTION_FACE_HEIGHT * 0.75;
+const OPTION_IMAGE_SIZE = OPTION_FACE_HEIGHT * 0.85;
 
 export default function TrainingPreferencesDesiredTrainingView({
   value,
@@ -74,8 +74,14 @@ export default function TrainingPreferencesDesiredTrainingView({
                     <Image
                       key={`${option.value}-image-${imageIndex}`}
                       source={imageSource}
-                      style={styles.optionImage}
-                      resizeMode="contain"
+                      style={[
+                        styles.optionImage,
+                        index === 1 ? styles.optionImageMiddle : null,
+                        option.value === "strength_power"
+                          ? styles.optionImageStrength
+                          : null,
+                      ]}
+                      resizeMode="cover"
                     />
                   ))}
                 </View>
@@ -147,6 +153,13 @@ const styles = StyleSheet.create({
     width: OPTION_IMAGE_SIZE,
     height: OPTION_IMAGE_SIZE,
     tintColor: "#000000",
+  },
+  optionImageStrength: {
+    marginTop: -30,
+  },
+  optionImageMiddle: {
+    width: OPTION_IMAGE_SIZE * 0.88,
+    height: OPTION_IMAGE_SIZE * 0.88,
   },
   optionFaceLeft: {
     borderTopLeftRadius: 8,
