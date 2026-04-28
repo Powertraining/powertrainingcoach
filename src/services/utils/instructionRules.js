@@ -1,3 +1,8 @@
+import {
+  DEFAULT_TRAINING_CYCLE_WEEKS,
+  getWeeksUntilEvent,
+} from "./trainingCycle.js";
+
 const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   general_rules: `# General rules
 - Coach combat-sport athletes with phased S&C that fits skill, sparring, recovery, and event timing.
@@ -16,10 +21,11 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - MMA stays between those buckets and should keep a balanced strength-power-speed blend.
 - Match the phase emphasis to the sport so the athlete peaks in the quality that matters most.`,
   striking_sports: `# Striking-sport camp rules
-- For boxing, kickboxing, and Muay Thai, treat off-camp and in-camp differently.
-- Off-camp builds general strength first, then power, while speed stays present without forcing a speed peak.
-- In-camp back-plans from the event date and makes the final phase speed-dominant while preserving minimum effective doses of strength and power.
-- In the final 7-10 days, reduce volume before intensity and keep intent sharp rather than chasing fatigue.`,
+- For boxing, kickboxing, and Muay Thai, distinguish off-camp from in-camp.
+- Off-camp means no confirmed competition inside the peak window. Prioritize general athletic development: build strength first, then power, while keeping some speed work present without forcing a speed peak.
+- In-camp means a confirmed competition exists inside the peak window. Back-plan from the event date and shift the final phase toward a speed-dominant peak.
+- "Peak for pure speed" means peak in emphasis, not exclusive training. In striking fight camp, preserve minimum effective doses of strength and power so the athlete does not lose force qualities.
+- Reduce volume before intensity in the taper. In the final 7-10 days, reduce volume roughly 30-60% while keeping intensity, intent, and movement speed high.`,
   reps_intensity: `# Presentation and clarity rules
 - Make every prescription explicit and readable: no question marks, vague loading, or missing set-rep-intensity details.
 - Number exercises in order and label supersets clearly with 1a, 1b, 2a, 2b, and so on.`,
@@ -167,6 +173,11 @@ const STRIKING_SPORT_NAMES = new Set([
   "muay thai / kickboxing",
 ]);
 
+const STRIKING_CAMP_TYPES = Object.freeze({
+  offCamp: "off_camp",
+  inCamp: "in_camp",
+});
+
 function normalizeString(value, fallback = "") {
   if (typeof value !== "string") {
     return fallback;
@@ -176,9 +187,94 @@ function normalizeString(value, fallback = "") {
   return trimmedValue || fallback;
 }
 
-function isStrikingSport(userInput = {}) {
+function parsePositiveInteger(value) {
+  const parsedValue =
+    typeof value === "number" ? value : Number.parseInt(value, 10);
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+export function isStrikingSport(userInput = {}) {
   const normalizedSport = normalizeString(userInput?.primaryCombatSport).toLowerCase();
   return STRIKING_SPORT_NAMES.has(normalizedSport);
+}
+
+function getStrikingEventText(userInput = {}) {
+  return (
+    normalizeString(userInput?.competitionTimeline) ||
+    normalizeString(userInput?.eventPreparation)
+  );
+}
+
+export function getStrikingCampContext(userInput = {}, today = new Date()) {
+  if (!isStrikingSport(userInput)) {
+    return null;
+  }
+
+  const eventText = getStrikingEventText(userInput);
+  const weeksUntilEvent = getWeeksUntilEvent(eventText, today);
+  const peakWindowWeeks = DEFAULT_TRAINING_CYCLE_WEEKS;
+  const generatedPlanWeeks =
+    parsePositiveInteger(userInput?.numWeeks) || DEFAULT_TRAINING_CYCLE_WEEKS;
+  const hasCompetitionInsidePeakWindow =
+    Number.isFinite(weeksUntilEvent) && weeksUntilEvent <= peakWindowWeeks;
+  const hasUserMarkedInCamp =
+    normalizeString(userInput?.trainingPhase).toLowerCase() === "in_camp";
+  const hasUnparsedInCampTimeline =
+    hasUserMarkedInCamp && Boolean(eventText) && !Number.isFinite(weeksUntilEvent);
+  const campType =
+    hasCompetitionInsidePeakWindow || hasUnparsedInCampTimeline
+      ? STRIKING_CAMP_TYPES.inCamp
+      : STRIKING_CAMP_TYPES.offCamp;
+
+  return {
+    campType,
+    eventText,
+    weeksUntilEvent,
+    peakWindowWeeks,
+    generatedPlanWeeks,
+    hasCompetitionInsidePeakWindow,
+    shouldTaperInGeneratedPlan:
+      campType === STRIKING_CAMP_TYPES.inCamp &&
+      Number.isFinite(weeksUntilEvent) &&
+      weeksUntilEvent <= generatedPlanWeeks,
+  };
+}
+
+function buildStrikingCampContextText(userInput = {}, today = new Date()) {
+  const context = getStrikingCampContext(userInput, today);
+
+  if (!context) {
+    return "";
+  }
+
+  if (context.campType === STRIKING_CAMP_TYPES.inCamp) {
+    const eventDetail = Number.isFinite(context.weeksUntilEvent)
+      ? `The confirmed striking competition is about ${context.weeksUntilEvent} week(s) away, inside the ${context.peakWindowWeeks}-week peak window.`
+      : "The athlete marked an in-camp striking timeline, but the exact event date is not parseable.";
+    const taperDetail = context.shouldTaperInGeneratedPlan
+      ? "Include the speed-dominant final phase and the final 7-10 day taper inside this generated plan."
+      : "Do not run the final taper yet if the event falls beyond this generated plan; use the appropriate early/mid-camp build toward the event.";
+
+    return `# Resolved striking camp context
+- Status: In-camp.
+- ${eventDetail}
+- This resolved status takes precedence over raw trainingPhase or competitionPeriod labels if they conflict.
+- Back-plan from the event date. Make the final phase speed-dominant in emphasis, not exclusive, while preserving minimum effective strength and power doses.
+- ${taperDetail}
+- In the final 7-10 days before the competition, reduce volume roughly 30-60% before reducing intensity, and keep intensity, intent, and speed high.`;
+  }
+
+  const eventDetail = Number.isFinite(context.weeksUntilEvent)
+    ? `The known event is about ${context.weeksUntilEvent} week(s) away, outside the ${context.peakWindowWeeks}-week peak window.`
+    : "No confirmed competition inside the peak window is available.";
+
+  return `# Resolved striking camp context
+- Status: Off-camp.
+- ${eventDetail}
+- This resolved status takes precedence over raw trainingPhase or competitionPeriod labels if they conflict.
+- Program for general strength, power, and speed with a build-focused emphasis.
+- Do not force a speed peak or pure-speed final phase without a confirmed competition inside the peak window.`;
 }
 
 function shouldIncludePercentageRules(userInput = {}) {
@@ -236,10 +332,17 @@ export function getEmbeddedInstructionKeys(userInput = {}, purpose = "plan") {
 export function getGuidelinesText({
   userInput = {},
   purpose = "plan",
+  today = new Date(),
 } = {}) {
   const selectedKeys = buildSelectedInstructionKeys(userInput, purpose);
-  return selectedKeys
+  const guidelineBlocks = selectedKeys
     .map((key) => normalizeString(EMBEDDED_INSTRUCTION_RULES[key]))
-    .filter(Boolean)
-    .join("\n\n");
+    .filter(Boolean);
+  const strikingCampContext = buildStrikingCampContextText(userInput, today);
+
+  if (strikingCampContext) {
+    guidelineBlocks.push(strikingCampContext);
+  }
+
+  return guidelineBlocks.join("\n\n");
 }

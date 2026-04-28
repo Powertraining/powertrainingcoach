@@ -83,3 +83,24 @@ test("RPE missed-session prompt blocks preserving strength assessments", () => {
     /do not add or preserve percentagePrescription or strengthAssessment/i
   );
 });
+
+test("striking prompt resolves off-camp and in-camp from competition timing", () => {
+  const offCampPrompt = buildTrainingPrompt({
+    primaryCombatSport: "Boxing",
+    daysPerWeek: 3,
+    eventPreparation: "",
+    numWeeks: 12,
+  });
+  const inCampPrompt = buildTrainingPrompt({
+    primaryCombatSport: "Boxing",
+    daysPerWeek: 3,
+    eventPreparation: "Fight in 8 weeks",
+    numWeeks: 8,
+  });
+
+  assert.match(offCampPrompt, /Status: Off-camp/i);
+  assert.match(offCampPrompt, /Do not force a speed peak/i);
+  assert.match(inCampPrompt, /Status: In-camp/i);
+  assert.match(inCampPrompt, /confirmed striking competition is about 8 week/i);
+  assert.match(inCampPrompt, /30-60%/i);
+});
