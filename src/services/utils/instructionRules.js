@@ -5,6 +5,11 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Bias the session flow toward power first, then main strength, then accessories, then conditioning.
 - Respect interference with sport practice, keep neck and grip in safe brief doses, and use conservative safety guidance around pain, acute injury, and weight cutting.
 - Scale lifting volume down when combat load is high while keeping quality and intent high.`,
+  cycle_rules: `# Cycle structure rules
+- Default to a 12-week parent cycle unless the athlete is preparing for an event sooner than that, then shorten the cycle to fit the real timeline.
+- Break longer cycles into 4-week checkpoints so the plan can be reviewed and adjusted at Weeks 4 and 8 instead of waiting until the end.
+- Use weekly autoregulation for load, reps, and conditioning dose inside the block.
+- End the cycle with a real rebuild: summarize progress, keep what is working, and expect updated athlete input before the next parent cycle is generated.`,
   sport_specific_rules: `# Sport-specific priority rules
 - Grappling sports prioritize strength and power first, then speed.
 - Striking sports prioritize speed first late in camp, while still keeping enough strength and power to support it.
@@ -102,10 +107,26 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - If only one slot remains, trim the session from the bottom while protecting the highest-value work.
 - Rescue priority is power, plyo, and med-ball first, then the main compound lift, then the main weighted row or pull, then high-stimulus core, with accessories sacrificed first.
 - Near competition, replace catch-up volume with a short primer. After illness or a heavily disrupted week, use a conservative re-entry session and often repeat the week instead of forcing progression.`,
+  training_preference_rules: `# Training preference rules
+- "experience" is the athlete's strength-and-conditioning experience level, not combat-sport rank.
+- Use "desiredTraining" to choose the plan emphasis:
+  - "strength_power": prioritize strength, power, speed, and explosive qualities with only enough conditioning to support the work.
+  - "endurance": prioritize conditioning and endurance while keeping strength/power work minimal and supportive.
+  - "strength_power_endurance": combine strength/power and endurance in a balanced, recoverable way.
+- Use "trainingCapabilities" to choose safe exercise categories. "yes" means the athlete can perform that category confidently, "somewhat" means use simpler progressions and coaching notes, and "no" means avoid that category or replace it with safer alternatives.
+- If Olympic-lift variations, plyometrics, ballistic training, sprinting, or heavy bag work are marked "no", do not prescribe that category directly.
+- Use "eventPreparation" as context for competitions or important dates the athlete is preparing for. If it includes dates or timelines, align the training arc pragmatically without inventing extra event details.
+- Use "equipment" to choose exercises and substitutions that match the athlete's available setup.`,
+  session_duration_rules: `# Session duration rules
+- Use "sessionDuration" and "sessionDurationMinutes" from the user input to size each training day.
+- For finite durations, keep warm-up, main work, accessories, and conditioning realistic for that time cap.
+- For 30 or 45 minute sessions, prioritize the highest-value work and trim lower-priority accessories.
+- If "sessionDuration" is "no_time_limit" or "sessionDurationMinutes" is null, treat it as flexible but still pragmatic. Do not create marathon sessions, excessive exercise lists, 10-hour workouts, or unrealistic volumes. Prefer focused sessions that would usually fit within about 90-120 minutes.`
 });
 
 export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "general_rules",
+  "cycle_rules",
   "sport_specific_rules",
   "striking_sports",
   "reps_intensity",
@@ -124,6 +145,8 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "superset_complexes",
   "deload_unload",
   "session_spacing",
+  "training_preference_rules",
+  "session_duration_rules",
   "missed_session_logic",
 ]);
 
@@ -155,6 +178,7 @@ function shouldIncludePercentageRules(userInput = {}) {
 function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
   const selectedKeys = new Set([
     "general_rules",
+    "cycle_rules",
     "sport_specific_rules",
     "reps_intensity",
     "general_strength_training_logic",
@@ -169,6 +193,8 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
     "superset_complexes",
     "deload_unload",
     "session_spacing",
+    "training_preference_rules",
+    "session_duration_rules",
   ]);
 
   if (shouldIncludePercentageRules(userInput)) {

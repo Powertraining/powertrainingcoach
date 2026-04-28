@@ -38,14 +38,14 @@ test("in-camp cycles shorten when a competition is sooner than 12 weeks", () => 
   );
 });
 
-test("event dates do not shorten off-camp parent cycles", () => {
+test("important events shorten the parent cycle even outside in-camp mode", () => {
   assert.equal(
     resolveTrainingCycleWeeks({
       trainingPhase: "off_camp",
       eventPreparation: "grappling open in 8 weeks",
       today: TODAY,
     }),
-    DEFAULT_TRAINING_CYCLE_WEEKS
+    8
   );
 });
 

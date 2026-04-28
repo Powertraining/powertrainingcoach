@@ -3670,6 +3670,8 @@ Follow these domain rules:
 - Scale volume and intensity based on competition period
 - Consider equipment access and injuries/weaknesses
 - Ensure progressive overload across the training cycle
+- Default to a 12-week parent cycle unless the athlete is preparing for an earlier event, then shorten the cycle to fit that real timeline
+- Treat each 4-week block as a checkpoint for review and adjustment inside the parent cycle
 - Always respect the athlete's experience level
 - **CRITICAL: ALWAYS include EXACTLY ${userInput.daysPerWeek} training days**
   **per week. No more, no less.**

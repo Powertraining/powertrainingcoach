@@ -97,7 +97,7 @@ export function resolveTrainingCycleWeeks({
     normalizeString(eventPreparation);
   const weeksUntilEvent = getWeeksUntilEvent(eventText, today);
 
-  if (trainingPhase === "in_camp" && weeksUntilEvent && weeksUntilEvent < baseWeeks) {
+  if (weeksUntilEvent && weeksUntilEvent < baseWeeks) {
     return Math.max(1, weeksUntilEvent);
   }
 

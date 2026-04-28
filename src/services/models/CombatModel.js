@@ -1416,10 +1416,21 @@ export const model = {
    * @param {number} weeksCompleted - number of weeks in the completed cycle
    */
   completeCurrentBatch(weeksCompleted) {
-    this.completedWeeks += weeksCompleted;
-    this.trainingPlanBatch += 1;
+    const normalizedWeeksCompleted = Number.isFinite(Number(weeksCompleted)) &&
+      Number(weeksCompleted) > 0 ?
+        Number(weeksCompleted) :
+        this.trainingPlan?.weeks?.length || 0;
+    const nextTrainingPlanBatch = this.trainingPlanBatch + 1;
+
+    this.completedWeeks += normalizedWeeksCompleted;
+    this.trainingPlanBatch = nextTrainingPlanBatch;
     this.trainingPlan = null; // Clear current plan so new one can be generated
     this.completedDays = [];
+    this.questionnaire = mergeTrainingPreferences(this.questionnaire, {
+      trainingPlanBatch: nextTrainingPlanBatch,
+      pendingCycleReview: true,
+      pendingPlanGeneration: false,
+    });
     console.log(
       '[CombatModel.completeCurrentBatch] Cycle complete. ' +
       `New cycle: ${this.trainingPlanBatch}, ` +
