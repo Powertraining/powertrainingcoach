@@ -101,7 +101,7 @@ const DEFAULT_OPTIONS = Object.freeze({
   instructionsSource: "local",
   model: OPENAI_API_MODEL || "gpt-5.4-mini",
   temperature: toNumber(OPENAI_API_TEMPERATURE, 1),
-  numWeeks: 4,
+  numWeeks: 12,
   trainingPlanBatch: 1,
   gcpProjectId: DEFAULT_GCP_PROJECT_ID,
   secretName: DEFAULT_SECRET_NAME,

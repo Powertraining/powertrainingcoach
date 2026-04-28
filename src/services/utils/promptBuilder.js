@@ -5,6 +5,9 @@
 const local_general = `# General Rules
 You are a specialist performance coach that designs tailored strength, power, speed, and conditioning programs for combat-sport athletes.`;
 
+const local_cycle = `# Training Cycle
+Use 12 weeks as the default parent cycle length unless an in-camp competition or important event happens sooner. Structure 12-week cycles as three 4-week blocks, with formal reviews after Weeks 4 and 8 and a full athlete re-input after Week 12. Weekly adjustments should still autoregulate loads, reps, and conditioning dose.`;
+
 const local_reps = `# Reps and Intensity
 Follow progressive overload principles with appropriate rep ranges based on training goals.`;
 
@@ -54,6 +57,7 @@ Use previously stored training-max history when available so future percentage w
 
 const instructionPriority = [
     "general_rules",
+    "cycle",
     "reps_intensity",
     "general_strength_training_logic",
     "percentage_system",
@@ -69,6 +73,7 @@ const instructionPriority = [
 function getFallbackInstructions() {
     return {
         general_rules: local_general,
+        cycle: local_cycle,
         reps_intensity: local_reps,
         general_strength_training_logic: local_general_strength_logic,
         percentage_system: local_percentage_system,
@@ -135,6 +140,13 @@ ${instructionImages.map((image) => `- ${image.name}`).join("\n")}
         : "";
 }
 
+function parsePositiveInteger(value) {
+    const parsedValue =
+        typeof value === "number" ? value : Number.parseInt(value, 10);
+
+    return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
 /**
  * Builds the complete system prompt for generating training programs.
  * * @param {object} userInput - Clean structured input from frontend.
@@ -145,6 +157,7 @@ ${instructionImages.map((image) => `- ${image.name}`).join("\n")}
 export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions = null) {
     const guidelines = getGuidelinesText(liveInstructions);
     const imageInstructions = getImageInstructionsText(liveInstructions);
+    const requestedPlanWeeks = parsePositiveInteger(userInput?.numWeeks) || 12;
 
     const substitutionSchemaInstructions = `
 ### EXERCISE SUBSTITUTION RULES:
@@ -300,6 +313,11 @@ export function buildTrainingPrompt(userInput, oldPlan = null, liveInstructions 
 ### PROGRAM RATIONALE RULES:
 - Include a top-level "summary" that explains the overall purpose of the training program in 1-3 concise sentences.
 - Include a top-level "phaseOverview" array that explains how the full program progresses across phases or blocks.
+- Generate exactly ${requestedPlanWeeks} week object${requestedPlanWeeks === 1 ? "" : "s"} in the top-level "weeks" array.
+- If this is a 12-week cycle, organize the plan as three 4-week blocks: Weeks 1-4, Weeks 5-8, and Weeks 9-12.
+- If "numWeeks" is shorter than 12 because an in-camp event is sooner, back-plan the available weeks toward that event instead of forcing a full 12-week structure.
+- Reflect the Week 4 and Week 8 formal review points in the phase/block rationale when those weeks exist.
+- Treat Week 12 as the end-of-cycle reset point where the athlete gives updated goals, schedule, sport load, equipment, pain/injury status, and upcoming event info before a new cycle is generated.
 - Every phase entry MUST include:
   - "label": short phase name such as "Building", "Intensification", "Power / Speed", or "Taper"
   - "weekStart": positive integer for the first week in that phase
@@ -343,6 +361,7 @@ ${JSON.stringify(userInput, null, 2)}
 - Do not include commentary or explanation.
 - Never return multiple plans, comparisons, or wrapper keys such as "plans", "options", or "planChoices".
 - Include both a top-level "summary" and a top-level "phaseOverview" array.
+- The top-level "weeks" array MUST contain exactly ${requestedPlanWeeks} week object${requestedPlanWeeks === 1 ? "" : "s"}.
 - Every exercise MUST include a "substitutionOptions" array.
 - Add "performanceTarget" when that exercise includes a tracked top set the app should use for future progression decisions.
 - Add "percentagePrescription" when that exercise is a percentage-based main-lift prescription.
