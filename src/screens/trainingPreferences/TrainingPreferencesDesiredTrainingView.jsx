@@ -23,6 +23,9 @@ export default function TrainingPreferencesDesiredTrainingView({
   onChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
+  const selectedIndex = DESIRED_TRAINING_OPTIONS.findIndex(
+    (option) => option.value === value
+  );
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
@@ -32,6 +35,12 @@ export default function TrainingPreferencesDesiredTrainingView({
         {DESIRED_TRAINING_OPTIONS.map((option, index) => {
           const isSelected = value === option.value;
           const optionImages = DESIRED_TRAINING_IMAGES[option.value] ?? [];
+          const optionImagePositionStyle =
+            isSelected || selectedIndex < 0
+              ? styles.optionImageRowSelected
+              : index < selectedIndex
+                ? styles.optionImageRowLeft
+                : styles.optionImageRowRight;
           const optionPositionStyle =
             index === 0
               ? styles.optionFaceLeft
@@ -55,7 +64,12 @@ export default function TrainingPreferencesDesiredTrainingView({
                   isSelected ? styles.optionFaceSelected : null,
                 ]}
               >
-                <View style={styles.optionImageRow}>
+                <View
+                  style={[
+                    styles.optionImageRow,
+                    optionImagePositionStyle,
+                  ]}
+                >
                   {optionImages.map((imageSource, imageIndex) => (
                     <Image
                       key={`${option.value}-image-${imageIndex}`}
@@ -119,6 +133,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
+  },
+  optionImageRowSelected: {
+    width: "100%",
+  },
+  optionImageRowLeft: {
+    transform: [{ translateX: -OPTION_IMAGE_SIZE * 0.05 }],
+  },
+  optionImageRowRight: {
+    transform: [{ translateX: OPTION_IMAGE_SIZE * 0.05 }],
   },
   optionImage: {
     width: OPTION_IMAGE_SIZE,
