@@ -1,4 +1,5 @@
 import { Text, TextInput, StyleSheet, View, useWindowDimensions } from "react-native";
+import TitleText from "../../components/textComponents/TitleText.jsx";
 
 export default function TrainingPreferenceTextareaQuestionView({
   label,
@@ -11,8 +12,8 @@ export default function TrainingPreferenceTextareaQuestionView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <View style={styles.field}>
-        <Text style={styles.label}>{label}</Text>
+      <TitleText height={130}>{label}</TitleText>
+      <View style={styles.contentSlot}>
         {helperText ? <Text style={styles.helperText}>{helperText}</Text> : null}
         <TextInput
           placeholder={placeholder}
@@ -30,12 +31,12 @@ export default function TrainingPreferenceTextareaQuestionView({
 const styles = StyleSheet.create({
   section: {
     justifyContent: "center",
+    paddingBottom: 120,
   },
-  field: {
+  contentSlot: {
     gap: 6,
-  },
-  label: {
-    color: "#111827",
+    height: 300,
+    justifyContent: "center",
   },
   helperText: {
     fontSize: 13,
