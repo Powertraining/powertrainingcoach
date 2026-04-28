@@ -20,6 +20,10 @@ const CONFIDENCE_STEP_KEYS = {
     5: "olympicLiftVariations",
     6: "plyometrics",
     7: "ballisticTraining",
+    8: "runningSprinting",
+    9: "bikeRowerAssaultBike",
+    10: "circuitTraining",
+    11: "heavyBag",
 };
 
 export default function InputFormView({
@@ -45,6 +49,10 @@ export default function InputFormView({
                 olympicLiftVariations: initialValues?.trainingCapabilities?.olympicLiftVariations ?? null,
                 plyometrics: initialValues?.trainingCapabilities?.plyometrics ?? null,
                 ballisticTraining: initialValues?.trainingCapabilities?.ballisticTraining ?? null,
+                runningSprinting: initialValues?.trainingCapabilities?.runningSprinting ?? null,
+                bikeRowerAssaultBike: initialValues?.trainingCapabilities?.bikeRowerAssaultBike ?? null,
+                circuitTraining: initialValues?.trainingCapabilities?.circuitTraining ?? null,
+                heavyBag: initialValues?.trainingCapabilities?.heavyBag ?? null,
             },
         };
     });

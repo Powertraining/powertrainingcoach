@@ -156,32 +156,34 @@ export default function TrainingPreferencesFields({
     ),
     (
       <TrainingPreferencesRunningSprintingView
-        value={resolvedValues.trainingCapabilities.runningSprinting}
+        value={values?.trainingCapabilities?.runningSprinting ?? null}
         onChange={(sectionValue) =>
-          updateCapability("runningSprinting", sectionValue)
+          updateNullableCapability("runningSprinting", sectionValue)
         }
       />
     ),
     (
       <TrainingPreferencesBikeRowerAssaultBikeView
-        value={resolvedValues.trainingCapabilities.bikeRowerAssaultBike}
+        value={values?.trainingCapabilities?.bikeRowerAssaultBike ?? null}
         onChange={(sectionValue) =>
-          updateCapability("bikeRowerAssaultBike", sectionValue)
+          updateNullableCapability("bikeRowerAssaultBike", sectionValue)
         }
       />
     ),
     (
       <TrainingPreferencesCircuitTrainingView
-        value={resolvedValues.trainingCapabilities.circuitTraining}
+        value={values?.trainingCapabilities?.circuitTraining ?? null}
         onChange={(sectionValue) =>
-          updateCapability("circuitTraining", sectionValue)
+          updateNullableCapability("circuitTraining", sectionValue)
         }
       />
     ),
     (
       <TrainingPreferencesHeavyBagView
-        value={resolvedValues.trainingCapabilities.heavyBag}
-        onChange={(sectionValue) => updateCapability("heavyBag", sectionValue)}
+        value={values?.trainingCapabilities?.heavyBag ?? null}
+        onChange={(sectionValue) =>
+          updateNullableCapability("heavyBag", sectionValue)
+        }
       />
     ),
     (

@@ -15,6 +15,21 @@ function getExerciseExamples(description = "") {
     .filter(Boolean);
 }
 
+function getExerciseRows(exercises) {
+  if (exercises.length <= 3) {
+    return [exercises];
+  }
+
+  if (exercises.length === 4) {
+    return [exercises.slice(0, 2), exercises.slice(2)];
+  }
+
+  return [
+    exercises.slice(0, 3),
+    ...getExerciseRows(exercises.slice(3)),
+  ];
+}
+
 function ExerciseBox({ exercise, imageSource }) {
   return (
     <View style={styles.exerciseBox}>
@@ -39,6 +54,7 @@ export default function TrainingCapabilityConfidenceView({
 }) {
   const { height: screenHeight } = useWindowDimensions();
   const exerciseExamples = getExerciseExamples(item?.description);
+  const exerciseRows = getExerciseRows(exerciseExamples);
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
@@ -46,24 +62,17 @@ export default function TrainingCapabilityConfidenceView({
       <StandardText style={styles.categoryText}>{item.description}</StandardText>
 
       <View style={styles.exerciseGrid}>
-        <View style={styles.exerciseRow}>
-          {exerciseExamples.slice(0, 3).map((exercise) => (
-            <ExerciseBox
-              key={exercise}
-              exercise={exercise}
-              imageSource={exerciseImages[exercise.toLowerCase()]}
-            />
-          ))}
-        </View>
-        <View style={styles.exerciseRow}>
-          {exerciseExamples.slice(3).map((exercise) => (
-            <ExerciseBox
-              key={exercise}
-              exercise={exercise}
-              imageSource={exerciseImages[exercise.toLowerCase()]}
-            />
-          ))}
-        </View>
+        {exerciseRows.map((row, rowIndex) => (
+          <View key={`exercise-row-${rowIndex}`} style={styles.exerciseRow}>
+            {row.map((exercise) => (
+              <ExerciseBox
+                key={exercise}
+                exercise={exercise}
+                imageSource={exerciseImages[exercise.toLowerCase()]}
+              />
+            ))}
+          </View>
+        ))}
       </View>
 
       <View style={styles.options}>
