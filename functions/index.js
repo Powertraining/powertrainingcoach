@@ -3593,10 +3593,13 @@ exports.generateTrainingPlan = functions.https.onCall(
 function buildOpenAiMessagesFromData(data) {
   const {
     goal,
+    desiredTraining,
     experience,
+    trainingCapabilities,
+    eventPreparation,
     daysPerWeek,
-    weightClass,
-    primaryStyle,
+    sessionDuration,
+    sessionDurationMinutes,
     competitionPeriod,
     equipment,
     injuries,
@@ -3609,10 +3612,13 @@ function buildOpenAiMessagesFromData(data) {
 
   const prompt = buildTrainingPlanPrompt({
     goal,
+    desiredTraining,
     experience,
+    trainingCapabilities,
+    eventPreparation,
     daysPerWeek,
-    weightClass,
-    primaryStyle,
+    sessionDuration,
+    sessionDurationMinutes,
     competitionPeriod,
     equipment,
     injuries,
@@ -3684,14 +3690,27 @@ Follow these domain rules:
   - Power Clean -> Power Snatch
 
 Adapt the plan to:
-- primary combat sport and style focus (striking/grappling/balanced)
-- weight class (manage volume/intensity for the class)
+- primary combat sport
+- desired training emphasis (${userInput.desiredTraining || userInput.goal || "strength_power_endurance"})
+- S&C experience level (${userInput.experience || "beginner"})
+- what the athlete can do safely and confidently:
+  ${JSON.stringify(userInput.trainingCapabilities || {}, null, 2)}
+- competition(s) or important events the athlete is preparing for:
+  ${userInput.eventPreparation || "none provided"}
 - upcoming competition period (off-season, pre-season, fight camp,
   in-season)
 - equipment access (full gym vs minimal/home)
 - injuries and weaknesses (avoid aggravating, include prehab where sensible)
 - focus emphasis (more sparring/technique vs more conditioning)
 - requested weekly frequency (${userInput.daysPerWeek} days per week)
+- preferred session duration (${userInput.sessionDuration || "60_min"}${
+  userInput.sessionDurationMinutes ?
+    `, about ${userInput.sessionDurationMinutes} minutes` :
+    ", flexible but still practical"
+})
+- if the duration is "no_time_limit", treat it as flexible but never as
+  unlimited volume, marathon sessions, 10-hour workouts, or excessive exercise
+  lists
 ${batchContext}
 
 ---

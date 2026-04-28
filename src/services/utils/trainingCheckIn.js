@@ -220,12 +220,6 @@ export function normalizeTrainingCheckInState(source = {}) {
 }
 
 export function getTrainingCheckInBlockSize(experience = "") {
-  const normalizedExperience = normalizeString(experience);
-
-  if (normalizedExperience === "beginner") {
-    return 8;
-  }
-
   return 4;
 }
 

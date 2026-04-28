@@ -1,9 +1,8 @@
-import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import {
   COMBAT_TRAINING_INTENSITY_OPTIONS,
-  COMPETENCY_AND_LIMITATION_OPTIONS,
   DELOAD_STRATEGY_OPTIONS,
   getAppLogicSettingsFormState,
   getSportLoadLevelOption,
@@ -44,60 +43,12 @@ export default function AppLogicSettingsFields({
     });
   }
 
-  function toggleCompetency(value) {
-    const nextValues = new Set(resolvedValues.competencyAndLimitations);
-
-    if (nextValues.has(value)) {
-      nextValues.delete(value);
-    } else {
-      nextValues.add(value);
-    }
-
-    updateField("competencyAndLimitations", Array.from(nextValues));
-  }
-
   return (
     <View style={styles.section}>
       {(title || description) && (
         <View style={styles.header}>
           {title ? <Text style={styles.title}>{title}</Text> : null}
           {description ? <Text style={styles.description}>{description}</Text> : null}
-        </View>
-      )}
-
-      <View style={styles.field}>
-        <Text style={styles.label}>Training phase</Text>
-        <Picker
-          selectedValue={resolvedValues.trainingPhase}
-          onValueChange={(value) => updateField("trainingPhase", value)}
-          style={styles.input}
-        >
-          {TRAINING_PHASE_OPTIONS.map((option) => (
-            <Picker.Item
-              key={option.value}
-              label={option.label}
-              value={option.value}
-            />
-          ))}
-        </Picker>
-        <OptionDescription
-          options={TRAINING_PHASE_OPTIONS}
-          value={resolvedValues.trainingPhase}
-        />
-      </View>
-
-      {resolvedValues.trainingPhase === "in_camp" && (
-        <View style={styles.field}>
-          <Text style={styles.label}>When is the planned competition?</Text>
-          <TextInput
-            placeholder="e.g. 2026-06-20 or 8 weeks out"
-            value={resolvedValues.competitionTimeline}
-            onChangeText={(value) => updateField("competitionTimeline", value)}
-            style={styles.input}
-          />
-          <Text style={styles.helperText}>
-            Share a date or timeline so the app can plan the camp appropriately.
-          </Text>
         </View>
       )}
 
@@ -305,30 +256,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     color: "#6b7280",
-  },
-  chipGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.12)",
-    backgroundColor: "#ffffff",
-  },
-  chipSelected: {
-    borderColor: "#111827",
-    backgroundColor: "#111827",
-  },
-  chipText: {
-    fontSize: 14,
-    color: "#111827",
-    fontWeight: "500",
-  },
-  chipTextSelected: {
-    color: "#ffffff",
   },
 });

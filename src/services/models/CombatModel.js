@@ -47,7 +47,11 @@ import {
   getSportLoadMultiplier,
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
-import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
+import {
+  getNormalizedSessionDuration,
+  getSessionDurationMinutes,
+  mergeTrainingPreferences,
+} from "../../constants/trainingPreferences.js";
 import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
 import {
   applySportLoadLevelToPlanWeek,
@@ -83,6 +87,10 @@ import {
   upsertTrainingPerformanceSessionResults,
 } from "../utils/trainingPerformance.js";
 import {
+  DEFAULT_TRAINING_CYCLE_WEEKS,
+  resolveTrainingCycleWeeks,
+} from "../utils/trainingCycle.js";
+import {
   applyTrainingCheckInAction,
   buildTrainingCheckInObjectiveSummary,
   buildTrainingCheckInRecommendation,
@@ -106,8 +114,8 @@ export const model = {
   trainingPlan: null,
   // Stores completed day identifiers as ['1-1', '1-2'] for persistence
   completedDays: [],
-  trainingPlanBatch: 1, // Tracks which 8-week batch user is on (1, 2, 3, etc.)
-  completedWeeks: 0, // Tracks total weeks completed across all batches
+  trainingPlanBatch: 1, // Tracks which 12-week cycle user is on (1, 2, 3, etc.)
+  completedWeeks: 0, // Tracks total weeks completed across all cycles
 
   subscription: false,
   subscriptionEndDate: null,
@@ -1005,9 +1013,20 @@ export const model = {
     const preferredWeekdays = Array.from({ length: daysPerWeek }, (_, index) =>
       getNormalizedWeekday(rawPreferredWeekdays[index])
     );
+    const sessionDuration = getNormalizedSessionDuration(source);
+    const sessionDurationMinutes = getSessionDurationMinutes(sessionDuration);
+    const equipment =
+      typeof source.equipment === "string" && source.equipment ?
+        source.equipment :
+        "full_gym";
+    const {
+      primaryStyle: _primaryStyle,
+      weightClass: _weightClass,
+      ...trainingPlanSource
+    } = source;
 
     return {
-      ...source,
+      ...trainingPlanSource,
       ...normalizedAppLogicSettings,
       sportLoadMultiplier: getSportLoadMultiplier(
         normalizedAppLogicSettings.sportLoadLevel
@@ -1019,6 +1038,9 @@ export const model = {
           daysPerWeek,
       daysPerWeek,
       preferredWeekdays,
+      sessionDuration,
+      sessionDurationMinutes,
+      equipment,
       focusEmphasis,
       preferences:
         Array.isArray(source.preferences) && source.preferences.length > 0 ?
@@ -1032,12 +1054,22 @@ export const model = {
           "off_season"),
       trainingPerformanceSummary: this.getTrainingPerformanceSummary(),
       strengthAssessmentSummary: this.getStrengthAssessmentSummary(),
-      numWeeks:
-        Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
-          weeksFromSubscription :
+      numWeeks: resolveTrainingCycleWeeks({
+        trainingPhase: normalizedAppLogicSettings.trainingPhase,
+        competitionTimeline: normalizedAppLogicSettings.competitionTimeline,
+        eventPreparation:
+          typeof source.eventPreparation === "string" ?
+            source.eventPreparation :
+            "",
+        requestedWeeks:
           Number.isFinite(parsedNumWeeks) && parsedNumWeeks > 0 ?
             parsedNumWeeks :
-            4,
+            null,
+        subscriptionWeeks:
+          Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
+            weeksFromSubscription :
+            null,
+      }),
       trainingPlanBatch:
         Number.isFinite(parsedTrainingPlanBatch) && parsedTrainingPlanBatch > 0 ?
           parsedTrainingPlanBatch :
@@ -1345,9 +1377,9 @@ export const model = {
   },
 
   /**
-   * Calculates the number of weeks for a training plan based on subscription.
-   * Max 8 weeks for yearly subscription, scaled down for shorter subscriptions.
-   * @returns {number} number of weeks (1-8), or 0 if not subscribed
+   * Calculates the number of weeks available for a training cycle based on subscription.
+   * Max 12 weeks for a parent cycle, scaled down for shorter subscriptions.
+   * @returns {number} number of weeks (1-12), or 0 if not subscribed
    */
   getPlannedWeeksFromSubscription() {
     const daysRemaining = this.getDaysRemainingInSubscription();
@@ -1358,21 +1390,20 @@ export const model = {
     // Calculate weeks from remaining days (7 days per week)
     const weeksFromDays = Math.ceil(daysRemaining / 7);
 
-    // Cap at 8 weeks maximum
-    return Math.min(weeksFromDays, 8);
+    return Math.min(weeksFromDays, DEFAULT_TRAINING_CYCLE_WEEKS);
   },
 
   /**
-   * Returns the current training plan batch number (1, 2, 3, etc.)
-   * Each batch contains up to 8 weeks
-   * @returns {number} current batch number
+   * Returns the current training cycle number (1, 2, 3, etc.)
+   * Each cycle contains up to 12 weeks
+   * @returns {number} current cycle number
    */
   getTrainingPlanBatch() {
     return this.trainingPlanBatch;
   },
 
   /**
-   * Returns total weeks completed across all batches
+   * Returns total weeks completed across all cycles
    * @returns {number} total completed weeks
    */
   getCompletedWeeks() {
@@ -1380,9 +1411,9 @@ export const model = {
   },
 
   /**
-   * Marks the current batch as complete and increments to the next batch.
-   * Called when user finishes all 8 weeks (or fewer if subscription is shorter).
-   * @param {number} weeksCompleted - number of weeks in the completed batch
+   * Marks the current cycle as complete and increments to the next cycle.
+   * Called when user finishes all 12 weeks (or fewer if an in-camp event is sooner).
+   * @param {number} weeksCompleted - number of weeks in the completed cycle
    */
   completeCurrentBatch(weeksCompleted) {
     this.completedWeeks += weeksCompleted;
@@ -1390,8 +1421,8 @@ export const model = {
     this.trainingPlan = null; // Clear current plan so new one can be generated
     this.completedDays = [];
     console.log(
-      '[CombatModel.completeCurrentBatch] Batch complete. ' +
-      `New batch: ${this.trainingPlanBatch}, ` +
+      '[CombatModel.completeCurrentBatch] Cycle complete. ' +
+      `New cycle: ${this.trainingPlanBatch}, ` +
       `Total completed weeks: ${this.completedWeeks}`
     );
   },

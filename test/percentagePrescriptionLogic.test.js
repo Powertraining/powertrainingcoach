@@ -110,6 +110,7 @@ test("generated training plans preserve percentage prescription metadata on exer
 test("training prompt instructs percentage users to emit structured percentage prescriptions", () => {
   const prompt = buildTrainingPrompt({
     daysPerWeek: 3,
+    numWeeks: 12,
     goal: "strength",
     experience: "intermediate",
     liftIntensityMethod: "percentage",
@@ -120,6 +121,8 @@ test("training prompt instructs percentage users to emit structured percentage p
   assert.match(prompt, /percentagePrescription/);
   assert.match(prompt, /relativeIntensity/);
   assert.match(prompt, /loadingStrategy/);
+  assert.match(prompt, /exactly 12 week objects/i);
+  assert.match(prompt, /Weeks 1-4, Weeks 5-8, and Weeks 9-12/);
 });
 
 test("RPE questionnaires strip percentage prescriptions and strength assessments from plans", () => {

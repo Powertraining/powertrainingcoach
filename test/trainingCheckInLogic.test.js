@@ -6,6 +6,7 @@ import {
   buildTrainingCheckInObjectiveSummary,
   buildTrainingCheckInRecommendation,
   createDefaultTrainingCheckInState,
+  getTrainingCheckInBlockSize,
   getPendingTrainingCheckIn,
 } from "../src/services/utils/trainingCheckIn.js";
 import { createTrainingPerformanceEntry } from "../src/services/utils/trainingPerformance.js";
@@ -138,7 +139,7 @@ test("weekly check-in becomes due after a full week is completed", () => {
   assert.equal(pendingCheckIn.weekNumber, 1);
 });
 
-test("end-of-block check-in takes priority on the block boundary", () => {
+test("end-of-block check-in takes priority every 4 weeks", () => {
   const completedDays = [
     "1-1", "1-2",
     "2-1", "2-2",
@@ -148,10 +149,11 @@ test("end-of-block check-in takes priority on the block boundary", () => {
   const pendingCheckIn = getPendingTrainingCheckIn({
     plan: createPlan(5),
     completedDays,
-    questionnaire: { experience: "intermediate" },
+    questionnaire: { experience: "beginner" },
     trainingCheckInState: createDefaultTrainingCheckInState(),
   });
 
+  assert.equal(getTrainingCheckInBlockSize("beginner"), 4);
   assert.equal(pendingCheckIn.type, "end_of_block");
   assert.equal(pendingCheckIn.weekNumber, 4);
   assert.deepEqual(pendingCheckIn.weeksInScope, [1, 2, 3, 4]);
