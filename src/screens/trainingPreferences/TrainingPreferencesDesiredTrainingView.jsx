@@ -1,4 +1,5 @@
 import { DESIRED_TRAINING_OPTIONS } from "../../constants/trainingPreferences.js";
+import { useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
@@ -23,8 +24,10 @@ export default function TrainingPreferencesDesiredTrainingView({
   onChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
+  const [isSelectionCleared, setIsSelectionCleared] = useState(false);
+  const displayedValue = isSelectionCleared ? null : value;
   const selectedIndex = DESIRED_TRAINING_OPTIONS.findIndex(
-    (option) => option.value === value
+    (option) => option.value === displayedValue
   );
 
   return (
@@ -33,7 +36,7 @@ export default function TrainingPreferencesDesiredTrainingView({
 
       <View style={styles.options}>
         {DESIRED_TRAINING_OPTIONS.map((option, index) => {
-          const isSelected = value === option.value;
+          const isSelected = displayedValue === option.value;
           const optionImages = DESIRED_TRAINING_IMAGES[option.value] ?? [];
           const optionImagePositionStyle =
             isSelected || selectedIndex < 0
@@ -51,7 +54,10 @@ export default function TrainingPreferencesDesiredTrainingView({
           return (
             <TouchableOpacity
               key={option.value}
-              onPress={() => onChange?.(option.value)}
+              onPress={() => {
+                setIsSelectionCleared(isSelected);
+                onChange?.(isSelected ? null : option.value);
+              }}
               style={[
                 styles.optionButton,
                 isSelected ? styles.optionButtonSelected : null,
@@ -76,7 +82,6 @@ export default function TrainingPreferencesDesiredTrainingView({
                       source={imageSource}
                       style={[
                         styles.optionImage,
-                        index === 1 ? styles.optionImageMiddle : null,
                         option.value === "strength_power"
                           ? styles.optionImageStrength
                           : null,
@@ -155,11 +160,7 @@ const styles = StyleSheet.create({
     tintColor: "#000000",
   },
   optionImageStrength: {
-    marginTop: -30,
-  },
-  optionImageMiddle: {
-    width: OPTION_IMAGE_SIZE * 0.88,
-    height: OPTION_IMAGE_SIZE * 0.88,
+    marginTop: -10,
   },
   optionFaceLeft: {
     borderTopLeftRadius: 8,
