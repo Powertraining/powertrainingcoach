@@ -31,6 +31,39 @@ test("missed-session guidelines still include rescue logic", () => {
   assert.match(guidelines, /Rescue missed work/i);
 });
 
+test("endurance guidelines are selected for endurance-oriented plans", () => {
+  const guidelines = getGuidelinesText({
+    userInput: {
+      desiredTraining: "strength_power_endurance",
+      enduranceTraining: {
+        include: true,
+        modalities: ["assault_bike", "heavy_bag"],
+      },
+      trainingCapabilities: {
+        heavyBag: "yes",
+      },
+    },
+    purpose: "plan",
+  });
+
+  assert.match(guidelines, /Endurance training rules/i);
+  assert.match(guidelines, /endurancePrescription/i);
+  assert.match(guidelines, /assault_bike/i);
+  assert.match(guidelines, /Heavy bag endurance is for strikers/i);
+});
+
+test("explicit endurance opt-out suppresses endurance rules", () => {
+  const guidelines = getGuidelinesText({
+    userInput: {
+      desiredTraining: "strength_power_endurance",
+      includeEnduranceTraining: false,
+    },
+    purpose: "plan",
+  });
+
+  assert.doesNotMatch(guidelines, /Endurance training rules/i);
+});
+
 test("striking sport without confirmed peak-window competition resolves as off-camp", () => {
   const context = getStrikingCampContext({
     primaryCombatSport: "Boxing",

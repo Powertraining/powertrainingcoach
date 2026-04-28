@@ -6,8 +6,72 @@ function shouldIncludePercentageSchema(userInput = {}) {
   return (userInput?.liftIntensityMethod || "percentage") === "percentage";
 }
 
+function isExplicitFalse(value) {
+  return value === false || value === "false" || value === "no";
+}
+
+function isExplicitTrue(value) {
+  return value === true || value === "true" || value === "yes";
+}
+
+function getEnduranceSettings(userInput = {}) {
+  const nestedSettings =
+    userInput?.enduranceTraining && typeof userInput.enduranceTraining === "object"
+      ? userInput.enduranceTraining
+      : userInput?.endurancePreferences && typeof userInput.endurancePreferences === "object"
+        ? userInput.endurancePreferences
+        : {};
+
+  return {
+    include:
+      userInput?.includeEnduranceTraining ??
+      userInput?.enduranceTrainingIncluded ??
+      nestedSettings.include ??
+      nestedSettings.includeEnduranceTraining,
+    modality:
+      userInput?.enduranceModality ??
+      userInput?.preferredEnduranceModality ??
+      nestedSettings.modality ??
+      nestedSettings.preferredModality,
+    modalities:
+      userInput?.enduranceModalities ??
+      userInput?.preferredEnduranceModalities ??
+      nestedSettings.modalities ??
+      nestedSettings.preferredModalities,
+  };
+}
+
+function shouldIncludeEnduranceSchema(userInput = {}) {
+  const desiredTraining =
+    typeof userInput?.desiredTraining === "string"
+      ? userInput.desiredTraining.trim().toLowerCase()
+      : "";
+  const enduranceSettings = getEnduranceSettings(userInput);
+  const hasModality =
+    typeof enduranceSettings.modality === "string" &&
+    enduranceSettings.modality.trim();
+  const hasModalities =
+    Array.isArray(enduranceSettings.modalities) &&
+    enduranceSettings.modalities.some(
+      (entry) => typeof entry === "string" && entry.trim()
+    );
+
+  if (isExplicitFalse(enduranceSettings.include)) {
+    return false;
+  }
+
+  return (
+    desiredTraining === "endurance" ||
+    desiredTraining === "strength_power_endurance" ||
+    isExplicitTrue(enduranceSettings.include) ||
+    hasModality ||
+    hasModalities
+  );
+}
+
 function buildPlanSchemaInstructions(userInput = {}) {
   const includePercentageSchema = shouldIncludePercentageSchema(userInput);
+  const includeEnduranceSchema = shouldIncludeEnduranceSchema(userInput);
   const requestedWeekCount = Number.parseInt(userInput?.numWeeks, 10);
   const weekCountInstruction =
     Number.isFinite(requestedWeekCount) && requestedWeekCount > 0
@@ -33,6 +97,10 @@ ${phaseOverviewInstruction}
 - Every exercise must include "name", "sets", "reps", "notes", and "substitutionOptions".
 - Use "substitutionOptions" for comparable replacements the UI can swap in directly. Use an empty array when no substitute is needed.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
+${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, include "endurancePrescription" with:
+  - "modality": one of "running", "sprinting", "circuit_training", "heavy_bag", "swimming", "assault_bike", "rowing_ergometer", "skiing_ergometer", "arm_crank_machine"
+  - "format": "steady_aerobic", "tempo_threshold", "intervals", "repeated_sprint", "recovery", or "circuit"
+  - "durationMinutes", "intensity", and optional "work", "rest", "rounds", "target", and "notes"` : ""}
 ${includePercentageSchema ? `- On percentage-based primary lifts, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets".
 - Add "strengthAssessment" only when the lift includes a planned heavy single, 2-5RM test, or true 1RM event the app should log for future percentage updates.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
@@ -42,6 +110,7 @@ ${includePercentageSchema ? `- On percentage-based primary lifts, include "perce
 
 function buildPlanJsonExample(userInput = {}) {
   const includePercentageSchema = shouldIncludePercentageSchema(userInput);
+  const includeEnduranceSchema = shouldIncludeEnduranceSchema(userInput);
 
   return `{
   "summary": "Brief explanation of the overall program direction and rationale.",
@@ -108,6 +177,28 @@ function buildPlanJsonExample(userInput = {}) {
                   "notes": "Same category and emphasis."
                 }
               ]
+            }${
+              includeEnduranceSchema
+                ? `,
+            {
+              "name": "Assault Bike Intervals",
+              "sets": "5",
+              "reps": "2 min hard / 2 min easy",
+              "notes": "Dedicated endurance work with low impact.",
+              "endurancePrescription": {
+                "modality": "assault_bike",
+                "format": "intervals",
+                "durationMinutes": 20,
+                "intensity": "RPE 7-8",
+                "work": "5 x 2 min",
+                "rest": "2 min easy spin",
+                "rounds": 5,
+                "target": "Repeatable hard aerobic intervals without leg impact",
+                "notes": "Use this object only for dedicated endurance work."
+              },
+              "substitutionOptions": []
+            }`
+                : ""
             }
           ]
         }
@@ -162,6 +253,7 @@ function buildMissedSessionSchemaInstructions(adjustmentInput = {}) {
 - Keep "sessionLabel" tied to the rescued session identity rather than the slot it moved into.
 - Include "sessionProfile", "status", "rescueMode", "adjustmentReason", and "adjustmentSummary".
 - Preserve "performanceTarget" when the main tracked exposure is still present.
+- Preserve "endurancePrescription" when the rescued exposure is dedicated endurance work, adjusting duration, work/rest, rounds, or intensity if the rescue mode trims fatigue.
 ${includePercentageSchema ? `- Preserve percentage-based main-lift logic with an updated "percentagePrescription" when the main lift stays in the session.
 - Preserve "strengthAssessment" only when the rescued or re-entry session should still include the planned assessment exposure.` : `- Do not add or preserve percentagePrescription or strengthAssessment on RPE-based plans.`}
 `;

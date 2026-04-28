@@ -46,6 +46,27 @@ test("missed-session prompt embeds rescue priority rules", () => {
   assert.match(prompt, /rescueMode/i);
 });
 
+test("training prompt embeds endurance rules and prescription schema", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    desiredTraining: "endurance",
+    enduranceTraining: {
+      include: true,
+      modality: "assault_bike",
+    },
+    trainingCapabilities: {
+      bikeRowerAssaultBike: "yes",
+      runningSprinting: "somewhat",
+    },
+  });
+
+  assert.match(prompt, /Endurance training rules/i);
+  assert.match(prompt, /endurancePrescription/i);
+  assert.match(prompt, /rowing_ergometer/i);
+  assert.match(prompt, /Assault Bike Intervals/i);
+});
+
 test("RPE prompt explicitly blocks percentage prescriptions and strength assessments", () => {
   const prompt = buildTrainingPrompt({
     primaryCombatSport: "MMA",

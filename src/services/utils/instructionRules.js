@@ -143,7 +143,23 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Use "sessionDuration" and "sessionDurationMinutes" from the user input to size each training day.
 - For finite durations, keep warm-up, main work, accessories, and conditioning realistic for that time cap.
 - For 30 or 45 minute sessions, prioritize the highest-value work and trim lower-priority accessories.
-- If "sessionDuration" is "no_time_limit" or "sessionDurationMinutes" is null, treat it as flexible but still pragmatic. Do not create marathon sessions, excessive exercise lists, 10-hour workouts, or unrealistic volumes. Prefer focused sessions that would usually fit within about 90-120 minutes.`
+- If "sessionDuration" is "no_time_limit" or "sessionDurationMinutes" is null, treat it as flexible but still pragmatic. Do not create marathon sessions, excessive exercise lists, 10-hour workouts, or unrealistic volumes. Prefer focused sessions that would usually fit within about 90-120 minutes.`,
+  endurance_training: `# Endurance training rules
+- Include dedicated endurance work only when desiredTraining is "endurance" or "strength_power_endurance", or when the athlete explicitly opted in with includeEnduranceTraining or enduranceTraining.include. If desiredTraining is "strength_power" and there is no explicit opt-in, keep conditioning minimal and supportive.
+- Take the athlete's combat sport, trainingPhase, sportLoadLevel, combatTrainingIntensity, weekly S&C frequency, preferred weekdays, sessionDuration, injuries, equipment, and selected modality into account before placing endurance.
+- In off-camp/off-season, endurance can build a broader aerobic base, work capacity, and specific weak links. In fight camp/in-camp, endurance must fit around sparring, pads, grappling, weight management, and freshness; prioritize specificity and reduce extra fatigue.
+- When endurance is included, prescribe it as a clear exercise entry with an endurancePrescription object so the app can render the modality, format, duration, intensity, work/rest, rounds, and target.
+- Available endurance modalities are running, sprinting, circuit_training, heavy_bag, swimming, assault_bike, rowing_ergometer, skiing_ergometer, and arm_crank_machine.
+- Running is best for accessible general aerobic work, especially off-camp, but avoid overusing it when lower-body fatigue, joint irritation, plyometric exposure, or combat load is high.
+- Sprinting is best for acceleration, maximal-speed exposure, and repeated high-power efforts, but use it only when speed quality can stay high and the athlete has the tissue tolerance; avoid it under high fatigue or heavy explosive lower-body loading.
+- Circuit training is best for local muscular endurance, repeated-effort capacity, grip/arm/trunk weak links, and blended work capacity. Keep it recoverable and avoid letting it interfere with key strength, power, sparring, or skill days.
+- Heavy bag endurance is for strikers and is most useful when the athlete needs conditioning close to striking mechanics, local upper-body fatigue, flurry capacity, or fight-camp specificity. Do not prescribe direct heavy bag work if heavyBag capability is "no".
+- Swimming is useful for low-impact aerobic or recovery-oriented conditioning when joints, legs, or the overall combat load need relief. Remember that poor swim skill can make the session technique-limited.
+- Assault bike is a low-impact, easy-to-scale option for aerobic intervals, threshold work, hard intervals, repeated bursts, and mixed upper/lower-body conditioning.
+- Rowing ergometer is useful for measurable total-body steady work, intervals, threshold efforts, and hard intervals without impact, but avoid excessive low-back or arm fatigue when technique is poor.
+- Skiing ergometer is useful for upper-body and trunk-driven conditioning with low leg impact, especially for grapplers, hand-fighting transfer, or weeks with heavy running/kicking/leg fatigue.
+- Arm crank machine is useful when lower-body loading should be avoided or when upper-body endurance is the target, especially for wrestlers, but it is usually targeted rather than the default modality.
+- If the selected modality conflicts with injuries, equipment, sport demands, or capability ratings, choose the closest safer allowed modality and explain briefly in the notes.`
 });
 
 export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
@@ -170,6 +186,7 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "session_spacing",
   "training_preference_rules",
   "session_duration_rules",
+  "endurance_training",
   "missed_session_logic",
 ]);
 
@@ -288,6 +305,67 @@ function shouldIncludePercentageRules(userInput = {}) {
   return normalizeString(userInput?.liftIntensityMethod, "percentage") === "percentage";
 }
 
+function isExplicitFalse(value) {
+  return value === false || value === "false" || value === "no";
+}
+
+function isExplicitTrue(value) {
+  return value === true || value === "true" || value === "yes";
+}
+
+function getEnduranceSettings(userInput = {}) {
+  const nestedSettings =
+    userInput?.enduranceTraining && typeof userInput.enduranceTraining === "object"
+      ? userInput.enduranceTraining
+      : userInput?.endurancePreferences && typeof userInput.endurancePreferences === "object"
+        ? userInput.endurancePreferences
+        : {};
+
+  return {
+    include:
+      userInput?.includeEnduranceTraining ??
+      userInput?.enduranceTrainingIncluded ??
+      nestedSettings.include ??
+      nestedSettings.includeEnduranceTraining,
+    modality:
+      userInput?.enduranceModality ??
+      userInput?.preferredEnduranceModality ??
+      nestedSettings.modality ??
+      nestedSettings.preferredModality,
+    modalities:
+      userInput?.enduranceModalities ??
+      userInput?.preferredEnduranceModalities ??
+      nestedSettings.modalities ??
+      nestedSettings.preferredModalities,
+  };
+}
+
+function hasSelectedEnduranceModality(userInput = {}) {
+  const enduranceSettings = getEnduranceSettings(userInput);
+
+  return (
+    normalizeString(enduranceSettings.modality) ||
+    (Array.isArray(enduranceSettings.modalities) &&
+      enduranceSettings.modalities.some((entry) => normalizeString(entry)))
+  );
+}
+
+function shouldIncludeEnduranceRules(userInput = {}) {
+  const desiredTraining = normalizeString(userInput?.desiredTraining).toLowerCase();
+  const enduranceSettings = getEnduranceSettings(userInput);
+
+  if (isExplicitFalse(enduranceSettings.include)) {
+    return false;
+  }
+
+  return (
+    desiredTraining === "endurance" ||
+    desiredTraining === "strength_power_endurance" ||
+    isExplicitTrue(enduranceSettings.include) ||
+    hasSelectedEnduranceModality(userInput)
+  );
+}
+
 function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
   const selectedKeys = new Set([
     "general_rules",
@@ -319,6 +397,10 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
 
   if (isStrikingSport(userInput)) {
     selectedKeys.add("striking_sports");
+  }
+
+  if (shouldIncludeEnduranceRules(userInput)) {
+    selectedKeys.add("endurance_training");
   }
 
   if (purpose === "missed_session") {

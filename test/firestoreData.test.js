@@ -94,3 +94,60 @@ test("parseGeneratedTrainingPlan returns a Firestore-safe plan shape", () => {
     false
   );
 });
+
+test("parseGeneratedTrainingPlan preserves endurance prescriptions", () => {
+  const normalizedPlan = parseGeneratedTrainingPlan({
+    summary: "Conditioning phase.",
+    weeks: [
+      {
+        week: 1,
+        days: [
+          {
+            day: 1,
+            sessionLabel: "Endurance Day",
+            sessionProfile: {
+              regions: ["full_body"],
+              qualities: ["fatigue"],
+              stressLevel: "moderate",
+            },
+            exercises: [
+              {
+                name: "Assault Bike Intervals",
+                sets: "5",
+                reps: "2 min hard / 2 min easy",
+                notes: "Low-impact endurance work.",
+                endurancePrescription: {
+                  modality: "Assault Bike",
+                  format: "Intervals",
+                  durationMinutes: "20",
+                  intensity: "RPE 7-8",
+                  work: "5 x 2 min",
+                  rest: "2 min easy",
+                  rounds: "5",
+                  target: "Repeatable hard efforts",
+                },
+                substitutionOptions: [],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  const prescription =
+    normalizedPlan.weeks[0].days[0].exercises[0].endurancePrescription;
+
+  assert.deepEqual(prescription, {
+    modality: "assault_bike",
+    format: "intervals",
+    durationMinutes: 20,
+    intensity: "RPE 7-8",
+    work: "5 x 2 min",
+    rest: "2 min easy",
+    rounds: 5,
+    target: "Repeatable hard efforts",
+    notes: "",
+  });
+  assert.deepEqual(collectUndefinedPaths(normalizedPlan), []);
+});

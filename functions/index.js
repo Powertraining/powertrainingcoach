@@ -3035,6 +3035,27 @@ const DISALLOWED_TRAINING_PLAN_WRAPPER_KEYS = Object.freeze([
   "programs",
 ]);
 
+const ENDURANCE_MODALITIES = Object.freeze([
+  "running",
+  "sprinting",
+  "circuit_training",
+  "heavy_bag",
+  "swimming",
+  "assault_bike",
+  "rowing_ergometer",
+  "skiing_ergometer",
+  "arm_crank_machine",
+]);
+
+const ENDURANCE_FORMATS = Object.freeze([
+  "steady_aerobic",
+  "tempo_threshold",
+  "intervals",
+  "repeated_sprint",
+  "recovery",
+  "circuit",
+]);
+
 function isPlainObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -3045,6 +3066,20 @@ function hasOwnProperty(value, key) {
 
 function normalizeStringValue(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * @param {*} value
+ * @param {Array<string>} allowedValues
+ * @return {string}
+ */
+function normalizeEnumStringValue(value, allowedValues) {
+  const normalizedValue = normalizeStringValue(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+
+  return allowedValues.includes(normalizedValue) ? normalizedValue : "";
 }
 
 function parsePositiveIntegerValue(value) {
@@ -3242,6 +3277,48 @@ function sanitizePerformanceTarget(performanceTarget, fallbackLiftName = "") {
   };
 }
 
+/**
+ * @param {*} endurancePrescription
+ * @return {object|null}
+ */
+function sanitizeEndurancePrescription(endurancePrescription) {
+  if (endurancePrescription == null) {
+    return null;
+  }
+
+  if (!isPlainObject(endurancePrescription)) {
+    throw new Error("Training plan endurancePrescription must be an object.");
+  }
+
+  const durationMinutes = parsePositiveIntegerValue(
+      endurancePrescription.durationMinutes || endurancePrescription.duration,
+  );
+  const rounds = parsePositiveIntegerValue(endurancePrescription.rounds);
+  const sanitizedPrescription = {
+    modality: normalizeEnumStringValue(
+        endurancePrescription.modality,
+        ENDURANCE_MODALITIES,
+    ),
+    format: normalizeEnumStringValue(
+        endurancePrescription.format,
+        ENDURANCE_FORMATS,
+    ),
+    durationMinutes: durationMinutes || null,
+    intensity: normalizeStringValue(endurancePrescription.intensity),
+    work: normalizeStringValue(endurancePrescription.work),
+    rest: normalizeStringValue(endurancePrescription.rest),
+    rounds: rounds || null,
+    target: normalizeStringValue(endurancePrescription.target),
+    notes: normalizeStringValue(endurancePrescription.notes),
+  };
+
+  if (!Object.values(sanitizedPrescription).some(Boolean)) {
+    return null;
+  }
+
+  return sanitizedPrescription;
+}
+
 function sanitizePercentageWorkingSet(workingSet, workingSetIndex) {
   if (!isPlainObject(workingSet)) {
     throw new Error(
@@ -3341,6 +3418,9 @@ function sanitizeExercise(exercise, exerciseIndex) {
 
   return {
     ...fallbackExercise,
+    endurancePrescription: sanitizeEndurancePrescription(
+        exercise.endurancePrescription,
+    ),
     performanceTarget: sanitizePerformanceTarget(
         exercise.performanceTarget,
         fallbackExercise.name,
@@ -3594,6 +3674,14 @@ function buildOpenAiMessagesFromData(data) {
   const {
     goal,
     desiredTraining,
+    includeEnduranceTraining,
+    enduranceTrainingIncluded,
+    enduranceTraining,
+    endurancePreferences,
+    enduranceModality,
+    preferredEnduranceModality,
+    enduranceModalities,
+    preferredEnduranceModalities,
     experience,
     trainingCapabilities,
     eventPreparation,
@@ -3613,6 +3701,14 @@ function buildOpenAiMessagesFromData(data) {
   const prompt = buildTrainingPlanPrompt({
     goal,
     desiredTraining,
+    includeEnduranceTraining,
+    enduranceTrainingIncluded,
+    enduranceTraining,
+    endurancePreferences,
+    enduranceModality,
+    preferredEnduranceModality,
+    enduranceModalities,
+    preferredEnduranceModalities,
     experience,
     trainingCapabilities,
     eventPreparation,
@@ -3647,6 +3743,25 @@ function buildTrainingPlanPrompt(userInput) {
   const numWeeks = userInput.numWeeks || 4;
   const batch = userInput.trainingPlanBatch || 1;
   const startingWeek = (batch - 1) * 8 + 1;
+  const enduranceSettings = isPlainObject(userInput.enduranceTraining) ?
+    userInput.enduranceTraining :
+    isPlainObject(userInput.endurancePreferences) ?
+      userInput.endurancePreferences :
+      {};
+  const enduranceIncludeSetting =
+    hasOwnProperty(userInput, "includeEnduranceTraining") ?
+      userInput.includeEnduranceTraining :
+      hasOwnProperty(userInput, "enduranceTrainingIncluded") ?
+        userInput.enduranceTrainingIncluded :
+        hasOwnProperty(enduranceSettings, "include") ?
+          enduranceSettings.include :
+          hasOwnProperty(enduranceSettings, "includeEnduranceTraining") ?
+            enduranceSettings.includeEnduranceTraining :
+            "not provided";
+  const desiredTrainingSetting =
+    userInput.desiredTraining ||
+    userInput.goal ||
+    "strength_power_endurance";
 
   let batchContext = "";
   if (batch > 1) {
@@ -3670,9 +3785,39 @@ Follow these domain rules:
 - Scale volume and intensity based on competition period
 - Consider equipment access and injuries/weaknesses
 - Ensure progressive overload across the training cycle
-- Default to a 12-week parent cycle unless the athlete is preparing for an earlier event, then shorten the cycle to fit that real timeline
-- Treat each 4-week block as a checkpoint for review and adjustment inside the parent cycle
+- Default to a 12-week parent cycle unless the athlete is preparing for an
+  earlier event, then shorten the cycle to fit that real timeline
+- Treat each 4-week block as a checkpoint for review and adjustment inside the
+  parent cycle
 - Always respect the athlete's experience level
+- Include dedicated endurance work only when desiredTraining is "endurance" or
+  "strength_power_endurance", or when includeEnduranceTraining /
+  enduranceTraining.include explicitly opts in. If desiredTraining is
+  "strength_power" and there is no explicit endurance opt-in, keep
+  conditioning minimal and supportive.
+- Endurance must account for combat sport, trainingPhase, sportLoadLevel,
+  combatTrainingIntensity, S&C frequency, preferred weekdays, sessionDuration,
+  injuries, equipment, and selected modality.
+- In off-camp/off-season, endurance may build aerobic base, repeated-effort
+  capacity, and weak links. In fight camp/in-camp, fit endurance around
+  sparring, pads, grappling, weight management, and freshness.
+- Available endurance modalities are running, sprinting, circuit_training,
+  heavy_bag, swimming, assault_bike, rowing_ergometer, skiing_ergometer, and
+  arm_crank_machine.
+- Modality guidance: use running for accessible off-camp aerobic work; sprinting
+  only when speed quality and tissue tolerance are high; circuit_training for
+  local muscular endurance or repeated efforts; heavy_bag for strikers and
+  fight-camp specificity; swimming for low-impact aerobic/recovery work;
+  assault_bike for scalable low-impact intervals; rowing_ergometer for
+  measurable total-body work; skiing_ergometer for upper-body/trunk conditioning
+  with low leg impact; arm_crank_machine for targeted upper-body conditioning
+  or lower-body loading restrictions.
+- Do not prescribe direct heavy bag, sprinting, running, circuits, or erg work
+  when the matching trainingCapabilities field is "no"; choose a safer allowed
+  modality and note the reason.
+- When an exercise is dedicated endurance work, include an
+  "endurancePrescription" object with modality, format, durationMinutes,
+  intensity, and optional work, rest, rounds, target, and notes.
 - **CRITICAL: ALWAYS include EXACTLY ${userInput.daysPerWeek} training days**
   **per week. No more, no less.**
 - **CRITICAL: Every exercise MUST have a videoUrl pointing to a**
@@ -3693,7 +3838,23 @@ Follow these domain rules:
 
 Adapt the plan to:
 - primary combat sport
-- desired training emphasis (${userInput.desiredTraining || userInput.goal || "strength_power_endurance"})
+- desired training emphasis (${desiredTrainingSetting})
+- endurance opt-in (${String(enduranceIncludeSetting)})
+- selected endurance modality/modalities:
+  ${JSON.stringify({
+    modality:
+      userInput.enduranceModality ||
+      userInput.preferredEnduranceModality ||
+      enduranceSettings.modality ||
+      enduranceSettings.preferredModality ||
+      "",
+    modalities:
+      userInput.enduranceModalities ||
+      userInput.preferredEnduranceModalities ||
+      enduranceSettings.modalities ||
+      enduranceSettings.preferredModalities ||
+      [],
+  }, null, 2)}
 - S&C experience level (${userInput.experience || "beginner"})
 - what the athlete can do safely and confidently:
   ${JSON.stringify(userInput.trainingCapabilities || {}, null, 2)}
@@ -3727,7 +3888,8 @@ ${JSON.stringify(userInput, null, 2)}
 - Return EXACTLY one training plan object.
 - Follow the structure below EXACTLY.
 - Do not include commentary or explanation.
-- Never return multiple plans, comparisons, or wrapper keys such as "plans", "options", or "planChoices".
+- Never return multiple plans, comparisons, or wrapper keys such as "plans",
+  "options", or "planChoices".
 - Week numbers should start at ${startingWeek}
 - **IMPORTANT: Each week MUST have EXACTLY ${userInput.daysPerWeek} days**
   **in the days array.**
@@ -3736,6 +3898,8 @@ ${JSON.stringify(userInput, null, 2)}
 - **IMPORTANT: Every exercise MUST include a substitutionOptions array.**
 - **IMPORTANT: Each substitution option must be a full exercise object with**
   **name, sets, reps, notes, and videoUrl.**
+- **IMPORTANT: Dedicated endurance exercises should include an**
+  **endurancePrescription object.**
 
 {
   "summary": "Brief description of this training phase (batch ${batch})",
@@ -3747,17 +3911,28 @@ ${JSON.stringify(userInput, null, 2)}
           "day": 1,
           "exercises": [
             {
-              "name": "Exercise Name",
-              "sets": "3–5",
-              "reps": "8–12",
-              "notes": "Short instruction or coaching cue",
+              "name": "Assault Bike Intervals",
+              "sets": "5",
+              "reps": "2 min hard / 2 min easy",
+              "notes": "Dedicated low-impact endurance work",
+              "endurancePrescription": {
+                "modality": "assault_bike",
+                "format": "intervals",
+                "durationMinutes": 20,
+                "intensity": "RPE 7-8",
+                "work": "5 x 2 min",
+                "rest": "2 min easy spin",
+                "rounds": 5,
+                "target": "Repeatable hard aerobic intervals",
+                "notes": "Use only for dedicated endurance work"
+              },
               "videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID",
               "substitutionOptions": [
                 {
-                  "name": "Comparable Alternative",
-                  "sets": "3–5",
-                  "reps": "8–12",
-                  "notes": "Short instruction or coaching cue",
+                  "name": "Rowing Ergometer Intervals",
+                  "sets": "5",
+                  "reps": "2 min hard / 2 min easy",
+                  "notes": "Comparable low-impact interval option",
                   "videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID"
                 }
               ]
