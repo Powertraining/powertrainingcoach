@@ -4,19 +4,11 @@ import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
   getTrainingPreferencesFormState,
+  TRAINING_CAPABILITY_GROUPS,
 } from "../constants/trainingPreferences.js";
 import TrainingPreferencesExperienceView from "./trainingPreferences/TrainingPreferencesExperienceView.jsx";
 import TrainingPreferencesExerciseEvaluationView from "./trainingPreferences/TrainingPreferencesExerciseEvaluationView.jsx";
-import TrainingPreferencesCompoundLiftsView from "./trainingPreferences/TrainingPreferencesCompoundLiftsView.jsx";
-import TrainingPreferencesSingleLegLiftsView from "./trainingPreferences/TrainingPreferencesSingleLegLiftsView.jsx";
-import TrainingPreferencesPullingWorkView from "./trainingPreferences/TrainingPreferencesPullingWorkView.jsx";
-import TrainingPreferencesOlympicLiftVariationsView from "./trainingPreferences/TrainingPreferencesOlympicLiftVariationsView.jsx";
-import TrainingPreferencesPlyometricsView from "./trainingPreferences/TrainingPreferencesPlyometricsView.jsx";
-import TrainingPreferencesBallisticTrainingView from "./trainingPreferences/TrainingPreferencesBallisticTrainingView.jsx";
-import TrainingPreferencesRunningSprintingView from "./trainingPreferences/TrainingPreferencesRunningSprintingView.jsx";
-import TrainingPreferencesBikeRowerAssaultBikeView from "./trainingPreferences/TrainingPreferencesBikeRowerAssaultBikeView.jsx";
-import TrainingPreferencesCircuitTrainingView from "./trainingPreferences/TrainingPreferencesCircuitTrainingView.jsx";
-import TrainingPreferencesHeavyBagView from "./trainingPreferences/TrainingPreferencesHeavyBagView.jsx";
+import TrainingCapabilityConfidenceView from "./trainingPreferences/TrainingCapabilityConfidenceView.jsx";
 import TrainingPreferencesDesiredTrainingView from "./trainingPreferences/TrainingPreferencesDesiredTrainingView.jsx";
 import TrainingPreferencesSessionDurationView from "./trainingPreferences/TrainingPreferencesSessionDurationView.jsx";
 import TrainingPreferencesEquipmentView from "./trainingPreferences/TrainingPreferencesEquipmentView.jsx";
@@ -25,6 +17,110 @@ import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPrefe
 import TrainingPreferencesPreferredWeekdaysView from "./trainingPreferences/TrainingPreferencesPreferredWeekdaysView.jsx";
 
 export const TRAINING_PREFERENCES_SECTION_COUNT = 20;
+
+const CAPABILITY_CONFIDENCE_PAGES = [
+  {
+    key: "compoundLifts",
+    item: TRAINING_CAPABILITY_GROUPS[0].items[0],
+    exerciseImages: {
+      squat: require("../assets/icons/sports/squat.png"),
+      deadlift: require("../assets/icons/sports/deadLift.png"),
+      bench: require("../assets/icons/sports/benchPress.png"),
+      row: require("../assets/icons/sports/row.png"),
+      "overhead press": require("../assets/icons/sports/overheadPress.png"),
+    },
+  },
+  {
+    key: "singleLegLifts",
+    item: TRAINING_CAPABILITY_GROUPS[0].items[1],
+    exerciseImages: {
+      "split squat": require("../assets/icons/sports/splitSquat.png"),
+      lunge: require("../assets/icons/sports/lunge.png"),
+      "step-up": require("../assets/icons/sports/stepUp.png"),
+    },
+  },
+  {
+    key: "pullingWork",
+    item: TRAINING_CAPABILITY_GROUPS[0].items[2],
+    exerciseImages: {
+      "pull-ups": require("../assets/icons/sports/pullUp.png"),
+      "chin-ups": require("../assets/icons/sports/chinUp.png"),
+      rows: require("../assets/icons/sports/row.png"),
+    },
+  },
+  {
+    key: "olympicLiftVariations",
+    item: TRAINING_CAPABILITY_GROUPS[1].items[0],
+    exerciseImages: {
+      "power clean": require("../assets/icons/sports/powerClean.png"),
+      "hang clean": require("../assets/icons/sports/hangClean.png"),
+      "push press": require("../assets/icons/sports/pushPress.png"),
+      "split jerk": require("../assets/icons/sports/splitJerk.png"),
+    },
+  },
+  {
+    key: "plyometrics",
+    item: TRAINING_CAPABILITY_GROUPS[1].items[1],
+    exerciseImages: {
+      jumps: require("../assets/icons/sports/jumps.png"),
+      bounds: require("../assets/icons/sports/bounds.png"),
+      hops: require("../assets/icons/sports/hops.png"),
+      "landing drills": require("../assets/icons/sports/landingDrills.png"),
+    },
+  },
+  {
+    key: "ballisticTraining",
+    item: TRAINING_CAPABILITY_GROUPS[1].items[2],
+    exerciseImages: {
+      "medicine-ball throws": require("../assets/icons/sports/medicineBallThrow.png"),
+      "jump squats": require("../assets/icons/sports/jumpSquat.png"),
+      "landmine punches": require("../assets/icons/sports/landminePunches.png"),
+    },
+  },
+  {
+    key: "runningSprinting",
+    item: {
+      ...TRAINING_CAPABILITY_GROUPS[2].items[0],
+      label: "Conditioning",
+      description: "Running",
+    },
+    exerciseImages: {
+      running: require("../assets/icons/sports/running.png"),
+    },
+  },
+  {
+    key: "bikeRowerAssaultBike",
+    item: {
+      ...TRAINING_CAPABILITY_GROUPS[2].items[1],
+      description: "Bike, rower, assault bike",
+    },
+    exerciseImages: {
+      bike: require("../assets/icons/sports/bike.png"),
+      rower: require("../assets/icons/sports/rower.png"),
+      "assault bike": require("../assets/icons/sports/assult Bike.png"),
+    },
+  },
+  {
+    key: "circuitTraining",
+    item: {
+      ...TRAINING_CAPABILITY_GROUPS[2].items[2],
+      description: "Circuit training",
+    },
+    exerciseImages: {
+      "circuit training": require("../assets/icons/sports/curcuitTraining.png"),
+    },
+  },
+  {
+    key: "heavyBag",
+    item: {
+      ...TRAINING_CAPABILITY_GROUPS[2].items[3],
+      description: "Heavy bag",
+    },
+    exerciseImages: {
+      "heavy bag": require("../assets/icons/sports/heavyBag.png"),
+    },
+  },
+];
 
 export default function TrainingPreferencesFields({
   title,
@@ -55,43 +151,6 @@ export default function TrainingPreferencesFields({
     updateField("preferredWeekdays", nextPreferredWeekdays);
   }
 
-  function updateCapability(capability, rating) {
-    updateField("trainingCapabilities", {
-      ...resolvedValues.trainingCapabilities,
-      [capability]: rating,
-    });
-  }
-
-  function updateCompoundLiftsCapability(rating) {
-    onChange?.({
-      ...resolvedValues,
-      trainingCapabilities: {
-        ...resolvedValues.trainingCapabilities,
-        compoundLifts: rating,
-      },
-    });
-  }
-
-  function updateSingleLegLiftsCapability(rating) {
-    onChange?.({
-      ...resolvedValues,
-      trainingCapabilities: {
-        ...resolvedValues.trainingCapabilities,
-        singleLegLifts: rating,
-      },
-    });
-  }
-
-  function updatePullingWorkCapability(rating) {
-    onChange?.({
-      ...resolvedValues,
-      trainingCapabilities: {
-        ...resolvedValues.trainingCapabilities,
-        pullingWork: rating,
-      },
-    });
-  }
-
   function updateNullableCapability(capability, rating) {
     onChange?.({
       ...resolvedValues,
@@ -100,6 +159,18 @@ export default function TrainingPreferencesFields({
         [capability]: rating,
       },
     });
+  }
+
+  function renderCapabilityConfidencePage(page) {
+    return (
+      <TrainingCapabilityConfidenceView
+        key={page.key}
+        item={page.item}
+        value={values?.trainingCapabilities?.[page.key] ?? null}
+        onChange={(sectionValue) => updateNullableCapability(page.key, sectionValue)}
+        exerciseImages={page.exerciseImages}
+      />
+    );
   }
 
   const sections = [
@@ -112,80 +183,7 @@ export default function TrainingPreferencesFields({
     (
       <TrainingPreferencesExerciseEvaluationView />
     ),
-    (
-      <TrainingPreferencesCompoundLiftsView
-        value={values?.trainingCapabilities?.compoundLifts ?? null}
-        onChange={updateCompoundLiftsCapability}
-      />
-    ),
-    (
-      <TrainingPreferencesSingleLegLiftsView
-        value={values?.trainingCapabilities?.singleLegLifts ?? null}
-        onChange={updateSingleLegLiftsCapability}
-      />
-    ),
-    (
-      <TrainingPreferencesPullingWorkView
-        value={values?.trainingCapabilities?.pullingWork ?? null}
-        onChange={updatePullingWorkCapability}
-      />
-    ),
-    (
-      <TrainingPreferencesOlympicLiftVariationsView
-        value={values?.trainingCapabilities?.olympicLiftVariations ?? null}
-        onChange={(sectionValue) =>
-          updateNullableCapability("olympicLiftVariations", sectionValue)
-        }
-      />
-    ),
-    (
-      <TrainingPreferencesPlyometricsView
-        value={values?.trainingCapabilities?.plyometrics ?? null}
-        onChange={(sectionValue) =>
-          updateNullableCapability("plyometrics", sectionValue)
-        }
-      />
-    ),
-    (
-      <TrainingPreferencesBallisticTrainingView
-        value={values?.trainingCapabilities?.ballisticTraining ?? null}
-        onChange={(sectionValue) =>
-          updateNullableCapability("ballisticTraining", sectionValue)
-        }
-      />
-    ),
-    (
-      <TrainingPreferencesRunningSprintingView
-        value={values?.trainingCapabilities?.runningSprinting ?? null}
-        onChange={(sectionValue) =>
-          updateNullableCapability("runningSprinting", sectionValue)
-        }
-      />
-    ),
-    (
-      <TrainingPreferencesBikeRowerAssaultBikeView
-        value={values?.trainingCapabilities?.bikeRowerAssaultBike ?? null}
-        onChange={(sectionValue) =>
-          updateNullableCapability("bikeRowerAssaultBike", sectionValue)
-        }
-      />
-    ),
-    (
-      <TrainingPreferencesCircuitTrainingView
-        value={values?.trainingCapabilities?.circuitTraining ?? null}
-        onChange={(sectionValue) =>
-          updateNullableCapability("circuitTraining", sectionValue)
-        }
-      />
-    ),
-    (
-      <TrainingPreferencesHeavyBagView
-        value={values?.trainingCapabilities?.heavyBag ?? null}
-        onChange={(sectionValue) =>
-          updateNullableCapability("heavyBag", sectionValue)
-        }
-      />
-    ),
+    ...CAPABILITY_CONFIDENCE_PAGES.map(renderCapabilityConfidencePage),
     (
       <TrainingPreferencesDesiredTrainingView
         value={resolvedValues.desiredTraining}
