@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     width: 42,
   },
   mediaText: {
-    fontSize: 34,
+    fontSize: 22,
     marginBottom: 18,
   },
   label: {

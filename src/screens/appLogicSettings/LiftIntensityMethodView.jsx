@@ -14,17 +14,21 @@ const LIFT_INTENSITY_MEDIA_TEXT = Object.freeze({
   rpe: "RPE",
 });
 
+const LIFT_INTENSITY_DESCRIPTION_TEXT = Object.freeze({
+  rpe: "Autoregulate by feel",
+});
+
 const PERCENTAGE_REFERENCE_BUTTONS = Object.freeze({
   true_1rm: {
-    label: "True 1RM tests",
+    description: "Test true max strength",
     mediaText: "1RM",
   },
   multi_rm: {
-    label: "2-5RM + Epley",
+    description: "Estimate from hard reps",
     mediaText: "2-5RM",
   },
   heavy_single: {
-    label: "Heavy single",
+    description: "Low-fatigue strength check",
     mediaText: "RPE 8-9",
   },
 });
@@ -48,7 +52,7 @@ export default function LiftIntensityMethodView({
         {rpeOption ? (
           <PreferenceOptionButton
             isSelected={value === rpeOption.value}
-            label={rpeOption.label}
+            label={LIFT_INTENSITY_DESCRIPTION_TEXT[rpeOption.value]}
             mediaText={LIFT_INTENSITY_MEDIA_TEXT[rpeOption.value]}
             onPress={() =>
               onChange?.(value === rpeOption.value ? null : rpeOption.value)
@@ -81,7 +85,7 @@ export default function LiftIntensityMethodView({
                     value === "percentage" &&
                     percentageReferenceValue === option.value
                   }
-                  label={buttonContent?.label ?? option.label}
+                  label={buttonContent?.description ?? option.description}
                   mediaText={buttonContent?.mediaText}
                   onPress={() => onPercentageReferenceChange?.(option.value)}
                 />
