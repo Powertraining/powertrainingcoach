@@ -119,7 +119,6 @@ export default function DeloadStrategyView({
 const styles = StyleSheet.create({
   section: {
     justifyContent: "center",
-    paddingBottom: 120,
   },
   contentSlot: {
     gap: 18,
@@ -138,11 +137,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "relative",
     width: "75%",
-  },
-  optionButtonSelected: {
-    borderColor: "#ffffff",
-    borderStyle: "solid",
-    borderWidth: 2,
   },
   optionMediaText: {
     fontSize: 26,
