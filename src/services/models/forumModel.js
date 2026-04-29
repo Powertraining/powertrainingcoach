@@ -2,7 +2,6 @@ export const DEFAULT_FORUM_TOPIC = "general";
 export const DEFAULT_FORUM_SORT_BY = "recent";
 export const DEFAULT_FORUM_FEED_LIMIT = 25;
 export const DEFAULT_FORUM_COMMENT_LIMIT = 50;
-export const MAX_FORUM_COMMENT_REPLY_DEPTH = 3;
 
 const MAX_FORUM_TAGS = 5;
 const MAX_SEARCH_TOKENS = 30;
@@ -240,28 +239,10 @@ export function normalizeForumPost(record = {}, viewerProfile = {}) {
   };
 }
 
-export function normalizeForumComment(record = {}, depth = 0) {
-  const normalizedReplies =
-    Array.isArray(record.replies) ?
-      record.replies.map((reply) =>
-        normalizeForumComment(
-          {
-            postId: record.postId,
-            rootCommentId: record.rootCommentId || record.id,
-            ...reply,
-          },
-          depth + 1
-        )
-      ) :
-      [];
-
+export function normalizeForumComment(record = {}) {
   return {
     id: normalizeString(record.id),
     postId: normalizeString(record.postId),
-    parentCommentId: normalizeString(record.parentCommentId),
-    rootCommentId:
-      normalizeString(record.rootCommentId) || normalizeString(record.id),
-    depth: normalizeNonNegativeInteger(record.depth ?? depth),
     authorId: normalizeString(record.authorId),
     authorDisplayName:
       normalizeString(record.authorDisplayName, 60) || "Anonymous",
@@ -271,66 +252,7 @@ export function normalizeForumComment(record = {}, depth = 0) {
     body: normalizeString(record.body, 2000),
     createdAt: normalizeDateValue(record.createdAt),
     updatedAt: normalizeDateValue(record.updatedAt),
-    replies: normalizedReplies,
-    replyCount: normalizeNonNegativeInteger(
-      record.replyCount ?? normalizedReplies.length
-    ),
   };
-}
-
-export function flattenForumComments(comments = []) {
-  return (Array.isArray(comments) ? comments : []).flatMap((comment) => [
-    comment,
-    ...flattenForumComments(comment?.replies),
-  ]);
-}
-
-export function findForumCommentNode(comments = [], commentId, pathSegments = []) {
-  for (const comment of Array.isArray(comments) ? comments : []) {
-    const nextPathSegments = [...pathSegments, comment.id];
-
-    if (comment?.id === commentId) {
-      return {
-        comment,
-        pathSegments: nextPathSegments,
-      };
-    }
-
-    const nestedMatch = findForumCommentNode(
-      comment?.replies,
-      commentId,
-      [...nextPathSegments, "replies"]
-    );
-
-    if (nestedMatch) {
-      return nestedMatch;
-    }
-  }
-
-  return null;
-}
-
-export function appendForumReply(comments = [], parentCommentId, reply) {
-  return (Array.isArray(comments) ? comments : []).map((comment) => {
-    if (comment?.id === parentCommentId) {
-      const nextReplies = [...(Array.isArray(comment.replies) ? comment.replies : []), reply];
-
-      return normalizeForumComment({
-        ...comment,
-        replies: nextReplies,
-        replyCount: nextReplies.length,
-      });
-    }
-
-    if (!Array.isArray(comment?.replies) || comment.replies.length === 0) {
-      return comment;
-    }
-
-    return normalizeForumComment({
-      ...comment,
-      replies: appendForumReply(comment.replies, parentCommentId, reply),
-    });
-  });
 }
 
 export function applyForumFilters(

@@ -745,25 +745,6 @@ export function normalizeExercise(exercise = {}) {
   };
 }
 
-function shouldKeepPercentageOnlyFields(questionnaire = {}) {
-  return normalizeString(questionnaire?.liftIntensityMethod, "percentage") === "percentage";
-}
-
-function sanitizeExerciseForQuestionnaire(exercise = {}, questionnaire = {}) {
-  if (shouldKeepPercentageOnlyFields(questionnaire)) {
-    return normalizeExercise(exercise);
-  }
-
-  const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
-  const {
-    percentagePrescription: _percentagePrescription,
-    strengthAssessment: _strengthAssessment,
-    ...exerciseWithoutPercentageFields
-  } = safeExercise;
-
-  return normalizeExercise(exerciseWithoutPercentageFields);
-}
-
 export function getExerciseSubstitutionOptions(exercise = {}) {
   return normalizeExercise(exercise).substitutionOptions;
 }
@@ -1400,37 +1381,6 @@ export function normalizeTrainingDay(day = {}, dayIndex = 0) {
   };
 }
 
-export function sanitizeTrainingDayForQuestionnaire(
-  day = {},
-  questionnaire = {},
-  dayIndex = 0
-) {
-  const safeDay = day && typeof day === "object" ? day : {};
-  const resolvedDayNumber = resolveTrainingDayNumber(safeDay, dayIndex);
-  const originalDayNumber = getOriginalDayNumber(safeDay, resolvedDayNumber);
-
-  return {
-    ...safeDay,
-    day: resolvedDayNumber,
-    originalDayNumber,
-    sessionLabel: normalizeString(
-      safeDay.sessionLabel,
-      buildSessionLabel(originalDayNumber)
-    ),
-    preferredWeekday: resolvePreferredWeekday(safeDay),
-    sessionProfile: normalizeSessionProfile(safeDay),
-    status: normalizeTrainingDayStatus(safeDay.status),
-    rescueMode: normalizeAdjustmentText(safeDay.rescueMode),
-    adjustmentReason: normalizeAdjustmentText(safeDay.adjustmentReason),
-    adjustmentSummary: normalizeAdjustmentText(safeDay.adjustmentSummary),
-    exercises: Array.isArray(safeDay?.exercises)
-      ? safeDay.exercises.map((exercise) =>
-          sanitizeExerciseForQuestionnaire(exercise, questionnaire)
-        )
-      : [],
-  };
-}
-
 function normalizeGeneratedPhase(phase = {}, phaseIndex = 0) {
   if (!isPlainObject(phase)) {
     throw new Error(
@@ -1701,29 +1651,6 @@ export function normalizeTrainingPlan(plan = {}) {
           adjustmentState: getWeekAdjustmentState(week),
           days: Array.isArray(week?.days)
             ? week.days.map((day, dayIndex) => normalizeTrainingDay(day, dayIndex))
-            : [],
-        }))
-      : [],
-  };
-}
-
-export function sanitizeTrainingPlanForQuestionnaire(plan = {}, questionnaire = {}) {
-  const normalizedPlan = normalizeTrainingPlan(plan);
-
-  return {
-    ...normalizedPlan,
-    weeks: Array.isArray(normalizedPlan.weeks)
-      ? normalizedPlan.weeks.map((week, weekIndex) => ({
-          ...week,
-          week:
-            Number.isFinite(week?.week) && week.week > 0 ?
-              week.week :
-              weekIndex + 1,
-          adjustmentState: getWeekAdjustmentState(week),
-          days: Array.isArray(week?.days)
-            ? week.days.map((day, dayIndex) =>
-                sanitizeTrainingDayForQuestionnaire(day, questionnaire, dayIndex)
-              )
             : [],
         }))
       : [],

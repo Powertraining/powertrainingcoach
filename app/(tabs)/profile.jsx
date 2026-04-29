@@ -180,7 +180,6 @@ const ProfileScreen = observer(function ProfileScreen() {
       model.primaryCombatSport = primaryCombatSport;
       model.sessionsPerWeek = sessionsPerWeek;
       model.setQuestionnaire?.(nextQuestionnaire);
-      model.applySportLoadSettingToFollowingWeek?.();
       setTrainingPreferences(getTrainingPreferencesFormState(nextQuestionnaire));
     } catch (e) {
       setError(e.message || "Update failed.");

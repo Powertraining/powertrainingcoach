@@ -26,10 +26,6 @@ const ForumScreen = observer(function ForumScreen() {
   const [commentDraft, setCommentDraft] = useState("");
   const [isCreatingComment, setIsCreatingComment] = useState(false);
   const [createCommentError, setCreateCommentError] = useState(null);
-  const [activeReplyCommentId, setActiveReplyCommentId] = useState(null);
-  const [replyDraft, setReplyDraft] = useState("");
-  const [isCreatingReply, setIsCreatingReply] = useState(false);
-  const [createReplyError, setCreateReplyError] = useState(null);
   const [isSearchFiltersVisible, setIsSearchFiltersVisible] = useState(false);
 
   useEffect(() => {
@@ -68,7 +64,7 @@ const ForumScreen = observer(function ForumScreen() {
 
   const coachComments =
     selectedPostId === model.forumSelectedPost?.id ?
-      model.getFlattenedForumComments().filter((comment) => comment?.isCoachVerified) :
+      model.forumComments.filter((comment) => comment?.isCoachVerified) :
       [];
   const selectedPost =
     (selectedPostId === model.forumSelectedPost?.id ? model.forumSelectedPost : null) ||
@@ -153,7 +149,6 @@ const ForumScreen = observer(function ForumScreen() {
 
   function showCoachResponseView(postId) {
     setSelectedPostId(postId);
-    resetReplyComposer();
     setIsCoachResponseVisible(true);
     model.setForumOverlayVisible(true);
 
@@ -164,7 +159,6 @@ const ForumScreen = observer(function ForumScreen() {
 
   function showCommentsView(postId) {
     setSelectedPostId(postId);
-    resetReplyComposer();
     setIsCommentsVisible(true);
     model.setForumOverlayVisible(true);
 
@@ -176,7 +170,6 @@ const ForumScreen = observer(function ForumScreen() {
   function showPostView(postId) {
     setSelectedPostId(postId);
     setCreateCommentError(null);
-    resetReplyComposer();
     setCurrentView("post");
 
     model.loadForumPostThread(postId).catch((error) => {
@@ -191,7 +184,6 @@ const ForumScreen = observer(function ForumScreen() {
 
   function hideCommentsView() {
     setIsCommentsVisible(false);
-    resetReplyComposer();
     model.setForumOverlayVisible(false);
   }
 
@@ -199,33 +191,13 @@ const ForumScreen = observer(function ForumScreen() {
     setSelectedPostId(null);
     setCommentDraft("");
     setCreateCommentError(null);
-    resetReplyComposer();
     setCurrentView("feed");
   }
 
   function hideForumOverlay() {
     setIsCoachResponseVisible(false);
     setIsCommentsVisible(false);
-    resetReplyComposer();
     model.setForumOverlayVisible(false);
-  }
-
-  function resetReplyComposer() {
-    setActiveReplyCommentId(null);
-    setReplyDraft("");
-    setCreateReplyError(null);
-  }
-
-  function handlePressReply(comment) {
-    if (!comment?.id || isCreatingReply) {
-      return;
-    }
-
-    setCreateReplyError(null);
-    setReplyDraft("");
-    setActiveReplyCommentId((currentReplyCommentId) =>
-      currentReplyCommentId === comment.id ? null : comment.id
-    );
   }
 
   async function handleCreateComment() {
@@ -246,25 +218,6 @@ const ForumScreen = observer(function ForumScreen() {
       );
     } finally {
       setIsCreatingComment(false);
-    }
-  }
-
-  async function handleCreateReply() {
-    if (!selectedPost?.id || !activeReplyCommentId || isCreatingReply) {
-      return;
-    }
-
-    setCreateReplyError(null);
-    setIsCreatingReply(true);
-
-    try {
-      await model.addForumReply(selectedPost.id, activeReplyCommentId, replyDraft);
-      resetReplyComposer();
-    } catch (error) {
-      console.warn("Could not create the forum reply:", error);
-      setCreateReplyError(error?.message || "Could not create the forum reply.");
-    } finally {
-      setIsCreatingReply(false);
     }
   }
 
@@ -369,19 +322,11 @@ const ForumScreen = observer(function ForumScreen() {
           comments={selectedPostId === model.forumSelectedPost?.id ? model.forumComments : []}
           commentValue={commentDraft}
           commentError={createCommentError}
-          activeReplyCommentId={activeReplyCommentId}
-          replyValue={replyDraft}
-          replyError={createReplyError}
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
-          isSubmittingReply={isCreatingReply}
           onBack={hidePostView}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
-          onPressReply={handlePressReply}
-          onChangeReplyText={setReplyDraft}
-          onCreateReply={handleCreateReply}
-          onCancelReply={resetReplyComposer}
           onTogglePostLike={handleTogglePostLike}
           onTogglePostSave={handleTogglePostSave}
           onToggleCoachResponse={showCoachResponseView}
@@ -402,18 +347,10 @@ const ForumScreen = observer(function ForumScreen() {
           }
           commentValue={commentDraft}
           commentError={createCommentError}
-          activeReplyCommentId={activeReplyCommentId}
-          replyValue={replyDraft}
-          replyError={createReplyError}
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
-          isSubmittingReply={isCreatingReply}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
-          onPressReply={handlePressReply}
-          onChangeReplyText={setReplyDraft}
-          onCreateReply={handleCreateReply}
-          onCancelReply={resetReplyComposer}
         />
       ) : null}
       {isSearchFiltersVisible ? (

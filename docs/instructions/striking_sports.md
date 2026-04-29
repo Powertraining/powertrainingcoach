@@ -1,9 +1,0 @@
-# Striking sports
-If no competition, general athleticism. If competition is known, peak for speed.
-For boxing, kickboxing, and Muay Thai, the app must distinguish between Off-Camp and In-Camp.
-Off-Camp = no confirmed competition inside the peak window. In this case, the program should prioritize general athletic development: build strength first, then power, while keeping some speed work present but not forcing a speed peak.
-In-Camp = a confirmed competition exists inside the peak window. In this case, the program should back-plan from the event date and shift toward a speed-dominant peak in the final phase, while still maintaining enough strength and power to support speed.
-For striking sports, the app should not chase maximal speed year-round. It should build the engine in Off-Camp, then express it as speed in Camp. This matches the existing rule that early phases emphasize traditional strength development, while late phases and peaking prioritize speed-strength, ballistic work, and more plyometric emphasis.
-“Peak for pure speed” means peak in emphasis, not exclusive training.
-In striking fight camp, the final phase should be speed-dominant, but the app must still preserve minimal effective doses of strength and power so the athlete does not lose force qualities while approaching competition. Volume should be reduced before intensity, and taper should reduce volume roughly 30–60% while keeping intensity and intent high
-For striking sports, if no confirmed competition is within the peak window, program for general strength/power/speed with a build-focused emphasis and no forced speed peak. If a confirmed competition falls within the peak window, back-plan the program so the final phase peaks for speed, using strength and power development in earlier phases and a reduced-volume taper in the final 7–10 days.

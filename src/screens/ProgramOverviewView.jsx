@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
-import { getSportLoadLevelOption } from "../constants/appLogicSettings.js";
 import {
   getCurrentTrainingPhase,
   getCurrentTrainingWeek,
@@ -48,9 +47,6 @@ export default function ProgramOverviewView({
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
   const spacingAdvisories = getTrainingPlanSpacingAdvisories(plan);
   const visibleWeeks = currentWeek ? [currentWeek] : [];
-  const sportLoadOption = getSportLoadLevelOption(
-    currentWeek?.sportLoadLevel ?? questionnaire?.sportLoadLevel
-  );
 
   function getPhaseRangeLabel(phase = {}) {
     if (phase.weekStart === phase.weekEnd) {
@@ -146,14 +142,6 @@ export default function ProgramOverviewView({
               onSubmit={onSubmitTrainingCheckIn}
             />
           ) : null}
-
-          <View style={styles.sportLoadCard}>
-            <Text style={styles.sportLoadEyebrow}>Weekly sport load</Text>
-            <Text style={styles.sportLoadTitle}>{sportLoadOption.label}</Text>
-            <Text style={styles.sportLoadText}>
-              Current week strength-volume multiplier: {sportLoadOption.multiplier}x. Profile changes are applied to the following week so the current week stays stable once it has started.
-            </Text>
-          </View>
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
@@ -267,31 +255,6 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0,0,0,0.08)",
     backgroundColor: "white",
     gap: 16,
-  },
-  sportLoadCard: {
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.08)",
-    gap: 4,
-  },
-  sportLoadEyebrow: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#475569",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  sportLoadTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#0f172a",
-  },
-  sportLoadText: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: "#475569",
   },
   headerRow: {
     flexDirection: "row",

@@ -9,10 +9,7 @@ import {
   createDefaultForumFilters,
   normalizeForumProfile,
 } from "./forumModel";
-import {
-  parseGeneratedTrainingPlan,
-  sanitizeTrainingPlanForQuestionnaire,
-} from "../utils/trainingPlan.js";
+import { parseGeneratedTrainingPlan } from "../utils/trainingPlan.js";
 import { normalizeTrainingPerformanceState } from "../utils/trainingPerformance.js";
 import { normalizeStrengthAssessmentState } from "../utils/strengthAssessment.js";
 import { normalizeTrainingCheckInState } from "../utils/trainingCheckIn.js";
@@ -46,10 +43,6 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       try {
         model.trainingPlan = parseGeneratedTrainingPlan(
           persistedData.trainingPlan
-        );
-        model.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
-          model.trainingPlan,
-          model.questionnaire
         );
       } catch (error) {
         console.warn(

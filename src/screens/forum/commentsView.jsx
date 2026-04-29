@@ -16,18 +16,10 @@ export default function CommentsView({
   comments = [],
   commentValue = "",
   commentError = null,
-  activeReplyCommentId = null,
-  replyValue = "",
-  replyError = null,
   currentUserPhotoUrl = "",
   isSubmittingComment = false,
-  isSubmittingReply = false,
   onChangeCommentText,
   onCreateComment,
-  onPressReply,
-  onChangeReplyText,
-  onCreateReply,
-  onCancelReply,
 }) {
   const avatarSource =
     currentUserPhotoUrl ?
@@ -72,19 +64,7 @@ export default function CommentsView({
             showsVerticalScrollIndicator={false}
           >
             {comments.map((comment) => (
-              <Comment
-                key={comment.id}
-                comment={comment}
-                activeReplyCommentId={activeReplyCommentId}
-                replyValue={replyValue}
-                replyError={replyError}
-                currentUserPhotoUrl={currentUserPhotoUrl}
-                isSubmittingReply={isSubmittingReply}
-                onPressReply={onPressReply}
-                onChangeReplyText={onChangeReplyText}
-                onCreateReply={onCreateReply}
-                onCancelReply={onCancelReply}
-              />
+              <Comment key={comment.id} comment={comment} />
             ))}
           </ScrollView>
         </View>
