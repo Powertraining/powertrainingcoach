@@ -17,6 +17,37 @@ export const COMBAT_TRAINING_INTENSITY_OPTIONS = Object.freeze([
   { label: "Intense", value: "intense" },
 ]);
 
+export const SPORT_LOAD_LEVEL_OPTIONS = Object.freeze([
+  {
+    label: "1 - Low",
+    value: 1,
+    multiplier: 1,
+    shortDescription: "Technical or easy sport week.",
+    description: "Lightest sport week, so strength volume can stay fully on plan.",
+  },
+  {
+    label: "2 - Normal",
+    value: 2,
+    multiplier: 0.9,
+    shortDescription: "Normal productive sport week.",
+    description: "Slightly trim strength volume when sport practice is normal but meaningful.",
+  },
+  {
+    label: "3 - High",
+    value: 3,
+    multiplier: 0.7,
+    shortDescription: "Hard sport week.",
+    description: "Cut strength volume clearly, especially accessories and back-off work.",
+  },
+  {
+    label: "4 - Peak",
+    value: 4,
+    multiplier: 0.5,
+    shortDescription: "Peak or fight-like sport week.",
+    description: "Use a minimum-effective-dose strength week: keep intensity exposure, cut volume hard.",
+  },
+]);
+
 export const LIFT_INTENSITY_METHOD_OPTIONS = Object.freeze([
   {
     label: "% logic",
@@ -94,14 +125,37 @@ export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   trainingPhase: "off_camp",
   competitionTimeline: "",
   combatTrainingIntensity: "moderate",
-  liftIntensityMethod: null,
-  percentageReferenceMethod: null,
+  sportLoadLevel: 2,
+  liftIntensityMethod: "percentage",
+  percentageReferenceMethod: "heavy_single",
   deloadStrategy: "maintain_intensity_reduce_volume",
   loadingStrategy: "flat_loading",
 });
 
 function isAllowedValue(value, options) {
   return options.some((option) => option.value === value);
+}
+
+export function normalizeSportLoadLevel(value) {
+  const parsedValue =
+    typeof value === "number" ? value : Number.parseInt(value, 10);
+
+  return isAllowedValue(parsedValue, SPORT_LOAD_LEVEL_OPTIONS)
+    ? parsedValue
+    : APP_LOGIC_SETTINGS_DEFAULTS.sportLoadLevel;
+}
+
+export function getSportLoadLevelOption(value) {
+  const normalizedValue = normalizeSportLoadLevel(value);
+
+  return (
+    SPORT_LOAD_LEVEL_OPTIONS.find((option) => option.value === normalizedValue) ||
+    SPORT_LOAD_LEVEL_OPTIONS[1]
+  );
+}
+
+export function getSportLoadMultiplier(value) {
+  return getSportLoadLevelOption(value).multiplier;
 }
 
 function mapLegacyCompetitionPeriodToTrainingPhase(competitionPeriod) {
@@ -140,6 +194,7 @@ function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = fal
     )
       ? safeSource.combatTrainingIntensity
       : APP_LOGIC_SETTINGS_DEFAULTS.combatTrainingIntensity,
+    sportLoadLevel: normalizeSportLoadLevel(safeSource.sportLoadLevel),
     liftIntensityMethod: isAllowedValue(
       safeSource.liftIntensityMethod,
       LIFT_INTENSITY_METHOD_OPTIONS
@@ -209,6 +264,7 @@ export function areAppLogicSettingsEqual(left, right) {
     normalizedLeft.competitionTimeline === normalizedRight.competitionTimeline &&
     normalizedLeft.combatTrainingIntensity ===
       normalizedRight.combatTrainingIntensity &&
+    normalizedLeft.sportLoadLevel === normalizedRight.sportLoadLevel &&
     normalizedLeft.liftIntensityMethod ===
       normalizedRight.liftIntensityMethod &&
     normalizedLeft.percentageReferenceMethod ===
