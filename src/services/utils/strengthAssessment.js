@@ -12,6 +12,17 @@ const DEFAULT_STRENGTH_ASSESSMENT_METHOD =
   STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE;
 const DEFAULT_TRAINING_MAX_BUFFER = 0.975;
 const RECENT_ASSESSMENT_LIMIT = 8;
+const CLOSE_GRIP_BENCH_PRESS_REFERENCE_FACTOR = 0.95;
+const BENCH_PRESS_LIFT_KEYS = Object.freeze([
+  "bench_press",
+  "barbell_bench_press",
+]);
+const CLOSE_GRIP_BENCH_PRESS_LIFT_KEYS = Object.freeze([
+  "close_grip_bench_press",
+  "close_grip_bench",
+  "narrow_grip_bench_press",
+  "narrow_grip_bench",
+]);
 
 function normalizeString(value, fallback = "") {
   if (typeof value !== "string") {
@@ -322,6 +333,49 @@ export function getStrengthAssessmentReferenceOneRepMaxKg(entry = {}) {
   return trainingMaxKg ?
     roundToTenth(trainingMaxKg / DEFAULT_TRAINING_MAX_BUFFER) :
     null;
+}
+
+export function resolveStrengthAssessmentReferenceOneRepMaxKg(
+  liftName = "",
+  referenceOneRepMaxByLift = {}
+) {
+  const liftKey = getStrengthAssessmentLiftKey(liftName, "");
+  const directReference = parsePositiveNumber(referenceOneRepMaxByLift?.[liftKey]);
+
+  if (directReference) {
+    return {
+      oneRepMaxKg: roundToTenth(directReference),
+      source: "direct",
+      sourceLiftName: liftName,
+      estimateFactor: null,
+    };
+  }
+
+  if (CLOSE_GRIP_BENCH_PRESS_LIFT_KEYS.includes(liftKey)) {
+    for (const benchLiftKey of BENCH_PRESS_LIFT_KEYS) {
+      const benchReference = parsePositiveNumber(
+        referenceOneRepMaxByLift?.[benchLiftKey]
+      );
+
+      if (benchReference) {
+        return {
+          oneRepMaxKg: roundToTenth(
+            benchReference * CLOSE_GRIP_BENCH_PRESS_REFERENCE_FACTOR
+          ),
+          source: "estimated_from_bench_press",
+          sourceLiftName: "Bench Press",
+          estimateFactor: CLOSE_GRIP_BENCH_PRESS_REFERENCE_FACTOR,
+        };
+      }
+    }
+  }
+
+  return {
+    oneRepMaxKg: null,
+    source: "",
+    sourceLiftName: "",
+    estimateFactor: null,
+  };
 }
 
 export function createDefaultStrengthAssessmentState() {
