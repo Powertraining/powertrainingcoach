@@ -142,12 +142,20 @@ function isAllowedValue(value, options) {
   return options.some((option) => option.value === value);
 }
 
-function parseDaysPerWeek(value) {
+function parsePositiveInteger(value) {
   const parsedValue = Number.parseInt(value, 10);
 
-  return Number.isFinite(parsedValue) && parsedValue > 0
-    ? parsedValue
-    : TRAINING_PREFERENCES_DEFAULTS.daysPerWeek;
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function parseDaysPerWeek(source = {}) {
+  const safeSource = source && typeof source === "object" ? source : {};
+
+  return (
+    parsePositiveInteger(safeSource.daysPerWeek) ??
+    parsePositiveInteger(safeSource.sessionsPerWeek) ??
+    TRAINING_PREFERENCES_DEFAULTS.daysPerWeek
+  );
 }
 
 function getTrainingCapabilityKeys() {
@@ -343,7 +351,7 @@ function normalizePreferredWeekdays(source = {}, daysPerWeek) {
 
 export function getTrainingPreferencesFormState(source = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
-  const daysPerWeek = parseDaysPerWeek(safeSource.daysPerWeek);
+  const daysPerWeek = parseDaysPerWeek(safeSource);
   const desiredTraining = normalizeDesiredTraining(safeSource);
   const eventPreparation = normalizeEventPreparation(safeSource);
   const sessionDuration = normalizeSessionDuration(safeSource);
@@ -376,7 +384,7 @@ export function getTrainingPreferencesFormState(source = {}) {
 
 export function normalizeTrainingPreferences(source = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
-  const daysPerWeek = parseDaysPerWeek(safeSource.daysPerWeek);
+  const daysPerWeek = parseDaysPerWeek(safeSource);
   const desiredTraining = normalizeDesiredTraining(safeSource);
   const eventPreparation = normalizeEventPreparation(safeSource);
   const equipment = normalizeEquipment(safeSource);

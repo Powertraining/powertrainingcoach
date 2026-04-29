@@ -120,9 +120,7 @@ export default function InputFormView({
             <QuestionnaireBottomActionButton
                 layout={activeConfidenceKey ? "single" : "stacked"}
                 canContinue={activeConfidenceKey ? confidenceStepSelected : undefined}
-                text={activeStep >= sectionCount - 1
-                    ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
-                    : "Continue"}
+                text="Continue"
                 onContinue={handleContinue}
                 onBack={handleStepBack}
             />
