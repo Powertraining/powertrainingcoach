@@ -9,12 +9,17 @@ export default function PreferenceOptionButton({
   imageSource,
   imageStyle,
   mediaText,
+  buttonStyle,
+  mediaTextStyle,
+  labelStyle,
+  children,
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
       style={[
         styles.button,
+        buttonStyle,
         isSelected ? styles.buttonSelected : null,
       ]}
     >
@@ -26,7 +31,7 @@ export default function PreferenceOptionButton({
         />
       ) : mediaText ? (
         <StandardText
-          style={styles.mediaText}
+          style={[styles.mediaText, mediaTextStyle]}
           textColor={isSelected ? "#000000" : "#ffffff"}
           center
         >
@@ -35,12 +40,13 @@ export default function PreferenceOptionButton({
       ) : null}
       <StandardText
         fontSize={14}
-        style={styles.label}
+        style={[styles.label, labelStyle]}
         textColor={isSelected ? "#000000" : "#ffffff"}
         center
       >
         {label}
       </StandardText>
+      {children}
     </TouchableOpacity>
   );
 }
