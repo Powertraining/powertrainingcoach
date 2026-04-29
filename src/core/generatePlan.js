@@ -10,7 +10,6 @@ import {
     buildMissedSessionAdjustmentPrompt,
     buildTrainingPrompt,
 } from "../services/utils/promptBuilder.js";
-import { getLiveInstructions } from "../services/models/dbService.js";
 import {
     normalizeTrainingDay,
     parseGeneratedTrainingPlan,
@@ -37,58 +36,14 @@ async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLA
     });
 }
 
-async function getLiveInstructionContext() {
-    try {
-        return await getLiveInstructions();
-    } catch (error) {
-        console.error("Critical: Failed to fetch live instructions.", error);
-        throw new Error("Service temporarily unavailable. Could not load coaching instructions.");
-    }
-}
-
-function getInstructionImageMessage(liveInstructions = null, purpose = "plan") {
-    const instructionImageParts = Array.isArray(liveInstructions?.__images)
-        ? liveInstructions.__images
-            .filter((image) => image?.url)
-            .map((image) => ({
-                type: "image_url",
-                image_url: { url: image.url }
-            }))
-        : [];
-
-    if (instructionImageParts.length === 0) {
-        return null;
-    }
-
-    return {
-        role: "user",
-        content: [
-            {
-                type: "text",
-                text:
-                    purpose === "missed_session"
-                        ? "Use the attached instruction reference images while rewriting the rescue or re-entry session."
-                        : "Use the attached instruction reference images as part of the coaching rules for this plan."
-            },
-            ...instructionImageParts
-        ]
-    };
-}
-
 export async function generatePlan(userInput, oldPlan = null) {
-    const liveInstructions = await getLiveInstructionContext();
-    const prompt = buildTrainingPrompt(userInput, oldPlan, liveInstructions);
+    const prompt = buildTrainingPrompt(userInput, oldPlan);
     const messages = [
         {
             role: "system",
             content: prompt
         }
     ];
-
-    const instructionImageMessage = getInstructionImageMessage(liveInstructions, "plan");
-    if (instructionImageMessage) {
-        messages.push(instructionImageMessage);
-    }
 
     return getTrainingCallableResponse(
         messages,
@@ -97,22 +52,13 @@ export async function generatePlan(userInput, oldPlan = null) {
 }
 
 export async function adjustTrainingDayForMissedSession(adjustmentInput = {}) {
-    const liveInstructions = await getLiveInstructionContext();
-    const prompt = buildMissedSessionAdjustmentPrompt(adjustmentInput, liveInstructions);
+    const prompt = buildMissedSessionAdjustmentPrompt(adjustmentInput);
     const messages = [
         {
             role: "system",
             content: prompt
         }
     ];
-    const instructionImageMessage = getInstructionImageMessage(
-        liveInstructions,
-        "missed_session"
-    );
-
-    if (instructionImageMessage) {
-        messages.push(instructionImageMessage);
-    }
 
     return getTrainingCallableResponse(
         messages,

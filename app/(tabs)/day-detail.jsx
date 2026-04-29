@@ -151,6 +151,8 @@ const DayDetailScreen = observer(function DayDetailScreen() {
       model.completedDays = Array.from(currentCompleted);
     }
 
+    model.updateSportLoadAfterWeekCompletion?.(selectedDay.week);
+
     const remaining = Math.max(totalDays - currentCompleted.size, 0);
     console.log("Days remaining in batch:", remaining);
 
