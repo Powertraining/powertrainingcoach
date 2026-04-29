@@ -33,6 +33,7 @@ export default function TrainingPreferencesEquipmentView({
         return (
           <PreferenceOptionButton
             key={option.value}
+            pressedColorvalue="#C9B259"
             onPress={() => {
               setIsSelectionCleared(isSelected);
               onChange?.(isSelected ? null : option.value);

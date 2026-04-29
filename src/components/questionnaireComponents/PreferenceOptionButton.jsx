@@ -13,6 +13,7 @@ export default function PreferenceOptionButton({
   mediaTextStyle,
   labelStyle,
   children,
+  pressedColorvalue = "#ffffff",
 }) {
   return (
     <TouchableOpacity
@@ -20,7 +21,7 @@ export default function PreferenceOptionButton({
       style={[
         styles.button,
         buttonStyle,
-        isSelected ? styles.buttonSelected : null,
+        { backgroundColor: isSelected ? pressedColorvalue : null },
       ]}
     >
       {imageSource ? (
@@ -64,9 +65,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "relative",
     width: "75%",
-  },
-  buttonSelected: {
-    backgroundColor: "#ffffff",
   },
   image: {
     height: 42,
