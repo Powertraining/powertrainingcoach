@@ -20,7 +20,6 @@ import {
 import {
   createForumComment as persistForumComment,
   createForumPost as persistForumPost,
-  createForumReply as persistForumReply,
   getForumComments,
   getForumPost,
   getForumPosts,
@@ -29,22 +28,17 @@ import {
   saveFeedback,
 } from "./dbService.js";
 import {
-  appendForumReply,
   applyForumFilters,
   buildForumCommentPayload,
   buildForumPostPayload,
   createDefaultForumComposer,
   createDefaultForumFilters,
   createDefaultForumProfile,
-  findForumCommentNode,
-  flattenForumComments,
-  MAX_FORUM_COMMENT_REPLY_DEPTH,
   normalizeForumComment,
   normalizeForumPost,
   normalizeForumProfile,
 } from "./forumModel.js";
 import {
-  getSportLoadMultiplier,
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
 import {
@@ -54,18 +48,12 @@ import {
 } from "../../constants/trainingPreferences.js";
 import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
 import {
-  applySportLoadLevelToPlanWeek,
-  deriveSportLoadLevelFromCompletedWeek,
-  isTrainingWeekCompleted,
-} from "../utils/sportLoad.js";
-import {
   applyMissedSessionAdjustment,
   countTrackableTrainingDays,
   getCurrentTrainingDay,
   getTrainingDayPreferredWeekday,
   replaceTrainingPlanDay,
   replaceTrainingPlanExercise,
-  sanitizeTrainingPlanForQuestionnaire,
 } from "../utils/trainingPlan.js";
 import {
   createDefaultStrengthAssessmentState,
@@ -430,18 +418,6 @@ export const model = {
     return prms;
   },
 
-  getForumCommentNode(commentId) {
-    if (!commentId) {
-      return null;
-    }
-
-    return findForumCommentNode(this.forumComments, commentId);
-  },
-
-  getFlattenedForumComments() {
-    return flattenForumComments(this.forumComments);
-  },
-
   async loadForumPostThread(postId, options = {}) {
     const [post, comments] = await Promise.all([
       this.loadForumPost(postId),
@@ -507,58 +483,6 @@ export const model = {
     }));
 
     return normalizedComment;
-  },
-
-  async addForumReply(postId, parentCommentId, body) {
-    const parentNode = this.getForumCommentNode(parentCommentId);
-
-    if (!parentNode?.comment) {
-      throw new Error("Could not find the comment you are replying to.");
-    }
-
-    const parentCommentDepth = Number(parentNode.comment.depth) || 0;
-
-    if (parentCommentDepth >= MAX_FORUM_COMMENT_REPLY_DEPTH) {
-      throw new Error(
-        `Replies cannot go deeper than ${MAX_FORUM_COMMENT_REPLY_DEPTH} levels.`
-      );
-    }
-
-    const authorMeta = await this.getForumAuthorMeta();
-    const payload = buildForumCommentPayload({
-      body,
-      author: this.user,
-      authorRole: authorMeta.role,
-      isCoachVerified: authorMeta.isCoachVerified,
-    });
-    const result = await persistForumReply(postId, payload, {
-      parentCommentId: parentNode.comment.id,
-      rootCommentId:
-        parentNode.comment.rootCommentId || parentNode.comment.id,
-      depth: parentCommentDepth + 1,
-      parentPathSegments: parentNode.pathSegments,
-    });
-
-    if (!result.success || !result.data) {
-      throw result.error || new Error("Could not create the forum reply.");
-    }
-
-    const normalizedReply = normalizeForumComment(
-      result.data,
-      parentCommentDepth + 1
-    );
-    this.forumComments = appendForumReply(
-      this.forumComments,
-      parentCommentId,
-      normalizedReply
-    );
-    this.patchForumPostState(postId, (post) => ({
-      commentsCount: (post.commentsCount || 0) + 1,
-      coachResponseStatus:
-        normalizedReply.isCoachVerified ? "responded" : post.coachResponseStatus,
-    }));
-
-    return normalizedReply;
   },
 
   async toggleForumPostLike(postId) {
@@ -635,13 +559,6 @@ export const model = {
 
   setQuestionnaire(questionnaire = {}) {
     this.questionnaire = mergeTrainingPreferences({}, questionnaire);
-
-    if (this.trainingPlan) {
-      this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
-        this.trainingPlan,
-        this.questionnaire
-      );
-    }
   },
 
   getStrengthAssessmentSessionKey(weekNumber, dayNumber) {
@@ -802,10 +719,7 @@ export const model = {
       action: normalizedAction,
     });
 
-    this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
-      adjustmentResult.plan,
-      this.questionnaire
-    );
+    this.trainingPlan = adjustmentResult.plan;
 
     if (normalizedAction?.type === "change_scheme" && normalizedAction?.targetLoadingStrategy) {
       this.setQuestionnaire?.(
@@ -901,79 +815,6 @@ export const model = {
     return this.strengthAssessmentState;
   },
 
-  applySportLoadSettingToFollowingWeek() {
-    if (!this.trainingPlan) {
-      return null;
-    }
-
-    const currentWeekNumber =
-      this.getCurrentTrainingDay?.(this.completedDays)?.week ||
-      this.trainingPlan?.weeks?.[0]?.week ||
-      1;
-    const nextWeekNumber = currentWeekNumber + 1;
-
-    if (!this.trainingPlan.weeks?.some((week) => week.week === nextWeekNumber)) {
-      return this.trainingPlan;
-    }
-
-    this.trainingPlan = applySportLoadLevelToPlanWeek(
-      this.trainingPlan,
-      nextWeekNumber,
-      this.questionnaire?.sportLoadLevel,
-      {
-        completedDays: this.completedDays,
-        skipCompletedDays: false,
-      }
-    );
-
-    return this.trainingPlan;
-  },
-
-  updateSportLoadAfterWeekCompletion(weekNumber) {
-    if (
-      !this.trainingPlan ||
-      !isTrainingWeekCompleted({
-        plan: this.trainingPlan,
-        weekNumber,
-        completedDays: this.completedDays,
-      })
-    ) {
-      return null;
-    }
-
-    const derivedSportLoadLevel = deriveSportLoadLevelFromCompletedWeek({
-      plan: this.trainingPlan,
-      weekNumber,
-      completedDays: this.completedDays,
-      sessionsPerWeek: this.sessionsPerWeek,
-    });
-
-    if (!derivedSportLoadLevel) {
-      return null;
-    }
-
-    this.setQuestionnaire?.(
-      mergeTrainingPreferences(this.questionnaire, {
-        sportLoadLevel: derivedSportLoadLevel,
-      })
-    );
-
-    this.trainingPlan = applySportLoadLevelToPlanWeek(
-      this.trainingPlan,
-      weekNumber + 1,
-      derivedSportLoadLevel,
-      {
-        completedDays: this.completedDays,
-        skipCompletedDays: false,
-      }
-    );
-
-    return {
-      sportLoadLevel: derivedSportLoadLevel,
-      nextWeekNumber: weekNumber + 1,
-    };
-  },
-
   buildTrainingPlanInput(questionnaire = this.questionnaire) {
     const source =
       questionnaire && typeof questionnaire === "object" ? questionnaire : {};
@@ -1024,9 +865,6 @@ export const model = {
     return {
       ...trainingPlanSource,
       ...normalizedAppLogicSettings,
-      sportLoadMultiplier: getSportLoadMultiplier(
-        normalizedAppLogicSettings.sportLoadLevel
-      ),
       primaryCombatSport: source.primaryCombatSport || this.primaryCombatSport || "",
       sessionsPerWeek:
         Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
@@ -1072,22 +910,11 @@ export const model = {
 
     const prms = generatePlan(userInput).then((plan) => {
       if (this.trainingPlanPromiseState.promise === prms) {
-        this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
-          applySportLoadLevelToPlanWeek(
-            plan,
-            1,
-            userInput?.sportLoadLevel,
-            {
-              completedDays: [],
-              skipCompletedDays: false,
-            }
-          ),
-          userInput
-        );
+        this.trainingPlan = plan;
         this.completedDays = [];
       }
 
-      return this.trainingPlanPromiseState.promise === prms ? this.trainingPlan : plan;
+      return plan;
     });
 
     resolvePromise(prms, this.trainingPlanPromiseState);
@@ -1172,15 +999,12 @@ export const model = {
       }
     }
 
-    this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
-      nextPlan,
-      questionnaire
-    );
+    this.trainingPlan = nextPlan;
     this.completedDays = nextCompletedDays;
 
     return {
       action: adjustment.action || "skip_session",
-      plan: this.trainingPlan,
+      plan: nextPlan,
       completedDays: nextCompletedDays,
     };
   },
