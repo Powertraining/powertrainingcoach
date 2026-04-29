@@ -1,12 +1,15 @@
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 
-import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../constants/combatSports.js";
 import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
 
-const SESSION_FREQUENCY_OPTIONS = Object.freeze([1, 2, 3, 4, 5]);
-
 export function MyProfileView(props) {
+  const preferredWeekdaySummary = Array.isArray(props.trainingPreferences?.preferredWeekdays)
+    ? props.trainingPreferences.preferredWeekdays
+        .map((weekday, index) => (weekday ? `Day ${index + 1} - ${weekday}` : ""))
+        .filter(Boolean)
+        .join(" • ")
+    : "";
+
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.card}>
@@ -56,52 +59,43 @@ export function MyProfileView(props) {
           <Text style={styles.subscriptionLabel}>Subscription</Text>
           <Text style={styles.subscriptionValue}>{props.subscriptionText}</Text>
         </View>
+
+        <View style={styles.subscriptionCard}>
+          <Text style={styles.subscriptionLabel}>Primary Sport</Text>
+          <Text style={styles.subscriptionValue}>
+            {props.primaryCombatSport || "Not selected"}
+          </Text>
+          <TouchableOpacity
+            onPress={props.onEditPrimaryCombatSport}
+            disabled={props.isSubmitting}
+            style={styles.inlineActionButton}
+          >
+            <Text style={styles.inlineActionButtonText}>Edit primary sport</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.subscriptionCard}>
+          <Text style={styles.subscriptionLabel}>Training Frequency</Text>
+          <Text style={styles.subscriptionValue}>
+            {props.sessionsPerWeek ? `${props.sessionsPerWeek} sessions per week` : "Not selected"}
+          </Text>
+          {preferredWeekdaySummary ? (
+            <Text style={styles.preferenceText}>{preferredWeekdaySummary}</Text>
+          ) : null}
+          <TouchableOpacity
+            onPress={props.onEditTrainingFrequency}
+            disabled={props.isSubmitting}
+            style={styles.inlineActionButton}
+          >
+            <Text style={styles.inlineActionButtonText}>Edit training frequency</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Training Preferences</Text>
-        <Text style={styles.pageDescription}>
-          These values are saved to your profile and used when the app builds or regenerates training plans.
-        </Text>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Desired sport</Text>
-          <Picker
-            selectedValue={props.primaryCombatSport || ""}
-            onValueChange={(value) => props.onPrimaryCombatSportChange?.(value)}
-            enabled={!props.isSubmitting}
-            style={styles.input}
-          >
-            <Picker.Item label="Select sport" value="" />
-            {PRIMARY_COMBAT_SPORT_OPTIONS.map((option) => (
-              <Picker.Item
-                key={option.value}
-                label={option.label}
-                value={option.value}
-              />
-            ))}
-          </Picker>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Number of sessions per week</Text>
-          <Picker
-            selectedValue={props.sessionsPerWeek || 3}
-            onValueChange={(value) => props.onSessionsPerWeekChange?.(value)}
-            enabled={!props.isSubmitting}
-            style={styles.input}
-          >
-            {SESSION_FREQUENCY_OPTIONS.map((value) => (
-              <Picker.Item
-                key={value}
-                label={`${value} ${value === 1 ? "session" : "sessions"} per week`}
-                value={value}
-              />
-            ))}
-          </Picker>
-        </View>
-
         <TrainingPreferencesFields
+          title="Training Preferences"
+          description="These values are saved to your profile and used when the app builds or regenerates training plans."
           values={props.trainingPreferences}
           onChange={props.onTrainingPreferencesChange}
           appLogicTitle="App Logic Settings"
@@ -168,11 +162,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: "#475569",
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#0f172a",
-  },
   field: {
     gap: 6,
   },
@@ -212,6 +201,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: "#0f172a",
+  },
+  preferenceText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#475569",
+  },
+  inlineActionButton: {
+    marginTop: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(17,24,39,0.12)",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+  inlineActionButtonText: {
+    color: "#111827",
+    fontSize: 14,
+    fontWeight: "600",
   },
   errorText: {
     color: "#b91c1c",

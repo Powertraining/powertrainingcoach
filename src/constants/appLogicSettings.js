@@ -175,6 +175,15 @@ function mapLegacyCompetitionPeriodToTrainingPhase(competitionPeriod) {
   return APP_LOGIC_SETTINGS_DEFAULTS.trainingPhase;
 }
 
+function getNormalizedCompetencyAndLimitations(values) {
+  const rawValues = Array.isArray(values) ? values : [];
+  const selectedValues = new Set(rawValues);
+
+  return COMPETENCY_AND_LIMITATION_OPTIONS
+    .map((option) => option.value)
+    .filter((value) => selectedValues.has(value));
+}
+
 function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = false } = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
   const inferredTrainingPhase = isAllowedValue(
@@ -256,13 +265,9 @@ export function mergeAppLogicSettings(questionnaire = {}, patch = {}) {
     ...safeQuestionnaire,
     ...safePatch,
   };
-  const {
-    competencyAndLimitations: _competencyAndLimitations,
-    ...mergedWithoutDeprecatedFields
-  } = merged;
 
   return {
-    ...mergedWithoutDeprecatedFields,
+    ...merged,
     ...normalizeAppLogicSettings(merged),
   };
 }
@@ -282,6 +287,12 @@ export function areAppLogicSettingsEqual(left, right) {
     normalizedLeft.percentageReferenceMethod ===
       normalizedRight.percentageReferenceMethod &&
     normalizedLeft.deloadStrategy === normalizedRight.deloadStrategy &&
-    normalizedLeft.loadingStrategy === normalizedRight.loadingStrategy
+    normalizedLeft.loadingStrategy === normalizedRight.loadingStrategy &&
+    normalizedLeft.competencyAndLimitations.length ===
+      normalizedRight.competencyAndLimitations.length &&
+    normalizedLeft.competencyAndLimitations.every(
+      (value, index) =>
+        value === normalizedRight.competencyAndLimitations[index]
+    )
   );
 }
