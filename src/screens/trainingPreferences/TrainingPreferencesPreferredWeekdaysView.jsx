@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   section: {
     justifyContent: "center",
     paddingTop: 80,
-    paddingBottom: 60,
+    paddingBottom: 160,
   },
   field: {
     gap: 26,

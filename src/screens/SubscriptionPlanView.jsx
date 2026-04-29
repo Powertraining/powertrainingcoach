@@ -38,8 +38,8 @@ const MEMBERSHIP_BENEFITS = [
 const PLAN_LABELS = ["Expert plan", "Pro plan", "Starter plan"];
 const PLAN_PRICE_LABELS = ["2990 kr / year", "290 kr / month", "80 kr / week"];
 const PLAN_SAVINGS_LABELS = ["save 16%", "save 12 %", ""];
-const BENEFIT_ITEM_WIDTH = 88;
-const BENEFIT_ITEM_GAP = 22;
+const BENEFIT_ITEM_WIDTH = 100;
+const BENEFIT_ITEM_GAP = 26;
 const BENEFIT_ROW_WIDTH =
   MEMBERSHIP_BENEFITS.length * BENEFIT_ITEM_WIDTH +
   (MEMBERSHIP_BENEFITS.length - 1) * BENEFIT_ITEM_GAP;
@@ -329,12 +329,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 14,
+    width: BENEFIT_ROW_WIDTH,
+    gap: 10,
   },
   checkoutNoteItem: {
-    width: 88,
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    justifyContent: "center",
+    gap: 4,
   },
   checkoutNoteIcon: {
     width: 18,
@@ -342,7 +345,9 @@ const styles = StyleSheet.create({
     tintColor: "#ffffff",
   },
   checkoutNoteText: {
-    lineHeight: 15,
+    lineHeight: 18,
+    includeFontPadding: false,
+    textAlignVertical: "center",
   },
   divider: { height: 1, backgroundColor: "rgba(0,0,0,0.1)" },
 });
