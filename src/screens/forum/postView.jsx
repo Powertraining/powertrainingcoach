@@ -10,11 +10,19 @@ export default function PostView({
   comments = [],
   commentValue = "",
   commentError = null,
+  activeReplyCommentId = null,
+  replyValue = "",
+  replyError = null,
   currentUserPhotoUrl = "",
   isSubmittingComment = false,
+  isSubmittingReply = false,
   onBack,
   onChangeCommentText,
   onCreateComment,
+  onPressReply,
+  onChangeReplyText,
+  onCreateReply,
+  onCancelReply,
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
@@ -116,7 +124,19 @@ export default function PostView({
             </View>
             <View style={styles.commentsList}>
               {comments.map((comment) => (
-                <Comment key={comment.id} comment={comment} />
+                <Comment
+                  key={comment.id}
+                  comment={comment}
+                  activeReplyCommentId={activeReplyCommentId}
+                  replyValue={replyValue}
+                  replyError={replyError}
+                  currentUserPhotoUrl={currentUserPhotoUrl}
+                  isSubmittingReply={isSubmittingReply}
+                  onPressReply={onPressReply}
+                  onChangeReplyText={onChangeReplyText}
+                  onCreateReply={onCreateReply}
+                  onCancelReply={onCancelReply}
+                />
               ))}
             </View>
           </View>

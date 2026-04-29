@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 
 import { OPENAI_API_MODEL, OPENAI_API_TEMPERATURE } from "../src/services/config/apiConfig.js";
 import { buildTrainingPrompt } from "../src/services/utils/promptBuilder.js";
+import { getEmbeddedInstructionKeys } from "../src/services/utils/instructionRules.js";
 
 const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
@@ -454,22 +455,6 @@ async function writeJson(filePath, data) {
   await fs.writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
-async function listLocalInstructionFiles(instructionsDir) {
-  try {
-    const entries = await fs.readdir(instructionsDir, {withFileTypes: true});
-    return entries
-      .filter((entry) => entry.isFile())
-      .map((entry) => entry.name)
-      .sort((left, right) => left.localeCompare(right));
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return [];
-    }
-
-    throw error;
-  }
-}
-
 function toBase64Url(input) {
   return Buffer.from(input).toString("base64url");
 }
@@ -749,83 +734,13 @@ async function resolveOpenAiApiKey(options) {
   );
 }
 
-function getMimeType(fileName) {
-  if (fileName.endsWith(".png")) return "image/png";
-  if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) return "image/jpeg";
-  if (fileName.endsWith(".webp")) return "image/webp";
-  if (fileName.endsWith(".gif")) return "image/gif";
-  return "application/octet-stream";
-}
-
-async function loadLocalInstructions({instructionsDir, includeImages}) {
-  const fileNames = await listLocalInstructionFiles(instructionsDir);
-  if (fileNames.length === 0) {
-    return null;
-  }
-
-  const instructions = {};
-  const imageEntries = [];
-
-  for (const fileName of fileNames) {
-    const absolutePath = path.resolve(instructionsDir, fileName);
-
-    if (fileName.toLowerCase().endsWith(".md")) {
-      const key = fileName.replace(/\.md$/i, "");
-      instructions[key] = await fs.readFile(absolutePath, "utf8");
-      continue;
-    }
-
-    if (
-      includeImages &&
-      /\.(png|jpe?g|webp|gif)$/i.test(fileName)
-    ) {
-      const imageBuffer = await fs.readFile(absolutePath);
-      imageEntries.push({
-        name: fileName,
-        path: absolutePath,
-        url: `data:${getMimeType(fileName)};base64,${imageBuffer.toString("base64")}`,
-      });
-    }
-  }
-
-  if (imageEntries.length > 0) {
-    instructions.__images = imageEntries;
-  }
-
-  return Object.keys(instructions).length > 0 ? instructions : null;
-}
-
-function buildMessages(prompt, liveInstructions) {
-  const messages = [
+function buildMessages(prompt) {
+  return [
     {
       role: "system",
       content: prompt,
     },
   ];
-
-  const instructionImageParts = Array.isArray(liveInstructions?.__images)
-    ? liveInstructions.__images
-      .filter((image) => image?.url)
-      .map((image) => ({
-        type: "image_url",
-        image_url: {url: image.url},
-      }))
-    : [];
-
-  if (instructionImageParts.length > 0) {
-    messages.push({
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text: "Use the attached instruction reference images as part of the coaching rules for this plan.",
-        },
-        ...instructionImageParts,
-      ],
-    });
-  }
-
-  return messages;
 }
 
 async function callOpenAiChatCompletions({apiKey, model, temperature, messages}) {
@@ -948,13 +863,16 @@ async function createManifest({
   outputDir,
   scenarios,
   options,
-  liveInstructions,
   summary,
   apiKeySource = null,
 }) {
   const manifestPath = path.resolve(outputDir, "manifest.json");
-  const instructionKeys = Object.keys(liveInstructions || {}).filter(
-    (key) => key !== "__images"
+  const instructionKeys = Array.from(
+    new Set(
+      scenarios.flatMap((scenario) =>
+        getEmbeddedInstructionKeys(scenario.input, "plan")
+      )
+    )
   );
 
   await writeJson(manifestPath, {
@@ -986,13 +904,6 @@ async function createManifest({
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const scenarios = buildScenarioMatrix(options);
-  const liveInstructions =
-    options.instructionsSource === "local"
-      ? await loadLocalInstructions({
-        instructionsDir: options.instructionsDir,
-        includeImages: options.includeImages,
-      })
-      : null;
 
   await fs.mkdir(options.outputDir, {recursive: true});
 
@@ -1008,7 +919,6 @@ async function main() {
       outputDir: options.outputDir,
       scenarios,
       options,
-      liveInstructions,
       summary,
     });
 
@@ -1039,8 +949,8 @@ async function main() {
         return;
       }
 
-      const prompt = buildTrainingPrompt(scenario.input, null, liveInstructions);
-      const messages = buildMessages(prompt, liveInstructions);
+      const prompt = buildTrainingPrompt(scenario.input, null);
+      const messages = buildMessages(prompt);
       const promptSha256 = createHash("sha256").update(prompt).digest("hex");
 
       try {
@@ -1095,11 +1005,10 @@ async function main() {
     }
   );
 
-  await createManifest({
-    outputDir: options.outputDir,
+    await createManifest({
+      outputDir: options.outputDir,
       scenarios,
       options,
-      liveInstructions,
       summary,
       apiKeySource,
     });

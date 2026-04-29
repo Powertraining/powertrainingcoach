@@ -6,7 +6,10 @@ import {
   normalizePercentagePrescription,
 } from "../src/services/utils/percentagePrescription.js";
 import { buildTrainingPrompt } from "../src/services/utils/promptBuilder.js";
-import { parseGeneratedTrainingPlan } from "../src/services/utils/trainingPlan.js";
+import {
+  parseGeneratedTrainingPlan,
+  sanitizeTrainingPlanForQuestionnaire,
+} from "../src/services/utils/trainingPlan.js";
 
 test("normalizePercentagePrescription computes relative intensity from percent and reps", () => {
   const prescription = normalizePercentagePrescription({
@@ -117,4 +120,54 @@ test("training prompt instructs percentage users to emit structured percentage p
   assert.match(prompt, /percentagePrescription/);
   assert.match(prompt, /relativeIntensity/);
   assert.match(prompt, /loadingStrategy/);
+});
+
+test("RPE questionnaires strip percentage prescriptions and strength assessments from plans", () => {
+  const parsedPlan = parseGeneratedTrainingPlan({
+    summary: "Primary lift includes stray percentage metadata that should not survive on RPE.",
+    weeks: [
+      {
+        week: 1,
+        days: [
+          {
+            day: 1,
+            sessionLabel: "Day 1",
+            exercises: [
+              {
+                name: "Back Squat",
+                sets: "1 top set + 3 back-off sets",
+                reps: "1 + 3 x 5",
+                notes: "Top set @8, then back-off work.",
+                percentagePrescription: {
+                  referenceLiftName: "Back Squat",
+                  loadingStrategy: "flat_loading",
+                  workingSets: [
+                    {
+                      count: 3,
+                      reps: 5,
+                      percent1RM: 75,
+                    },
+                  ],
+                },
+                strengthAssessment: {
+                  method: "heavy_single",
+                  liftName: "Back Squat",
+                  prompt: "Log the top single.",
+                },
+                substitutionOptions: [],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  const sanitizedPlan = sanitizeTrainingPlanForQuestionnaire(parsedPlan, {
+    liftIntensityMethod: "rpe",
+  });
+  const exercise = sanitizedPlan.weeks[0].days[0].exercises[0];
+
+  assert.equal(exercise.percentagePrescription, null);
+  assert.equal(exercise.strengthAssessment, null);
 });
