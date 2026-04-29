@@ -6,18 +6,19 @@ The script covers every finite questionnaire choice that currently exists in the
 
 - 6 sports
 - 5 session-frequency values
-- 3 goals
-- 3 experience levels
-- 4 primary-style options
+- 3 desired-training options
+- 3 S&C experience levels
+- 1 default safety/confidence capability profile
+- 6 session-duration options
 - 4 competition-period options
 - 3 equipment-access options
 - 3 focus-emphasis options
 
-That produces `12,960` combinations before any free-text variants are added.
+That produces `58,320` combinations before any free-text variants are added.
 
-Free-text fields such as `weightClass` and `injuries` are not mathematically enumerable, so the simulation uses:
+Free-text fields such as `eventPreparation` and `injuries` are not mathematically enumerable, so the simulation uses:
 
-- a sport-specific default `weightClass`
+- an empty `eventPreparation` string
 - an empty `injuries` array
 - `daysPerWeek = sessionsPerWeek` to stay aligned with the current onboarding flow
 

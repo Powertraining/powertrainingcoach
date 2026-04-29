@@ -23,6 +23,21 @@ const PROFILE_EDIT_MODES = Object.freeze({
   FREQUENCY: "frequency",
 });
 
+function getProfileTrainingPreferencesSource(questionnaire = {}, sessionsPerWeek = 3) {
+  const safeQuestionnaire =
+    questionnaire && typeof questionnaire === "object" ? questionnaire : {};
+  const parsedSessionsPerWeek = Number.parseInt(sessionsPerWeek, 10);
+  const normalizedSessionsPerWeek =
+    Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
+      parsedSessionsPerWeek :
+      3;
+
+  return {
+    ...safeQuestionnaire,
+    daysPerWeek: normalizedSessionsPerWeek,
+  };
+}
+
 const ProfileScreen = observer(function ProfileScreen() {
   const model = reactiveModel;
   const router = useRouter();
@@ -42,7 +57,12 @@ const ProfileScreen = observer(function ProfileScreen() {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [trainingPreferences, setTrainingPreferences] = useState(
-    getTrainingPreferencesFormState(model.questionnaire || {})
+    getTrainingPreferencesFormState(
+      getProfileTrainingPreferencesSource(
+        model.questionnaire,
+        model.sessionsPerWeek
+      )
+    )
   );
   const [primaryCombatSport, setPrimaryCombatSport] = useState(
     model.primaryCombatSport || ""
@@ -56,7 +76,14 @@ const ProfileScreen = observer(function ProfileScreen() {
       setUsername(user.displayName || "");
       setEmail(user.email || "");
       setPassword("");
-      setTrainingPreferences(getTrainingPreferencesFormState(model.questionnaire || {}));
+      setTrainingPreferences(
+        getTrainingPreferencesFormState(
+          getProfileTrainingPreferencesSource(
+            model.questionnaire,
+            model.sessionsPerWeek
+          )
+        )
+      );
       setPrimaryCombatSport(model.primaryCombatSport || "");
       setSessionsPerWeek(model.sessionsPerWeek || 3);
       setEditMode(PROFILE_EDIT_MODES.MAIN);
@@ -66,9 +93,14 @@ const ProfileScreen = observer(function ProfileScreen() {
 
   const persistedTrainingPreferences = useMemo(
     function persistedTrainingPreferencesACB() {
-      return normalizeTrainingPreferences(model.questionnaire || {});
+      return normalizeTrainingPreferences(
+        getProfileTrainingPreferencesSource(
+          model.questionnaire,
+          model.sessionsPerWeek
+        )
+      );
     },
-    [model.questionnaire]
+    [model.questionnaire, model.sessionsPerWeek]
   );
 
   const subscriptionText = useMemo(
@@ -152,10 +184,26 @@ const ProfileScreen = observer(function ProfileScreen() {
     return (
       <QuestionnaireFrequencyView
         value={sessionsPerWeek}
-        onChange={setSessionsPerWeek}
+        onChange={handleSessionsPerWeekChange}
         onBack={() => setEditMode(PROFILE_EDIT_MODES.MAIN)}
         onContinue={() => setEditMode(PROFILE_EDIT_MODES.MAIN)}
       />
+    );
+  }
+
+  function handleSessionsPerWeekChange(value) {
+    const nextSessionsPerWeek = Number.parseInt(value, 10);
+    const normalizedSessionsPerWeek =
+      Number.isFinite(nextSessionsPerWeek) && nextSessionsPerWeek > 0 ?
+        nextSessionsPerWeek :
+        3;
+
+    setSessionsPerWeek(normalizedSessionsPerWeek);
+    setTrainingPreferences((currentPreferences) =>
+      getTrainingPreferencesFormState({
+        ...currentPreferences,
+        daysPerWeek: normalizedSessionsPerWeek,
+      })
     );
   }
 
@@ -175,6 +223,7 @@ const ProfileScreen = observer(function ProfileScreen() {
           ...trainingPreferences,
           primaryCombatSport,
           sessionsPerWeek,
+          daysPerWeek: sessionsPerWeek,
         }
       );
       model.primaryCombatSport = primaryCombatSport;
@@ -194,7 +243,14 @@ const ProfileScreen = observer(function ProfileScreen() {
     setError(null);
     setUsername(user.displayName || "");
     setPassword("");
-    setTrainingPreferences(getTrainingPreferencesFormState(model.questionnaire || {}));
+    setTrainingPreferences(
+      getTrainingPreferencesFormState(
+        getProfileTrainingPreferencesSource(
+          model.questionnaire,
+          model.sessionsPerWeek
+        )
+      )
+    );
     setPrimaryCombatSport(model.primaryCombatSport || "");
     setSessionsPerWeek(model.sessionsPerWeek || 3);
     setEditMode(PROFILE_EDIT_MODES.MAIN);
@@ -242,6 +298,8 @@ const ProfileScreen = observer(function ProfileScreen() {
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
         onTrainingPreferencesChange={setTrainingPreferences}
+        onPrimaryCombatSportChange={(sport) => setPrimaryCombatSport(sport || "")}
+        onSessionsPerWeekChange={handleSessionsPerWeekChange}
         onEditPrimaryCombatSport={() => setEditMode(PROFILE_EDIT_MODES.SPORT)}
         onEditTrainingFrequency={() => setEditMode(PROFILE_EDIT_MODES.FREQUENCY)}
         onSave={saveACB}
