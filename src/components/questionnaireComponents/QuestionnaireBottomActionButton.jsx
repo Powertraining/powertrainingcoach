@@ -1,24 +1,15 @@
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 
-export default function QuestionnaireBottomActionButton({
-    text = "continue",
-    canContinue,
-    onContinue,
-    onBack,
-    layout = "single",
-    showContinue = true,
-}) {
+export default function QuestionnaireBottomActionButton({ text = "continue", canContinue, onContinue, onBack, layout = "single" }) {
     if (layout === "stacked") {
         return (
             <View style={styles.stackedContainer}>
                 <TouchableOpacity onPress={onBack} style={styles.stackedBackButton}>
                     <Text style={[styles.buttonText, styles.bottomBackButtonText]}>Back</Text>
                 </TouchableOpacity>
-                {showContinue ? (
-                    <TouchableOpacity onPress={onContinue} style={styles.stackedContinueButton}>
-                        <Text style={styles.buttonText}>{text}</Text>
-                    </TouchableOpacity>
-                ) : null}
+                <TouchableOpacity onPress={onContinue} style={styles.stackedContinueButton}>
+                    <Text style={styles.buttonText}>{text}</Text>
+                </TouchableOpacity>
             </View>
         );
     }

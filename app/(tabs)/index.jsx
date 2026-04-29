@@ -136,21 +136,10 @@ const HomeScreen = observer(function HomeScreen() {
   }
 
   function buildQuestionnairePayload(input, pendingPlanGeneration) {
-    const parsedSessionsPerWeek = Number.parseInt(model.sessionsPerWeek, 10);
-    const sessionsPerWeek =
-      Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0
-        ? parsedSessionsPerWeek
-        : 3;
-
     return {
       ...input,
       primaryCombatSport: model.primaryCombatSport,
-      sessionsPerWeek,
-      daysPerWeek: sessionsPerWeek,
-      preferredWeekdays: Array.from(
-        { length: sessionsPerWeek },
-        (_, index) => input.preferredWeekdays?.[index] || ""
-      ),
+      sessionsPerWeek: model.sessionsPerWeek,
       trainingPlanBatch: model.getTrainingPlanBatch?.() || 1,
       pendingPlanGeneration,
     };
@@ -252,11 +241,7 @@ const HomeScreen = observer(function HomeScreen() {
       <InputFormView
         onSubmit={handleQuestionnaireSubmit}
         onBack={goBack}
-        initialValues={{
-          ...(model.questionnaire || {}),
-          sessionsPerWeek: model.sessionsPerWeek || 3,
-          daysPerWeek: model.sessionsPerWeek || 3,
-        }}
+        initialValues={model.questionnaire || {}}
         subscription={model.isSubscribed?.() || false}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
       />

@@ -38,45 +38,9 @@ const SPORT_OPTIONS = Object.freeze([
 ]);
 
 const SESSIONS_PER_WEEK_OPTIONS = Object.freeze([1, 2, 3, 4, 5]);
+const GOAL_OPTIONS = Object.freeze(["hypertrophy", "strength", "power"]);
 const EXPERIENCE_OPTIONS = Object.freeze(["beginner", "intermediate", "advanced"]);
-const DESIRED_TRAINING_OPTIONS = Object.freeze([
-  "strength_power",
-  "endurance",
-  "strength_power_endurance",
-]);
-const DEFAULT_TRAINING_CAPABILITIES = Object.freeze({
-  compoundLifts: "somewhat",
-  singleLegLifts: "somewhat",
-  pullingWork: "somewhat",
-  olympicLiftVariations: "somewhat",
-  plyometrics: "somewhat",
-  ballisticTraining: "somewhat",
-  runningSprinting: "somewhat",
-  bikeRowerAssaultBike: "somewhat",
-  circuitTraining: "somewhat",
-  heavyBag: "somewhat",
-});
-const LEGACY_GOAL_BY_DESIRED_TRAINING = Object.freeze({
-  strength_power: "power",
-  endurance: "conditioning",
-  strength_power_endurance: "general",
-});
-const SESSION_DURATION_OPTIONS = Object.freeze([
-  "30_min",
-  "45_min",
-  "60_min",
-  "75_min",
-  "90_min",
-  "no_time_limit",
-]);
-const SESSION_DURATION_MINUTES = Object.freeze({
-  "30_min": 30,
-  "45_min": 45,
-  "60_min": 60,
-  "75_min": 75,
-  "90_min": 90,
-  no_time_limit: null,
-});
+const PRIMARY_STYLE_OPTIONS = Object.freeze(["balanced", "striking", "grappling", "clinching"]);
 const COMPETITION_PERIOD_OPTIONS = Object.freeze([
   "off_season",
   "pre_season",
@@ -89,6 +53,15 @@ const FOCUS_EMPHASIS_OPTIONS = Object.freeze([
   "more_sparring",
   "more_conditioning",
 ]);
+
+const DEFAULT_SPORT_WEIGHT_CLASS = Object.freeze({
+  Boxing: "Lightweight",
+  Wrestling: "74 kg",
+  BJJ: "Medium Heavy",
+  "Muay Thai / Kickboxing": "70 kg",
+  Judo: "-81 kg",
+  MMA: "Featherweight",
+});
 
 const DEFAULT_OPTIONS = Object.freeze({
   outputDir: path.resolve(projectRoot, "test/trainingPlans"),
@@ -326,9 +299,9 @@ function toPosixRelativePath(filePath) {
 function buildScenarioInput({
   primaryCombatSport,
   sessionsPerWeek,
-  desiredTraining,
+  goal,
   experience,
-  sessionDuration,
+  primaryStyle,
   competitionPeriod,
   equipment,
   focusEmphasis,
@@ -339,13 +312,10 @@ function buildScenarioInput({
     primaryCombatSport,
     sessionsPerWeek,
     daysPerWeek: sessionsPerWeek,
-    goal: LEGACY_GOAL_BY_DESIRED_TRAINING[desiredTraining],
-    desiredTraining,
+    goal,
     experience,
-    trainingCapabilities: DEFAULT_TRAINING_CAPABILITIES,
-    eventPreparation: "",
-    sessionDuration,
-    sessionDurationMinutes: SESSION_DURATION_MINUTES[sessionDuration],
+    weightClass: DEFAULT_SPORT_WEIGHT_CLASS[primaryCombatSport] || "",
+    primaryStyle,
     competitionPeriod,
     equipment,
     injuries: [],
@@ -360,9 +330,9 @@ function buildCaseId(input) {
   return [
     slugify(input.primaryCombatSport),
     `freq-${input.sessionsPerWeek}`,
-    `training-${slugify(input.desiredTraining)}`,
+    `goal-${slugify(input.goal)}`,
     `exp-${slugify(input.experience)}`,
-    `duration-${slugify(input.sessionDuration)}`,
+    `style-${slugify(input.primaryStyle)}`,
     `period-${slugify(input.competitionPeriod)}`,
     `equipment-${slugify(input.equipment)}`,
     `focus-${slugify(input.focusEmphasis)}`,
@@ -377,18 +347,18 @@ function buildScenarioMatrix(options) {
     const sportSlug = slugify(primaryCombatSport);
 
     for (const sessionsPerWeek of SESSIONS_PER_WEEK_OPTIONS) {
-      for (const desiredTraining of DESIRED_TRAINING_OPTIONS) {
+      for (const goal of GOAL_OPTIONS) {
         for (const experience of EXPERIENCE_OPTIONS) {
-          for (const sessionDuration of SESSION_DURATION_OPTIONS) {
+          for (const primaryStyle of PRIMARY_STYLE_OPTIONS) {
             for (const competitionPeriod of COMPETITION_PERIOD_OPTIONS) {
               for (const equipment of EQUIPMENT_OPTIONS) {
                 for (const focusEmphasis of FOCUS_EMPHASIS_OPTIONS) {
                   const input = buildScenarioInput({
                     primaryCombatSport,
                     sessionsPerWeek,
-                    desiredTraining,
+                    goal,
                     experience,
-                    sessionDuration,
+                    primaryStyle,
                     competitionPeriod,
                     equipment,
                     focusEmphasis,
