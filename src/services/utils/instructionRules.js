@@ -65,7 +65,7 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Start every athlete at the lowest impact tier allowed by experience, movement competency, recovery status, and program phase.
 - Progress impact one tier at a time: low, then medium, then high. Regress if landing quality, recovery, or pain says to.
 - Early phases favor lower-impact general plyos and medicine-ball work; later phases can move toward more reactive and sport-specific power if the athlete is ready.
-- Loaded jumps should usually use roughly 30-60% of body mass as external load and stay crisp rather than grind.
+- Loaded jumps should usually use roughly 30-60% of body mass as external load and stay crisp rather than grindy.
 - Rep ranges should match the drill: pogos and extensive stiffness work can go higher, most jumps for height or distance sit around 3-6, and depth or loaded jumps usually stay around 3-5.`,
   bilateral: `# Bilateral plyometric impact guide
 - Treat CMJs, squat jumps, pogos, box jumps, and simple line hops as low impact.
