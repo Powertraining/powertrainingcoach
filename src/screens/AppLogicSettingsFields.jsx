@@ -3,7 +3,6 @@ import { Text, View, StyleSheet } from "react-native";
 import { getAppLogicSettingsFormState } from "../constants/appLogicSettings.js";
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
-import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 
@@ -19,12 +18,16 @@ export default function AppLogicSettingsFields({
     ...getAppLogicSettingsFormState(values),
   };
 
-  function updateField(field, value) {
+  function updateFields(patch) {
     onChange?.({
       ...safeValues,
       ...resolvedValues,
-      [field]: value,
+      ...patch,
     });
+  }
+
+  function updateField(field, value) {
+    updateFields({ [field]: value });
   }
 
   return (
@@ -45,17 +48,23 @@ export default function AppLogicSettingsFields({
       <LiftIntensityMethodView
         value={resolvedValues.liftIntensityMethod}
         onChange={(sectionValue) =>
-          updateField("liftIntensityMethod", sectionValue)
+          updateFields({
+            liftIntensityMethod: sectionValue,
+            percentageReferenceMethod: null,
+          })
         }
+        percentageReferenceValue={resolvedValues.percentageReferenceMethod}
+        onPercentageReferenceChange={(sectionValue) => {
+          const isSelected =
+            resolvedValues.liftIntensityMethod === "percentage" &&
+            resolvedValues.percentageReferenceMethod === sectionValue;
+
+          updateFields({
+            liftIntensityMethod: isSelected ? null : "percentage",
+            percentageReferenceMethod: isSelected ? null : sectionValue,
+          });
+        }}
       />
-      {resolvedValues.liftIntensityMethod === "percentage" ? (
-        <PercentageReferenceMethodView
-          value={resolvedValues.percentageReferenceMethod}
-          onChange={(sectionValue) =>
-            updateField("percentageReferenceMethod", sectionValue)
-          }
-        />
-      ) : null}
       <DeloadStrategyView
         value={resolvedValues.deloadStrategy}
         onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}

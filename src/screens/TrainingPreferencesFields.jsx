@@ -16,23 +16,14 @@ import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPrefe
 import TrainingPreferencesPreferredWeekdaysView from "./trainingPreferences/TrainingPreferencesPreferredWeekdaysView.jsx";
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
-import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 
 const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 19;
-
-function getAppLogicSectionCount(values = {}) {
-  return values.liftIntensityMethod === "percentage" ? 5 : 4;
-}
+const APP_LOGIC_SECTION_COUNT = 4;
 
 export function getTrainingPreferencesSectionCount(values = {}) {
-  const resolvedValues = getTrainingPreferencesFormState(values);
-
-  return (
-    BASE_TRAINING_PREFERENCES_SECTION_COUNT +
-    getAppLogicSectionCount(resolvedValues)
-  );
+  return BASE_TRAINING_PREFERENCES_SECTION_COUNT + APP_LOGIC_SECTION_COUNT;
 }
 
 const CAPABILITY_CONFIDENCE_PAGES = [
@@ -150,11 +141,15 @@ export default function TrainingPreferencesFields({
 }) {
   const resolvedValues = getTrainingPreferencesFormState(values);
 
-  function updateField(field, value) {
+  function updateFields(patch) {
     onChange?.({
       ...resolvedValues,
-      [field]: value,
+      ...patch,
     });
+  }
+
+  function updateField(field, value) {
+    updateFields({ [field]: value });
   }
 
   function updatePreferredWeekday(index, value) {
@@ -248,22 +243,24 @@ export default function TrainingPreferencesFields({
       <LiftIntensityMethodView
         value={resolvedValues.liftIntensityMethod}
         onChange={(sectionValue) =>
-          updateField("liftIntensityMethod", sectionValue)
+          updateFields({
+            liftIntensityMethod: sectionValue,
+            percentageReferenceMethod: null,
+          })
         }
+        percentageReferenceValue={resolvedValues.percentageReferenceMethod}
+        onPercentageReferenceChange={(sectionValue) => {
+          const isSelected =
+            resolvedValues.liftIntensityMethod === "percentage" &&
+            resolvedValues.percentageReferenceMethod === sectionValue;
+
+          updateFields({
+            liftIntensityMethod: isSelected ? null : "percentage",
+            percentageReferenceMethod: isSelected ? null : sectionValue,
+          });
+        }}
       />
     ),
-    ...(resolvedValues.liftIntensityMethod === "percentage"
-      ? [
-          (
-            <PercentageReferenceMethodView
-              value={resolvedValues.percentageReferenceMethod}
-              onChange={(sectionValue) =>
-                updateField("percentageReferenceMethod", sectionValue)
-              }
-            />
-          ),
-        ]
-      : []),
     (
       <DeloadStrategyView
         value={resolvedValues.deloadStrategy}

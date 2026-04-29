@@ -94,8 +94,8 @@ export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   trainingPhase: "off_camp",
   competitionTimeline: "",
   combatTrainingIntensity: "moderate",
-  liftIntensityMethod: "percentage",
-  percentageReferenceMethod: "heavy_single",
+  liftIntensityMethod: null,
+  percentageReferenceMethod: null,
   deloadStrategy: "maintain_intensity_reduce_volume",
   loadingStrategy: "flat_loading",
 });
