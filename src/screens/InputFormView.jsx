@@ -5,7 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
-    TRAINING_PREFERENCES_SECTION_COUNT,
+    getTrainingPreferencesSectionCount,
 } from "./TrainingPreferencesFields.jsx";
 
 import {
@@ -57,6 +57,7 @@ export default function InputFormView({
         };
     });
     const [activeStep, setActiveStep] = useState(0);
+    const sectionCount = getTrainingPreferencesSectionCount(trainingPreferences);
     const activeConfidenceKey = CONFIDENCE_STEP_KEYS[activeStep];
     const confidenceStepSelected = Boolean(
         activeConfidenceKey &&
@@ -68,7 +69,7 @@ export default function InputFormView({
     }
 
     function handleContinue() {
-        if (activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1) {
+        if (activeStep >= sectionCount - 1) {
             handleSubmit();
             return;
         }
@@ -119,7 +120,7 @@ export default function InputFormView({
             <QuestionnaireBottomActionButton
                 layout={activeConfidenceKey ? "single" : "stacked"}
                 canContinue={activeConfidenceKey ? confidenceStepSelected : undefined}
-                text={activeStep >= TRAINING_PREFERENCES_SECTION_COUNT - 1
+                text={activeStep >= sectionCount - 1
                     ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
                     : "Continue"}
                 onContinue={handleContinue}

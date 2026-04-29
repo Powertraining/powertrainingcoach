@@ -1,6 +1,5 @@
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 
-import AppLogicSettingsFields from "./AppLogicSettingsFields.jsx";
 import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
   getTrainingPreferencesFormState,
@@ -15,8 +14,26 @@ import TrainingPreferencesEquipmentView from "./trainingPreferences/TrainingPref
 import TrainingPreferencesEventPreparationView from "./trainingPreferences/TrainingPreferencesEventPreparationView.jsx";
 import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPreferencesInjuriesView.jsx";
 import TrainingPreferencesPreferredWeekdaysView from "./trainingPreferences/TrainingPreferencesPreferredWeekdaysView.jsx";
+import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
+import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
+import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
+import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
+import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 
-export const TRAINING_PREFERENCES_SECTION_COUNT = 20;
+const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 19;
+
+function getAppLogicSectionCount(values = {}) {
+  return values.liftIntensityMethod === "percentage" ? 5 : 4;
+}
+
+export function getTrainingPreferencesSectionCount(values = {}) {
+  const resolvedValues = getTrainingPreferencesFormState(values);
+
+  return (
+    BASE_TRAINING_PREFERENCES_SECTION_COUNT +
+    getAppLogicSectionCount(resolvedValues)
+  );
+}
 
 const CAPABILITY_CONFIDENCE_PAGES = [
   {
@@ -131,7 +148,6 @@ export default function TrainingPreferencesFields({
   appLogicDescription,
   activeStep,
 }) {
-  const { height: screenHeight } = useWindowDimensions();
   const resolvedValues = getTrainingPreferencesFormState(values);
 
   function updateField(field, value) {
@@ -221,14 +237,46 @@ export default function TrainingPreferencesFields({
       />
     ),
     (
-      <View style={{ minHeight: screenHeight, justifyContent: "center" }}>
-        <AppLogicSettingsFields
-          title={appLogicTitle}
-          description={appLogicDescription}
-          values={resolvedValues}
-          onChange={onChange}
-        />
-      </View>
+      <CombatTrainingIntensityView
+        value={resolvedValues.combatTrainingIntensity}
+        onChange={(sectionValue) =>
+          updateField("combatTrainingIntensity", sectionValue)
+        }
+      />
+    ),
+    (
+      <LiftIntensityMethodView
+        value={resolvedValues.liftIntensityMethod}
+        onChange={(sectionValue) =>
+          updateField("liftIntensityMethod", sectionValue)
+        }
+      />
+    ),
+    ...(resolvedValues.liftIntensityMethod === "percentage"
+      ? [
+          (
+            <PercentageReferenceMethodView
+              value={resolvedValues.percentageReferenceMethod}
+              onChange={(sectionValue) =>
+                updateField("percentageReferenceMethod", sectionValue)
+              }
+            />
+          ),
+        ]
+      : []),
+    (
+      <DeloadStrategyView
+        value={resolvedValues.deloadStrategy}
+        onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}
+      />
+    ),
+    (
+      <LoadingStrategyView
+        value={resolvedValues.loadingStrategy}
+        onChange={(sectionValue) =>
+          updateField("loadingStrategy", sectionValue)
+        }
+      />
     ),
     (
       <TrainingPreferencesPreferredWeekdaysView
