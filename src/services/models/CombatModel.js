@@ -1054,9 +1054,14 @@ export const model = {
 
     const prms = generatePlan(userInput).then((plan) => {
       if (this.trainingPlanPromiseState.promise === prms) {
+        const createdAt = plan?.createdAt || plan?.generatedAt || new Date().toISOString();
+
         this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
           applySportLoadLevelToPlanWeek(
-            plan,
+            {
+              ...plan,
+              createdAt,
+            },
             1,
             userInput?.sportLoadLevel,
             {

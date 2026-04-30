@@ -1,35 +1,48 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import StandardText from "../components/textComponents/StandardText.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
-import { getSportLoadLevelOption } from "../constants/appLogicSettings.js";
 import {
   getCurrentTrainingPhase,
   getCurrentTrainingWeek,
   getTrainingDayLabel,
   getTrainingDayPreferredWeekday,
-  getTrainingDayStatus,
   getTrainingPlanPhaseOverview,
-  getTrainingPlanSpacingAdvisories,
 } from "../services/utils/trainingPlan.js";
+
+const WEEKDAY_NAMES = Object.freeze([
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+]);
 
 export default function ProgramOverviewView({
   plan,
   onSelectDay,
-  onBack,
-  currentDay,
   completedDays,
   pendingTrainingCheckIn,
   onSubmitTrainingCheckIn,
   trainingCheckInSubmitting = false,
   questionnaire,
 }) {
+  const [detailsVisible, setDetailsVisible] = useState(false);
+
   if (!plan) {
     return (
-      <QuestionnaireShell>
+      <QuestionnaireShell hideTabBar={false}>
         <View style={styles.center}>
           <View style={styles.card}>
-            <Text style={styles.title}>No program yet.</Text>
-            <Text style={styles.subtitle}>Generate a plan to see your weekly breakdown.</Text>
+            <StandardText style={styles.title} textColor="#111">
+              No program yet.
+            </StandardText>
+            <StandardText style={styles.subtitle} textColor="#111">
+              Generate a plan to see your weekly breakdown.
+            </StandardText>
           </View>
         </View>
       </QuestionnaireShell>
@@ -42,15 +55,54 @@ export default function ProgramOverviewView({
       : Array.isArray(completedDays)
         ? completedDays
         : [];
-  const completedDaySet = new Set(completedDayEntries);
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
-  const spacingAdvisories = getTrainingPlanSpacingAdvisories(plan);
-  const visibleWeeks = currentWeek ? [currentWeek] : [];
-  const sportLoadOption = getSportLoadLevelOption(
-    currentWeek?.sportLoadLevel ?? questionnaire?.sportLoadLevel
-  );
+  const currentDateLabel = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
+  const currentPhaseLabel = currentPhase?.label
+    ? `${currentPhase.label} week ${currentWeek?.week || 1}`
+    : `Week ${currentWeek?.week || 1}`;
+  const parsedPlanStartDate = new Date(plan.createdAt || plan.generatedAt || Date.now());
+  const planStartDate = Number.isNaN(parsedPlanStartDate.getTime())
+    ? new Date()
+    : parsedPlanStartDate;
+  const rollingDates = Array.from({ length: 7 }, (_, dayOffset) => {
+    const date = new Date(planStartDate);
+    date.setDate(date.getDate() + dayOffset);
+
+    return date;
+  });
+  const assignedTrainingDays = new Set();
+  const currentWeekSchedule = rollingDates.map((date) => {
+    const weekday = WEEKDAY_NAMES[date.getDay()];
+    const trainingDay = currentWeek?.days?.find((day) => {
+      if (assignedTrainingDays.has(day)) {
+        return false;
+      }
+
+      return getTrainingDayPreferredWeekday(day) === weekday;
+    });
+
+    if (trainingDay) {
+      assignedTrainingDays.add(trainingDay);
+    }
+
+    return { date, weekday, trainingDay };
+  });
+
+  currentWeek?.days
+    ?.filter((day) => !assignedTrainingDays.has(day))
+    .forEach((day) => {
+      const restSlot = currentWeekSchedule.find((slot) => !slot.trainingDay);
+
+      if (restSlot) {
+        restSlot.trainingDay = day;
+        assignedTrainingDays.add(day);
+      }
+    });
 
   function getPhaseRangeLabel(phase = {}) {
     if (phase.weekStart === phase.weekEnd) {
@@ -61,80 +113,77 @@ export default function ProgramOverviewView({
   }
 
   return (
-    <QuestionnaireShell>
+    <QuestionnaireShell hideTabBar={false}>
       <ScrollView contentContainerStyle={styles.center}>
-        <View style={styles.card}>
-          <View style={styles.headerRow}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Training Program – Overview</Text>
-              {plan.summary && <Text style={styles.subtitle}>{plan.summary}</Text>}
-            </View>
-            {onBack && (
-              <TouchableOpacity style={styles.backButton} onPress={onBack}>
-                <Text style={styles.backButtonText}>Back</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {phaseOverview.length > 0 ? (
-            <View style={styles.phaseSection}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Program Rationale</Text>
-                {currentPhase ? (
-                  <Text style={styles.sectionBadge}>
-                    Current phase: {currentPhase.label}
-                  </Text>
-                ) : null}
-              </View>
-              <View style={styles.phaseList}>
-                {phaseOverview.map((phase) => {
-                  const phaseKey = `${phase.weekStart}-${phase.weekEnd}-${phase.label}`;
-                  const isActivePhase =
-                    currentPhase &&
-                    currentPhase.weekStart === phase.weekStart &&
-                    currentPhase.weekEnd === phase.weekEnd &&
-                    currentPhase.label === phase.label;
-
-                  return (
-                    <View
-                      key={phaseKey}
-                      style={[
-                        styles.phaseCard,
-                        isActivePhase && styles.phaseCardActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.phaseRange,
-                          isActivePhase && styles.phaseRangeActive,
-                        ]}
-                      >
-                        {getPhaseRangeLabel(phase)}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.phaseLabel,
-                          isActivePhase && styles.phaseLabelActive,
-                        ]}
-                      >
-                        {phase.label}
-                      </Text>
-                      {phase.focus ? (
-                        <Text
-                          style={[
-                            styles.phaseFocus,
-                            isActivePhase && styles.phaseFocusActive,
-                          ]}
-                        >
-                          {phase.focus}
-                        </Text>
-                      ) : null}
-                    </View>
-                  );
-                })}
-              </View>
+        <View style={styles.header}>
+          <StandardText style={styles.headerDate}>{currentDateLabel}</StandardText>
+          <StandardText style={styles.headerPhase}>{currentPhaseLabel}</StandardText>
+          <TouchableOpacity
+            style={styles.headerDetailsButton}
+            onPress={() => setDetailsVisible((visible) => !visible)}
+          >
+            <StandardText style={styles.headerDetailsButtonText}>
+              {detailsVisible ? "Hide details" : "Details"}
+            </StandardText>
+          </TouchableOpacity>
+          {detailsVisible ? (
+            <View style={styles.detailsCard}>
+              {plan.summary ? (
+                <StandardText style={styles.detailText} textColor="#111">
+                  {plan.summary}
+                </StandardText>
+              ) : null}
+              {phaseOverview.map((phase) => (
+                <View
+                  key={`${phase.weekStart}-${phase.weekEnd}-${phase.label}`}
+                  style={styles.phaseDetail}
+                >
+                  <StandardText style={styles.phaseRange} textColor="#6b7280">
+                    {getPhaseRangeLabel(phase)}
+                  </StandardText>
+                  <StandardText style={styles.phaseLabel} textColor="#111">
+                    {phase.label}
+                  </StandardText>
+                  {phase.focus ? (
+                    <StandardText style={styles.detailText} textColor="#374151">
+                      {phase.focus}
+                    </StandardText>
+                  ) : null}
+                </View>
+              ))}
             </View>
           ) : null}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.weekScheduleScroller}
+            contentContainerStyle={styles.weekSchedule}
+          >
+            {currentWeekSchedule.map(({ date, weekday, trainingDay }) => (
+              <View key={date.toISOString()} style={styles.weekScheduleItem}>
+                <TouchableOpacity
+                  disabled={!trainingDay}
+                  onPress={() => onSelectDay(currentWeek.week, trainingDay.day)}
+                  style={[
+                    styles.weekScheduleDay,
+                    trainingDay && styles.weekScheduleTrainingDay,
+                  ]}
+                >
+                  <StandardText style={styles.weekScheduleLabel}>
+                    {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
+                  </StandardText>
+                </TouchableOpacity>
+                <StandardText style={styles.weekScheduleDate}>
+                  {weekday.slice(0, 3)}
+                  {"\n"}
+                  {date.getDate()}
+                </StandardText>
+              </View>
+            ))}
+          </ScrollView>
+          <TouchableOpacity style={styles.headerStartButton}>
+            <StandardText style={styles.headerStartButtonText}>Start</StandardText>
+          </TouchableOpacity>
 
           {pendingTrainingCheckIn ? (
             <TrainingCheckInCard
@@ -146,105 +195,6 @@ export default function ProgramOverviewView({
               onSubmit={onSubmitTrainingCheckIn}
             />
           ) : null}
-
-          <View style={styles.sportLoadCard}>
-            <Text style={styles.sportLoadEyebrow}>Weekly sport load</Text>
-            <Text style={styles.sportLoadTitle}>{sportLoadOption.label}</Text>
-            <Text style={styles.sportLoadText}>
-              Current week strength-volume multiplier: {sportLoadOption.multiplier}x. Profile changes are applied to the following week so the current week stays stable once it has started.
-            </Text>
-          </View>
-
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {currentWeek ? `Current Week: Week ${currentWeek.week}` : "Current Week"}
-            </Text>
-          </View>
-
-          <View style={styles.weeks}>
-            {visibleWeeks.map((week) => {
-              const weekSpacingAdvisories = spacingAdvisories.filter(
-                (advisory) => advisory.week === week.week
-              );
-
-              return (
-                <View key={week.week} style={styles.weekBlock}>
-                  <Text style={styles.weekHeader}>Week {week.week}</Text>
-                  <View style={styles.daysGrid}>
-                    {week.days?.map((day) => {
-                      const key = `${week.week}-${day.day}`;
-                      const isCurrent =
-                        currentDay &&
-                        currentDay.week === week.week &&
-                        currentDay.day === day.day;
-                      const isDone = completedDaySet.has(key);
-                      const dayStatus = getTrainingDayStatus(day);
-                      const isSkipped = dayStatus === "skipped";
-                      const isRescheduled = dayStatus === "rescheduled";
-                      const dayLabel = getTrainingDayLabel(day);
-                      const preferredWeekday = getTrainingDayPreferredWeekday(day);
-
-                      return (
-                        <TouchableOpacity
-                          key={day.day}
-                          onPress={() => onSelectDay(week.week, day.day)}
-                          style={[
-                            styles.dayButton,
-                            isCurrent && !isSkipped && styles.dayButtonCurrent,
-                            isDone && styles.dayButtonDone,
-                            isSkipped && styles.dayButtonSkipped,
-                            isRescheduled && styles.dayButtonRescheduled,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.dayButtonText,
-                              isSkipped && styles.dayButtonSkippedText,
-                              isRescheduled && styles.dayButtonRescheduledText,
-                              isDone && styles.dayButtonDoneText,
-                            ]}
-                          >
-                            {dayLabel}
-                          </Text>
-                          {preferredWeekday ? (
-                            <Text
-                              style={[
-                                styles.dayPreferenceText,
-                                (isSkipped || isRescheduled) &&
-                                  styles.dayPreferenceTextMuted,
-                              ]}
-                            >
-                              Preferred {preferredWeekday}
-                            </Text>
-                          ) : null}
-                          {isDone && <Text style={styles.doneTag}>Finished</Text>}
-                          {!isDone && !isSkipped && isCurrent && (
-                            <Text style={styles.currentTag}>Current</Text>
-                          )}
-                          {!isDone && isSkipped && (
-                            <Text style={styles.skippedTag}>Skipped</Text>
-                          )}
-                          {!isDone && !isSkipped && isRescheduled && (
-                            <Text style={styles.rescheduledTag}>Rescheduled</Text>
-                          )}
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                  {weekSpacingAdvisories.length > 0 ? (
-                    <View style={styles.spacingBox}>
-                      <Text style={styles.spacingTitle}>Spacing advisory</Text>
-                      {weekSpacingAdvisories.map((advisory) => (
-                        <Text key={advisory.key} style={styles.spacingText}>
-                          {advisory.message}
-                        </Text>
-                      ))}
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </View>
         </View>
       </ScrollView>
     </QuestionnaireShell>
@@ -254,9 +204,9 @@ export default function ProgramOverviewView({
 const styles = StyleSheet.create({
   center: {
     flexGrow: 1,
-    justifyContent: "center",
     alignItems: "center",
-    padding: 16,
+    padding: 15,
+    marginTop: 40,
   },
   card: {
     width: "100%",
@@ -268,53 +218,6 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     gap: 16,
   },
-  sportLoadCard: {
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.08)",
-    gap: 4,
-  },
-  sportLoadEyebrow: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#475569",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  sportLoadTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#0f172a",
-  },
-  sportLoadText: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: "#475569",
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  header: {
-    flex: 1,
-    gap: 6,
-  },
-  backButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#111",
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: "#111",
-    fontWeight: "500",
-  },
   title: {
     fontSize: 28,
     fontWeight: "700",
@@ -324,183 +227,103 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     lineHeight: 24,
   },
-  weeks: {
-    gap: 14,
+  header: {
+    top : 0,
+    alignSelf: "flex-start",
   },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
+  headerDate: {
+    fontSize: 32,
+    marginBottom: 8,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111",
+  headerPhase: {
+    fontSize: 22,
+        marginBottom: 8, 
   },
-  sectionBadge: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#065f46",
-    backgroundColor: "#d1fae5",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-  },
-  phaseSection: {
-    gap: 12,
-  },
-  phaseList: {
-    gap: 10,
-  },
-  phaseCard: {
-    padding: 14,
-    borderRadius: 12,
+  headerDetailsButton: {
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
-    backgroundColor: "#f9fafb",
-    gap: 6,
+    borderRadius: 120,
+    width: 80,
+    height: 32,
+    justifyContent: "center",
   },
-  phaseCardActive: {
-    borderColor: "#10b981",
-    backgroundColor: "#ecfdf5",
+  headerDetailsButtonText: {
+    color: "#000",
+    alignSelf: "center",
+    fontSize: 16,
+  },
+  headerStartButton: {
+    backgroundColor: "#fff",
+        borderRadius: 120,
+        justifyContent: "center", 
+        height: 46,
+        marginTop: 30,
+  },
+  headerStartButtonText: {
+    color: "#000",
+    alignSelf: "center",
+    fontSize: 22,
+  },
+  detailsCard: {
+    width: "100%",
+    maxWidth: 960,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: "white",
+    gap: 12,
+  },
+  detailText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  phaseDetail: {
+    gap: 4,
   },
   phaseRange: {
     fontSize: 12,
     fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-    color: "#6b7280",
-  },
-  phaseRangeActive: {
-    color: "#047857",
   },
   phaseLabel: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#111827",
   },
-  phaseLabelActive: {
-    color: "#065f46",
-  },
-  phaseFocus: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: "#374151",
-  },
-  phaseFocusActive: {
-    color: "#065f46",
-  },
-  weekBlock: {
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
-    backgroundColor: "#f9f9f9",
-    gap: 10,
-  },
-  weekHeader: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  daysGrid: {
+  weekSchedule: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  dayButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#111",
-    backgroundColor: "#111",
-    minWidth: 100,
-    alignItems: "center",
-  },
-  dayButtonCurrent: {
-    borderColor: "#10b981",
-    shadowColor: "#10b981",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  dayButtonDone: {
-    borderColor: "#6b7280",
-    backgroundColor: "#1f2937",
-  },
-  dayButtonSkipped: {
-    borderColor: "#9ca3af",
-    backgroundColor: "#f3f4f6",
-  },
-  dayButtonRescheduled: {
-    borderColor: "#0f766e",
-    backgroundColor: "#ecfeff",
-  },
-  dayButtonText: {
-    color: "white",
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  dayPreferenceText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 11,
-    marginTop: 4,
-  },
-  dayPreferenceTextMuted: {
-    color: "#6b7280",
-  },
-  spacingBox: {
-    marginTop: 2,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#f59e0b",
-    backgroundColor: "#fffbeb",
     gap: 6,
   },
-  spacingTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#92400e",
+  weekScheduleScroller: {
+    flexGrow: 0,
+    alignSelf: "flex-start",
+    marginTop: 45,
   },
-  spacingText: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#78350f",
+  weekScheduleItem: {
+    alignItems: "center",
+    gap: 6,
   },
-  dayButtonDoneText: {
-    color: "#e5e7eb",
+  weekScheduleDay: {
+    height: 55,
+    width: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 16,
+    padding: 6,
+    gap: 2,
+    borderColor: "#585858",
+    borderWidth: 1,
+    borderStyle: "dashed",
   },
-  dayButtonSkippedText: {
-    color: "#374151",
+  weekScheduleTrainingDay: {
+    backgroundColor: "#1E1E1E",
+    borderStyle: "solid",
   },
-  dayButtonRescheduledText: {
-    color: "#134e4a",
+  weekScheduleLabel: {
+    fontSize: 16,
+    textAlign: "center",
   },
-  currentTag: {
-    fontSize: 10,
-    color: "#10b981",
+  weekScheduleDate: {
     marginTop: 4,
-    fontWeight: "700",
-  },
-  doneTag: {
-    fontSize: 10,
-    color: "#9ca3af",
-    marginTop: 4,
-    fontWeight: "700",
-  },
-  skippedTag: {
-    fontSize: 10,
-    color: "#6b7280",
-    marginTop: 4,
-    fontWeight: "700",
-  },
-  rescheduledTag: {
-    fontSize: 10,
-    color: "#0f766e",
-    marginTop: 4,
-    fontWeight: "700",
+    fontSize: 14,
+    lineHeight: 15,
+    textAlign: "center",
   },
 });

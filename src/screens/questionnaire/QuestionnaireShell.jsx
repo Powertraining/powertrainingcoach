@@ -2,14 +2,18 @@ import { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
 
-export default function QuestionnaireShell({ children, onLogoClick }) {
+export default function QuestionnaireShell({
+    children,
+    hideTabBar = true,
+    onLogoClick,
+}) {
     useEffect(() => {
-        reactiveModel.setForumTabBarHidden(true);
+        reactiveModel.setForumTabBarHidden(hideTabBar);
 
         return () => {
             reactiveModel.setForumTabBarHidden(false);
         };
-    }, []);
+    }, [hideTabBar]);
 
     return (
         <View style={ styles.container} >

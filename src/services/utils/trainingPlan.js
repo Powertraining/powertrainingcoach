@@ -909,6 +909,22 @@ function parseCompetitionTimeline(value = "") {
   return Number.isNaN(parsedTime) ? null : new Date(parsedTime);
 }
 
+export function getDaysUntilCompetition(value = "", fromDate = new Date()) {
+  const competitionDate = parseCompetitionTimeline(value);
+
+  if (!competitionDate) {
+    return null;
+  }
+
+  const startOfToday = new Date(fromDate);
+  startOfToday.setHours(0, 0, 0, 0);
+  competitionDate.setHours(0, 0, 0, 0);
+
+  return Math.ceil(
+    (competitionDate - startOfToday) / (1000 * 60 * 60 * 24)
+  );
+}
+
 function isDeloadWeek(week = {}) {
   const weekText = toMatchableText(getAllWeekText(week));
 
@@ -1666,6 +1682,8 @@ export function parseGeneratedTrainingPlan(plan = {}) {
       plan.phases :
       [];
   const normalizedPlan = normalizeTrainingPlan({
+    createdAt: plan.createdAt,
+    generatedAt: plan.generatedAt,
     summary: plan.summary,
     phaseOverview: phaseSource.map((phase, phaseIndex) =>
       normalizeGeneratedPhase(phase, phaseIndex)
