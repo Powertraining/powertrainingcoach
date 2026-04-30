@@ -195,7 +195,7 @@ export default function DayDetailView({
     }
 
     return (
-        <QuestionnaireShell>
+        <QuestionnaireShell hideTabBar={false}>
             <ScrollView contentContainerStyle={styles.center}>
                 <View style={styles.card}>
                     <View style={styles.headerRow}>

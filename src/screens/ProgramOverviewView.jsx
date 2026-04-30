@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
+import DayDetailView from "./DayDetailView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
 import {
@@ -29,6 +30,15 @@ export default function ProgramOverviewView({
   onSubmitTrainingCheckIn,
   trainingCheckInSubmitting = false,
   questionnaire,
+  selectedDay,
+  selectedDayPerformanceResults,
+  selectedDayAssessmentResults,
+  strengthAssessmentSummary,
+  onClearSelectedDay,
+  onReplaceExercise,
+  onFinishDay,
+  onMissedDay,
+  updatingPlan = false,
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
 
@@ -181,7 +191,18 @@ export default function ProgramOverviewView({
               </View>
             ))}
           </ScrollView>
-          <TouchableOpacity style={styles.headerStartButton}>
+          <TouchableOpacity
+            style={styles.headerStartButton}
+            onPress={() => {
+              const nextTrainingDay =
+                selectedDay?.dayData ||
+                currentWeekSchedule.find((slot) => slot.trainingDay)?.trainingDay;
+
+              if (nextTrainingDay && currentWeek?.week) {
+                onSelectDay(currentWeek.week, nextTrainingDay.day);
+              }
+            }}
+          >
             <StandardText style={styles.headerStartButtonText}>Start</StandardText>
           </TouchableOpacity>
 
@@ -193,6 +214,27 @@ export default function ProgramOverviewView({
               completedDays={completedDayEntries}
               isSubmitting={trainingCheckInSubmitting}
               onSubmit={onSubmitTrainingCheckIn}
+            />
+          ) : null}
+
+          {selectedDay ? (
+            <DayDetailView
+              week={selectedDay.week}
+              day={selectedDay.dayData}
+              exercises={selectedDay.exercises}
+              preferredWeekday={selectedDay.preferredWeekday}
+              sessionLabel={selectedDay.sessionLabel}
+              status={selectedDay.status}
+              rescueMode={selectedDay.rescueMode}
+              adjustmentSummary={selectedDay.adjustmentSummary}
+              initialPerformanceResults={selectedDayPerformanceResults}
+              initialAssessmentResults={selectedDayAssessmentResults}
+              strengthAssessmentSummary={strengthAssessmentSummary}
+              onBack={onClearSelectedDay}
+              onReplaceExercise={onReplaceExercise}
+              onFinish={onFinishDay}
+              onMissed={onMissedDay}
+              updatingPlan={updatingPlan}
             />
           ) : null}
         </View>
