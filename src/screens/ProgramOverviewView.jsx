@@ -270,7 +270,6 @@ const styles = StyleSheet.create({
   center: {
     flexGrow: 1,
     alignItems: "center",
-    padding: 15,
     marginTop: 40,
   },
   card: {
@@ -278,9 +277,6 @@ const styles = StyleSheet.create({
     maxWidth: 960,
     padding: 26,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
-    backgroundColor: "white",
     gap: 16,
   },
   title: {

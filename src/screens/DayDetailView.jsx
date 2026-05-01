@@ -934,7 +934,7 @@ export default function DayDetailView({
                                                                         <StandardText
                                                                             style={styles.tabButtonActionText}
                                                                             center
-                                                                            textColor="#111"
+                                                                            textColor="#fff"
                                                                         >
                                                                             Swap
                                                                         </StandardText>
@@ -954,7 +954,7 @@ export default function DayDetailView({
                                                                         <StandardText
                                                                             style={styles.tabButtonActionText}
                                                                             center
-                                                                            textColor="#111"
+                                                                            textColor="#fff"
                                                                         >
                                                                             Tips
                                                                         </StandardText>
@@ -974,14 +974,14 @@ export default function DayDetailView({
                                                                 <StandardText
                                                                     style={styles.tabButtonName}
                                                                     lines={2}
-                                                                    textColor="#111"
+                                                                    textColor="#fff"
                                                                 >
                                                                     {getExerciseDisplayName(ex)}
                                                                 </StandardText>
                                                                 <StandardText
                                                                     style={styles.tabButtonSets}
                                                                     lines={1}
-                                                                    textColor="#111"
+                                                                    textColor="#fff"
                                                                 >
                                                                     {getExercisePrescriptionDisplay(ex)}
                                                                 </StandardText>
@@ -989,7 +989,7 @@ export default function DayDetailView({
                                                                     <StandardText
                                                                         style={styles.tabButtonRecommendationPrimary}
                                                                         lines={1}
-                                                                        textColor="#111"
+                                                                        textColor="#fff"
                                                                     >
                                                                         {recommendation.primary}
                                                                     </StandardText>
@@ -1215,12 +1215,9 @@ const styles = StyleSheet.create({
     card: {
         width: '100%',
         maxWidth: 980,
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.08)',
-        borderRadius: 16,
         padding: 28,
         gap: 18,
+        backgroundColor: "transparent",
     },
     headerRow: {
         flexDirection: 'row',
@@ -1618,7 +1615,7 @@ const styles = StyleSheet.create({
         flexGrow: 0,
     },
     tabsContainer: { flexDirection: 'row', gap: 8, paddingRight: 8 },
-    tabButton: {backgroundColor: '#101010', borderRadius: 30, height: 150, width:120,
+    tabButton: {backgroundColor: '#101010', borderRadius: 30, height: 160, width:130,
         borderWidth: 2, borderColor: "#1E1E1E",
      },
     tabButtonSelected: {
