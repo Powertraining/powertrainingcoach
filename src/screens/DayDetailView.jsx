@@ -84,9 +84,36 @@ function getExerciseDisplayName(exercise = {}) {
     return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
 }
 
+function getCompactTimePrescription(value = "") {
+    const normalizedValue = String(value || "")
+        .trim()
+        .replace(/\s*\+\s*/g, ", ");
+    const hasTimeUnit = /\b(?:seconds?|secs?|s|minutes?|mins?)\b/i.test(normalizedValue) ||
+        /\b\d+(?:[.,]\d+)?\s*s\b/i.test(normalizedValue);
+
+    if (!hasTimeUnit) {
+        return "";
+    }
+
+    return normalizedValue
+        .replace(/\bseconds?\b/gi, "sec")
+        .replace(/\bsecs?\b/gi, "sec")
+        .replace(/\bminutes?\b/gi, "min")
+        .replace(/\bmins?\b/gi, "min")
+        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*s\b/gi, "$1 sec")
+        .replace(/\s+each(?:\s+(?:side|direction|leg|arm|way))?\b.*$/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 function getExercisePrescriptionDisplay(exercise = {}) {
     const sets = String(exercise.sets || "").trim();
     const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, ", ");
+    const compactTimePrescription = getCompactTimePrescription(reps);
+
+    if (compactTimePrescription) {
+        return compactTimePrescription;
+    }
 
     if (/^\d+$/.test(sets) && reps) {
         return Array.from({ length: Number.parseInt(sets, 10) }, () => reps).join(", ");
