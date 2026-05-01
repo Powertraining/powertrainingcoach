@@ -22,6 +22,14 @@ const WEEKDAY_NAMES = Object.freeze([
   "Saturday",
 ]);
 
+function isSameCalendarDay(leftDate, rightDate) {
+  return (
+    leftDate.getFullYear() === rightDate.getFullYear() &&
+    leftDate.getMonth() === rightDate.getMonth() &&
+    leftDate.getDate() === rightDate.getDate()
+  );
+}
+
 export default function ProgramOverviewView({
   plan,
   onSelectDay,
@@ -169,27 +177,42 @@ export default function ProgramOverviewView({
             style={styles.weekScheduleScroller}
             contentContainerStyle={styles.weekSchedule}
           >
-            {currentWeekSchedule.map(({ date, weekday, trainingDay }) => (
-              <View key={date.toISOString()} style={styles.weekScheduleItem}>
-                <TouchableOpacity
-                  disabled={!trainingDay}
-                  onPress={() => onSelectDay(currentWeek.week, trainingDay.day)}
-                  style={[
-                    styles.weekScheduleDay,
-                    trainingDay && styles.weekScheduleTrainingDay,
-                  ]}
-                >
-                  <StandardText style={styles.weekScheduleLabel}>
-                    {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
+            {currentWeekSchedule.map(({ date, weekday, trainingDay }) => {
+              const isToday = isSameCalendarDay(date, new Date());
+              const isSelectedTrainingDay =
+                trainingDay &&
+                selectedDay?.week === currentWeek?.week &&
+                selectedDay?.day === trainingDay.day;
+
+              return (
+                <View key={date.toISOString()} style={styles.weekScheduleItem}>
+                  <View style={styles.weekScheduleTileSlot}>
+                    <TouchableOpacity
+                      disabled={!trainingDay}
+                      onPress={() => onSelectDay(currentWeek.week, trainingDay.day)}
+                      style={[
+                        styles.weekScheduleDay,
+                        trainingDay && styles.weekScheduleTrainingDay,
+                        isToday && styles.weekScheduleToday,
+                        isSelectedTrainingDay && styles.weekScheduleSelectedDay,
+                      ]}
+                    >
+                      <StandardText
+                        style={styles.weekScheduleLabel}
+                        textColor={isToday ? "#000" : "#fff"}
+                      >
+                        {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
+                      </StandardText>
+                    </TouchableOpacity>
+                  </View>
+                  <StandardText style={styles.weekScheduleDate}>
+                    {weekday.slice(0, 3)}
+                    {"\n"}
+                    {date.getDate()}
                   </StandardText>
-                </TouchableOpacity>
-                <StandardText style={styles.weekScheduleDate}>
-                  {weekday.slice(0, 3)}
-                  {"\n"}
-                  {date.getDate()}
-                </StandardText>
-              </View>
-            ))}
+                </View>
+              );
+            })}
           </ScrollView>
           <TouchableOpacity
             style={styles.headerStartButton}
@@ -342,6 +365,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  weekScheduleTileSlot: {
+    height: 66,
+    justifyContent: "flex-end",
+  },
   weekScheduleDay: {
     height: 55,
     width: 50,
@@ -357,6 +384,15 @@ const styles = StyleSheet.create({
   weekScheduleTrainingDay: {
     backgroundColor: "#1E1E1E",
     borderStyle: "solid",
+  },
+  weekScheduleToday: {
+    backgroundColor: "#fff",
+    borderColor: "#fff",
+    borderStyle: "solid",
+  },
+  weekScheduleSelectedDay: {
+    height: 66,
+    width: 60,
   },
   weekScheduleLabel: {
     fontSize: 16,

@@ -68,6 +68,119 @@ function buildTrackingDrafts(
     return drafts;
 }
 
+const EXERCISE_SECTION_LABELS = Object.freeze({
+    power: "Power",
+    compound: "Compound",
+    primary_pull: "Primary pull",
+    core: "Core",
+    accessory: "Accessory",
+});
+
+function getExerciseSearchText(exercise = {}) {
+    return ` ${exercise.name || ""} ${exercise.notes || ""} ${exercise.reps || ""} `.toLowerCase();
+}
+
+function getExerciseDisplayName(exercise = {}) {
+    return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
+}
+
+function includesAnyKeyword(text, keywords = []) {
+    return keywords.some((keyword) => text.includes(keyword));
+}
+
+function getExplicitExerciseSection(exercise = {}) {
+    const exerciseText = getExerciseSearchText(exercise);
+
+    if (
+        includesAnyKeyword(exerciseText, [
+            " med ball",
+            " medicine ball",
+            " plyo",
+            " box jump",
+            " broad jump",
+            " vertical jump",
+            " squat jump",
+            " hurdle jump",
+            " bound",
+            " throw",
+            " slam",
+            " sprint",
+            " ballistic",
+            " clean",
+            " snatch",
+        ])
+    ) {
+        return "power";
+    }
+
+    if (
+        includesAnyKeyword(exerciseText, [
+            " pull-up",
+            " pull up",
+            " chin-up",
+            " chin up",
+            " row",
+            " lat pulldown",
+        ])
+    ) {
+        return "primary_pull";
+    }
+
+    if (
+        includesAnyKeyword(exerciseText, [
+            " plank",
+            " anti rotation",
+            " rollout",
+            " pallof",
+            " hollow",
+            " hanging knee raise",
+            " hanging leg raise",
+            " suitcase carry",
+            " farmer carry",
+        ])
+    ) {
+        return "core";
+    }
+
+    if (
+        getExercisePerformanceTarget(exercise) ||
+        getExercisePercentagePrescription(exercise) ||
+        getExerciseStrengthAssessment(exercise) ||
+        includesAnyKeyword(exerciseText, [
+            " squat",
+            " deadlift",
+            " bench",
+            " press",
+            " split squat",
+            " lunge",
+        ])
+    ) {
+        return "compound";
+    }
+
+    return "accessory";
+}
+
+function buildExerciseSectionRuns(exercises = []) {
+    return exercises.reduce((runs, exercise, exerciseIndex) => {
+        const section = getExplicitExerciseSection(exercise);
+        const previousRun = runs[runs.length - 1];
+        const exerciseItem = { exercise, exerciseIndex };
+
+        if (previousRun?.section === section) {
+            previousRun.exercises.push(exerciseItem);
+            return runs;
+        }
+
+        runs.push({
+            section,
+            exercises: [exerciseItem],
+        });
+
+        return runs;
+    }, []);
+}
+
 export default function DayDetailView({
     week,
     day,
@@ -145,6 +258,10 @@ export default function DayDetailView({
     const assessmentExercises = trackedExercises.filter(
         (item) => item.strengthAssessment
     );
+    const exerciseSectionRuns = useMemo(
+        () => buildExerciseSectionRuns(normalizedExercises),
+        [normalizedExercises]
+    );
     const savedAssessmentResults = new Map(
         (Array.isArray(initialAssessmentResults) ? initialAssessmentResults : [])
             .filter((result) => Number.isInteger(result?.exerciseIndex))
@@ -200,18 +317,8 @@ export default function DayDetailView({
                 <View style={styles.card}>
                     <View style={styles.headerRow}>
                         <View style={styles.heading}>
-                            <Text style={styles.eyebrow}>Suggested workout</Text>
-                            <Text style={styles.title}>{dayLabel} • Week {week}</Text>
-                            {preferredWeekdayLabel ? (
-                                <Text style={styles.scheduleHint}>
-                                    Preferred {preferredWeekdayLabel}
-                                </Text>
-                            ) : null}
                         </View>
                         <View style={styles.headerActions}>
-                            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-                                <Text style={styles.backButtonText}>Back</Text>
-                            </TouchableOpacity>
                             {onMissed ? (
                                 <TouchableOpacity
                                     style={styles.missedButton}
@@ -379,25 +486,44 @@ export default function DayDetailView({
 
                     <View style={styles.exerciseTabs}>
                         <Text style={styles.tabsLabel}>All exercises ({normalizedExercises.length}):</Text>
-                        <View style={styles.tabsContainer}>
-                            {normalizedExercises.map((ex, i) => (
-                                <TouchableOpacity
-                                    key={i}
-                                    style={[styles.tabButton, i === activeExerciseIndex ? styles.tabButtonActive : styles.tabButtonInactive]}
-                                    onPress={() => setSelectedExerciseIndex(i)}
-                                >
-                                    <View style={styles.tabButtonContent}>
-                                        <View style={styles.tabButtonNumber}>
-                                            <Text style={{ fontSize: 12, fontWeight: '700' }}>{i + 1}</Text>
-                                        </View>
-                                        <View style={styles.tabButtonText}>
-                                            <Text style={styles.tabButtonName}>{ex.name}</Text>
-                                            <Text style={styles.tabButtonSets}>{ex.sets} x {ex.reps}</Text>
-                                        </View>
+                        {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
+                            return (
+                                <View key={`tabs-${section}-${sectionIndex}`} style={styles.exerciseSection}>
+                                    <View style={styles.exerciseSectionHeader}>
+                                        <View style={styles.exerciseSectionDivider} />
+                                        <Text style={styles.exerciseSectionTitle}>
+                                            {EXERCISE_SECTION_LABELS[section]}
+                                        </Text>
+                                        <View style={styles.exerciseSectionDivider} />
                                     </View>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        style={styles.tabsScroller}
+                                        contentContainerStyle={styles.tabsContainer}
+                                    >
+                                        {sectionExercises.map(({ exercise: ex, exerciseIndex }) => (
+                                            <TouchableOpacity
+                                                key={exerciseIndex}
+                                                style={[
+                                                    styles.tabButton,
+                                                    exerciseIndex === activeExerciseIndex
+                                                        ? styles.tabButtonActive
+                                                        : styles.tabButtonInactive,
+                                                ]}
+                                                onPress={() => setSelectedExerciseIndex(exerciseIndex)}
+                                            >
+                                                <View style={styles.tabButtonContent}>
+                                                    <View style={styles.tabButtonText}>
+                                                        <Text style={styles.tabButtonName}>{getExerciseDisplayName(ex)}</Text>
+                                                    </View>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            );
+                        })}
                     </View>
 
                     {trackedExercises.length > 0 ? (
@@ -558,15 +684,27 @@ export default function DayDetailView({
 
                     <View style={styles.listBlock}>
                         <Text style={styles.listLabel}>Complete workout breakdown:</Text>
-                        {normalizedExercises.map((ex, i) => (
-                            <View key={i} style={styles.exerciseRow}>
-                                <View>
-                                    <Text style={styles.exerciseName}>{ex.name}</Text>
-                                    {ex.notes ? <Text style={styles.exerciseNotes}>{ex.notes}</Text> : null}
+                        {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
+                            return (
+                                <View key={`${section}-${sectionIndex}`} style={styles.exerciseSection}>
+                                    <View style={styles.exerciseSectionHeader}>
+                                        <View style={styles.exerciseSectionDivider} />
+                                        <Text style={styles.exerciseSectionTitle}>
+                                            {EXERCISE_SECTION_LABELS[section]}
+                                        </Text>
+                                        <View style={styles.exerciseSectionDivider} />
+                                    </View>
+                                    {sectionExercises.map(({ exercise: ex, exerciseIndex }) => (
+                                        <View key={exerciseIndex} style={styles.exerciseRow}>
+                                            <View>
+                                                <Text style={styles.exerciseName}>{getExerciseDisplayName(ex)}</Text>
+                                                {ex.notes ? <Text style={styles.exerciseNotes}>{ex.notes}</Text> : null}
+                                            </View>
+                                        </View>
+                                    ))}
                                 </View>
-                                <Text style={styles.exerciseSets}>{ex.sets} x {ex.reps}</Text>
-                            </View>
-                        ))}
+                            );
+                        })}
                     </View>
                         </>
                     )}
@@ -838,14 +976,16 @@ const styles = StyleSheet.create({
         borderTopColor: 'rgba(0,0,0,0.08)',
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
-    tabsContainer: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-    tabButton: { borderRadius: 10 },
+    tabsScroller: {
+        flexGrow: 0,
+    },
+    tabsContainer: { flexDirection: 'row', gap: 8, paddingRight: 8 },
+    tabButton: { borderRadius: 30, height: 140, width:120, },
     tabButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10 },
-    tabButtonNumber: { alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6 },
     tabButtonText: { flexDirection: 'column', gap: 2 },
     tabButtonName: { fontSize: 13, fontWeight: '600' },
     tabButtonSets: { fontSize: 11, opacity: 0.7 },
-    tabButtonActive: { backgroundColor: '#111' },
+    tabButtonActive: { backgroundColor:  '#747474' },
     tabButtonInactive: { backgroundColor: 'rgba(0,0,0,0.05)' },
     listBlock: {
         gap: 10,
@@ -881,6 +1021,26 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         gap: 10,
         alignItems: 'center',
+    },
+    exerciseSection: {
+        gap: 8,
+    },
+    exerciseSectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginTop: 4,
+    },
+    exerciseSectionDivider: {
+        flex: 1,
+        height: 1,
+        backgroundColor: 'rgba(0,0,0,0.12)',
+    },
+    exerciseSectionTitle: {
+        fontSize: 13,
+        fontWeight: '700',
+        opacity: 0.65,
+        textTransform: 'uppercase',
     },
     exerciseName: { fontSize: 16, fontWeight: '600' },
     exerciseNotes: { fontSize: 14, opacity: 0.75 },
