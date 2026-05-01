@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Pressable, Modal } from "react-native";
+import StandardText from "../components/textComponents/StandardText.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
     getExercisePerformanceTarget,
@@ -82,6 +82,209 @@ function getExerciseSearchText(exercise = {}) {
 
 function getExerciseDisplayName(exercise = {}) {
     return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
+}
+
+function getExercisePrescriptionDisplay(exercise = {}) {
+    const sets = String(exercise.sets || "").trim();
+    const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, ", ");
+
+    if (/^\d+$/.test(sets) && reps) {
+        return Array.from({ length: Number.parseInt(sets, 10) }, () => reps).join(", ");
+    }
+
+    return reps;
+}
+
+function formatCompactNumberUnit(value, unit = "") {
+    if (value == null || value === "") {
+        return "";
+    }
+
+    return `${String(value).replace(/\s+/g, "")}${unit}`;
+}
+
+function formatCompactKg(value) {
+    if (!Number.isFinite(value)) {
+        return "";
+    }
+
+    return `${Math.round(value * 10) / 10}kg`;
+}
+
+function getPrimaryPercentageWorkingSet(percentagePrescription = {}) {
+    const workingSets = Array.isArray(percentagePrescription?.workingSets)
+        ? percentagePrescription.workingSets
+        : [];
+
+    if (workingSets.length === 0) {
+        return null;
+    }
+
+    return workingSets.reduce((primarySet, workingSet) => {
+        if (!primarySet) {
+            return workingSet;
+        }
+
+        return (workingSet?.percent1RM || 0) >= (primarySet?.percent1RM || 0)
+            ? workingSet
+            : primarySet;
+    }, null);
+}
+
+function getPercentRangeFromNotes(exercise = {}) {
+    const exerciseText = `${exercise.notes || ""} ${exercise.reps || ""}`;
+    const percentMatch = exerciseText.match(/\b(\d+(?:[.,]\d+)?)(?:\s*[-–]\s*(\d+(?:[.,]\d+)?))?\s*%\s*(?:1\s*rm|1rm)?\b/i);
+
+    if (!percentMatch) {
+        return null;
+    }
+
+    const startPercent = Number.parseFloat(percentMatch[1].replace(",", "."));
+    const endPercent = percentMatch[2]
+        ? Number.parseFloat(percentMatch[2].replace(",", "."))
+        : null;
+
+    if (!Number.isFinite(startPercent)) {
+        return null;
+    }
+
+    return {
+        startPercent,
+        endPercent: Number.isFinite(endPercent) ? endPercent : null,
+    };
+}
+
+function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+    const percentRange = getPercentRangeFromNotes(exercise);
+
+    if (!percentRange) {
+        return "";
+    }
+
+    const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
+        exercise.name || "",
+        strengthReferenceOneRepMaxByLift
+    );
+
+    if (!referenceLiftDetails.oneRepMaxKg) {
+        return "";
+    }
+
+    const startLoad = calculateTargetLoadFromPercentOneRepMax(
+        referenceLiftDetails.oneRepMaxKg,
+        percentRange.startPercent
+    );
+
+    if (!startLoad) {
+        return "";
+    }
+
+    if (percentRange.endPercent) {
+        const endLoad = calculateTargetLoadFromPercentOneRepMax(
+            referenceLiftDetails.oneRepMaxKg,
+            percentRange.endPercent
+        );
+
+        return endLoad ? `${formatCompactKg(startLoad)}-${formatCompactKg(endLoad)}` : formatCompactKg(startLoad);
+    }
+
+    return formatCompactKg(startLoad);
+}
+
+function getExplicitLoadOrSpeedValue(exercise = {}) {
+    const exerciseText = `${exercise.notes || ""} ${exercise.reps || ""}`;
+    const speedMatch = exerciseText.match(/\b\d+(?:[.,]\d+)?\s*(?:km\/h|kmh|mph|m\/s)\b/i);
+
+    if (speedMatch) {
+        return speedMatch[0].replace(/\s+/g, "").replace(/kmh/i, "kmh");
+    }
+
+    const loadMatch = exerciseText.match(/\b\d+(?:[.,]\d+)?\s*(?:kg|kgs|kilogram|kilograms)\b/i);
+
+    if (loadMatch) {
+        return loadMatch[0]
+            .replace(/\s+/g, "")
+            .replace(/kgs?|kilograms?/i, "kg");
+    }
+
+    return "";
+}
+
+function getNotesIntensityDetails(exercise = {}) {
+    const exerciseText = `${exercise.notes || ""} ${exercise.reps || ""}`;
+    const detailParts = [];
+    const addDetail = (value = "") => {
+        const normalizedValue = value.replace(/\s+/g, " ").trim();
+
+        if (normalizedValue && !detailParts.includes(normalizedValue)) {
+            detailParts.push(normalizedValue);
+        }
+    };
+
+    exerciseText
+        .match(/\b\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*%\s*(?:1\s*rm|1rm)?\b/gi)
+        ?.forEach((match) => {
+            const percentText = match.replace(/\s+/g, " ").trim();
+            addDetail(/1\s*rm/i.test(percentText) ? percentText : `${percentText} 1RM`);
+        });
+
+    exerciseText
+        .match(/\b(?:@?\s*rpe|rir)\s*\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\b/gi)
+        ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").replace(/^@\s*/i, "").toUpperCase()));
+
+    exerciseText
+        .match(/\bri\s*\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*%?\b/gi)
+        ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").toUpperCase()));
+
+    exerciseText
+        .match(/\b(?:max\s*)?\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*bpm\b|\b(?:max\s*bpm|bpm)\s*\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\b/gi)
+        ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").toUpperCase()));
+
+    exerciseText
+        .match(/\b(?:hr|heart rate)\s*(?:zone\s*)?\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\b|\bzone\s*\d+\b/gi)
+        ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").toUpperCase()));
+
+    exerciseText
+        .match(/\b\d+\s*[-:]\s*\d+\s*[-:]\s*\d+(?:\s*[-:]\s*\d+)?\b/gi)
+        ?.forEach((match) => addDetail(`Tempo ${match.replace(/\s+/g, "")}`));
+
+    return detailParts.join(" * ");
+}
+
+function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+    const percentagePrescription = getExercisePercentagePrescription(exercise);
+    const primaryWorkingSet = getPrimaryPercentageWorkingSet(percentagePrescription);
+    const notesDetails = getNotesIntensityDetails(exercise);
+
+    if (primaryWorkingSet) {
+        const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
+            percentagePrescription.referenceLiftName || exercise.name || "",
+            strengthReferenceOneRepMaxByLift
+        );
+        const estimatedLoadKg = referenceLiftDetails.oneRepMaxKg
+            ? calculateTargetLoadFromPercentOneRepMax(
+                referenceLiftDetails.oneRepMaxKg,
+                primaryWorkingSet.percent1RM
+            )
+            : null;
+        const detailParts = [
+            primaryWorkingSet.percent1RM ? `${primaryWorkingSet.percent1RM}% 1RM` : "",
+            primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
+            notesDetails,
+        ].filter(Boolean);
+
+        return {
+            primary: estimatedLoadKg ? formatCompactNumberUnit(estimatedLoadKg, "kg") : "",
+            details: detailParts.join(" * "),
+        };
+    }
+
+    return {
+        primary:
+            getExplicitLoadOrSpeedValue(exercise) ||
+            getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
+        details: notesDetails,
+    };
 }
 
 function includesAnyKeyword(text, keywords = []) {
@@ -200,6 +403,10 @@ export default function DayDetailView({
     updatingPlan = false,
 }) {
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
+    const [highlightedExerciseIndex, setHighlightedExerciseIndex] = useState(null);
+    const [swapExerciseIndex, setSwapExerciseIndex] = useState(null);
+    const [tipsExerciseIndex, setTipsExerciseIndex] = useState(null);
+    const tabTouchStartedRef = useRef(false);
     const normalizedExercises = useMemo(
         () =>
             Array.isArray(exercises)
@@ -236,12 +443,18 @@ export default function DayDetailView({
     const dayLabel = getTrainingDayLabel(resolvedDay);
     const preferredWeekdayLabel = getTrainingDayPreferredWeekday(resolvedDay);
     const selectedExercise = normalizedExercises[activeExerciseIndex];
+    const swapExercise = Number.isInteger(swapExerciseIndex)
+        ? normalizedExercises[swapExerciseIndex]
+        : null;
+    const tipsExercise = Number.isInteger(tipsExerciseIndex)
+        ? normalizedExercises[tipsExerciseIndex]
+        : null;
+    const swapExerciseOptions = swapExercise
+        ? getExerciseSubstitutionOptions(swapExercise)
+        : [];
     const selectedExercisePercentagePrescription = selectedExercise ?
         getExercisePercentagePrescription(selectedExercise) :
         null;
-    const substitutionOptions = selectedExercise
-        ? getExerciseSubstitutionOptions(selectedExercise)
-        : [];
     const summaryText = selectedExercise
         ? `${selectedExercise.name} – ${selectedExercise.sets} x ${selectedExercise.reps}`
         : `No exercises available for ${dayLabel} yet.`;
@@ -311,10 +524,177 @@ export default function DayDetailView({
         }));
     }
 
+    function handleTabTouchStart(event) {
+        tabTouchStartedRef.current = true;
+        event.stopPropagation?.();
+    }
+
+    function handleTabScrollerDragStart() {
+        if (tabTouchStartedRef.current) {
+            tabTouchStartedRef.current = false;
+            return;
+        }
+
+        setHighlightedExerciseIndex(null);
+    }
+
+    function openSwapOptions(exerciseIndex) {
+        setSelectedExerciseIndex(exerciseIndex);
+        setHighlightedExerciseIndex(exerciseIndex);
+        setSwapExerciseIndex(exerciseIndex);
+    }
+
+    function closeSwapOptions() {
+        setSwapExerciseIndex(null);
+    }
+
+    function openTips(exerciseIndex) {
+        setSelectedExerciseIndex(exerciseIndex);
+        setHighlightedExerciseIndex(exerciseIndex);
+        setTipsExerciseIndex(exerciseIndex);
+    }
+
+    function closeTips() {
+        setTipsExerciseIndex(null);
+    }
+
+    function replaceExerciseFromOverlay(substitutionId) {
+        if (!substitutionId || !Number.isInteger(swapExerciseIndex)) {
+            return;
+        }
+
+        onReplaceExercise?.(swapExerciseIndex, substitutionId);
+        closeSwapOptions();
+    }
+
     return (
         <QuestionnaireShell hideTabBar={false}>
-            <ScrollView contentContainerStyle={styles.center}>
-                <View style={styles.card}>
+            <Modal
+                visible={Boolean(swapExercise && swapExerciseOptions.length > 1 && onReplaceExercise)}
+                transparent
+                animationType="fade"
+                onRequestClose={closeSwapOptions}
+            >
+                <Pressable style={styles.swapOverlay} onPress={closeSwapOptions}>
+                    <Pressable
+                        style={styles.swapOptionsCard}
+                        onPress={(event) => event.stopPropagation?.()}
+                    >
+                        <View style={styles.swapOptionsHeader}>
+                            <View style={styles.swapOptionsHeading}>
+                                <Text style={styles.swapOptionsTitle}>Exercise options</Text>
+                                <Text style={styles.swapOptionsSubtitle}>
+                                    {swapExercise ? getExerciseDisplayName(swapExercise) : ""}
+                                </Text>
+                            </View>
+                            <TouchableOpacity
+                                style={styles.swapOptionsCloseButton}
+                                onPress={closeSwapOptions}
+                            >
+                                <StandardText
+                                    style={styles.swapOptionsCloseText}
+                                    textColor="#111827"
+                                >
+                                    Close
+                                </StandardText>
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView
+                            style={styles.swapOptionsScroller}
+                            contentContainerStyle={styles.swapOptionsList}
+                        >
+                            {swapExerciseOptions.map((option) => {
+                                const isSelected =
+                                    option.id === swapExercise?.selectedSubstitutionId;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={option.id}
+                                        style={[
+                                            styles.swapOptionRow,
+                                            isSelected && styles.swapOptionRowSelected,
+                                        ]}
+                                        onPress={() => replaceExerciseFromOverlay(option.id)}
+                                        disabled={isSelected}
+                                    >
+                                        <View style={styles.swapOptionTextBlock}>
+                                            <Text style={styles.swapOptionName}>{option.name}</Text>
+                                            <Text style={styles.swapOptionPrescription}>
+                                                {option.sets} x {option.reps}
+                                            </Text>
+                                            {option.notes ? (
+                                                <Text style={styles.swapOptionNotes}>{option.notes}</Text>
+                                            ) : null}
+                                        </View>
+                                        <StandardText
+                                            style={[
+                                                styles.swapOptionAction,
+                                                isSelected && styles.swapOptionActionSelected,
+                                            ]}
+                                            center
+                                            textColor={isSelected ? "#111827" : "white"}
+                                        >
+                                            {isSelected ? "Current" : "Use"}
+                                        </StandardText>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+            <Modal
+                visible={Boolean(tipsExercise?.notes)}
+                transparent
+                animationType="fade"
+                onRequestClose={closeTips}
+            >
+                <Pressable style={styles.tipsOverlay} onPress={closeTips}>
+                    <Pressable
+                        style={styles.tipsCard}
+                        onPress={(event) => event.stopPropagation?.()}
+                    >
+                        <View style={styles.tipsHeader}>
+                            <View style={styles.tipsHeading}>
+                                <Text style={styles.tipsTitle}>Tips</Text>
+                                <Text style={styles.tipsSubtitle}>
+                                    {tipsExercise ? getExerciseDisplayName(tipsExercise) : ""}
+                                </Text>
+                            </View>
+                            <TouchableOpacity
+                                style={styles.tipsCloseButton}
+                                onPress={closeTips}
+                            >
+                                <StandardText
+                                    style={styles.tipsCloseText}
+                                    textColor="#111827"
+                                >
+                                    Close
+                                </StandardText>
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView
+                            style={styles.tipsScroller}
+                            contentContainerStyle={styles.tipsContent}
+                        >
+                            <Text style={styles.tipsText}>{tipsExercise?.notes}</Text>
+                        </ScrollView>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+            <ScrollView
+                contentContainerStyle={styles.center}
+                onScrollBeginDrag={() => setHighlightedExerciseIndex(null)}
+            >
+                <Pressable
+                    style={styles.highlightDismissLayer}
+                    onTouchStart={() => setHighlightedExerciseIndex(null)}
+                    onPress={() => setHighlightedExerciseIndex(null)}
+                />
+                <Pressable
+                    style={styles.card}
+                    onPress={() => setHighlightedExerciseIndex(null)}
+                >
                     <View style={styles.headerRow}>
                         <View style={styles.heading}>
                         </View>
@@ -390,13 +770,6 @@ export default function DayDetailView({
                         <Text style={styles.subtitle}>Current Exercise:</Text>
                         <Text style={styles.summary}>{summaryText}</Text>
 
-                        {selectedExercise?.notes && (
-                            <View style={styles.notesBox}>
-                                <Text style={styles.notesLabel}>💡 Tips:</Text>
-                                <Text style={styles.notesText}>{selectedExercise.notes}</Text>
-                            </View>
-                        )}
-
                         {selectedExercisePercentagePrescription ? (
                             <View style={styles.percentageBox}>
                                 <Text style={styles.percentageTitle}>Percentage prescription</Text>
@@ -453,47 +826,20 @@ export default function DayDetailView({
                             </View>
                         ) : null}
 
-                        {substitutionOptions.length > 1 && onReplaceExercise ? (
-                            <View style={styles.substitutionBox}>
-                                <Text style={styles.substitutionLabel}>Exercise options</Text>
-                                <View style={styles.substitutionPickerShell}>
-                                    <Picker
-                                        selectedValue={selectedExercise.selectedSubstitutionId}
-                                        onValueChange={(value) => {
-                                            if (!value) {
-                                                return;
-                                            }
-
-                                            onReplaceExercise(activeExerciseIndex, value);
-                                        }}
-                                        style={styles.substitutionPicker}
-                                    >
-                                        {substitutionOptions.map((option) => (
-                                            <Picker.Item
-                                                key={option.id}
-                                                label={option.name}
-                                                value={option.id}
-                                            />
-                                        ))}
-                                    </Picker>
-                                </View>
-                                <Text style={styles.substitutionHelper}>
-                                    Choose a comparable variation from the same category.
-                                </Text>
-                            </View>
-                        ) : null}
                     </View>
 
                     <View style={styles.exerciseTabs}>
-                        <Text style={styles.tabsLabel}>All exercises ({normalizedExercises.length}):</Text>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
                             return (
                                 <View key={`tabs-${section}-${sectionIndex}`} style={styles.exerciseSection}>
                                     <View style={styles.exerciseSectionHeader}>
                                         <View style={styles.exerciseSectionDivider} />
-                                        <Text style={styles.exerciseSectionTitle}>
+                                        <StandardText
+                                            style={styles.exerciseSectionTitle}
+                                            textColor="#111"
+                                        >
                                             {EXERCISE_SECTION_LABELS[section]}
-                                        </Text>
+                                        </StandardText>
                                         <View style={styles.exerciseSectionDivider} />
                                     </View>
                                     <ScrollView
@@ -501,25 +847,140 @@ export default function DayDetailView({
                                         showsHorizontalScrollIndicator={false}
                                         style={styles.tabsScroller}
                                         contentContainerStyle={styles.tabsContainer}
+                                        onScrollBeginDrag={handleTabScrollerDragStart}
                                     >
-                                        {sectionExercises.map(({ exercise: ex, exerciseIndex }) => (
-                                            <TouchableOpacity
-                                                key={exerciseIndex}
-                                                style={[
-                                                    styles.tabButton,
-                                                    exerciseIndex === activeExerciseIndex
-                                                        ? styles.tabButtonActive
-                                                        : styles.tabButtonInactive,
-                                                ]}
-                                                onPress={() => setSelectedExerciseIndex(exerciseIndex)}
-                                            >
-                                                <View style={styles.tabButtonContent}>
-                                                    <View style={styles.tabButtonText}>
-                                                        <Text style={styles.tabButtonName}>{getExerciseDisplayName(ex)}</Text>
+                                        {sectionExercises.map(({ exercise: ex, exerciseIndex }) => {
+                                            const recommendation = getExerciseRecommendationDisplay(
+                                                ex,
+                                                strengthReferenceOneRepMaxByLift
+                                            );
+                                            const isHighlighted =
+                                                exerciseIndex === highlightedExerciseIndex;
+                                            const exerciseSubstitutionOptions =
+                                                getExerciseSubstitutionOptions(ex);
+                                            const canSwapExercise =
+                                                exerciseSubstitutionOptions.length > 1 &&
+                                                onReplaceExercise;
+                                            const hasExerciseTips = Boolean(ex.notes);
+                                            const showActionRail =
+                                                isHighlighted &&
+                                                (canSwapExercise || hasExerciseTips);
+
+                                            return (
+                                                <TouchableOpacity
+                                                    key={exerciseIndex}
+                                                    style={[
+                                                        styles.tabButton,
+                                                        isHighlighted
+                                                            ? styles.tabButtonActive
+                                                            : styles.tabButtonInactive,
+                                                        isHighlighted && styles.tabButtonSelected,
+                                                    ]}
+                                                        onPress={(event) => {
+                                                            event.stopPropagation?.();
+                                                            setSelectedExerciseIndex(exerciseIndex);
+                                                            setHighlightedExerciseIndex(exerciseIndex);
+                                                    }}
+                                                    onTouchStart={(event) => {
+                                                        handleTabTouchStart(event);
+                                                    }}
+                                                >
+                                                    <View style={styles.tabButtonContent}>
+                                                        {showActionRail ? (
+                                                            <View
+                                                                style={styles.tabButtonSwapRail}
+                                                                onTouchStart={(event) => {
+                                                                    handleTabTouchStart(event);
+                                                                }}
+                                                            >
+                                                                {canSwapExercise ? (
+                                                                    <TouchableOpacity
+                                                                        style={styles.tabButtonActionButton}
+                                                                        onPress={(event) => {
+                                                                            event.stopPropagation?.();
+                                                                            openSwapOptions(exerciseIndex);
+                                                                        }}
+                                                                        onTouchStart={(event) => {
+                                                                            handleTabTouchStart(event);
+                                                                        }}
+                                                                    >
+                                                                        <StandardText
+                                                                            style={styles.tabButtonActionText}
+                                                                            center
+                                                                            textColor="#111"
+                                                                        >
+                                                                            Swap
+                                                                        </StandardText>
+                                                                    </TouchableOpacity>
+                                                                ) : null}
+                                                                {hasExerciseTips ? (
+                                                                    <TouchableOpacity
+                                                                        style={styles.tabButtonActionButton}
+                                                                        onPress={(event) => {
+                                                                            event.stopPropagation?.();
+                                                                            openTips(exerciseIndex);
+                                                                        }}
+                                                                        onTouchStart={(event) => {
+                                                                            handleTabTouchStart(event);
+                                                                        }}
+                                                                    >
+                                                                        <StandardText
+                                                                            style={styles.tabButtonActionText}
+                                                                            center
+                                                                            textColor="#111"
+                                                                        >
+                                                                            Tips
+                                                                        </StandardText>
+                                                                    </TouchableOpacity>
+                                                                ) : null}
+                                                            </View>
+                                                        ) : null}
+                                                        <View
+                                                            style={[
+                                                                styles.tabButtonMainText,
+                                                                showActionRail
+                                                                    ? styles.tabButtonMainTextWithSwap
+                                                                    : null,
+                                                            ]}
+                                                        >
+                                                            <View style={styles.tabButtonText}>
+                                                                <StandardText
+                                                                    style={styles.tabButtonName}
+                                                                    lines={2}
+                                                                    textColor="#111"
+                                                                >
+                                                                    {getExerciseDisplayName(ex)}
+                                                                </StandardText>
+                                                                <StandardText
+                                                                    style={styles.tabButtonSets}
+                                                                    lines={1}
+                                                                    textColor="#111"
+                                                                >
+                                                                    {getExercisePrescriptionDisplay(ex)}
+                                                                </StandardText>
+                                                                {recommendation.primary ? (
+                                                                    <StandardText
+                                                                        style={styles.tabButtonRecommendationPrimary}
+                                                                        lines={1}
+                                                                        textColor="#111"
+                                                                    >
+                                                                        {recommendation.primary}
+                                                                    </StandardText>
+                                                                ) : null}
+                                                            </View>
+                                                        </View>
+                                                        {recommendation.details ? (
+                                                            <StandardText
+                                                                style={styles.tabButtonRecommendationDetails}
+                                                                lines={2}
+                                                            >
+                                                                {recommendation.details}
+                                                            </StandardText>
+                                                        ) : null}
                                                     </View>
-                                                </View>
-                                            </TouchableOpacity>
-                                        ))}
+                                                </TouchableOpacity>
+                                            );
+                                        })}
                                     </ScrollView>
                                 </View>
                             );
@@ -708,7 +1169,7 @@ export default function DayDetailView({
                     </View>
                         </>
                     )}
-                </View>
+                </Pressable>
             </ScrollView>
         </QuestionnaireShell>
     );
@@ -719,6 +1180,10 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        position: 'relative',
+    },
+    highlightDismissLayer: {
+        ...StyleSheet.absoluteFillObject,
     },
     card: {
         width: '100%',
@@ -811,16 +1276,6 @@ const styles = StyleSheet.create({
     contentBlock: { flexDirection: 'column', gap: 10 },
     subtitle: { fontSize: 16, opacity: 0.8 },
     summary: { fontSize: 20, fontWeight: '600' },
-    notesBox: {
-        padding: 12,
-        backgroundColor: '#f9f3ff',
-        borderWidth: 1,
-        borderColor: '#e8d5ff',
-        borderRadius: 10,
-        gap: 6,
-    },
-    notesLabel: { fontSize: 14, fontWeight: '600', opacity: 0.9 },
-    notesText: { fontSize: 14, lineHeight: 21, opacity: 0.85 },
     percentageBox: {
         gap: 8,
         padding: 12,
@@ -858,29 +1313,187 @@ const styles = StyleSheet.create({
         lineHeight: 18,
         color: '#64748b',
     },
-    substitutionBox: {
-        gap: 6,
-        padding: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.08)',
-        backgroundColor: '#f9fafb',
+    swapOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: 'rgba(0,0,0,0.48)',
     },
-    substitutionLabel: { fontSize: 14, fontWeight: '600', color: '#111827' },
-    substitutionPickerShell: {
-        borderRadius: 10,
+    swapOptionsCard: {
+        width: '100%',
+        maxWidth: 520,
+        maxHeight: '82%',
+        gap: 14,
+        padding: 18,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.28)',
+        backgroundColor: 'white',
+        shadowColor: '#000',
+        shadowOpacity: 0.28,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 10 },
+        elevation: 24,
+    },
+    swapOptionsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 12,
+    },
+    swapOptionsHeading: {
+        flex: 1,
+        gap: 4,
+    },
+    swapOptionsTitle: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#111827',
+    },
+    swapOptionsSubtitle: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#4b5563',
+    },
+    swapOptionsCloseButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 999,
         borderWidth: 1,
         borderColor: 'rgba(17,24,39,0.14)',
-        backgroundColor: 'white',
-        overflow: 'hidden',
+        backgroundColor: '#f9fafb',
     },
-    substitutionPicker: {
-        height: 46,
-    },
-    substitutionHelper: {
+    swapOptionsCloseText: {
         fontSize: 13,
-        lineHeight: 19,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    swapOptionsScroller: {
+        flexGrow: 0,
+    },
+    swapOptionsList: {
+        gap: 10,
+    },
+    swapOptionRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 12,
+        padding: 14,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        backgroundColor: '#f9fafb',
+    },
+    swapOptionRowSelected: {
+        borderColor: '#111827',
+        backgroundColor: '#f3f4f6',
+    },
+    swapOptionTextBlock: {
+        flex: 1,
+        gap: 3,
+    },
+    swapOptionName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    swapOptionPrescription: {
+        fontSize: 14,
+        color: '#374151',
+    },
+    swapOptionNotes: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: '#6b7280',
+    },
+    swapOptionAction: {
+        minWidth: 64,
+        paddingHorizontal: 12,
+        paddingVertical: 7,
+        borderRadius: 999,
+        overflow: 'hidden',
+        textAlign: 'center',
+        fontSize: 13,
+        fontWeight: '800',
+        color: 'white',
+        backgroundColor: '#111827',
+    },
+    swapOptionActionSelected: {
+        color: '#111827',
+        backgroundColor: '#e5e7eb',
+    },
+    tipsOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: 'rgba(0,0,0,0.48)',
+    },
+    tipsCard: {
+        width: '100%',
+        maxWidth: 520,
+        maxHeight: '82%',
+        gap: 14,
+        padding: 18,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.28)',
+        backgroundColor: 'white',
+        shadowColor: '#000',
+        shadowOpacity: 0.28,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 10 },
+        elevation: 24,
+    },
+    tipsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 12,
+    },
+    tipsHeading: {
+        flex: 1,
+        gap: 4,
+    },
+    tipsTitle: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#111827',
+    },
+    tipsSubtitle: {
+        fontSize: 14,
+        lineHeight: 20,
         color: '#4b5563',
+    },
+    tipsCloseButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: 'rgba(17,24,39,0.14)',
+        backgroundColor: '#f9fafb',
+    },
+    tipsCloseText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    tipsScroller: {
+        flexGrow: 0,
+    },
+    tipsContent: {
+        padding: 14,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        backgroundColor: '#f9fafb',
+    },
+    tipsText: {
+        fontSize: 15,
+        lineHeight: 22,
+        color: '#1f2937',
     },
     assessmentBox: {
         gap: 12,
@@ -972,21 +1585,68 @@ const styles = StyleSheet.create({
     exerciseTabs: {
         gap: 10,
         paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.08)',
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     tabsScroller: {
         flexGrow: 0,
     },
     tabsContainer: { flexDirection: 'row', gap: 8, paddingRight: 8 },
-    tabButton: { borderRadius: 30, height: 140, width:120, },
-    tabButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10 },
-    tabButtonText: { flexDirection: 'column', gap: 2 },
-    tabButtonName: { fontSize: 13, fontWeight: '600' },
-    tabButtonSets: { fontSize: 11, opacity: 0.7 },
-    tabButtonActive: { backgroundColor:  '#747474' },
-    tabButtonInactive: { backgroundColor: 'rgba(0,0,0,0.05)' },
+    tabButton: {backgroundColor: '#101010', borderRadius: 30, height: 150, width:120,
+        borderWidth: 2, borderColor: "#1E1E1E",
+     },
+    tabButtonSelected: {
+        width: 240,
+    },
+    tabButtonContent: {
+        flex: 1,
+        justifyContent: 'space-between',
+        margin: 8,
+        padding: 10,
+        position: 'relative',
+    },
+    tabButtonSwapRail: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: 74,
+        alignItems: 'center',
+        paddingTop: 8,
+        gap: 8,
+    },
+    tabButtonActionButton: {
+        alignItems: 'center',
+        borderRadius: 999,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        width: 65,
+        height: 30,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    tabButtonActionText: {
+        fontSize: 14,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
+    tabButtonMainText: {
+        gap: 6,
+    },
+    tabButtonMainTextWithSwap: {
+        paddingRight: 74,
+    },
+    tabButtonText: { flexDirection: 'column', gap: 2},
+    tabButtonName: { fontSize: 16, fontWeight: '600', color: 'white', marginBottom: 8 },
+    tabButtonSets: { fontSize: 16, color: "#ffffff" },
+    tabButtonRecommendationPrimary: { fontSize: 18, fontWeight: '700' },
+    tabButtonRecommendationDetails: {
+        color: '#C9B259',
+        fontSize: 10,
+        fontWeight: '700',
+        lineHeight: 12,
+    },
+    tabButtonActive: { },
+    tabButtonInactive: { },
     listBlock: {
         gap: 10,
         paddingTop: 8,
