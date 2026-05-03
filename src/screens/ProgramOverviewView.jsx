@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
+import ActiveSessionView from "./ActiveSessionView.jsx";
 import DayDetailView from "./DayDetailView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
 import {
   getCurrentTrainingPhase,
   getCurrentTrainingWeek,
-  getTrainingDayLabel,
   getTrainingDayPreferredWeekday,
   getTrainingPlanPhaseOverview,
 } from "../services/utils/trainingPlan.js";
@@ -49,6 +49,7 @@ export default function ProgramOverviewView({
   updatingPlan = false,
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const [activeSessionDay, setActiveSessionDay] = useState(null);
 
   if (!plan) {
     return (
@@ -128,6 +129,52 @@ export default function ProgramOverviewView({
     }
 
     return `Weeks ${phase.weekStart}-${phase.weekEnd}`;
+  }
+
+  function buildSessionDayPayload(dayData = {}, weekNumber = currentWeek?.week) {
+    return {
+      week: weekNumber,
+      day: dayData.day,
+      dayData,
+      exercises: dayData.exercises || [],
+      preferredWeekday: dayData.preferredWeekday || "",
+      sessionLabel: dayData.sessionLabel || "",
+      status: dayData.status || "pending",
+      rescueMode: dayData.rescueMode || "",
+      adjustmentSummary: dayData.adjustmentSummary || "",
+    };
+  }
+
+  function handleStartSession() {
+    const nextTrainingDay =
+      selectedDay?.dayData ||
+      currentWeekSchedule.find((slot) => slot.trainingDay)?.trainingDay;
+    const nextWeekNumber = selectedDay?.week || currentWeek?.week;
+
+    if (!nextTrainingDay || !nextWeekNumber) {
+      return;
+    }
+
+    onSelectDay(nextWeekNumber, nextTrainingDay.day);
+    setActiveSessionDay(
+      selectedDay || buildSessionDayPayload(nextTrainingDay, nextWeekNumber)
+    );
+  }
+
+  if (activeSessionDay) {
+    return (
+      <ActiveSessionView
+        day={activeSessionDay.dayData}
+        exercises={activeSessionDay.exercises}
+        initialPerformanceResults={selectedDayPerformanceResults}
+        initialAssessmentResults={selectedDayAssessmentResults}
+        onBack={() => setActiveSessionDay(null)}
+        onFinish={(trackedResults) => {
+          onFinishDay?.(trackedResults);
+          setActiveSessionDay(null);
+        }}
+      />
+    );
   }
 
   return (
@@ -216,18 +263,41 @@ export default function ProgramOverviewView({
           </ScrollView>
           <TouchableOpacity
             style={styles.headerStartButton}
-            onPress={() => {
-              const nextTrainingDay =
-                selectedDay?.dayData ||
-                currentWeekSchedule.find((slot) => slot.trainingDay)?.trainingDay;
-
-              if (nextTrainingDay && currentWeek?.week) {
-                onSelectDay(currentWeek.week, nextTrainingDay.day);
-              }
-            }}
+            onPress={handleStartSession}
           >
             <StandardText style={styles.headerStartButtonText}>Start</StandardText>
           </TouchableOpacity>
+          {selectedDay ? (
+            <View style={styles.headerSessionActionRow}>
+              {onFinishDay ? (
+                <TouchableOpacity
+                  style={styles.headerCompleteButton}
+                  onPress={() => onFinishDay()}
+                >
+                  <StandardText style={styles.headerCompleteButtonText}>
+                    Complete
+                  </StandardText>
+                </TouchableOpacity>
+              ) : null}
+              {onFinishDay && onMissedDay ? (
+                <View style={styles.headerSessionActionDivider} />
+              ) : null}
+              {onMissedDay ? (
+                <TouchableOpacity
+                  style={[
+                    styles.headerPushBackButton,
+                    updatingPlan && styles.headerPushBackButtonDisabled,
+                  ]}
+                  onPress={onMissedDay}
+                  disabled={updatingPlan}
+                >
+                  <StandardText style={styles.headerPushBackText}>
+                    {updatingPlan ? "Updating..." : "Push back"}
+                  </StandardText>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          ) : null}
 
           {pendingTrainingCheckIn ? (
             <TrainingCheckInCard
@@ -271,6 +341,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
     marginTop: 40,
+    paddingHorizontal: 28,
+    paddingBottom: 120,
   },
   card: {
     width: "100%",
@@ -290,15 +362,19 @@ const styles = StyleSheet.create({
   },
   header: {
     top : 0,
-    alignSelf: "flex-start",
+    alignSelf: "stretch",
+    width: "100%",
+    position: "relative",
   },
   headerDate: {
     fontSize: 32,
+    lineHeight: 36,
     marginBottom: 8,
   },
   headerPhase: {
     fontSize: 22,
-        marginBottom: 8, 
+    lineHeight: 28,
+    marginBottom: 8, 
   },
   headerDetailsButton: {
     backgroundColor: "#fff",
@@ -315,15 +391,56 @@ const styles = StyleSheet.create({
   },
   headerStartButton: {
     backgroundColor: "#fff",
-        borderRadius: 120,
-        justifyContent: "center", 
-        height: 46,
-        marginTop: 30,
+    borderRadius: 120,
+    justifyContent: "center",
+    height: 46,
+    marginTop: 30,
   },
   headerStartButtonText: {
     color: "#000",
     alignSelf: "center",
     fontSize: 22,
+  },
+  headerSessionActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "stretch",
+    marginTop: 14,
+  },
+  headerSessionActionDivider: {
+    width: 1,
+    height: 31,
+    backgroundColor: "#6b7280",
+  },
+  headerCompleteButton: {
+    borderTopLeftRadius: 120,
+    borderBottomLeftRadius: 120,
+    flex: 1,
+    height: 46,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerCompleteButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  headerPushBackButton: {
+    borderTopRightRadius: 120,
+    borderBottomRightRadius: 120,
+    flex: 1,
+    height: 46,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerPushBackButtonDisabled: {
+    opacity: 0.5,
+  },
+  headerPushBackText: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
   },
   detailsCard: {
     width: "100%",
@@ -355,6 +472,7 @@ const styles = StyleSheet.create({
   weekScheduleScroller: {
     flexGrow: 0,
     alignSelf: "flex-start",
+    marginHorizontal: -28,
     marginTop: 45,
   },
   weekScheduleItem: {

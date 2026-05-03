@@ -84,24 +84,49 @@ function getExerciseDisplayName(exercise = {}) {
     return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
 }
 
-function getCompactTimePrescription(value = "") {
+function getCompactTimePrescription(value = "", exercise = {}) {
     const normalizedValue = String(value || "")
         .trim()
         .replace(/\s*\+\s*/g, ", ");
-    const hasTimeUnit = /\b(?:seconds?|secs?|s|minutes?|mins?)\b/i.test(normalizedValue) ||
-        /\b\d+(?:[.,]\d+)?\s*s\b/i.test(normalizedValue);
+    const exerciseSearchText = getExerciseSearchText(exercise);
+    const isLikelyDistance =
+        /\b\d+(?:[.,]\d+)?\s*m(?:\s*\/\s*\d+(?:[.,]\d+)?\s*ft)?\b/i.test(normalizedValue) &&
+        /\b(?:sprint|run|shuttle|carry|walk|prowler|sled|farmer|march)\b/i.test(exerciseSearchText);
+    const hasTimeUnit =
+        /\b(?:seconds?|secs?|s|minutes?|mins?|hours?|hrs?|h)\b/i.test(normalizedValue) ||
+        /\b\d+(?:[.,]\d+)?\s*[sh]\b/i.test(normalizedValue) ||
+        (!isLikelyDistance && /\b\d+(?:[.,]\d+)?\s*m\b/i.test(normalizedValue));
 
     if (!hasTimeUnit) {
         return "";
     }
 
     return normalizedValue
+        .replace(/\bhours?\b/gi, "h")
+        .replace(/\bhrs?\b/gi, "h")
         .replace(/\bseconds?\b/gi, "sec")
         .replace(/\bsecs?\b/gi, "sec")
         .replace(/\bminutes?\b/gi, "min")
         .replace(/\bmins?\b/gi, "min")
         .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*s\b/gi, "$1 sec")
+        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*m\b/gi, "$1 min")
+        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*h\b/gi, "$1 h")
         .replace(/\s+each(?:\s+(?:side|direction|leg|arm|way))?\b.*$/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function getCompactDistancePrescription(value = "", exercise = {}) {
+    const normalizedValue = String(value || "").trim();
+    const exerciseSearchText = getExerciseSearchText(exercise);
+
+    if (!/\b(?:sprint|run|shuttle|carry|walk|prowler|sled|farmer|march)\b/i.test(exerciseSearchText)) {
+        return "";
+    }
+
+    return normalizedValue
+        .replace(/\b(\d+(?:[.,]\d+)?)\s*m\b/gi, (_, distance) => `${distance} meters`)
+        .replace(/\b(\d+(?:[.,]\d+)?)\s*ft\b/gi, (_, distance) => `${distance} ft`)
         .replace(/\s+/g, " ")
         .trim();
 }
@@ -109,10 +134,16 @@ function getCompactTimePrescription(value = "") {
 function getExercisePrescriptionDisplay(exercise = {}) {
     const sets = String(exercise.sets || "").trim();
     const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, ", ");
-    const compactTimePrescription = getCompactTimePrescription(reps);
+    const compactTimePrescription = getCompactTimePrescription(reps, exercise);
 
     if (compactTimePrescription) {
         return compactTimePrescription;
+    }
+
+    const compactDistancePrescription = getCompactDistancePrescription(reps, exercise);
+
+    if (compactDistancePrescription) {
+        return compactDistancePrescription;
     }
 
     if (/^\d+$/.test(sets) && reps) {
@@ -479,12 +510,6 @@ export default function DayDetailView({
     const swapExerciseOptions = swapExercise
         ? getExerciseSubstitutionOptions(swapExercise)
         : [];
-    const selectedExercisePercentagePrescription = selectedExercise ?
-        getExercisePercentagePrescription(selectedExercise) :
-        null;
-    const summaryText = selectedExercise
-        ? `${selectedExercise.name} – ${selectedExercise.sets} x ${selectedExercise.reps}`
-        : `No exercises available for ${dayLabel} yet.`;
     const isSkipped = status === "skipped";
     const isRescheduled = status === "rescheduled";
     const trackedExercises = normalizedExercises
@@ -530,16 +555,6 @@ export default function DayDetailView({
             }, {}),
         [strengthAssessmentSummary]
     );
-    const percentageReferenceLiftName =
-        selectedExercisePercentagePrescription?.referenceLiftName ||
-        selectedExercise?.name ||
-        "";
-    const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
-        percentageReferenceLiftName,
-        strengthReferenceOneRepMaxByLift
-    );
-    const referenceOneRepMaxKg = referenceLiftDetails.oneRepMaxKg;
-
     function updateTrackingDraft(exerciseIndex, field, value) {
         setTrackingDrafts((currentDrafts) => ({
             ...currentDrafts,
@@ -725,41 +740,6 @@ export default function DayDetailView({
                     <View style={styles.headerRow}>
                         <View style={styles.heading}>
                         </View>
-                        <View style={styles.headerActions}>
-                            {onMissed ? (
-                                <TouchableOpacity
-                                    style={styles.missedButton}
-                                    onPress={onMissed}
-                                    disabled={updatingPlan || isSkipped}
-                                >
-                                    <Text style={styles.missedButtonText}>
-                                        {updatingPlan ? "Updating..." : "Missed"}
-                                    </Text>
-                                </TouchableOpacity>
-                            ) : null}
-                            <TouchableOpacity
-                                style={[
-                                    styles.finishButton,
-                                    (updatingPlan || isSkipped) && styles.finishButtonDisabled,
-                                ]}
-                                onPress={() =>
-                                    onFinish?.(
-                                        trackedExercises.map(({ exerciseIndex }) => ({
-                                            exerciseIndex,
-                                            ...(trackingDrafts[exerciseIndex] || {
-                                                exerciseIndex,
-                                                loadKg: "",
-                                                reps: "",
-                                                rpe: "",
-                                            }),
-                                        }))
-                                    )
-                                }
-                                disabled={updatingPlan || isSkipped}
-                            >
-                                <Text style={styles.finishButtonText}>Finish</Text>
-                            </TouchableOpacity>
-                        </View>
                     </View>
 
                     {(adjustmentSummary || isRescheduled || isSkipped) ? (
@@ -793,81 +773,17 @@ export default function DayDetailView({
                         </View>
                     ) : (
                         <>
-                    <View style={styles.contentBlock}>
-                        <Text style={styles.subtitle}>Current Exercise:</Text>
-                        <Text style={styles.summary}>{summaryText}</Text>
-
-                        {selectedExercisePercentagePrescription ? (
-                            <View style={styles.percentageBox}>
-                                <Text style={styles.percentageTitle}>Percentage prescription</Text>
-                                <Text style={styles.percentageDescription}>
-                                    {selectedExercisePercentagePrescription.loadingStrategy ?
-                                        `Loading strategy: ${selectedExercisePercentagePrescription.loadingStrategy.replace(/_/g, " ")}.` :
-                                        "Percentage-based working sets."
-                                    }{" "}
-                                    Reference lift: {percentageReferenceLiftName}.
-                                </Text>
-                                {selectedExercisePercentagePrescription.workingSets.map(
-                                    (workingSet, index) => {
-                                        const estimatedLoadKg = referenceOneRepMaxKg ?
-                                            calculateTargetLoadFromPercentOneRepMax(
-                                                referenceOneRepMaxKg,
-                                                workingSet.percent1RM
-                                            ) :
-                                            null;
-
-                                        return (
-                                            <View
-                                                key={`percentage-working-set-${index}`}
-                                                style={styles.percentageRow}
-                                            >
-                                                <Text style={styles.percentageRowPrimary}>
-                                                    {workingSet.count > 1 ?
-                                                        `${workingSet.count} sets of ${workingSet.reps}` :
-                                                        `${workingSet.reps} reps`
-                                                    }
-                                                </Text>
-                                                <Text style={styles.percentageRowSecondary}>
-                                                    {workingSet.percent1RM}% 1RM
-                                                    {workingSet.relativeIntensity ?
-                                                        ` | RI ${workingSet.relativeIntensity}%` :
-                                                        ""
-                                                    }
-                                                    {estimatedLoadKg ?
-                                                        ` | ~${estimatedLoadKg} kg` :
-                                                        ""
-                                                    }
-                                                </Text>
-                                            </View>
-                                        );
-                                    }
-                                )}
-                                <Text style={styles.percentageHelper}>
-                                    {referenceLiftDetails.source === "direct" ?
-                                        `Load estimates are based on your latest stored ${percentageReferenceLiftName} reference max.` :
-                                        referenceLiftDetails.source === "estimated_from_bench_press" ?
-                                            `Load estimates are based on an estimated close-grip bench press max set to 95% of your latest Bench Press reference max.` :
-                                        "Load estimates unlock after you log a recent strength assessment for this lift."
-                                    }
-                                </Text>
-                            </View>
-                        ) : null}
-
-                    </View>
-
+                    <View style={styles.exerciseTabsDivider} />
                     <View style={styles.exerciseTabs}>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
                             return (
                                 <View key={`tabs-${section}-${sectionIndex}`} style={styles.exerciseSection}>
                                     <View style={styles.exerciseSectionHeader}>
-                                        <View style={styles.exerciseSectionDivider} />
                                         <StandardText
                                             style={styles.exerciseSectionTitle}
-                                            textColor="#111"
                                         >
                                             {EXERCISE_SECTION_LABELS[section]}
                                         </StandardText>
-                                        <View style={styles.exerciseSectionDivider} />
                                     </View>
                                     <ScrollView
                                         horizontal
@@ -934,7 +850,7 @@ export default function DayDetailView({
                                                                         <StandardText
                                                                             style={styles.tabButtonActionText}
                                                                             center
-                                                                            textColor="#fff"
+                                                                            textColor="#000"
                                                                         >
                                                                             Swap
                                                                         </StandardText>
@@ -954,7 +870,7 @@ export default function DayDetailView({
                                                                         <StandardText
                                                                             style={styles.tabButtonActionText}
                                                                             center
-                                                                            textColor="#fff"
+                                                                            textColor="#000"
                                                                         >
                                                                             Tips
                                                                         </StandardText>
@@ -1015,12 +931,8 @@ export default function DayDetailView({
                     </View>
 
                     {trackedExercises.length > 0 ? (
-                        <View style={styles.assessmentBox}>
-                            <Text style={styles.assessmentTitle}>Tracked top sets</Text>
-                            <Text style={styles.assessmentDescription}>
-                                Save the main monitored set here so the app can track e1RM trend, best-set performance, fixed-RPE load, skipped top sets, and future percentage updates.
-                            </Text>
-                            {trackedExercises.map(({ exercise, exerciseIndex, performanceTarget, strengthAssessment }) => {
+                        <View>
+                            {/* {trackedExercises.map(({ exercise, exerciseIndex, performanceTarget, strengthAssessment }) => {
                                 const strengthRequirements = strengthAssessment ?
                                     getStrengthAssessmentRequirements(
                                         strengthAssessment.method
@@ -1166,21 +1078,19 @@ export default function DayDetailView({
                                         ) : null}
                                     </View>
                                 );
-                            })}
+                            })} */}
                         </View>
                     ) : null}
 
-                    <View style={styles.listBlock}>
+                    {/* <View style={styles.listBlock}>
                         <Text style={styles.listLabel}>Complete workout breakdown:</Text>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
                             return (
                                 <View key={`${section}-${sectionIndex}`} style={styles.exerciseSection}>
                                     <View style={styles.exerciseSectionHeader}>
-                                        <View style={styles.exerciseSectionDivider} />
                                         <Text style={styles.exerciseSectionTitle}>
                                             {EXERCISE_SECTION_LABELS[section]}
                                         </Text>
-                                        <View style={styles.exerciseSectionDivider} />
                                     </View>
                                     {sectionExercises.map(({ exercise: ex, exerciseIndex }) => (
                                         <View key={exerciseIndex} style={styles.exerciseRow}>
@@ -1193,7 +1103,7 @@ export default function DayDetailView({
                                 </View>
                             );
                         })}
-                    </View>
+                    </View> */}
                         </>
                     )}
                 </Pressable>
@@ -1243,31 +1153,6 @@ const styles = StyleSheet.create({
         borderColor: '#111',
     },
     backButtonText: { fontSize: 16, color: '#111' },
-    finishButton: {
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#111',
-        backgroundColor: '#111',
-    },
-    finishButtonDisabled: {
-        opacity: 0.5,
-    },
-    finishButtonText: { fontSize: 16, color: 'white' },
-    missedButton: {
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#b45309',
-        backgroundColor: '#fff7ed',
-    },
-    missedButtonText: {
-        fontSize: 16,
-        color: '#9a3412',
-        fontWeight: '600',
-    },
     adjustmentBox: {
         gap: 6,
         padding: 14,
@@ -1296,46 +1181,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#4b5563',
         textTransform: 'capitalize',
-    },
-    contentBlock: { flexDirection: 'column', gap: 10 },
-    subtitle: { fontSize: 16, opacity: 0.8 },
-    summary: { fontSize: 20, fontWeight: '600' },
-    percentageBox: {
-        gap: 8,
-        padding: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#cbd5e1',
-        backgroundColor: '#f8fafc',
-    },
-    percentageTitle: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#0f172a',
-    },
-    percentageDescription: {
-        fontSize: 13,
-        lineHeight: 19,
-        color: '#334155',
-    },
-    percentageRow: {
-        gap: 2,
-        paddingVertical: 4,
-    },
-    percentageRowPrimary: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    percentageRowSecondary: {
-        fontSize: 13,
-        lineHeight: 18,
-        color: '#475569',
-    },
-    percentageHelper: {
-        fontSize: 12,
-        lineHeight: 18,
-        color: '#64748b',
     },
     swapOverlay: {
         flex: 1,
@@ -1608,7 +1453,12 @@ const styles = StyleSheet.create({
     },
     exerciseTabs: {
         gap: 10,
-        paddingTop: 8,
+        paddingTop: 14,
+    },
+    exerciseTabsDivider: {
+        height: 1,
+        marginHorizontal: -56,
+        backgroundColor: '#5A5A5A',
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     tabsScroller: {
@@ -1712,18 +1562,16 @@ const styles = StyleSheet.create({
     exerciseSectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
-        marginTop: 4,
-    },
-    exerciseSectionDivider: {
-        flex: 1,
-        height: 1,
-        backgroundColor: 'rgba(0,0,0,0.12)',
+        justifyContent: 'flex-start',
+        marginTop: 18,
+        marginBottom: 10,
     },
     exerciseSectionTitle: {
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: '700',
-        opacity: 0.65,
+        color: '#7E7E7E',
+        opacity: 1,
+        textAlign: 'left',
         textTransform: 'uppercase',
     },
     exerciseName: { fontSize: 16, fontWeight: '600' },

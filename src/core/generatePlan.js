@@ -19,9 +19,15 @@ function normalizeGeneratedPlan(plan = {}) {
     return parseGeneratedTrainingPlan(plan);
 }
 
+const TRAINING_PLAN_CALL_TIMEOUT_MS = 300000;
+
 async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLAN_GENERATION_MODEL) {
     const functions = getFunctions(db.app, "us-central1");
-    const generateTrainingPlanCallable = httpsCallable(functions, "generateTrainingPlan");
+    const generateTrainingPlanCallable = httpsCallable(
+        functions,
+        "generateTrainingPlan",
+        { timeout: TRAINING_PLAN_CALL_TIMEOUT_MS }
+    );
 
     return generateTrainingPlanCallable({
         model: modelName,

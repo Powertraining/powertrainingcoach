@@ -3514,7 +3514,11 @@ function parseDirectTrainingPlanResponse(value) {
 }
 
 exports.generateTrainingPlan = functions.https.onCall(
-    {secrets: [openAiApiKeyParam]},
+    {
+      secrets: [openAiApiKeyParam],
+      timeoutSeconds: 300,
+      memory: "1GiB",
+    },
     async (request) => {
       try {
         if (!request.auth) {
