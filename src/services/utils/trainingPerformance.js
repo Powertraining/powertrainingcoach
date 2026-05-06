@@ -86,8 +86,15 @@ function sortPerformanceEntries(left = {}, right = {}) {
     return leftDay - rightDay;
   }
 
-  return (parseExerciseIndex(left.exerciseIndex) || 0) -
+  const exerciseOrder = (parseExerciseIndex(left.exerciseIndex) || 0) -
     (parseExerciseIndex(right.exerciseIndex) || 0);
+
+  if (exerciseOrder !== 0) {
+    return exerciseOrder;
+  }
+
+  return (parseExerciseIndex(left.setIndex) || 0) -
+    (parseExerciseIndex(right.setIndex) || 0);
 }
 
 function parseRpeFromText(value = "") {
@@ -288,6 +295,7 @@ function normalizePerformanceEntry(source = {}) {
     weekNumber: parsePositiveInteger(safeSource.weekNumber),
     dayNumber: parsePositiveInteger(safeSource.dayNumber),
     exerciseIndex: parseExerciseIndex(safeSource.exerciseIndex),
+    setIndex: parseExerciseIndex(safeSource.setIndex),
     liftKey: normalizeString(safeSource.liftKey, toLiftKey(liftName)),
     liftName,
     sourceExerciseName: normalizeString(safeSource.sourceExerciseName, liftName),
@@ -365,6 +373,7 @@ export function createTrainingPerformanceEntry({
   weekNumber = null,
   dayNumber = null,
   exerciseIndex = null,
+  setIndex = null,
   sourceExerciseName = "",
   performedAt = new Date().toISOString(),
 } = {}) {
@@ -417,6 +426,7 @@ export function createTrainingPerformanceEntry({
     weekNumber: parsePositiveInteger(weekNumber),
     dayNumber: parsePositiveInteger(dayNumber),
     exerciseIndex: parseExerciseIndex(exerciseIndex),
+    setIndex: parseExerciseIndex(setIndex ?? safeResult.setIndex),
     liftKey: toLiftKey(normalizedMetadata.liftName),
     liftName: normalizedMetadata.liftName,
     sourceExerciseName: normalizeString(

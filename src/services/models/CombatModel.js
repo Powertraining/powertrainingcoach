@@ -708,6 +708,7 @@ export const model = {
             weekNumber,
             dayNumber,
             exerciseIndex,
+            setIndex: result?.setIndex,
             sourceExerciseName: exercise?.name,
             performedAt,
           });
@@ -881,6 +882,7 @@ export const model = {
               weekNumber,
               dayNumber,
               exerciseIndex,
+              setIndex: result?.setIndex,
               sourceExerciseName: exercise?.name,
               performedAt,
             });

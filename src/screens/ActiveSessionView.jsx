@@ -17,6 +17,20 @@ function getExerciseDisplayName(exercise = {}) {
   return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
 }
 
+function parsePrescribedSetCount(exercise = {}) {
+  const parsedValue = Number.parseInt(exercise?.sets, 10);
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+    return 1;
+  }
+
+  return Math.min(parsedValue, 12);
+}
+
+function getDraftKey(exerciseIndex, setIndex = 0) {
+  return `${exerciseIndex}:${setIndex}`;
+}
+
 function buildTrackingDrafts(
   exercises = [],
   initialPerformanceResults = [],
@@ -33,8 +47,14 @@ function buildTrackingDrafts(
       return;
     }
 
-    drafts[result.exerciseIndex] = {
+    const setIndex = Number.isInteger(result?.setIndex) && result.setIndex >= 0
+      ? result.setIndex
+      : 0;
+    const draftKey = getDraftKey(result.exerciseIndex, setIndex);
+
+    drafts[draftKey] = {
       exerciseIndex: result.exerciseIndex,
+      setIndex,
       loadKg: result?.loadKg != null ? String(result.loadKg) : "",
       reps: result?.reps != null ? String(result.reps) : "",
       rpe: result?.rpe != null ? String(result.rpe) : "",
@@ -42,34 +62,53 @@ function buildTrackingDrafts(
   });
 
   exercises.forEach((exercise, exerciseIndex) => {
-    if (!drafts[exerciseIndex]) {
-      drafts[exerciseIndex] = {
-        exerciseIndex,
-        loadKg: "",
-        reps: "",
-        rpe: "",
-      };
-    }
+    Array.from({ length: parsePrescribedSetCount(exercise) }).forEach((_, setIndex) => {
+      const draftKey = getDraftKey(exerciseIndex, setIndex);
+
+      if (!drafts[draftKey]) {
+        drafts[draftKey] = {
+          exerciseIndex,
+          setIndex,
+          loadKg: "",
+          reps: "",
+          rpe: "",
+        };
+      }
+    });
   });
 
   return drafts;
 }
 
 function getTrackedResultsFromDrafts(drafts = {}) {
-  return Object.values(drafts).filter((draft) =>
-    draft?.loadKg || draft?.reps || draft?.rpe
-  );
+  return Object.values(drafts)
+    .filter((draft) => draft?.loadKg || draft?.reps || draft?.rpe)
+    .sort((left, right) => {
+      const exerciseOrder = (left.exerciseIndex || 0) - (right.exerciseIndex || 0);
+
+      if (exerciseOrder !== 0) {
+        return exerciseOrder;
+      }
+
+      return (left.setIndex || 0) - (right.setIndex || 0);
+    });
 }
 
 function ExerciseSessionStep({
   exercise,
   exerciseIndex,
+  setIndex,
+  setCount,
+  stepIndex,
+  stepCount,
   exerciseCount,
   draft,
+  prescribedSets,
+  onSelectSet,
   onBack,
   onNext,
   onDraftChange,
-  isLastExercise,
+  isLastStep,
 }) {
   const performanceTarget = getExercisePerformanceTarget(exercise);
   const strengthAssessment = getExerciseStrengthAssessment(exercise);
@@ -78,6 +117,7 @@ function ExerciseSessionStep({
     : null;
   const inputDraft = draft || {
     exerciseIndex,
+    setIndex,
     loadKg: "",
     reps: "",
     rpe: "",
@@ -87,7 +127,10 @@ function ExerciseSessionStep({
     <View style={styles.exerciseCard}>
       <View style={styles.progressRow}>
         <Text style={styles.progressText}>
-          Exercise {exerciseIndex + 1} of {exerciseCount}
+          Exercise {exerciseIndex + 1} of {exerciseCount} | Set {setIndex + 1} of {setCount}
+        </Text>
+        <Text style={styles.progressSubText}>
+          Step {stepIndex + 1} of {stepCount}
         </Text>
       </View>
 
@@ -104,6 +147,38 @@ function ExerciseSessionStep({
 
       {exercise.notes ? (
         <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
+      ) : null}
+
+      {setCount > 1 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.setTabsContainer}
+        >
+          {prescribedSets.map((prescribedSet) => {
+            const isActive = prescribedSet.setIndex === setIndex;
+
+            return (
+              <TouchableOpacity
+                key={prescribedSet.setIndex}
+                style={[
+                  styles.setTabButton,
+                  isActive ? styles.setTabButtonActive : styles.setTabButtonInactive,
+                ]}
+                onPress={() => onSelectSet(prescribedSet.setIndex)}
+              >
+                <StandardText
+                  style={[
+                    styles.setTabButtonText,
+                    isActive ? styles.setTabButtonTextActive : styles.setTabButtonTextInactive,
+                  ]}
+                >
+                  Set {prescribedSet.setIndex + 1}
+                </StandardText>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       ) : null}
 
       {(performanceTarget || strengthAssessment) ? (
@@ -132,6 +207,9 @@ function ExerciseSessionStep({
 
       <View style={styles.inputPanel}>
         <Text style={styles.inputPanelTitle}>Exercise inputs</Text>
+        <Text style={styles.inputPanelSubtitle}>
+          Prescribed set {setIndex + 1}; log only what happened for this set.
+        </Text>
         <View style={styles.inputRow}>
           <View style={styles.inputField}>
             <Text style={styles.inputLabel}>
@@ -139,7 +217,7 @@ function ExerciseSessionStep({
             </Text>
             <TextInput
               value={inputDraft.loadKg}
-              onChangeText={(value) => onDraftChange(exerciseIndex, "loadKg", value)}
+              onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "loadKg", value)}
               keyboardType="decimal-pad"
               placeholder="e.g. 150"
               style={styles.input}
@@ -152,7 +230,7 @@ function ExerciseSessionStep({
             </Text>
             <TextInput
               value={inputDraft.reps}
-              onChangeText={(value) => onDraftChange(exerciseIndex, "reps", value)}
+              onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "reps", value)}
               keyboardType="number-pad"
               placeholder={strengthAssessment ? "2-5" : "e.g. 8"}
               style={styles.input}
@@ -165,7 +243,7 @@ function ExerciseSessionStep({
             </Text>
             <TextInput
               value={inputDraft.rpe}
-              onChangeText={(value) => onDraftChange(exerciseIndex, "rpe", value)}
+              onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "rpe", value)}
               keyboardType="decimal-pad"
               placeholder="8-9"
               style={styles.input}
@@ -180,7 +258,7 @@ function ExerciseSessionStep({
         </TouchableOpacity>
         <TouchableOpacity style={styles.nextButton} onPress={onNext}>
           <StandardText style={styles.nextButtonText}>
-            {isLastExercise ? "Complete session" : "Complete exercise"}
+            {isLastStep ? "Complete session" : "Complete set"}
           </StandardText>
         </TouchableOpacity>
       </View>
@@ -204,6 +282,7 @@ export default function ActiveSessionView({
     [exercises]
   );
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
+  const [activeSetIndex, setActiveSetIndex] = useState(0);
   const [trackingDrafts, setTrackingDrafts] = useState(() =>
     buildTrackingDrafts(
       normalizedExercises,
@@ -212,8 +291,32 @@ export default function ActiveSessionView({
     )
   );
   const dayLabel = getTrainingDayLabel(day);
-  const activeExercise = normalizedExercises[activeExerciseIndex] || null;
-  const isLastExercise = activeExerciseIndex >= normalizedExercises.length - 1;
+  const sessionSteps = useMemo(
+    () =>
+      normalizedExercises.flatMap((exercise, exerciseIndex) =>
+        Array.from({ length: parsePrescribedSetCount(exercise) }).map((_, setIndex) => ({
+          exercise,
+          exerciseIndex,
+          setIndex,
+          setCount: parsePrescribedSetCount(exercise),
+        }))
+      ),
+    [normalizedExercises]
+  );
+  const activeStepIndex = sessionSteps.findIndex(
+    (step) =>
+      step.exerciseIndex === activeExerciseIndex &&
+      step.setIndex === activeSetIndex
+  );
+  const resolvedActiveStepIndex = activeStepIndex >= 0 ? activeStepIndex : 0;
+  const activeStep = sessionSteps[resolvedActiveStepIndex] || null;
+  const activeExercise = activeStep?.exercise || null;
+  const isLastStep = resolvedActiveStepIndex >= sessionSteps.length - 1;
+  const activeExerciseSetTabs = activeExercise
+    ? Array.from({ length: activeStep.setCount }).map((_, setIndex) => ({
+        setIndex,
+      }))
+    : [];
 
   useEffect(() => {
     setTrackingDrafts(
@@ -226,36 +329,56 @@ export default function ActiveSessionView({
   }, [initialAssessmentResults, initialPerformanceResults, normalizedExercises]);
 
   useEffect(() => {
-    setActiveExerciseIndex((currentIndex) =>
-      Math.min(currentIndex, Math.max(normalizedExercises.length - 1, 0))
+    const fallbackStep = sessionSteps[0] || { exerciseIndex: 0, setIndex: 0 };
+    const stillValid = sessionSteps.some(
+      (step) =>
+        step.exerciseIndex === activeExerciseIndex &&
+        step.setIndex === activeSetIndex
     );
-  }, [normalizedExercises.length]);
 
-  function updateTrackingDraft(exerciseIndex, field, value) {
+    if (!stillValid) {
+      setActiveExerciseIndex(fallbackStep.exerciseIndex);
+      setActiveSetIndex(fallbackStep.setIndex);
+    }
+  }, [activeExerciseIndex, activeSetIndex, sessionSteps]);
+
+  function updateTrackingDraft(exerciseIndex, setIndex, field, value) {
+    const draftKey = getDraftKey(exerciseIndex, setIndex);
+
     setTrackingDrafts((currentDrafts) => ({
       ...currentDrafts,
-      [exerciseIndex]: {
+      [draftKey]: {
         exerciseIndex,
-        ...(currentDrafts[exerciseIndex] || {}),
+        setIndex,
+        ...(currentDrafts[draftKey] || {}),
         [field]: value,
       },
     }));
   }
 
+  function goToStep(stepIndex) {
+    const nextStep = sessionSteps[stepIndex];
+
+    if (!nextStep) {
+      return;
+    }
+
+    setActiveExerciseIndex(nextStep.exerciseIndex);
+    setActiveSetIndex(nextStep.setIndex);
+  }
+
   function handleBack() {
-    if (activeExerciseIndex > 0) {
-      setActiveExerciseIndex((currentIndex) => Math.max(currentIndex - 1, 0));
+    if (resolvedActiveStepIndex > 0) {
+      goToStep(resolvedActiveStepIndex - 1);
       return;
     }
 
     onBack?.();
   }
 
-  function handleCompleteCurrentExercise() {
-    if (!isLastExercise) {
-      setActiveExerciseIndex((currentIndex) =>
-        Math.min(currentIndex + 1, normalizedExercises.length - 1)
-      );
+  function handleCompleteCurrentSet() {
+    if (!isLastStep) {
+      goToStep(resolvedActiveStepIndex + 1);
       return;
     }
 
@@ -277,15 +400,24 @@ export default function ActiveSessionView({
 
         {activeExercise ? (
           <ExerciseSessionStep
-            key={`${activeExercise.name}-${activeExerciseIndex}`}
+            key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
             exercise={activeExercise}
-            exerciseIndex={activeExerciseIndex}
+            exerciseIndex={activeStep.exerciseIndex}
+            setIndex={activeStep.setIndex}
+            setCount={activeStep.setCount}
+            stepIndex={resolvedActiveStepIndex}
+            stepCount={sessionSteps.length}
             exerciseCount={normalizedExercises.length}
-            draft={trackingDrafts[activeExerciseIndex]}
+            draft={trackingDrafts[getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)]}
+            prescribedSets={activeExerciseSetTabs}
+            onSelectSet={(setIndex) => {
+              setActiveExerciseIndex(activeStep.exerciseIndex);
+              setActiveSetIndex(setIndex);
+            }}
             onBack={handleBack}
-            onNext={handleCompleteCurrentExercise}
+            onNext={handleCompleteCurrentSet}
             onDraftChange={updateTrackingDraft}
-            isLastExercise={isLastExercise}
+            isLastStep={isLastStep}
           />
         ) : (
           <View style={styles.emptyState}>
@@ -343,6 +475,12 @@ const styles = StyleSheet.create({
   progressText: {
     color: "#7E7E7E",
     fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  progressSubText: {
+    color: "#9ca3af",
+    fontSize: 12,
     fontWeight: "700",
     textTransform: "uppercase",
   },
@@ -412,6 +550,41 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "700",
+  },
+  inputPanelSubtitle: {
+    color: "#9ca3af",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  setTabsContainer: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  setTabButton: {
+    height: 38,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 6,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+  },
+  setTabButtonActive: {
+    backgroundColor: "#fff",
+    borderColor: "#fff",
+  },
+  setTabButtonInactive: {
+    backgroundColor: "#101010",
+    borderColor: "#374151",
+  },
+  setTabButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  setTabButtonTextActive: {
+    color: "#111827",
+  },
+  setTabButtonTextInactive: {
+    color: "#fff",
   },
   inputRow: {
     flexDirection: "row",
