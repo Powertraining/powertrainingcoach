@@ -158,6 +158,27 @@ const DISALLOWED_TRAINING_PLAN_WRAPPER_KEYS = Object.freeze([
   "programs",
 ]);
 
+const ENDURANCE_MODALITIES = Object.freeze([
+  "running",
+  "sprinting",
+  "circuit_training",
+  "heavy_bag",
+  "swimming",
+  "assault_bike",
+  "rowing_ergometer",
+  "skiing_ergometer",
+  "arm_crank_machine",
+]);
+
+const ENDURANCE_FORMATS = Object.freeze([
+  "steady_aerobic",
+  "tempo_threshold",
+  "intervals",
+  "repeated_sprint",
+  "recovery",
+  "circuit",
+]);
+
 function normalizeString(value, fallback = "") {
   if (typeof value !== "string") {
     return fallback;
@@ -195,6 +216,41 @@ function omitUndefinedObjectFields(value = {}) {
   return Object.fromEntries(
     Object.entries(value).filter(([, entry]) => entry !== undefined)
   );
+}
+
+function normalizeEnumString(value, allowedValues = []) {
+  const normalizedValue = normalizeString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return allowedValues.includes(normalizedValue) ? normalizedValue : "";
+}
+
+function normalizeEndurancePrescription(prescription = {}) {
+  if (!isPlainObject(prescription)) {
+    return undefined;
+  }
+
+  const durationMinutes = parsePositiveInteger(
+    prescription.durationMinutes ?? prescription.duration
+  );
+  const rounds = parsePositiveInteger(prescription.rounds);
+  const normalizedPrescription = omitUndefinedObjectFields({
+    modality: normalizeEnumString(prescription.modality, ENDURANCE_MODALITIES),
+    format: normalizeEnumString(prescription.format, ENDURANCE_FORMATS),
+    durationMinutes: durationMinutes || undefined,
+    intensity: normalizeString(prescription.intensity),
+    work: normalizeString(prescription.work),
+    rest: normalizeString(prescription.rest),
+    rounds: rounds || undefined,
+    target: normalizeString(prescription.target),
+    notes: normalizeString(prescription.notes),
+  });
+
+  return Object.values(normalizedPrescription).some(Boolean)
+    ? normalizedPrescription
+    : undefined;
 }
 
 function parseWeekRange(value) {
@@ -721,12 +777,15 @@ export function normalizeExercise(exercise = {}) {
     normalizedOptions[0] ||
     normalizeExerciseOption(currentExercise);
 
-  return {
+  return omitUndefinedObjectFields({
     ...exerciseWithoutVideo,
     name: selectedOption.name,
     sets: selectedOption.sets,
     reps: selectedOption.reps,
     notes: selectedOption.notes,
+    endurancePrescription: normalizeEndurancePrescription(
+      safeExercise.endurancePrescription
+    ),
     performanceTarget: normalizePerformanceTarget(
       safeExercise.performanceTarget,
       selectedOption.name,
@@ -742,7 +801,7 @@ export function normalizeExercise(exercise = {}) {
     ),
     selectedSubstitutionId: selectedOption.id,
     substitutionOptions: normalizedOptions,
-  };
+  });
 }
 
 function shouldKeepPercentageOnlyFields(questionnaire = {}) {
@@ -1526,6 +1585,7 @@ function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
     sets: exercise.sets,
     reps: exercise.reps,
     notes: exercise.notes,
+    endurancePrescription: exercise.endurancePrescription,
     performanceTarget: exercise.performanceTarget,
     percentagePrescription: exercise.percentagePrescription,
     strengthAssessment: exercise.strengthAssessment,

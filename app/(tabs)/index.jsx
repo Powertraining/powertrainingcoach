@@ -62,12 +62,19 @@ const HomeScreen = observer(function HomeScreen() {
   }, [model.trainingPlan, router]);
 
   useEffect(() => {
-    if (!resumeStep || model.trainingPlan) {
+    if (model.trainingPlan) {
       return;
     }
 
-    setStep(resumeStep);
-  }, [model.trainingPlan, resumeStep]);
+    if (resumeStep) {
+      setStep(resumeStep);
+      return;
+    }
+
+    if (model.questionnaire?.pendingCycleReview) {
+      setStep(STEPS.Q_SPORT);
+    }
+  }, [model.questionnaire, model.trainingPlan, resumeStep]);
 
   useEffect(() => {
     if (!model.user?.uid) {
@@ -142,6 +149,7 @@ const HomeScreen = observer(function HomeScreen() {
       sessionsPerWeek: model.sessionsPerWeek,
       trainingPlanBatch: model.getTrainingPlanBatch?.() || 1,
       pendingPlanGeneration,
+      pendingCycleReview: false,
     };
   }
 
@@ -156,6 +164,7 @@ const HomeScreen = observer(function HomeScreen() {
       model.setQuestionnaire?.({
         ...questionnaire,
         pendingPlanGeneration: false,
+        pendingCycleReview: false,
       });
       router.replace("/(tabs)/overview");
     } catch (e) {

@@ -63,9 +63,13 @@ const DayDetailScreen = observer(function DayDetailScreen() {
 
   useEffect(() => {
     if (model.user && model.ready && (!plan || !selectedDay)) {
-      router.replace("/(tabs)/overview");
+      router.replace(
+        model.questionnaire?.pendingCycleReview ?
+          "/(tabs)?resume=questionnaireSport" :
+          "/(tabs)/overview"
+      );
     }
-  }, [model.ready, model.user, plan, selectedDay, router]);
+  }, [model.questionnaire, model.ready, model.user, plan, selectedDay, router]);
 
   if (!model.ready) {
     return (
@@ -164,7 +168,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
       if (totalWeeksAvailable > weeksInCurrentPlan) {
         // Complete current batch and go back to input for next batch
         model.completeCurrentBatch?.(weeksInCurrentPlan);
-        router.replace("/(tabs)");
+        router.replace("/(tabs)?resume=questionnaireSport");
       } else {
         // Finished the entire plan, go to feedback
         model.setFinishedWorkout?.(3);
@@ -194,6 +198,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
         initialPerformanceResults={sessionPerformanceResults}
         initialAssessmentResults={sessionAssessmentResults}
         strengthAssessmentSummary={strengthAssessmentSummary}
+        questionnaire={model.questionnaire}
         onBack={handleBack}
         onReplaceExercise={handleReplaceExercise}
         onFinish={handleFinish}

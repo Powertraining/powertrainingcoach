@@ -10,6 +10,18 @@ const VALID_PERFORMANCE_TRACKING_STRATEGIES = new Set(
 
 const RECENT_PERFORMANCE_LIMIT = 12;
 
+const MISSED_REP_REASONS = Object.freeze({
+  too_heavy: "too_heavy",
+  pain: "pain",
+  technical_error: "technical_error",
+});
+
+export const MISSED_REP_REASON_OPTIONS = Object.freeze([
+  { label: "Too heavy", value: MISSED_REP_REASONS.too_heavy },
+  { label: "Pain / irritation", value: MISSED_REP_REASONS.pain },
+  { label: "Technical error", value: MISSED_REP_REASONS.technical_error },
+]);
+
 function normalizeString(value, fallback = "") {
   if (typeof value !== "string") {
     return fallback;
@@ -49,6 +61,10 @@ function parseExerciseIndex(value) {
     typeof value === "number" ? value : Number.parseInt(value, 10);
 
   return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
+function parseBoolean(value) {
+  return value === true || value === "true" || value === 1 || value === "1";
 }
 
 function roundToTenth(value) {
@@ -120,6 +136,285 @@ function parseRepTargetFromText(value = "") {
   const match = normalizedValue.match(/\d+/);
 
   return match ? parsePositiveInteger(match[0]) : null;
+}
+
+function normalizeMissedRepReason(value, fallback = "") {
+  const normalizedValue = normalizeString(value);
+  return Object.values(MISSED_REP_REASONS).includes(normalizedValue)
+    ? normalizedValue
+    : fallback;
+}
+
+function formatMissedRepReason(value = "") {
+  switch (normalizeMissedRepReason(value)) {
+    case MISSED_REP_REASONS.pain:
+      return "Pain / irritation";
+    case MISSED_REP_REASONS.technical_error:
+      return "Technical error";
+    case MISSED_REP_REASONS.too_heavy:
+    default:
+      return "Too heavy";
+  }
+}
+
+function normalizeLiftIntensityMethod(value = "") {
+  return normalizeString(value, "percentage") === "rpe" ? "rpe" : "percentage";
+}
+
+function getExerciseCategory(exercise = {}, metadata = {}) {
+  const combinedText = [
+    exercise?.name,
+    exercise?.notes,
+    exercise?.reps,
+    metadata?.liftName,
+  ]
+    .map((value) => normalizeString(value).toLowerCase())
+    .filter(Boolean)
+    .join(" ");
+
+  if (/\b(clean|snatch|jerk|olympic|high pull|clean pull)\b/i.test(combinedText)) {
+    return "olympic";
+  }
+
+  if (
+    /\b(jump|bound|hop|plyo|throw|med(?:icine)? ball|sprint|velocity|speed)\b/i.test(
+      combinedText
+    )
+  ) {
+    return "ballistic";
+  }
+
+  if (
+    exercise?.percentagePrescription ||
+    exercise?.strengthAssessment ||
+    exercise?.performanceTarget ||
+    metadata?.strategy === PERFORMANCE_TRACKING_STRATEGIES.E1RM ||
+    metadata?.strategy === PERFORMANCE_TRACKING_STRATEGIES.FIXED_RPE
+  ) {
+    return "primary_strength";
+  }
+
+  return "accessory";
+}
+
+function buildRecommendationOption(value, label, summary = "") {
+  return {
+    value,
+    label,
+    summary,
+  };
+}
+
+export function buildMissedRepRecommendation({
+  liftIntensityMethod = "percentage",
+  exercise = {},
+  metadata = {},
+  missReason = "",
+  sameLiftMissesInSession = 1,
+  consecutiveMissExposureCount = 0,
+} = {}) {
+  const reason = normalizeMissedRepReason(missReason, MISSED_REP_REASONS.too_heavy);
+  const loadingMode = normalizeLiftIntensityMethod(liftIntensityMethod);
+  const category = getExerciseCategory(exercise, metadata);
+  const sessionMissCount = parsePositiveInteger(sameLiftMissesInSession) || 1;
+  const repeatedAcrossSessions =
+    (parsePositiveInteger(consecutiveMissExposureCount) || 0) >= 2;
+
+  if (reason === MISSED_REP_REASONS.pain) {
+    return {
+      category,
+      reason,
+      title: "Missed rep logged",
+      recommendedAction: buildRecommendationOption(
+        "swap_variation",
+        "Swap variation",
+        "Stop this lift today and use a pain-free variation next time."
+      ),
+      options: [
+        buildRecommendationOption("end_lift", "End lift for today"),
+        buildRecommendationOption("swap_variation", "Swap variation"),
+        buildRecommendationOption("coach_review", "Coach review flag"),
+      ],
+      nextSessionAdjustment: "Swap to a pain-free variation and keep loading conservative.",
+      planAdjustment: {
+        type: "swap_variation",
+        freezeProgression: true,
+      },
+    };
+  }
+
+  if (category === "ballistic") {
+    return {
+      category,
+      reason,
+      title: "Quality drop logged",
+      recommendedAction: buildRecommendationOption(
+        "end_quality_work",
+        "End quality work",
+        "Stop once speed, landing, or catch quality clearly drops."
+      ),
+      options: [
+        buildRecommendationOption("reduce_reps", "Reduce reps"),
+        buildRecommendationOption("extend_rest", "Extend rest"),
+        buildRecommendationOption("end_quality_work", "End lift for today"),
+      ],
+      nextSessionAdjustment: "Repeat the drill with fewer reps per set or longer rest.",
+      planAdjustment: {
+        type: "reduce_volume",
+        freezeProgression: true,
+      },
+    };
+  }
+
+  if (category === "olympic") {
+    const stopLift = sessionMissCount >= 2;
+
+    return {
+      category,
+      reason,
+      title: "Missed rep logged",
+      recommendedAction: stopLift ?
+        buildRecommendationOption(
+          "end_lift",
+          "End lift for today",
+          "After two misses, move to a simpler pull or throw instead of chasing reps."
+        ) :
+        buildRecommendationOption(
+          "lower_load_5",
+          "Lower load 2.5-5%",
+          "Retry once only if the miss was clearly technical and you still look sharp."
+        ),
+      options: stopLift ?
+        [
+          buildRecommendationOption("end_lift", "End lift for today"),
+          buildRecommendationOption("swap_variation", "Swap variation"),
+          buildRecommendationOption("coach_review", "Coach review flag"),
+        ] :
+        [
+          buildRecommendationOption("lower_load_2_5", "Lower load 2.5%"),
+          buildRecommendationOption("lower_load_5", "Lower load 5%"),
+          buildRecommendationOption("end_lift", "End lift for today"),
+        ],
+      nextSessionAdjustment: stopLift ?
+        "Use a simpler substitute like a clean pull, high pull, jump shrug, or med-ball throw." :
+        "Repeat the lift only if technique is sharp; otherwise simplify the variation.",
+      planAdjustment: {
+        type: stopLift ? "swap_variation" : "reduce_load",
+        loadReductionPercent: 5,
+        freezeProgression: true,
+      },
+    };
+  }
+
+  if (sessionMissCount >= 2) {
+    return {
+      category,
+      reason,
+      title: "Second miss logged",
+      recommendedAction: buildRecommendationOption(
+        "end_lift",
+        "End lift for today",
+        "Two misses is enough signal. Stop the main lift and avoid extra attempts."
+      ),
+      options: [
+        buildRecommendationOption("end_lift", "End lift for today"),
+        buildRecommendationOption("cut_set", "Cut 1 set"),
+        buildRecommendationOption("coach_review", "Coach review flag"),
+      ],
+      nextSessionAdjustment: repeatedAcrossSessions ?
+        "Freeze progression and lower the training max slightly if this happens again." :
+        "Repeat the same load target next time before progressing.",
+      planAdjustment: {
+        type: repeatedAcrossSessions ? "lower_training_max" : "freeze_progression",
+        loadReductionPercent: repeatedAcrossSessions ? 5 : 0,
+        freezeProgression: true,
+      },
+    };
+  }
+
+  if (category === "accessory") {
+    return {
+      category,
+      reason,
+      title: "Missed rep logged",
+      recommendedAction: buildRecommendationOption(
+        "end_set",
+        "End set",
+        "End the set, then reduce load or reps slightly on the next set."
+      ),
+      options: [
+        buildRecommendationOption("end_set", "End set"),
+        buildRecommendationOption("lower_load_2_5", "Lower load 2.5%"),
+        buildRecommendationOption("reduce_reps", "Reduce reps"),
+      ],
+      nextSessionAdjustment: "Repeat this accessory until all reps are completed cleanly.",
+      planAdjustment: {
+        type: "freeze_progression",
+        freezeProgression: true,
+      },
+    };
+  }
+
+  if (loadingMode === "rpe") {
+    const technical = reason === MISSED_REP_REASONS.technical_error;
+
+    return {
+      category,
+      reason,
+      title: "Missed rep logged",
+      recommendedAction: buildRecommendationOption(
+        technical ? "retry_once" : "lower_load_5",
+        technical ? "Retry once or lower load 2.5-5%" : "Lower load 5%",
+        technical ?
+          "Retry only if technique is good; otherwise lower load and keep the same rep target." :
+          "Treat this as an RPE overshoot and stay at the lower end of the target effort."
+      ),
+      options: [
+        buildRecommendationOption("lower_load_2_5", "Lower load 2.5%"),
+        buildRecommendationOption("lower_load_5", "Lower load 5%"),
+        buildRecommendationOption("cut_set", "Cut 1 set"),
+        buildRecommendationOption("end_lift", "End lift for today"),
+      ],
+      nextSessionAdjustment: repeatedAcrossSessions ?
+        "Repeat the same load next exposure before progressing." :
+        "Use today's last successful load as the ceiling and judge RPE more conservatively.",
+      planAdjustment: {
+        type: "freeze_progression",
+        loadReductionPercent: technical ? 2.5 : 5,
+        freezeProgression: true,
+      },
+    };
+  }
+
+  return {
+    category,
+    reason,
+    title: "Missed rep logged",
+    recommendedAction: buildRecommendationOption(
+      reason === MISSED_REP_REASONS.technical_error ? "lower_load_2_5" : "lower_load_5",
+      reason === MISSED_REP_REASONS.technical_error ? "Lower load 2.5%" : "Lower load 5%",
+      reason === MISSED_REP_REASONS.technical_error ?
+        "Keep the week intact if this was purely setup or technique." :
+        "Drop one loading tier for the rest of the session and freeze progression next week."
+    ),
+    options: [
+      buildRecommendationOption("lower_load_2_5", "Lower load 2.5%"),
+      buildRecommendationOption("lower_load_5", "Lower load 5%"),
+      buildRecommendationOption("lower_load_7_5", "Lower load 7.5%"),
+      buildRecommendationOption("cut_set", "Cut 1 set"),
+    ],
+    nextSessionAdjustment: repeatedAcrossSessions ?
+      "Do not advance percentages; repeat the week or lower the training max 2.5-5%." :
+      reason === MISSED_REP_REASONS.technical_error ?
+        "Repeat the planned load next time if setup was the clear cause." :
+        "Freeze progression on this lift and check whether the training max is inflated.",
+    planAdjustment: {
+      type: repeatedAcrossSessions ? "lower_training_max" : "reduce_load",
+      loadReductionPercent: repeatedAcrossSessions ? 5 :
+        reason === MISSED_REP_REASONS.technical_error ? 2.5 : 5,
+      freezeProgression: reason !== MISSED_REP_REASONS.technical_error,
+    },
+  };
 }
 
 function getPrimaryWorkingSet(percentagePrescription = {}) {
@@ -285,8 +580,14 @@ function normalizePerformanceEntry(source = {}) {
   const reps = parsePositiveInteger(safeSource.reps);
   const targetRpe = parsePositiveNumber(safeSource.targetRpe);
   const rpe = parsePositiveNumber(safeSource.rpe);
+  const missedRep = parseBoolean(safeSource.missedRep);
+  const missedRepReason = normalizeMissedRepReason(safeSource.missedRepReason);
+  const missedRepRecommendation =
+    safeSource.missedRepRecommendation && typeof safeSource.missedRepRecommendation === "object"
+      ? safeSource.missedRepRecommendation
+      : null;
 
-  if (!strategy || !liftName || !loadKg || !reps) {
+  if (!strategy || !liftName || (!missedRep && (!loadKg || !reps))) {
     return null;
   }
 
@@ -302,7 +603,7 @@ function normalizePerformanceEntry(source = {}) {
     strategy,
     repTarget: parsePositiveInteger(safeSource.repTarget),
     targetRpe,
-    loadKg: roundToTenth(loadKg),
+    loadKg: loadKg ? roundToTenth(loadKg) : null,
     reps,
     rpe,
     estimatedOneRepMaxKg: calculateEstimatedOneRepMaxKg({
@@ -314,6 +615,10 @@ function normalizePerformanceEntry(source = {}) {
     rpeDrift: roundToTenth(
       rpe != null && targetRpe != null ? rpe - targetRpe : parseSignedNumber(safeSource.rpeDrift)
     ),
+    missedRep,
+    missedRepReason,
+    missedRepReasonLabel: missedRep ? formatMissedRepReason(missedRepReason) : "",
+    missedRepRecommendation,
     prompt: normalizeString(safeSource.prompt),
     performedAt: normalizeString(safeSource.performedAt),
   };
@@ -369,6 +674,8 @@ export function createDefaultTrainingPerformanceState() {
 export function createTrainingPerformanceEntry({
   metadata,
   result,
+  exercise = {},
+  liftIntensityMethod = "percentage",
   sessionKey = "",
   weekNumber = null,
   dayNumber = null,
@@ -389,36 +696,42 @@ export function createTrainingPerformanceEntry({
   );
   const reps = parsePositiveInteger(safeResult.reps);
   const rpe = parsePositiveNumber(safeResult.rpe);
+  const missedRep = parseBoolean(safeResult.missedRep);
+  const missedRepReason = normalizeMissedRepReason(safeResult.missedRepReason);
 
-  if (!loadKg || !reps) {
+  if (!missedRep && (!loadKg || !reps)) {
     return null;
   }
 
-  const estimatedOneRepMaxKg = calculateEstimatedOneRepMaxKg({
-    loadKg,
-    reps,
-    rpe,
-  });
+  const estimatedOneRepMaxKg = loadKg && reps ?
+    calculateEstimatedOneRepMaxKg({
+      loadKg,
+      reps,
+      rpe,
+    }) :
+    null;
   let metricValueKg = null;
 
-  switch (normalizedMetadata.strategy) {
-    case PERFORMANCE_TRACKING_STRATEGIES.BEST_SET:
-      metricValueKg =
-        !normalizedMetadata.repTarget || normalizedMetadata.repTarget === reps ?
-          roundToTenth(loadKg) :
-          null;
-      break;
-    case PERFORMANCE_TRACKING_STRATEGIES.FIXED_RPE:
-      metricValueKg =
-        (!normalizedMetadata.repTarget || normalizedMetadata.repTarget === reps) &&
-        rpe ?
-          roundToTenth(loadKg) :
-          null;
-      break;
-    case PERFORMANCE_TRACKING_STRATEGIES.E1RM:
-    default:
-      metricValueKg = estimatedOneRepMaxKg;
-      break;
+  if (!missedRep) {
+    switch (normalizedMetadata.strategy) {
+      case PERFORMANCE_TRACKING_STRATEGIES.BEST_SET:
+        metricValueKg =
+          !normalizedMetadata.repTarget || normalizedMetadata.repTarget === reps ?
+            roundToTenth(loadKg) :
+            null;
+        break;
+      case PERFORMANCE_TRACKING_STRATEGIES.FIXED_RPE:
+        metricValueKg =
+          (!normalizedMetadata.repTarget || normalizedMetadata.repTarget === reps) &&
+          rpe ?
+            roundToTenth(loadKg) :
+            null;
+        break;
+      case PERFORMANCE_TRACKING_STRATEGIES.E1RM:
+      default:
+        metricValueKg = estimatedOneRepMaxKg;
+        break;
+    }
   }
 
   return normalizePerformanceEntry({
@@ -441,6 +754,16 @@ export function createTrainingPerformanceEntry({
     rpe,
     estimatedOneRepMaxKg,
     metricValueKg,
+    missedRep,
+    missedRepReason,
+    missedRepRecommendation: missedRep ?
+      buildMissedRepRecommendation({
+        liftIntensityMethod,
+        exercise,
+        metadata: normalizedMetadata,
+        missReason: missedRepReason,
+      }) :
+      null,
     prompt: normalizedMetadata.prompt,
     performedAt: normalizeString(performedAt, new Date().toISOString()),
   });

@@ -46,6 +46,27 @@ test("missed-session prompt embeds rescue priority rules", () => {
   assert.match(prompt, /rescueMode/i);
 });
 
+test("training prompt embeds endurance rules and prescription schema", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    desiredTraining: "endurance",
+    enduranceTraining: {
+      include: true,
+      modality: "assault_bike",
+    },
+    trainingCapabilities: {
+      bikeRowerAssaultBike: "yes",
+      runningSprinting: "somewhat",
+    },
+  });
+
+  assert.match(prompt, /Endurance training rules/i);
+  assert.match(prompt, /endurancePrescription/i);
+  assert.match(prompt, /rowing_ergometer/i);
+  assert.match(prompt, /Assault Bike Intervals/i);
+});
+
 test("RPE prompt explicitly blocks percentage prescriptions and strength assessments", () => {
   const prompt = buildTrainingPrompt({
     primaryCombatSport: "MMA",
@@ -82,4 +103,41 @@ test("RPE missed-session prompt blocks preserving strength assessments", () => {
     prompt,
     /do not add or preserve percentagePrescription or strengthAssessment/i
   );
+});
+
+test("striking prompt resolves off-camp and in-camp from competition timing", () => {
+  const offCampPrompt = buildTrainingPrompt({
+    primaryCombatSport: "Boxing",
+    daysPerWeek: 3,
+    eventPreparation: "",
+    numWeeks: 12,
+  });
+  const inCampPrompt = buildTrainingPrompt({
+    primaryCombatSport: "Boxing",
+    daysPerWeek: 3,
+    eventPreparation: "Fight in 8 weeks",
+    numWeeks: 8,
+  });
+
+  assert.match(offCampPrompt, /Status: Off-camp/i);
+  assert.match(offCampPrompt, /Do not force a speed peak/i);
+  assert.match(inCampPrompt, /Status: In-camp/i);
+  assert.match(inCampPrompt, /confirmed striking competition is about 8 week/i);
+  assert.match(inCampPrompt, /30-60%/i);
+});
+
+test("training prompt includes newly added striking periodization instructions", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "Muay Thai / Kickboxing",
+    daysPerWeek: 3,
+    eventPreparation: "Fight in 8 weeks",
+    numWeeks: 8,
+  });
+
+  assert.match(prompt, /off-camp raises the force ceiling/i);
+  assert.match(prompt, /late camp expresses speed/i);
+  assert.match(prompt, /fight week prioritizes freshness and sharpness/i);
+  assert.match(prompt, /Far from the fight, train what the athlete lacks/i);
+  assert.match(prompt, /move violently fast with maximal concentric intent/i);
+  assert.match(prompt, /scissor jumps, split-squat jumps, single-leg bounds/i);
 });

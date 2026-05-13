@@ -31,9 +31,13 @@ const OverviewScreen = observer(function OverviewScreen() {
   // If no plan, redirect to home to create one
   useEffect(() => {
     if (model.user && !plan && model.ready) {
-      router.replace("/(tabs)");
+      router.replace(
+        model.questionnaire?.pendingCycleReview ?
+          "/(tabs)?resume=questionnaireSport" :
+          "/(tabs)"
+      );
     }
-  }, [plan, model.ready, model.user, router]);
+  }, [plan, model.questionnaire, model.ready, model.user, router]);
 
   const pendingTrainingCheckIn = useMemo(
     () => model.getPendingTrainingCheckIn?.() || null,

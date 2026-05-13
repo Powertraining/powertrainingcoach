@@ -17,14 +17,6 @@ export const COMBAT_TRAINING_INTENSITY_OPTIONS = Object.freeze([
   { label: "Intense", value: "intense" },
 ]);
 
-export const COMPETENCY_AND_LIMITATION_OPTIONS = Object.freeze([
-  { label: "Barbells", value: "barbells" },
-  { label: "Machines", value: "machines" },
-  { label: "Dumbbells", value: "dumbbells" },
-  { label: "Olympic lifts", value: "olympic_lifts" },
-  { label: "Ballistic training", value: "ballistic_training" },
-]);
-
 export const SPORT_LOAD_LEVEL_OPTIONS = Object.freeze([
   {
     label: "1 - Low",
@@ -134,7 +126,6 @@ export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   competitionTimeline: "",
   combatTrainingIntensity: "moderate",
   sportLoadLevel: 2,
-  competencyAndLimitations: [],
   liftIntensityMethod: "percentage",
   percentageReferenceMethod: "heavy_single",
   deloadStrategy: "maintain_intensity_reduce_volume",
@@ -213,9 +204,6 @@ function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = fal
       ? safeSource.combatTrainingIntensity
       : APP_LOGIC_SETTINGS_DEFAULTS.combatTrainingIntensity,
     sportLoadLevel: normalizeSportLoadLevel(safeSource.sportLoadLevel),
-    competencyAndLimitations: getNormalizedCompetencyAndLimitations(
-      safeSource.competencyAndLimitations
-    ),
     liftIntensityMethod: isAllowedValue(
       safeSource.liftIntensityMethod,
       LIFT_INTENSITY_METHOD_OPTIONS

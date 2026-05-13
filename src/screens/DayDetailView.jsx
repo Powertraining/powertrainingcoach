@@ -19,6 +19,10 @@ import {
     resolveStrengthAssessmentReferenceOneRepMaxKg,
 } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
+import {
+    buildMissedRepRecommendation,
+    MISSED_REP_REASON_OPTIONS,
+} from "../services/utils/trainingPerformance.js";
 
 function buildTrackingDrafts(
     exercises = [],
@@ -44,6 +48,8 @@ function buildTrackingDrafts(
             loadKg: result?.loadKg != null ? String(result.loadKg) : "",
             reps: result?.reps != null ? String(result.reps) : "",
             rpe: result?.rpe != null ? String(result.rpe) : "",
+            missedRep: Boolean(result?.missedRep),
+            missedRepReason: result?.missedRepReason || "",
         };
     });
 
@@ -61,6 +67,8 @@ function buildTrackingDrafts(
                 loadKg: "",
                 reps: "",
                 rpe: "",
+                missedRep: false,
+                missedRepReason: "",
             };
         }
     });
@@ -454,6 +462,7 @@ export default function DayDetailView({
     initialPerformanceResults = [],
     initialAssessmentResults = [],
     strengthAssessmentSummary = null,
+    questionnaire = {},
     onBack,
     onReplaceExercise,
     onFinish,
@@ -951,10 +960,20 @@ export default function DayDetailView({
                                     loadKg: "",
                                     reps: "",
                                     rpe: "",
+                                    missedRep: false,
+                                    missedRepReason: "",
                                 };
                                 const savedResult = savedAssessmentResults.get(exerciseIndex);
                                 const savedPerformanceResult =
                                     savedPerformanceResults.get(exerciseIndex);
+                                const missedRepRecommendation = draft.missedRep && draft.missedRepReason ?
+                                    buildMissedRepRecommendation({
+                                        liftIntensityMethod: questionnaire?.liftIntensityMethod,
+                                        exercise,
+                                        metadata: performanceTarget || strengthAssessment || {},
+                                        missReason: draft.missedRepReason,
+                                    }) :
+                                    savedPerformanceResult?.missedRepRecommendation || null;
 
                                 return (
                                     <View
@@ -1052,10 +1071,95 @@ export default function DayDetailView({
                                                 </View>
                                             ) : null}
                                         </View>
+                                        {performanceTarget ? (
+                                            <View style={styles.missedRepBox}>
+                                                <View style={styles.missedRepHeader}>
+                                                    <Text style={styles.missedRepTitle}>Missed rep</Text>
+                                                    <TouchableOpacity
+                                                        style={[
+                                                            styles.missedRepToggle,
+                                                            draft.missedRep && styles.missedRepToggleActive,
+                                                        ]}
+                                                        onPress={() =>
+                                                            updateTrackingDraft(
+                                                                exerciseIndex,
+                                                                "missedRep",
+                                                                !draft.missedRep
+                                                            )
+                                                        }
+                                                    >
+                                                        <Text
+                                                            style={[
+                                                                styles.missedRepToggleText,
+                                                                draft.missedRep && styles.missedRepToggleTextActive,
+                                                            ]}
+                                                        >
+                                                            {draft.missedRep ? "Logged" : "Log miss"}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                                {draft.missedRep ? (
+                                                    <View style={styles.missedReasonGroup}>
+                                                        {MISSED_REP_REASON_OPTIONS.map((option) => {
+                                                            const selected = draft.missedRepReason === option.value;
+
+                                                            return (
+                                                                <TouchableOpacity
+                                                                    key={option.value}
+                                                                    style={[
+                                                                        styles.missedReasonChip,
+                                                                        selected && styles.missedReasonChipSelected,
+                                                                    ]}
+                                                                    onPress={() =>
+                                                                        updateTrackingDraft(
+                                                                            exerciseIndex,
+                                                                            "missedRepReason",
+                                                                            option.value
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Text
+                                                                        style={[
+                                                                            styles.missedReasonChipText,
+                                                                            selected && styles.missedReasonChipTextSelected,
+                                                                        ]}
+                                                                    >
+                                                                        {option.label}
+                                                                    </Text>
+                                                                </TouchableOpacity>
+                                                            );
+                                                        })}
+                                                    </View>
+                                                ) : null}
+                                                {draft.missedRep && missedRepRecommendation ? (
+                                                    <View style={styles.missedRecommendationBox}>
+                                                        <Text style={styles.missedRecommendationLabel}>Best next step</Text>
+                                                        <Text style={styles.missedRecommendationTitle}>
+                                                            {missedRepRecommendation.recommendedAction?.label}
+                                                        </Text>
+                                                        {missedRepRecommendation.recommendedAction?.summary ? (
+                                                            <Text style={styles.missedRecommendationText}>
+                                                                {missedRepRecommendation.recommendedAction.summary}
+                                                            </Text>
+                                                        ) : null}
+                                                        <Text style={styles.missedRecommendationNext}>
+                                                            Next session: {missedRepRecommendation.nextSessionAdjustment}
+                                                        </Text>
+                                                    </View>
+                                                ) : draft.missedRep ? (
+                                                    <Text style={styles.missedRepHelper}>
+                                                        Pick the reason so the app can adjust the next exposure correctly.
+                                                    </Text>
+                                                ) : null}
+                                            </View>
+                                        ) : null}
                                         {savedPerformanceResult ? (
                                             <Text style={styles.assessmentSaved}>
-                                                Saved performance: {savedPerformanceResult.loadKg} kg x {savedPerformanceResult.reps}
-                                                {savedPerformanceResult.rpe ? ` @RPE ${savedPerformanceResult.rpe}` : ""}
+                                                {savedPerformanceResult.missedRep ?
+                                                    `Saved missed rep: ${savedPerformanceResult.missedRepReasonLabel || "Logged"}` :
+                                                    `Saved performance: ${savedPerformanceResult.loadKg} kg x ${savedPerformanceResult.reps}`
+                                                }
+                                                {!savedPerformanceResult.missedRep && savedPerformanceResult.rpe ? ` @RPE ${savedPerformanceResult.rpe}` : ""}
                                                 {savedPerformanceResult.estimatedOneRepMaxKg ?
                                                     ` | e1RM ${savedPerformanceResult.estimatedOneRepMaxKg} kg` :
                                                     ""
@@ -1445,6 +1549,103 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         fontSize: 16,
         color: '#111827',
+    },
+    missedRepBox: {
+        gap: 8,
+        padding: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#fed7aa',
+        backgroundColor: '#fff7ed',
+    },
+    missedRepHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 10,
+    },
+    missedRepTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#7c2d12',
+    },
+    missedRepToggle: {
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#fdba74',
+        backgroundColor: 'white',
+    },
+    missedRepToggleActive: {
+        borderColor: '#c2410c',
+        backgroundColor: '#c2410c',
+    },
+    missedRepToggleText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#9a3412',
+    },
+    missedRepToggleTextActive: {
+        color: 'white',
+    },
+    missedReasonGroup: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    missedReasonChip: {
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#fdba74',
+        backgroundColor: 'white',
+    },
+    missedReasonChipSelected: {
+        borderColor: '#c2410c',
+        backgroundColor: '#c2410c',
+    },
+    missedReasonChipText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#9a3412',
+    },
+    missedReasonChipTextSelected: {
+        color: 'white',
+    },
+    missedRepHelper: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: '#9a3412',
+    },
+    missedRecommendationBox: {
+        gap: 4,
+        padding: 10,
+        borderRadius: 10,
+        backgroundColor: '#431407',
+    },
+    missedRecommendationLabel: {
+        fontSize: 11,
+        fontWeight: '700',
+        letterSpacing: 0.8,
+        textTransform: 'uppercase',
+        color: '#fed7aa',
+    },
+    missedRecommendationTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: 'white',
+    },
+    missedRecommendationText: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: '#ffedd5',
+    },
+    missedRecommendationNext: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: '#fed7aa',
     },
     assessmentSaved: {
         fontSize: 13,

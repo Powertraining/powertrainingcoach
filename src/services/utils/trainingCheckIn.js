@@ -29,6 +29,7 @@ const SUBJECTIVE_PAIN_VALUES = new Set(["none", "mild", "affects_training"]);
 const RECOMMENDATION_ACTION_TYPES = Object.freeze({
   keep: "keep",
   micro_adjust: "micro_adjust",
+  freeze_progression: "freeze_progression",
   deload: "deload",
   change_scheme: "change_scheme",
   change_exercise: "change_exercise",
@@ -93,6 +94,15 @@ function parseNonNegativeInteger(value) {
     typeof value === "number" ? value : Number.parseInt(value, 10);
 
   return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
+function toLiftKey(value, fallback = "main_lift") {
+  const normalizedValue = normalizeString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return normalizedValue || fallback;
 }
 
 function roundToTenth(value) {
@@ -220,12 +230,6 @@ export function normalizeTrainingCheckInState(source = {}) {
 }
 
 export function getTrainingCheckInBlockSize(experience = "") {
-  const normalizedExperience = normalizeString(experience);
-
-  if (normalizedExperience === "beginner") {
-    return 8;
-  }
-
   return 4;
 }
 
@@ -420,6 +424,32 @@ function getPerformanceTrackingKey(entry = {}) {
   ].join(":");
 }
 
+function sortPerformanceEntriesByDate(left = {}, right = {}) {
+  const leftTimestamp = Date.parse(left.performedAt || "") || 0;
+  const rightTimestamp = Date.parse(right.performedAt || "") || 0;
+
+  if (leftTimestamp !== rightTimestamp) {
+    return leftTimestamp - rightTimestamp;
+  }
+
+  const leftWeek = parsePositiveInteger(left.weekNumber) || 0;
+  const rightWeek = parsePositiveInteger(right.weekNumber) || 0;
+
+  if (leftWeek !== rightWeek) {
+    return leftWeek - rightWeek;
+  }
+
+  const leftDay = parsePositiveInteger(left.dayNumber) || 0;
+  const rightDay = parsePositiveInteger(right.dayNumber) || 0;
+
+  if (leftDay !== rightDay) {
+    return leftDay - rightDay;
+  }
+
+  return (parseNonNegativeInteger(left.exerciseIndex) || 0) -
+    (parseNonNegativeInteger(right.exerciseIndex) || 0);
+}
+
 function buildPerformanceMetricLabel(entry = {}) {
   const strategy = normalizeString(entry?.strategy);
   const repTarget = parsePositiveInteger(entry?.repTarget);
@@ -593,6 +623,86 @@ function getPerformanceEntriesForCheckInWindow(
   });
 }
 
+function buildMissedRepSummary(
+  trainingPerformanceState = {},
+  weeksInScope = [],
+  upToWeekNumber = null
+) {
+  const normalizedState =
+    normalizeTrainingPerformanceState(trainingPerformanceState);
+  const scopedEntries = normalizedState.history.filter((entry) => {
+    const entryWeekNumber = parsePositiveInteger(entry?.weekNumber);
+
+    if (upToWeekNumber && entryWeekNumber && entryWeekNumber > upToWeekNumber) {
+      return false;
+    }
+
+    if (weeksInScope.length > 0 && entryWeekNumber) {
+      return weeksInScope.includes(entryWeekNumber);
+    }
+
+    return true;
+  });
+  const missedEntries = scopedEntries.filter((entry) => entry?.missedRep);
+  const missedByLift = scopedEntries.reduce((accumulator, entry) => {
+    const liftKey = normalizeString(entry?.liftKey);
+
+    if (!liftKey) {
+      return accumulator;
+    }
+
+    accumulator[liftKey] = [...(accumulator[liftKey] || []), entry];
+    return accumulator;
+  }, {});
+  const maxConsecutiveMisses = Object.values(missedByLift).reduce(
+    (maxCount, entries) => {
+      const trailingMissCount = [...entries]
+        .sort(sortPerformanceEntriesByDate)
+        .reverse()
+        .reduce(
+          (state, entry) => {
+            if (state.stopped) {
+              return state;
+            }
+
+            if (entry?.missedRep) {
+              return {
+                ...state,
+                count: state.count + 1,
+              };
+            }
+
+            return {
+              ...state,
+              stopped: true,
+            };
+          },
+          { count: 0, stopped: false }
+        ).count;
+
+      return Math.max(maxCount, trailingMissCount);
+    },
+    0
+  );
+
+  return {
+    missedRepCount: missedEntries.length,
+    missedRepPainCount: missedEntries.filter(
+      (entry) => entry.missedRepReason === "pain"
+    ).length,
+    missedRepTechnicalCount: missedEntries.filter(
+      (entry) => entry.missedRepReason === "technical_error"
+    ).length,
+    missedRepFatigueCount: missedEntries.filter(
+      (entry) => entry.missedRepReason === "too_heavy"
+    ).length,
+    repeatedMissedRepCount: maxConsecutiveMisses,
+    missedRepLiftNames: [
+      ...new Set(missedEntries.map((entry) => normalizeString(entry?.liftName)).filter(Boolean)),
+    ],
+  };
+}
+
 function classifyRpeDrift(entries = []) {
   const driftEntries = entries.filter(
     (entry) => parseFiniteNumber(entry?.rpeDrift) != null
@@ -742,6 +852,10 @@ function buildObjectiveSummarySentence({
   averageRpeDrift,
   rpeDriftTrend,
   rpeDriftExposureCount,
+  missedRepCount,
+  missedRepPainCount,
+  repeatedMissedRepCount,
+  missedRepLiftNames,
 }) {
   const performanceText =
     performanceTrend && performanceTrend !== "not_enough_data" ?
@@ -771,7 +885,18 @@ function buildObjectiveSummarySentence({
       `Reported effort is trending easier than planned at ${formatSignedNumber(averageRpeDrift)} RPE over the last ${rpeDriftExposureCount} tracked exposures.` :
       `Reported effort is running ${formatSignedNumber(averageRpeDrift)} RPE versus plan over the last ${rpeDriftExposureCount} tracked exposures.`;
 
-  return [performanceText, completionText, topSetText, rpeDriftText]
+  const missedRepText =
+    missedRepCount > 0 ?
+      `${missedRepCount} missed rep${missedRepCount === 1 ? "" : "s"} logged${
+        missedRepLiftNames.length > 0 ? ` on ${missedRepLiftNames.join(", ")}` : ""
+      }${
+        missedRepPainCount > 0 ? `, including ${missedRepPainCount} pain-related miss${missedRepPainCount === 1 ? "" : "es"}` : ""
+      }${
+        repeatedMissedRepCount >= 2 ? ", with repeated misses on the same lift" : ""
+      }.` :
+      "";
+
+  return [performanceText, completionText, topSetText, rpeDriftText, missedRepText]
     .filter(Boolean)
     .join(" ");
 }
@@ -801,6 +926,11 @@ export function buildTrainingCheckInObjectiveSummary({
     prompt.weekNumber
   );
   const rpeDriftSummary = classifyRpeDrift(performanceEntriesForWindow);
+  const missedRepSummary = buildMissedRepSummary(
+    trainingPerformanceState,
+    weeksInScope,
+    prompt.weekNumber
+  );
   const strengthSummary = getMostRelevantLiftTrend(
     strengthAssessmentState,
     prompt.weekNumber
@@ -859,6 +989,12 @@ export function buildTrainingCheckInObjectiveSummary({
     averageRpeDrift: rpeDriftSummary.averageDrift,
     rpeDriftTrend: rpeDriftSummary.trend,
     rpeDriftExposureCount: rpeDriftSummary.exposureCount,
+    missedRepCount: missedRepSummary.missedRepCount,
+    missedRepPainCount: missedRepSummary.missedRepPainCount,
+    missedRepTechnicalCount: missedRepSummary.missedRepTechnicalCount,
+    missedRepFatigueCount: missedRepSummary.missedRepFatigueCount,
+    repeatedMissedRepCount: missedRepSummary.repeatedMissedRepCount,
+    missedRepLiftNames: missedRepSummary.missedRepLiftNames,
     complianceTrend: completionSummary.complianceTrend,
     summary: buildObjectiveSummarySentence({
       performanceTrend: performanceSummary.trend,
@@ -878,6 +1014,10 @@ export function buildTrainingCheckInObjectiveSummary({
       averageRpeDrift: rpeDriftSummary.averageDrift,
       rpeDriftTrend: rpeDriftSummary.trend,
       rpeDriftExposureCount: rpeDriftSummary.exposureCount,
+      missedRepCount: missedRepSummary.missedRepCount,
+      missedRepPainCount: missedRepSummary.missedRepPainCount,
+      repeatedMissedRepCount: missedRepSummary.repeatedMissedRepCount,
+      missedRepLiftNames: missedRepSummary.missedRepLiftNames,
     }),
   };
 }
@@ -993,6 +1133,11 @@ export function buildTrainingCheckInRecommendation({
   );
   const complianceTrend = normalizeString(objectiveSummary?.complianceTrend);
   const rpeDriftTrend = normalizeString(objectiveSummary?.rpeDriftTrend);
+  const missedRepCount = parseNonNegativeInteger(objectiveSummary?.missedRepCount) || 0;
+  const missedRepPainCount =
+    parseNonNegativeInteger(objectiveSummary?.missedRepPainCount) || 0;
+  const repeatedMissedRepCount =
+    parseNonNegativeInteger(objectiveSummary?.repeatedMissedRepCount) || 0;
   const mergedTrend = resolveMergedTrend(
     normalizedAnswers.progress,
     objectiveTrend
@@ -1007,8 +1152,11 @@ export function buildTrainingCheckInRecommendation({
     objectiveFatigueRaised,
   ].filter(Boolean).length;
   const allowSchemeChange =
-    prompt.type === CHECK_IN_TYPES.end_of_block ||
-    (hasStallSignal && schemeSupportFlags >= 1);
+    missedRepCount === 0 &&
+    (
+      prompt.type === CHECK_IN_TYPES.end_of_block ||
+      (hasStallSignal && schemeSupportFlags >= 1)
+    );
   const preferSchemeChange =
     capabilitySummary.canChangeScheme &&
     allowSchemeChange &&
@@ -1042,6 +1190,33 @@ export function buildTrainingCheckInRecommendation({
     });
     explanation =
       "Pain is affecting training, so changing the exercise variation matters more than changing the loading scheme.";
+  } else if (
+    missedRepPainCount > 0 &&
+    capabilitySummary.canChangeExercise
+  ) {
+    recommendedAction = buildActionOption({
+      type: RECOMMENDATION_ACTION_TYPES.change_exercise,
+      label: "Swap variation",
+      summary: "Pain-related missed reps should move to a pain-free variation.",
+    });
+    explanation =
+      "A missed rep was pain-related, so the next adjustment should protect the athlete before changing load structure.";
+  } else if (
+    missedRepCount > 0 &&
+    capabilitySummary.canMicroAdjust
+  ) {
+    recommendedAction = buildActionOption({
+      type: RECOMMENDATION_ACTION_TYPES.freeze_progression,
+      label: repeatedMissedRepCount >= 2 ? "Freeze progression" : "Repeat load",
+      summary:
+        repeatedMissedRepCount >= 2 ?
+          "Do not advance this lift yet; repeat the week or lower the training max slightly." :
+          "Repeat the current loading target before adding more.",
+    });
+    explanation =
+      repeatedMissedRepCount >= 2 ?
+        "Repeated misses on the same lift are a progression signal, so freezing or slightly lowering the next exposure beats changing the whole scheme." :
+        "A missed rep should first be handled as a dose adjustment, not a scheme change.";
   } else if (
     (normalizedAnswers.fatigue === "beat_up" || objectiveFatigueHigh) &&
     capabilitySummary.canDeload
@@ -1104,6 +1279,13 @@ export function buildTrainingCheckInRecommendation({
         type: RECOMMENDATION_ACTION_TYPES.micro_adjust,
         label: "Small progression",
         summary: "Keep the structure and make one conservative load or set bump.",
+      }) :
+      null,
+    missedRepCount > 0 && capabilitySummary.canMicroAdjust ?
+      buildActionOption({
+        type: RECOMMENDATION_ACTION_TYPES.freeze_progression,
+        label: "Freeze progression",
+        summary: "Repeat current loading before progressing after a missed rep.",
       }) :
       null,
     allowSchemeChange && capabilitySummary.canChangeScheme ?
@@ -1359,6 +1541,47 @@ function applyMicroAdjust(plan = {}, completedDays = []) {
   };
 }
 
+function applyFreezeProgression(plan = {}, completedDays = []) {
+  const targetWeekNumber = getCurrentTrainingDay(plan, completedDays)?.week || null;
+  let adjustmentApplied = false;
+
+  if (!targetWeekNumber) {
+    return {
+      plan: normalizeTrainingPlan(plan),
+      resultSummary: "No future training week was available to freeze progression.",
+    };
+  }
+
+  const nextPlan = updateWeek(plan, targetWeekNumber, (day) => ({
+    ...day,
+    adjustmentSummary:
+      "Check-in adjustment: progression frozen after a missed rep signal.",
+    exercises: (day.exercises || []).map((exercise) => {
+      if (adjustmentApplied) {
+        return exercise;
+      }
+
+      if (exercise?.percentagePrescription || exercise?.performanceTarget) {
+        adjustmentApplied = true;
+        return appendExerciseNote(
+          exercise,
+          "Missed-rep adjustment: repeat the current loading target before progressing."
+        );
+      }
+
+      return exercise;
+    }),
+  }));
+
+  return {
+    plan: nextPlan,
+    resultSummary:
+      adjustmentApplied ?
+        `Progression was frozen for week ${targetWeekNumber}.` :
+        "No monitored lift was found to freeze progression.",
+  };
+}
+
 function applyLoadingSchemeChange(
   plan = {},
   completedDays = [],
@@ -1454,6 +1677,171 @@ function applyExerciseVariationChange(plan = {}, completedDays = []) {
   };
 }
 
+function parseSessionKey(sessionKey = "") {
+  const [weekPart, dayPart] = normalizeString(sessionKey).split("-");
+  const weekNumber = parsePositiveInteger(weekPart);
+  const dayNumber = parsePositiveInteger(dayPart);
+
+  return {
+    weekNumber,
+    dayNumber,
+  };
+}
+
+function isFutureTrainingSlot(weekNumber, dayNumber, reference = {}) {
+  if (!reference.weekNumber || !reference.dayNumber) {
+    return true;
+  }
+
+  if (weekNumber !== reference.weekNumber) {
+    return weekNumber > reference.weekNumber;
+  }
+
+  return dayNumber > reference.dayNumber;
+}
+
+function getExerciseLiftKey(exercise = {}) {
+  return toLiftKey(
+    exercise?.percentagePrescription?.referenceLiftName ||
+      exercise?.performanceTarget?.liftName ||
+      exercise?.strengthAssessment?.liftName ||
+      exercise?.name
+  );
+}
+
+function reducePercentagePrescription(percentagePrescription = {}, reductionPercent = 0) {
+  const normalizedReduction = Math.max(0, parseFiniteNumber(reductionPercent) || 0);
+
+  if (!percentagePrescription?.workingSets?.length || normalizedReduction <= 0) {
+    return percentagePrescription;
+  }
+
+  return {
+    ...percentagePrescription,
+    workingSets: percentagePrescription.workingSets.map((workingSet) => {
+      const nextPercent = roundToTenth(
+        Math.max(0, (workingSet.percent1RM || 0) - normalizedReduction)
+      );
+
+      return {
+        ...workingSet,
+        percent1RM: nextPercent,
+        relativeIntensity:
+          calculateRelativeIntensityFromPercentOneRepMax(
+            nextPercent,
+            workingSet.reps
+          ),
+      };
+    }),
+  };
+}
+
+export function applyMissedRepPlanAdjustment({
+  plan = {},
+  completedDays = [],
+  sessionKey = "",
+  entries = [],
+  questionnaire = {},
+} = {}) {
+  const normalizedPlan = normalizeTrainingPlan(plan);
+  const missedEntries = (Array.isArray(entries) ? entries : []).filter(
+    (entry) => entry?.missedRep
+  );
+
+  if (missedEntries.length === 0) {
+    return {
+      plan: normalizedPlan,
+      resultSummary: "No missed-rep adjustment was needed.",
+    };
+  }
+
+  const referenceSlot = parseSessionKey(sessionKey);
+  let adjustmentCount = 0;
+  let nextPlan = normalizedPlan;
+
+  missedEntries.forEach((entry) => {
+    const targetLiftKey = toLiftKey(entry?.liftName || entry?.sourceExerciseName);
+    const recommendation = entry?.missedRepRecommendation || {};
+    const planAdjustment =
+      recommendation.planAdjustment && typeof recommendation.planAdjustment === "object"
+        ? recommendation.planAdjustment
+        : {};
+    const adjustmentType = normalizeString(planAdjustment.type, "freeze_progression");
+    const reductionPercent =
+      parseFiniteNumber(planAdjustment.loadReductionPercent) ||
+      (questionnaire?.liftIntensityMethod === "rpe" ? 0 : 5);
+    let appliedForEntry = false;
+
+    nextPlan = {
+      ...nextPlan,
+      weeks: nextPlan.weeks.map((week) => ({
+        ...week,
+        days: week.days.map((day) => {
+          if (
+            appliedForEntry ||
+            !isFutureTrainingSlot(week.week, day.day, referenceSlot)
+          ) {
+            return day;
+          }
+
+          return {
+            ...day,
+            exercises: (day.exercises || []).map((exercise) => {
+              if (appliedForEntry || getExerciseLiftKey(exercise) !== targetLiftKey) {
+                return exercise;
+              }
+
+              appliedForEntry = true;
+              adjustmentCount += 1;
+
+              if (adjustmentType === "swap_variation") {
+                const options = Array.isArray(exercise?.substitutionOptions)
+                  ? exercise.substitutionOptions
+                  : [];
+                const currentId = normalizeString(exercise?.selectedSubstitutionId);
+                const nextOption = options.find((option) => option?.id !== currentId);
+
+                if (nextOption) {
+                  return appendExerciseNote(
+                    applyExerciseSubstitution(exercise, nextOption.id),
+                    "Missed-rep adjustment: pain was logged, so use a pain-free variation and keep the load conservative."
+                  );
+                }
+              }
+
+              const nextExercise = {
+                ...exercise,
+                percentagePrescription:
+                  exercise.percentagePrescription && reductionPercent > 0
+                    ? reducePercentagePrescription(
+                        exercise.percentagePrescription,
+                        reductionPercent
+                      )
+                    : exercise.percentagePrescription,
+              };
+
+              return appendExerciseNote(
+                nextExercise,
+                reductionPercent > 0
+                  ? `Missed-rep adjustment: reduce the next exposure by about ${reductionPercent}% and repeat before progressing.`
+                  : "Missed-rep adjustment: repeat the current loading target before progressing."
+              );
+            }),
+          };
+        }),
+      })),
+    };
+  });
+
+  return {
+    plan: normalizeTrainingPlan(nextPlan),
+    resultSummary:
+      adjustmentCount > 0
+        ? `${adjustmentCount} missed-rep adjustment${adjustmentCount === 1 ? "" : "s"} applied to future exposures.`
+        : "No future exposure matched the missed lift.",
+  };
+}
+
 export function applyTrainingCheckInAction({
   plan = {},
   completedDays = [],
@@ -1471,6 +1859,8 @@ export function applyTrainingCheckInAction({
   switch (normalizedAction.type) {
     case RECOMMENDATION_ACTION_TYPES.micro_adjust:
       return applyMicroAdjust(plan, completedDays);
+    case RECOMMENDATION_ACTION_TYPES.freeze_progression:
+      return applyFreezeProgression(plan, completedDays);
     case RECOMMENDATION_ACTION_TYPES.deload:
       return applyDeload(plan, completedDays);
     case RECOMMENDATION_ACTION_TYPES.change_scheme:
