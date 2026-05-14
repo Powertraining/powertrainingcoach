@@ -510,6 +510,7 @@ export default function DayDetailView({
             ? day
             : { day, preferredWeekday, sessionLabel, status, rescueMode, adjustmentSummary };
     const dayLabel = getTrainingDayLabel(resolvedDay);
+    const dayIdentity = `${week || ""}-${resolvedDay.day || dayLabel}`;
     const preferredWeekdayLabel = getTrainingDayPreferredWeekday(resolvedDay);
     const selectedExercise = normalizedExercises[activeExerciseIndex];
     const swapExercise = Number.isInteger(swapExerciseIndex)
@@ -748,11 +749,6 @@ export default function DayDetailView({
                     style={styles.card}
                     onPress={() => setHighlightedExerciseIndex(null)}
                 >
-                    <View style={styles.headerRow}>
-                        <View style={styles.heading}>
-                        </View>
-                    </View>
-
                     {(adjustmentSummary || isRescheduled || isSkipped) ? (
                         <View
                             style={[
@@ -787,7 +783,7 @@ export default function DayDetailView({
                     <View style={styles.exerciseTabs}>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
                             return (
-                                <View key={`tabs-${section}-${sectionIndex}`} style={styles.exerciseSection}>
+                                <View key={`tabs-${dayIdentity}-${section}-${sectionIndex}`} style={styles.exerciseSection}>
                                     <View style={styles.exerciseSectionHeader}>
                                         <StandardText
                                             style={styles.exerciseSectionTitle}
@@ -1233,7 +1229,9 @@ const styles = StyleSheet.create({
     card: {
         width: '100%',
         maxWidth: 980,
-        padding: 28,
+        paddingHorizontal: 28,
+        paddingTop: 8,
+        paddingBottom: 28,
         gap: 18,
         backgroundColor: "transparent",
     },
@@ -1658,7 +1656,7 @@ const styles = StyleSheet.create({
     },
     exerciseTabs: {
         gap: 10,
-        paddingTop: 14,
+        paddingTop: 0,
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     tabsScroller: {
