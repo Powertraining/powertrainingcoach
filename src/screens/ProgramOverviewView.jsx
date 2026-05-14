@@ -337,24 +337,26 @@ export default function ProgramOverviewView({
           ) : null}
 
           {selectedDay ? (
-            <DayDetailView
-              week={selectedDay.week}
-              day={selectedDay.dayData}
-              exercises={selectedDay.exercises}
-              preferredWeekday={selectedDay.preferredWeekday}
-              sessionLabel={selectedDay.sessionLabel}
-              status={selectedDay.status}
-              rescueMode={selectedDay.rescueMode}
-              adjustmentSummary={selectedDay.adjustmentSummary}
-              initialPerformanceResults={selectedDayPerformanceResults}
-              initialAssessmentResults={selectedDayAssessmentResults}
-              strengthAssessmentSummary={strengthAssessmentSummary}
-              onBack={onClearSelectedDay}
-              onReplaceExercise={onReplaceExercise}
-              onFinish={onFinishDay}
-              onMissed={onMissedDay}
-              updatingPlan={updatingPlan}
-            />
+            <View style={styles.dayDetailEdgeToEdge}>
+              <DayDetailView
+                week={selectedDay.week}
+                day={selectedDay.dayData}
+                exercises={selectedDay.exercises}
+                preferredWeekday={selectedDay.preferredWeekday}
+                sessionLabel={selectedDay.sessionLabel}
+                status={selectedDay.status}
+                rescueMode={selectedDay.rescueMode}
+                adjustmentSummary={selectedDay.adjustmentSummary}
+                initialPerformanceResults={selectedDayPerformanceResults}
+                initialAssessmentResults={selectedDayAssessmentResults}
+                strengthAssessmentSummary={strengthAssessmentSummary}
+                onBack={onClearSelectedDay}
+                onReplaceExercise={onReplaceExercise}
+                onFinish={onFinishDay}
+                onMissed={onMissedDay}
+                updatingPlan={updatingPlan}
+              />
+            </View>
           ) : null}
         </View>
       </ScrollView>
@@ -507,6 +509,10 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginHorizontal: -28,
     marginTop: 45,
+  },
+  dayDetailEdgeToEdge: {
+    alignSelf: "stretch",
+    marginHorizontal: -28,
   },
   weekScheduleItem: {
     alignItems: "center",

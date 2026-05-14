@@ -83,6 +83,7 @@ const EXERCISE_SECTION_LABELS = Object.freeze({
     core: "Core",
     accessory: "Accessory",
 });
+const CARD_HORIZONTAL_PADDING = 28;
 
 function getExerciseSearchText(exercise = {}) {
     return ` ${exercise.name || ""} ${exercise.notes || ""} ${exercise.reps || ""} `.toLowerCase();
@@ -468,6 +469,7 @@ export default function DayDetailView({
     onFinish,
     onMissed,
     updatingPlan = false,
+    exerciseListHorizontalBleed = CARD_HORIZONTAL_PADDING,
 }) {
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
     const [highlightedExerciseIndex, setHighlightedExerciseIndex] = useState(null);
@@ -796,7 +798,10 @@ export default function DayDetailView({
                                     <ScrollView
                                         horizontal
                                         showsHorizontalScrollIndicator={false}
-                                        style={styles.tabsScroller}
+                                        style={[
+                                            styles.tabsScroller,
+                                            { marginHorizontal: -exerciseListHorizontalBleed },
+                                        ]}
                                         contentContainerStyle={styles.tabsContainer}
                                         onScrollBeginDrag={handleTabScrollerDragStart}
                                     >
@@ -1658,8 +1663,9 @@ const styles = StyleSheet.create({
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     tabsScroller: {
         flexGrow: 0,
+        alignSelf: "stretch",
     },
-    tabsContainer: { flexDirection: 'row', gap: 8, paddingRight: 8 },
+    tabsContainer: { flexDirection: 'row', gap: 8, paddingLeft: 28, paddingRight: 8 },
     tabButton: {backgroundColor: '#101010', borderRadius: 30, height: 160, width:130,
         borderWidth: 2, borderColor: "#1E1E1E",
      },
