@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import PlanSetTabs from "../components/planComponents/PlanSetTabs.jsx";
 import StandardText from "../components/textComponents/StandardText.jsx";
@@ -10,11 +10,7 @@ import {
   getExerciseStrengthAssessment,
   normalizeExercise,
 } from "../services/utils/trainingPlan.js";
-import {
-  getStrengthAssessmentMethodLabel,
-  getStrengthAssessmentRequirements,
-  resolveStrengthAssessmentReferenceOneRepMaxKg,
-} from "../services/utils/strengthAssessment.js";
+import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOneRepMaxKg } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 
 function getExerciseDisplayName(exercise = {}) {
@@ -572,7 +568,10 @@ function ExerciseSessionStep({
   prescribedSets,
   completedSetIndexes,
   onSelectSet,
+  onEffortChange,
+  effortValue,
   onNext,
+  onSkip,
   onDraftChange,
 }) {
   const {
@@ -597,6 +596,10 @@ function ExerciseSessionStep({
   const recommendation = getExerciseRecommendationDisplay(exercise);
   const exerciseWeight = recommendation.primary || (inputDraft.loadKg ? `${inputDraft.loadKg}kg` : "");
   const hasRecommendationDetails = Boolean(recommendation.details);
+  const effortInputRef = useRef(null);
+  const focusEffortInput = () => {
+    effortInputRef.current?.focus?.();
+  };
 
   return (
     <View style={styles.exerciseCard}>
@@ -624,7 +627,9 @@ function ExerciseSessionStep({
             ) : null}
           </View>
           {hasRecommendationDetails ? (
-            <Text style={styles.exerciseIntensityDetails}>{recommendation.details}</Text>
+            <View style={styles.exerciseMetaRow}>
+              <Text style={styles.exerciseIntensityDetails}>{recommendation.details}</Text>
+            </View>
           ) : null}
         </View>
 
@@ -635,36 +640,14 @@ function ExerciseSessionStep({
         ) : null}
       </View>
 
-      <PlanSetTabs
-        prescribedSets={prescribedSets}
-        activeSetIndex={setIndex}
-        completedSetIndexes={completedSetIndexes}
-        onSelectSet={onSelectSet}
-      />
-
-      {(performanceTarget || strengthAssessment) ? (
-        <View style={styles.trackedBox}>
-          <View style={styles.trackedHeader}>
-            <Text style={styles.trackedTitle}>Tracking target</Text>
-            {strengthAssessment ? (
-              <Text style={styles.trackedTag}>
-                {getStrengthAssessmentMethodLabel(strengthAssessment.method)}
-              </Text>
-            ) : performanceTarget ? (
-              <Text style={styles.trackedTag}>
-                {performanceTarget.strategy.replace(/_/g, " ")}
-              </Text>
-            ) : null}
-          </View>
-          {performanceTarget?.prompt ? (
-            <Text style={styles.trackedPrompt}>{performanceTarget.prompt}</Text>
-          ) : null}
-          {strengthAssessment?.prompt &&
-          strengthAssessment.prompt !== performanceTarget?.prompt ? (
-            <Text style={styles.trackedPrompt}>{strengthAssessment.prompt}</Text>
-          ) : null}
-        </View>
-      ) : null}
+      <View style={styles.setTabsBlock}>
+        <PlanSetTabs
+          prescribedSets={prescribedSets}
+          activeSetIndex={setIndex}
+          completedSetIndexes={completedSetIndexes}
+          onSelectSet={onSelectSet}
+        />
+      </View>
 
       {showInputs || customFields.length > 0 ? (
         <View style={styles.inputPanel}>
@@ -732,19 +715,51 @@ function ExerciseSessionStep({
             ))}
           </View>
         </View>
-      ) : (
-        <View style={styles.completionPanel}>
-          <Text style={styles.completionPanelTitle}>Set completion</Text>
-          <Text style={styles.completionPanelText}>
-            This set does not require extra logging. Move on when it is completed as prescribed.
-          </Text>
-        </View>
-      )}
+      ) : null}
 
-      <View style={styles.navigationRow}>
-        <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
-          <StandardText style={styles.nextButtonText}>Finish set</StandardText>
+      <View style={styles.footerActions}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.effortCardOuter}
+          onPress={focusEffortInput}
+          onPressIn={focusEffortInput}
+        >
+          <View style={styles.effortCardInner}>
+            <Text style={styles.effortPrompt} onPress={focusEffortInput}>
+              How hard did that feel?
+            </Text>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.effortInputShell}
+              onPress={focusEffortInput}
+              onPressIn={focusEffortInput}
+            >
+              <View style={styles.effortValueRow}>
+                <TextInput
+                  ref={effortInputRef}
+                  value={effortValue}
+                  onChangeText={onEffortChange}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor="#fff"
+                  style={styles.effortInput}
+                  textAlign="center"
+                  maxLength={2}
+                />
+                <Text style={styles.effortSuffix} onPress={focusEffortInput}>/10</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
+
+        <View style={styles.navigationRow}>
+          <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+            <StandardText style={styles.skipButtonText}>Skip</StandardText>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
+            <StandardText style={styles.nextButtonText}>Finish set</StandardText>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -768,6 +783,7 @@ export default function ActiveSessionView({
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [activeSetIndex, setActiveSetIndex] = useState(0);
   const [completedStepKeys, setCompletedStepKeys] = useState(() => new Set());
+  const [effortRatings, setEffortRatings] = useState(() => ({}));
   const [trackingDrafts, setTrackingDrafts] = useState(() =>
     buildTrackingDrafts(
       normalizedExercises,
@@ -801,6 +817,8 @@ export default function ActiveSessionView({
         setIndex,
       }))
     : [];
+  const activeEffortKey = activeStep ? getStepKey(activeStep.exerciseIndex, activeStep.setIndex) : "";
+  const activeEffortValue = activeEffortKey ? effortRatings[activeEffortKey] || "" : "";
 
   useEffect(() => {
     setTrackingDrafts(
@@ -885,6 +903,23 @@ export default function ActiveSessionView({
     onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
   }
 
+  function handleSkipExercise() {
+    if (!activeStep) {
+      return;
+    }
+
+    const nextExerciseStepIndex = sessionSteps.findIndex(
+      (step) => step.exerciseIndex > activeStep.exerciseIndex
+    );
+
+    if (nextExerciseStepIndex >= 0) {
+      goToStep(nextExerciseStepIndex);
+      return;
+    }
+
+    onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
+  }
+
   return (
     <QuestionnaireShell hideTabBar={true}>
       <ScrollView contentContainerStyle={styles.center}>
@@ -920,7 +955,26 @@ export default function ActiveSessionView({
               setActiveExerciseIndex(activeStep.exerciseIndex);
               setActiveSetIndex(setIndex);
             }}
+            effortValue={activeEffortValue}
+            onEffortChange={(value) => {
+              const sanitizedValue = String(value || "")
+                .replace(/[^\d]/g, "")
+                .slice(0, 2);
+              const parsedValue = Number.parseInt(sanitizedValue, 10);
+              const nextValue =
+                sanitizedValue === ""
+                  ? ""
+                  : Number.isFinite(parsedValue) && parsedValue > 10
+                    ? "10"
+                    : sanitizedValue;
+
+              setEffortRatings((currentRatings) => ({
+                ...currentRatings,
+                [activeEffortKey]: nextValue,
+              }));
+            }}
             onNext={handleCompleteCurrentSet}
+            onSkip={handleSkipExercise}
             onDraftChange={updateTrackingDraft}
           />
         ) : (
@@ -952,7 +1006,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   backButtonText: {
-    color: "#fff",
+    color: "#7E7E7E",
     fontSize: 16,
   },
   exerciseCard: {
@@ -961,14 +1015,15 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   exerciseSummaryRow: {
+    marginTop: 24,
     flexDirection: "row",
     alignItems: "stretch",
     gap: 12,
   },
   exerciseInfoCard: {
-    width: 130,
-    height: 160,
-    padding: 18,
+    width: 98,
+    height: 118,
+    padding: 12,
     borderRadius: 30,
     borderWidth: 2,
     borderColor: "#1E1E1E",
@@ -1004,71 +1059,93 @@ const styles = StyleSheet.create({
   },
   exercisePrescription: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
   },
   exerciseWeight: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
   },
   exerciseIntensityDetails: {
     color: "#C9B259",
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "700",
-    lineHeight: 12,
+    lineHeight: 11,
+  },
+  exerciseMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    alignItems: "center",
   },
   exerciseNotes: {
     flex: 1,
     color: "#d1d5db",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     alignSelf: "center",
   },
-  trackedBox: {
-    gap: 10,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#101010",
+  setTabsBlock: {
+    marginTop: 30,
   },
-  trackedHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
+  effortCardOuter: {
+    width: "63%",
+    maxWidth: 252,
+    alignSelf: "center",
+    borderWidth: 2,
+    borderColor: "#585858",
+    borderRadius: 28,
+    padding: 2,
+    backgroundColor: "#1e1e1e",
   },
-  trackedTitle: {
+  effortCardInner: {
+    minHeight: 82,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 12,
+    gap: 6,
+  },
+  effortPrompt: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
+    textAlign: "center",
+    lineHeight: 18,
   },
-  trackedTag: {
-    color: "#7E7E7E",
+  effortInputShell: {
+    width: "100%",
+    minHeight: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
+    borderRadius: 16,
+    paddingVertical: 4,
+  },
+  effortValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  effortInput: {
+    minWidth: 24,
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "700",
+    lineHeight: 26,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  effortSuffix: {
+    color: "#fff",
     fontSize: 12,
     fontWeight: "700",
-    textTransform: "uppercase",
-  },
-  trackedPrompt: {
-    color: "#d1d5db",
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  completionPanel: {
-    gap: 8,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#101010",
-  },
-  completionPanelTitle: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  completionPanelText: {
-    color: "#9ca3af",
-    fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 14,
   },
   inputPanel: {
+    marginTop: 16,
     gap: 10,
     padding: 14,
     borderRadius: 8,
@@ -1107,19 +1184,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#111827",
   },
-  navigationRow: {
+  footerActions: {
     marginTop: "auto",
+    gap: 8,
     alignItems: "center",
+  },
+  navigationRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
     paddingTop: 12,
   },
+  skipButton: {
+    height: 44,
+    minWidth: 74,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 120,
+    borderWidth: 1,
+    borderColor: "#585858",
+    backgroundColor: "#1E1E1E",
+    paddingHorizontal: 14,
+  },
+  skipButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
   stepActionButton: {
-    width: "72%",
-    maxWidth: 280,
-    height: 48,
+    width: "49%",
+    maxWidth: 198,
+    height: 44,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 120,
     backgroundColor: "#fff",
+    paddingHorizontal: 16,
   },
   nextButton: {
     flex: 1,
@@ -1131,7 +1232,7 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     color: "#000",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
   },
   emptyState: {
