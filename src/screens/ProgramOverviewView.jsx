@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
@@ -21,6 +21,10 @@ const WEEKDAY_NAMES = Object.freeze([
   "Friday",
   "Saturday",
 ]);
+const LOOKBACK_DAYS = 14;
+const UPCOMING_DAYS_INCLUDING_TODAY = 7;
+const WEEK_SCHEDULE_ITEM_WIDTH = 56;
+const WEEK_SCHEDULE_TODAY_OFFSET = LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
 
 function isSameCalendarDay(leftDate, rightDate) {
   return (
@@ -50,6 +54,8 @@ export default function ProgramOverviewView({
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
+  const weekScheduleScrollRef = useRef(null);
+  const lastWeekScheduleScrollDateRef = useRef("");
 
   if (!plan) {
     return (
@@ -77,51 +83,62 @@ export default function ProgramOverviewView({
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayDateKey = today.toDateString();
   const currentDateLabel = new Intl.DateTimeFormat("en-US", {
     month: "long",
     day: "numeric",
-  }).format(new Date());
+  }).format(today);
   const currentPhaseLabel = currentPhase?.label
     ? `${currentPhase.label} week ${currentWeek?.week || 1}`
     : `Week ${currentWeek?.week || 1}`;
-  const parsedPlanStartDate = new Date(plan.createdAt || plan.generatedAt || Date.now());
-  const planStartDate = Number.isNaN(parsedPlanStartDate.getTime())
-    ? new Date()
-    : parsedPlanStartDate;
-  const rollingDates = Array.from({ length: 7 }, (_, dayOffset) => {
-    const date = new Date(planStartDate);
-    date.setDate(date.getDate() + dayOffset);
+  const rollingDates = Array.from(
+    { length: LOOKBACK_DAYS + UPCOMING_DAYS_INCLUDING_TODAY },
+    (_, index) => {
+      const dayOffset = index - LOOKBACK_DAYS;
+      const date = new Date(today);
+      date.setDate(date.getDate() + dayOffset);
 
-    return date;
-  });
-  const assignedTrainingDays = new Set();
-  const currentWeekSchedule = rollingDates.map((date) => {
+      return date;
+    }
+  );
+  const fallbackTrainingDays = currentWeek?.days?.filter(
+    (day) => !getTrainingDayPreferredWeekday(day)
+  ) || [];
+  const assignedFallbackTrainingDays = new Set();
+  const currentWeekSchedule = rollingDates.map((date, index) => {
     const weekday = WEEKDAY_NAMES[date.getDay()];
-    const trainingDay = currentWeek?.days?.find((day) => {
-      if (assignedTrainingDays.has(day)) {
-        return false;
-      }
+    let trainingDay = currentWeek?.days?.find(
+      (day) => getTrainingDayPreferredWeekday(day) === weekday
+    );
 
-      return getTrainingDayPreferredWeekday(day) === weekday;
-    });
+    if (!trainingDay && index >= LOOKBACK_DAYS) {
+      trainingDay = fallbackTrainingDays.find((day) => {
+        if (assignedFallbackTrainingDays.has(day)) {
+          return false;
+        }
 
-    if (trainingDay) {
-      assignedTrainingDays.add(trainingDay);
+        assignedFallbackTrainingDays.add(day);
+        return true;
+      });
     }
 
     return { date, weekday, trainingDay };
   });
 
-  currentWeek?.days
-    ?.filter((day) => !assignedTrainingDays.has(day))
-    .forEach((day) => {
-      const restSlot = currentWeekSchedule.find((slot) => !slot.trainingDay);
+  function scrollWeekScheduleToToday() {
+    if (lastWeekScheduleScrollDateRef.current === todayDateKey) {
+      return;
+    }
 
-      if (restSlot) {
-        restSlot.trainingDay = day;
-        assignedTrainingDays.add(day);
-      }
+    weekScheduleScrollRef.current?.scrollTo?.({
+      x: WEEK_SCHEDULE_TODAY_OFFSET,
+      y: 0,
+      animated: false,
     });
+    lastWeekScheduleScrollDateRef.current = todayDateKey;
+  }
 
   function getPhaseRangeLabel(phase = {}) {
     if (phase.weekStart === phase.weekEnd) {
@@ -148,7 +165,9 @@ export default function ProgramOverviewView({
   function handleStartSession() {
     const nextTrainingDay =
       selectedDay?.dayData ||
-      currentWeekSchedule.find((slot) => slot.trainingDay)?.trainingDay;
+      currentWeekSchedule.find(
+        (slot, index) => index >= LOOKBACK_DAYS && slot.trainingDay
+      )?.trainingDay;
     const nextWeekNumber = selectedDay?.week || currentWeek?.week;
 
     if (!nextTrainingDay || !nextWeekNumber) {
@@ -219,15 +238,19 @@ export default function ProgramOverviewView({
             </View>
           ) : null}
           <ScrollView
+            ref={weekScheduleScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.weekScheduleScroller}
             contentContainerStyle={styles.weekSchedule}
+            contentOffset={{ x: WEEK_SCHEDULE_TODAY_OFFSET, y: 0 }}
+            onContentSizeChange={scrollWeekScheduleToToday}
           >
-            {currentWeekSchedule.map(({ date, weekday, trainingDay }) => {
-              const isToday = isSameCalendarDay(date, new Date());
+            {currentWeekSchedule.map(({ date, weekday, trainingDay }, index) => {
+              const isToday = isSameCalendarDay(date, today);
               const isSelectedTrainingDay =
                 trainingDay &&
+                index >= LOOKBACK_DAYS &&
                 selectedDay?.week === currentWeek?.week &&
                 selectedDay?.day === trainingDay.day;
 
