@@ -50,14 +50,6 @@ const ForumScreen = observer(function ForumScreen() {
     hideForumOverlay();
   }, [model.forumOverlayDismissCount]);
 
-  useEffect(() => {
-    model.setForumTabBarHidden(currentView === "compose");
-
-    return () => {
-      model.setForumTabBarHidden(false);
-    };
-  }, [currentView, model]);
-
   const feedError = model.forumFeedPromiseState?.error;
   const isFeedLoading =
     model.ready &&
