@@ -291,35 +291,38 @@ export default function ProgramOverviewView({
             <StandardText style={styles.headerStartButtonText}>Start</StandardText>
           </TouchableOpacity>
           {selectedDay ? (
-            <View style={styles.headerSessionActionRow}>
-              {onFinishDay ? (
-                <TouchableOpacity
-                  style={styles.headerCompleteButton}
-                  onPress={() => onFinishDay()}
-                >
-                  <StandardText style={styles.headerCompleteButtonText}>
-                    Complete
-                  </StandardText>
-                </TouchableOpacity>
-              ) : null}
-              {onFinishDay && onMissedDay ? (
-                <View style={styles.headerSessionActionDivider} />
-              ) : null}
-              {onMissedDay ? (
-                <TouchableOpacity
-                  style={[
-                    styles.headerPushBackButton,
-                    updatingPlan && styles.headerPushBackButtonDisabled,
-                  ]}
-                  onPress={onMissedDay}
-                  disabled={updatingPlan}
-                >
-                  <StandardText style={styles.headerPushBackText}>
-                    {updatingPlan ? "Updating..." : "Push back"}
-                  </StandardText>
-                </TouchableOpacity>
-              ) : null}
-            </View>
+            <>
+              <View style={styles.headerSessionActionRow}>
+                {onFinishDay ? (
+                  <TouchableOpacity
+                    style={styles.headerCompleteButton}
+                    onPress={() => onFinishDay()}
+                  >
+                    <StandardText style={styles.headerCompleteButtonText}>
+                      Complete
+                    </StandardText>
+                  </TouchableOpacity>
+                ) : null}
+                {onFinishDay && onMissedDay ? (
+                  <View style={styles.headerSessionActionDivider} />
+                ) : null}
+                {onMissedDay ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.headerPushBackButton,
+                      updatingPlan && styles.headerPushBackButtonDisabled,
+                    ]}
+                    onPress={onMissedDay}
+                    disabled={updatingPlan}
+                  >
+                    <StandardText style={styles.headerPushBackText}>
+                      {updatingPlan ? "Updating..." : "Push back"}
+                    </StandardText>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+              <View style={styles.headerSessionActionRule} />
+            </>
           ) : null}
 
           {pendingTrainingCheckIn ? (
@@ -431,11 +434,6 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginTop: 14,
   },
-  headerSessionActionDivider: {
-    width: 1,
-    height: 31,
-    backgroundColor: "#6b7280",
-  },
   headerCompleteButton: {
     borderTopLeftRadius: 120,
     borderBottomLeftRadius: 120,
@@ -448,6 +446,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     textAlign: "center",
+  },
+  headerSessionActionDivider: {
+    width: 1,
+    height: 31,
+    backgroundColor: "#6b7280",
+  },
+  headerSessionActionRule: {
+    height: 1,
+    alignSelf: "stretch",
+    marginHorizontal: -28,
+    marginTop: 14,
+    backgroundColor: "#6b7280",
   },
   headerPushBackButton: {
     borderTopRightRadius: 120,
@@ -494,7 +504,7 @@ const styles = StyleSheet.create({
   },
   weekScheduleScroller: {
     flexGrow: 0,
-    alignSelf: "flex-start",
+    alignSelf: "stretch",
     marginHorizontal: -28,
     marginTop: 45,
   },

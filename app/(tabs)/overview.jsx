@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
@@ -7,6 +7,11 @@ import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import ProgramOverviewView from "../../src/screens/ProgramOverviewView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import { getWeekdayNameFromIndex } from "../../src/constants/weekdays.js";
+import {
+  getCurrentTrainingWeek,
+  getTrainingDayPreferredWeekday,
+} from "../../src/services/utils/trainingPlan.js";
 
 const OverviewScreen = observer(function OverviewScreen() {
   const model = reactiveModel;
@@ -17,6 +22,7 @@ const OverviewScreen = observer(function OverviewScreen() {
   const [trainingCheckInSubmitting, setTrainingCheckInSubmitting] = useState(false);
   const [selectedDayPointer, setSelectedDayPointer] = useState(null);
   const [updatingPlan, setUpdatingPlan] = useState(false);
+  const lastAutoSelectedDayRef = useRef("");
 
   // Sync completed days from model
   useEffect(() => {
@@ -64,6 +70,36 @@ const OverviewScreen = observer(function OverviewScreen() {
       adjustmentSummary: day.adjustmentSummary || "",
     };
   }, [plan, selectedDayPointer]);
+
+  useEffect(() => {
+    if (!plan || selectedDayPointer) {
+      return;
+    }
+
+    const completedDayEntries = completedDays instanceof Set
+      ? Array.from(completedDays)
+      : [];
+    const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
+    const today = new Date();
+    const todayDateKey = today.toDateString();
+    const todayWeekday = getWeekdayNameFromIndex(today.getDay());
+    const todayTrainingDay =
+      currentWeek?.days?.find(
+        (day) => getTrainingDayPreferredWeekday(day) === todayWeekday
+      ) ||
+      currentWeek?.days?.find((day) => !getTrainingDayPreferredWeekday(day));
+
+    if (!currentWeek?.week || !todayTrainingDay?.day) {
+      return;
+    }
+
+    if (lastAutoSelectedDayRef.current === todayDateKey) {
+      return;
+    }
+
+    lastAutoSelectedDayRef.current = todayDateKey;
+    setSelectedDayPointer({ week: currentWeek.week, day: todayTrainingDay.day });
+  }, [completedDays, plan, selectedDayPointer]);
   const selectedDayAssessmentResults = useMemo(
     () =>
       selectedDay

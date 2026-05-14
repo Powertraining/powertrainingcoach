@@ -54,13 +54,6 @@ const HomeScreen = observer(function HomeScreen() {
 
   const resumeStep = getSafeResumeStep();
 
-  // If user already has a training plan, redirect to overview
-  useEffect(() => {
-    if (model.trainingPlan) {
-      router.replace("/(tabs)/overview");
-    }
-  }, [model.trainingPlan, router]);
-
   useEffect(() => {
     if (model.trainingPlan) {
       return;
@@ -221,7 +214,15 @@ const HomeScreen = observer(function HomeScreen() {
   }
 
   const renderByStep = {
-    [STEPS.START]: () => <StartView onStart={() => setStep(STEPS.Q_SPORT)} />,
+    [STEPS.START]: () => (
+      <StartView
+        hasProgram={Boolean(model.trainingPlan)}
+        plan={model.trainingPlan}
+        questionnaire={model.questionnaire}
+        completedDays={model.completedDays}
+        onStart={() => setStep(STEPS.Q_SPORT)}
+      />
+    ),
 
     [STEPS.Q_SPORT]: () => (
       <QuestionnaireSportView

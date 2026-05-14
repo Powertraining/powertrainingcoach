@@ -782,7 +782,6 @@ export default function DayDetailView({
                         </View>
                     ) : (
                         <>
-                    <View style={styles.exerciseTabsDivider} />
                     <View style={styles.exerciseTabs}>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
                             return (
@@ -1655,11 +1654,6 @@ const styles = StyleSheet.create({
     exerciseTabs: {
         gap: 10,
         paddingTop: 14,
-    },
-    exerciseTabsDivider: {
-        height: 1,
-        marginHorizontal: -56,
-        backgroundColor: '#5A5A5A',
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     tabsScroller: {
