@@ -59,7 +59,7 @@ function getTabBarBottomOffset(bottomInset) {
 }
 
 function shouldHideTabBar(activeTabName, requestedHidden) {
-  if (VISIBLE_TAB_ROUTES.has(activeTabName)) {
+  if (activeTabName === "forum") {
     return false;
   }
 
