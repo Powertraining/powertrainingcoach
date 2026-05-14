@@ -586,10 +586,7 @@ export default function DayDetailView({
     function handleTabScrollerDragStart() {
         if (tabTouchStartedRef.current) {
             tabTouchStartedRef.current = false;
-            return;
         }
-
-        setHighlightedExerciseIndex(null);
     }
 
     function openSwapOptions(exerciseIndex) {
@@ -738,7 +735,6 @@ export default function DayDetailView({
             </Modal>
             <ScrollView
                 contentContainerStyle={styles.center}
-                onScrollBeginDrag={() => setHighlightedExerciseIndex(null)}
             >
                 <Pressable
                     style={styles.highlightDismissLayer}
