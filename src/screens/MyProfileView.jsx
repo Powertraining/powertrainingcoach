@@ -4,22 +4,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
 import ProfileSportSelector from "../components/profileComponents/ProfileSportSelector.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
-import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
+import ProfileTrainingPreferencesFields from "./ProfileTrainingPreferencesFields.jsx";
 
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
-  const preferredWeekdaySummary = Array.isArray(props.trainingPreferences?.preferredWeekdays)
-    ? props.trainingPreferences.preferredWeekdays
-        .map((weekday, index) => (weekday ? `Day ${index + 1} - ${weekday}` : ""))
-        .filter(Boolean)
-        .join(" • ")
-    : "";
 
   return (
     <ScrollView
       contentContainerStyle={[
         styles.content,
-        { paddingTop: Math.max(insets.top + 12, 20) },
+        {
+          paddingTop: Math.max(insets.top + 12, 20),
+          paddingBottom: Math.max(insets.bottom + 96, 120),
+        },
       ]}
     >
       <SubscriptionCard
@@ -92,22 +89,15 @@ export function MyProfileView(props) {
             value={props.sessionsPerWeek}
             onChange={props.onSessionsPerWeekChange}
           />
-          {preferredWeekdaySummary ? (
-            <Text style={styles.preferenceText} numberOfLines={2}>
-              {preferredWeekdaySummary}
-            </Text>
-          ) : null}
         </View>
       </View>
 
       <View style={styles.card}>
-        <TrainingPreferencesFields
+        <ProfileTrainingPreferencesFields
           title="Training Preferences"
           description="These values are saved to your profile and used when the app builds or regenerates training plans."
           values={props.trainingPreferences}
           onChange={props.onTrainingPreferencesChange}
-          appLogicTitle="App Logic Settings"
-          appLogicDescription="Adjust the strength-planning logic and the full onboarding preferences from your profile."
         />
       </View>
 
