@@ -15,6 +15,22 @@ import {
 } from "../../src/constants/trainingPreferences.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 
+function getSyncedTrainingPreferences(questionnaire = {}, sessionsPerWeek = 3) {
+  const resolvedSessionsPerWeek = Number.parseInt(sessionsPerWeek, 10) || 3;
+  const formState = getTrainingPreferencesFormState({
+    ...questionnaire,
+    daysPerWeek: resolvedSessionsPerWeek,
+  });
+
+  return {
+    ...formState,
+    preferredWeekdays: Array.from(
+      { length: resolvedSessionsPerWeek },
+      (_, index) => formState.preferredWeekdays[index] || ""
+    ),
+  };
+}
+
 const ProfileScreen = observer(function ProfileScreen() {
   const model = reactiveModel;
   const router = useRouter();
@@ -34,7 +50,7 @@ const ProfileScreen = observer(function ProfileScreen() {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [trainingPreferences, setTrainingPreferences] = useState(
-    getTrainingPreferencesFormState(model.questionnaire || {})
+    getSyncedTrainingPreferences(model.questionnaire || {}, model.sessionsPerWeek || 3)
   );
   const [primaryCombatSport, setPrimaryCombatSport] = useState(
     model.primaryCombatSport || ""
@@ -47,7 +63,9 @@ const ProfileScreen = observer(function ProfileScreen() {
       setUsername(user.displayName || "");
       setEmail(user.email || "");
       setPassword("");
-      setTrainingPreferences(getTrainingPreferencesFormState(model.questionnaire || {}));
+      setTrainingPreferences(
+        getSyncedTrainingPreferences(model.questionnaire || {}, model.sessionsPerWeek || 3)
+      );
       setPrimaryCombatSport(model.primaryCombatSport || "");
       setSessionsPerWeek(model.sessionsPerWeek || 3);
     },
@@ -56,9 +74,12 @@ const ProfileScreen = observer(function ProfileScreen() {
 
   const persistedTrainingPreferences = useMemo(
     function persistedTrainingPreferencesACB() {
-      return normalizeTrainingPreferences(model.questionnaire || {});
+      return normalizeTrainingPreferences({
+        ...(model.questionnaire || {}),
+        daysPerWeek: model.sessionsPerWeek || 3,
+      });
     },
-    [model.questionnaire]
+    [model.questionnaire, model.sessionsPerWeek]
   );
 
   const subscriptionText = useMemo(
@@ -174,6 +195,7 @@ const ProfileScreen = observer(function ProfileScreen() {
         model.questionnaire,
         {
           ...trainingPreferences,
+          daysPerWeek: sessionsPerWeek,
           primaryCombatSport,
           sessionsPerWeek,
         }
@@ -182,7 +204,9 @@ const ProfileScreen = observer(function ProfileScreen() {
       model.sessionsPerWeek = sessionsPerWeek;
       model.setQuestionnaire?.(nextQuestionnaire);
       model.applySportLoadSettingToFollowingWeek?.();
-      setTrainingPreferences(getTrainingPreferencesFormState(nextQuestionnaire));
+      setTrainingPreferences(
+        getSyncedTrainingPreferences(nextQuestionnaire, sessionsPerWeek)
+      );
     } catch (e) {
       setError(e.message || "Update failed.");
     } finally {
@@ -195,9 +219,18 @@ const ProfileScreen = observer(function ProfileScreen() {
     setError(null);
     setUsername(user.displayName || "");
     setPassword("");
-    setTrainingPreferences(getTrainingPreferencesFormState(model.questionnaire || {}));
+    setTrainingPreferences(
+      getSyncedTrainingPreferences(model.questionnaire || {}, model.sessionsPerWeek || 3)
+    );
     setPrimaryCombatSport(model.primaryCombatSport || "");
     setSessionsPerWeek(model.sessionsPerWeek || 3);
+  }
+
+  function changeSessionsPerWeekACB(nextSessionsPerWeek) {
+    setSessionsPerWeek(nextSessionsPerWeek);
+    setTrainingPreferences((currentPreferences) =>
+      getSyncedTrainingPreferences(currentPreferences, nextSessionsPerWeek)
+    );
   }
 
   function changeSubscriptionACB() {
@@ -247,7 +280,7 @@ const ProfileScreen = observer(function ProfileScreen() {
         onPasswordChange={setPassword}
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}
-        onSessionsPerWeekChange={setSessionsPerWeek}
+        onSessionsPerWeekChange={changeSessionsPerWeekACB}
         onSave={saveACB}
         onCancel={cancelACB}
         onChangeSubscription={changeSubscriptionACB}
