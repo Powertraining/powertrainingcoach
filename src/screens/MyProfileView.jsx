@@ -1,6 +1,8 @@
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
+import ProfileSportSelector from "../components/profileComponents/ProfileSportSelector.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
 import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
 
@@ -22,84 +24,79 @@ export function MyProfileView(props) {
     >
       <SubscriptionCard
         planName={props.subscriptionPlanName}
+        timeRemainingText={props.subscriptionTimeRemainingText}
         subscriptionText={props.subscriptionText}
         isActive={props.isSubscriptionActive}
         isSubmitting={props.isSubmitting}
         onPress={props.onChangeSubscription}
       />
 
-      <View style={styles.card}>
-        <Text style={styles.pageTitle}>My Profile</Text>
-        <Text style={styles.pageDescription}>
-          Update your account details and the app logic used for future training plans.
-        </Text>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Username</Text>
-          <TextInput
-            value={props.username}
-            placeholder={props.usernamePlaceholder}
-            onChangeText={props.onUsernameChange}
-            editable={!props.isSubmitting}
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>E-mail</Text>
-          <TextInput
-            value={props.email}
-            placeholder={props.emailPlaceholder}
-            editable={false}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={[styles.input, styles.inputDisabled]}
-          />
-        </View>
-
-        {!props.hidePassword && (
+      <View style={styles.inlineSection}>
+        <Text style={styles.preferenceSummaryLabel}>Personal Details</Text>
+        <View style={styles.accountCard}>
           <View style={styles.field}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>E-mail</Text>
             <TextInput
-              value={props.password}
-              onChangeText={props.onPasswordChange}
+              value={props.email}
+              placeholder={props.emailPlaceholder}
+              editable={false}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholderTextColor="#8E8E8E"
+              style={[styles.input, styles.inputDisabled]}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Username</Text>
+            <TextInput
+              value={props.username}
+              placeholder={props.usernamePlaceholder}
+              placeholderTextColor="#8E8E8E"
+              onChangeText={props.onUsernameChange}
               editable={!props.isSubmitting}
-              secureTextEntry
-              placeholder="••••••••"
               style={styles.input}
             />
           </View>
-        )}
 
-        <View style={styles.subscriptionCard}>
-          <Text style={styles.subscriptionLabel}>Primary Sport</Text>
-          <Text style={styles.subscriptionValue}>
-            {props.primaryCombatSport || "Not selected"}
-          </Text>
-          <TouchableOpacity
-            onPress={props.onEditPrimaryCombatSport}
-            disabled={props.isSubmitting}
-            style={styles.inlineActionButton}
-          >
-            <Text style={styles.inlineActionButtonText}>Edit primary sport</Text>
-          </TouchableOpacity>
+          {!props.hidePassword && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                value={props.password}
+                onChangeText={props.onPasswordChange}
+                editable={!props.isSubmitting}
+                secureTextEntry
+                placeholder="••••••••"
+                placeholderTextColor="#8E8E8E"
+                style={styles.input}
+              />
+            </View>
+          )}
         </View>
+      </View>
 
-        <View style={styles.subscriptionCard}>
-          <Text style={styles.subscriptionLabel}>Training Frequency</Text>
-          <Text style={styles.subscriptionValue}>
-            {props.sessionsPerWeek ? `${props.sessionsPerWeek} sessions per week` : "Not selected"}
-          </Text>
+      <View style={styles.inlineSection}>
+        <Text style={styles.preferenceSummaryLabel}>Primary Sport</Text>
+        <ProfileSportSelector
+          options={props.combatSportOptions}
+          value={props.primaryCombatSport}
+          onChange={props.onPrimaryCombatSportChange}
+        />
+      </View>
+
+      <View style={styles.inlineSection}>
+        <Text style={styles.preferenceSummaryLabel}>Training Frequency</Text>
+        <View style={styles.frequencyBox}>
+          <ProfileFrequencySelector
+            value={props.sessionsPerWeek}
+            onChange={props.onSessionsPerWeekChange}
+          />
           {preferredWeekdaySummary ? (
-            <Text style={styles.preferenceText}>{preferredWeekdaySummary}</Text>
+            <Text style={styles.preferenceText} numberOfLines={2}>
+              {preferredWeekdaySummary}
+            </Text>
           ) : null}
-          <TouchableOpacity
-            onPress={props.onEditTrainingFrequency}
-            disabled={props.isSubmitting}
-            style={styles.inlineActionButton}
-          >
-            <Text style={styles.inlineActionButtonText}>Edit training frequency</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -163,15 +160,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(15,23,42,0.08)",
     gap: 14,
   },
-  pageTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#0f172a",
-  },
-  pageDescription: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#475569",
+  accountCard: {
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: "#141414",
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    gap: 14,
   },
   field: {
     gap: 6,
@@ -179,58 +174,66 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#111827",
+    color: "#ffffff",
   },
   input: {
     height: 46,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.14)",
-    backgroundColor: "#f8fafc",
+    borderColor: "#1E1E1E",
+    backgroundColor: "#000000",
     paddingHorizontal: 12,
     fontSize: 16,
+    color: "#ffffff",
   },
   inputDisabled: {
-    color: "#64748b",
+    color: "#8E8E8E",
   },
-  subscriptionCard: {
+  preferenceSummaryCard: {
     padding: 14,
     borderRadius: 14,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.08)",
-    gap: 4,
+    borderColor: "rgba(15,23,42,0.08)",
+    gap: 5,
   },
-  subscriptionLabel: {
-    fontSize: 13,
-    fontWeight: "600",
+  inlineSection: {
+    gap: 5,
+  },
+  frequencyBox: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: "#141414",
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    gap: 6,
+  },
+  preferenceSummaryLabel: {
+    fontSize: 12,
+    fontWeight: "700",
     color: "#475569",
     textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  subscriptionValue: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#0f172a",
   },
   preferenceText: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#475569",
+    fontSize: 12,
+    lineHeight: 17,
+    color: "#8E8E8E",
+    marginTop: 2,
   },
   inlineActionButton: {
-    marginTop: 8,
-    paddingVertical: 10,
-    borderRadius: 10,
+    marginTop: 7,
+    paddingVertical: 9,
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: "rgba(17,24,39,0.12)",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f8fafc",
   },
   inlineActionButtonText: {
     color: "#111827",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
   },
   errorText: {
     color: "#b91c1c",

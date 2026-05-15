@@ -180,16 +180,19 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 6,
+    alignItems: "center",
   },
   title: {
     fontSize: 20,
     fontWeight: "700",
     color: "#111827",
+    textAlign: "center",
   },
   description: {
     fontSize: 14,
     lineHeight: 21,
     color: "#4b5563",
+    textAlign: "center",
   },
   field: {
     gap: 6,

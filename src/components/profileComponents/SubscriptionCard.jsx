@@ -19,6 +19,7 @@ const BENEFITS = [
 
 export default function SubscriptionCard({
   planName,
+  timeRemainingText,
   subscriptionText,
   isActive = false,
   isSubmitting = false,
@@ -34,7 +35,14 @@ export default function SubscriptionCard({
     <View style={styles.card}>
       <BlackGradient />
       <View style={styles.content}>
-        <Text style={styles.planLabel}>{`{ ${planLabel} }`}</Text>
+        <View style={styles.planHeader}>
+          <Text style={styles.planLabel}>{`{ ${planLabel} }`}</Text>
+          {timeRemainingText ? (
+            <View style={styles.timePill}>
+              <Text style={styles.timePillText}>{timeRemainingText}</Text>
+            </View>
+          ) : null}
+        </View>
 
         <View style={styles.benefitsRow}>
           {BENEFITS.map((benefit) => (
@@ -85,12 +93,30 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 20,
   },
+  planHeader: {
+    alignItems: "center",
+    gap: 8,
+  },
   planLabel: {
     color: "#ffffff",
     fontSize: 20,
     lineHeight: 26,
     fontWeight: "700",
     textAlign: "center",
+  },
+  timePill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.34)",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  timePillText: {
+    color: "#e5e7eb",
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "700",
   },
   benefitsRow: {
     flexDirection: "row",
@@ -107,6 +133,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: "700",
+    textAlign: "center",
     flexShrink: 1,
   },
   benefitDivider: {
@@ -118,6 +145,7 @@ const styles = StyleSheet.create({
     color: "#cbd5e1",
     fontSize: 10,
     lineHeight: 14,
+    textAlign: "center",
     flexShrink: 1,
   },
   actionRow: {
