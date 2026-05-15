@@ -58,6 +58,14 @@ function getTabBarBottomOffset(bottomInset) {
   return Math.max(Math.round(bottomInset / 2), 12);
 }
 
+function shouldHideTabBar(activeTabName, requestedHidden) {
+  if (activeTabName === "forum") {
+    return false;
+  }
+
+  return Boolean(requestedHidden);
+}
+
 function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {
   if (hidden) {
     return null;
@@ -124,7 +132,7 @@ const TabsLayout = observer(function TabsLayout() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const activeTabName = getActiveTabName(pathname);
-  const isTabBarHidden = model.forumTabBarHidden;
+  const isTabBarHidden = shouldHideTabBar(activeTabName, model.forumTabBarHidden);
   const tabBarBottomOffset = getTabBarBottomOffset(insets.bottom);
 
   function buildProtectedReturnTo() {

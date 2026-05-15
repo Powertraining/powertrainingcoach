@@ -83,6 +83,7 @@ const EXERCISE_SECTION_LABELS = Object.freeze({
     core: "Core",
     accessory: "Accessory",
 });
+const CARD_HORIZONTAL_PADDING = 28;
 
 function getExerciseSearchText(exercise = {}) {
     return ` ${exercise.name || ""} ${exercise.notes || ""} ${exercise.reps || ""} `.toLowerCase();
@@ -468,6 +469,7 @@ export default function DayDetailView({
     onFinish,
     onMissed,
     updatingPlan = false,
+    exerciseListHorizontalBleed = CARD_HORIZONTAL_PADDING,
 }) {
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
     const [highlightedExerciseIndex, setHighlightedExerciseIndex] = useState(null);
@@ -508,6 +510,7 @@ export default function DayDetailView({
             ? day
             : { day, preferredWeekday, sessionLabel, status, rescueMode, adjustmentSummary };
     const dayLabel = getTrainingDayLabel(resolvedDay);
+    const dayIdentity = `${week || ""}-${resolvedDay.day || dayLabel}`;
     const preferredWeekdayLabel = getTrainingDayPreferredWeekday(resolvedDay);
     const selectedExercise = normalizedExercises[activeExerciseIndex];
     const swapExercise = Number.isInteger(swapExerciseIndex)
@@ -583,10 +586,7 @@ export default function DayDetailView({
     function handleTabScrollerDragStart() {
         if (tabTouchStartedRef.current) {
             tabTouchStartedRef.current = false;
-            return;
         }
-
-        setHighlightedExerciseIndex(null);
     }
 
     function openSwapOptions(exerciseIndex) {
@@ -735,7 +735,6 @@ export default function DayDetailView({
             </Modal>
             <ScrollView
                 contentContainerStyle={styles.center}
-                onScrollBeginDrag={() => setHighlightedExerciseIndex(null)}
             >
                 <Pressable
                     style={styles.highlightDismissLayer}
@@ -746,11 +745,6 @@ export default function DayDetailView({
                     style={styles.card}
                     onPress={() => setHighlightedExerciseIndex(null)}
                 >
-                    <View style={styles.headerRow}>
-                        <View style={styles.heading}>
-                        </View>
-                    </View>
-
                     {(adjustmentSummary || isRescheduled || isSkipped) ? (
                         <View
                             style={[
@@ -782,11 +776,10 @@ export default function DayDetailView({
                         </View>
                     ) : (
                         <>
-                    <View style={styles.exerciseTabsDivider} />
                     <View style={styles.exerciseTabs}>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
                             return (
-                                <View key={`tabs-${section}-${sectionIndex}`} style={styles.exerciseSection}>
+                                <View key={`tabs-${dayIdentity}-${section}-${sectionIndex}`} style={styles.exerciseSection}>
                                     <View style={styles.exerciseSectionHeader}>
                                         <StandardText
                                             style={styles.exerciseSectionTitle}
@@ -797,7 +790,10 @@ export default function DayDetailView({
                                     <ScrollView
                                         horizontal
                                         showsHorizontalScrollIndicator={false}
-                                        style={styles.tabsScroller}
+                                        style={[
+                                            styles.tabsScroller,
+                                            { marginHorizontal: -exerciseListHorizontalBleed },
+                                        ]}
                                         contentContainerStyle={styles.tabsContainer}
                                         onScrollBeginDrag={handleTabScrollerDragStart}
                                     >
@@ -1229,7 +1225,9 @@ const styles = StyleSheet.create({
     card: {
         width: '100%',
         maxWidth: 980,
-        padding: 28,
+        paddingHorizontal: 28,
+        paddingTop: 8,
+        paddingBottom: 28,
         gap: 18,
         backgroundColor: "transparent",
     },
@@ -1654,18 +1652,14 @@ const styles = StyleSheet.create({
     },
     exerciseTabs: {
         gap: 10,
-        paddingTop: 14,
-    },
-    exerciseTabsDivider: {
-        height: 1,
-        marginHorizontal: -56,
-        backgroundColor: '#5A5A5A',
+        paddingTop: 0,
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     tabsScroller: {
         flexGrow: 0,
+        alignSelf: "stretch",
     },
-    tabsContainer: { flexDirection: 'row', gap: 8, paddingRight: 8 },
+    tabsContainer: { flexDirection: 'row', gap: 8, paddingLeft: 28, paddingRight: 8 },
     tabButton: {backgroundColor: '#101010', borderRadius: 30, height: 160, width:130,
         borderWidth: 2, borderColor: "#1E1E1E",
      },

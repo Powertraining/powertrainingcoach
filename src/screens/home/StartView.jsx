@@ -1,12 +1,18 @@
-import { View, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 
 import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
-import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
+import ProgramProgressRing from "../../components/homeComponents/ProgramProgressRing.jsx";
 import RowCard from "../../components/homeComponents/RowCard.jsx";
+import StartProgramPrompt from "../../components/homeComponents/StartProgramPrompt.jsx";
 
-export default function StartView({ onStart }) {
+export default function StartView({
+    hasProgram = false,
+    plan,
+    questionnaire,
+    completedDays,
+    onStart,
+}) {
     return (
             <Dotted>
                 <ScrollView
@@ -14,15 +20,26 @@ export default function StartView({ onStart }) {
                     showsVerticalScrollIndicator={false}
                     style={styles.column}
                 >
+                    <StandardText style={styles.screenTitle} center>
+                        Powertraining
+                    </StandardText>
+                    <TouchableOpacity style={styles.testButton} onPress={onStart}>
+                        <StandardText textColor="#000" fontSize={18}>
+                            Test questionnaire
+                        </StandardText>
+                    </TouchableOpacity>
                     <View>
-                        <TitleText>Lets start by creating your program</TitleText>
-                        <View style={styles.buttonShadow}>
-                        
-                                <TouchableOpacity onPress={onStart} style={styles.bigButton}>
-                                    <GoldGradient style={{ borderRadius: styles.bigButton.borderRadius }} />
-                                    <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
-                                </TouchableOpacity>
-                        </View>
+                        {hasProgram ? (
+                            <View style={styles.programStatus}>
+                                <ProgramProgressRing
+                                    plan={plan}
+                                    questionnaire={questionnaire}
+                                    completedDays={completedDays}
+                                />
+                            </View>
+                        ) : (
+                            <StartProgramPrompt onStart={onStart} />
+                        )}
                     </View>
                     
                     <View style={styles.row}>
@@ -66,19 +83,26 @@ const styles = StyleSheet.create({
     content: {
         paddingBottom: 24,
     },
-    buttonShadow: {
-        alignSelf: "center",
-        marginTop: 20,
-        marginBottom: 120,
-        borderRadius: 120,
-        boxShadow: "0px 0px 100px -25px #fff",
+    screenTitle: {
+        marginTop: 64,
+        fontSize: 14,
+        textAlign: "center",
+        color: "#fff",
     },
-    bigButton: {backgroundColor: "#fff",
-        height: 75,
-        paddingHorizontal: 70,
-        borderRadius: 120,
+    testButton: {
+        alignSelf: "center",
+        marginTop: 18,
+        paddingHorizontal: 22,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#fff",
         alignItems: "center",
         justifyContent: "center",
+    },
+    programStatus: {
+        minHeight: 495,
+        justifyContent: "center",
+        alignItems: "center",
     },
     column:{marginBottom: 70},
     row: {

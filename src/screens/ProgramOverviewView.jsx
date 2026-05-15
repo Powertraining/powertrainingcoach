@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { useRef, useState } from "react";
+import { Image, View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
 import DayDetailView from "./DayDetailView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
+import checkIcon from "../assets/icons/check.png";
 import {
   getCurrentTrainingPhase,
   getCurrentTrainingWeek,
@@ -21,6 +22,10 @@ const WEEKDAY_NAMES = Object.freeze([
   "Friday",
   "Saturday",
 ]);
+const LOOKBACK_DAYS = 14;
+const UPCOMING_DAYS_INCLUDING_TODAY = 7;
+const WEEK_SCHEDULE_ITEM_WIDTH = 56;
+const WEEK_SCHEDULE_TODAY_OFFSET = LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
 
 function isSameCalendarDay(leftDate, rightDate) {
   return (
@@ -50,6 +55,10 @@ export default function ProgramOverviewView({
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
+  const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
+  const [selectedTrainingSlotKey, setSelectedTrainingSlotKey] = useState("");
+  const weekScheduleScrollRef = useRef(null);
+  const lastWeekScheduleScrollDateRef = useRef("");
 
   if (!plan) {
     return (
@@ -77,51 +86,113 @@ export default function ProgramOverviewView({
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayDateKey = today.toDateString();
   const currentDateLabel = new Intl.DateTimeFormat("en-US", {
     month: "long",
     day: "numeric",
-  }).format(new Date());
+  }).format(today);
   const currentPhaseLabel = currentPhase?.label
     ? `${currentPhase.label} week ${currentWeek?.week || 1}`
     : `Week ${currentWeek?.week || 1}`;
-  const parsedPlanStartDate = new Date(plan.createdAt || plan.generatedAt || Date.now());
-  const planStartDate = Number.isNaN(parsedPlanStartDate.getTime())
-    ? new Date()
-    : parsedPlanStartDate;
-  const rollingDates = Array.from({ length: 7 }, (_, dayOffset) => {
-    const date = new Date(planStartDate);
-    date.setDate(date.getDate() + dayOffset);
+  const rollingDates = Array.from(
+    { length: LOOKBACK_DAYS + UPCOMING_DAYS_INCLUDING_TODAY },
+    (_, index) => {
+      const dayOffset = index - LOOKBACK_DAYS;
+      const date = new Date(today);
+      date.setDate(date.getDate() + dayOffset);
 
-    return date;
-  });
-  const assignedTrainingDays = new Set();
-  const currentWeekSchedule = rollingDates.map((date) => {
+      return date;
+    }
+  );
+  const fallbackTrainingDays = currentWeek?.days?.filter(
+    (day) => !getTrainingDayPreferredWeekday(day)
+  ) || [];
+  const assignedFallbackTrainingDays = new Set();
+  const currentWeekSchedule = rollingDates.map((date, index) => {
     const weekday = WEEKDAY_NAMES[date.getDay()];
-    const trainingDay = currentWeek?.days?.find((day) => {
-      if (assignedTrainingDays.has(day)) {
-        return false;
-      }
+    let trainingDay = currentWeek?.days?.find(
+      (day) => getTrainingDayPreferredWeekday(day) === weekday
+    );
 
-      return getTrainingDayPreferredWeekday(day) === weekday;
-    });
+    if (!trainingDay && index >= LOOKBACK_DAYS) {
+      trainingDay = fallbackTrainingDays.find((day) => {
+        if (assignedFallbackTrainingDays.has(day)) {
+          return false;
+        }
 
-    if (trainingDay) {
-      assignedTrainingDays.add(trainingDay);
+        assignedFallbackTrainingDays.add(day);
+        return true;
+      });
     }
 
-    return { date, weekday, trainingDay };
+    return { date, dateKey: date.toDateString(), weekday, trainingDay };
   });
+  const selectedRestSlot = selectedRestSlotKey
+    ? currentWeekSchedule.find((slot) => slot.dateKey === selectedRestSlotKey)
+    : null;
+  const selectedRestSlotIndex = selectedRestSlot
+    ? currentWeekSchedule.findIndex((slot) => slot.dateKey === selectedRestSlot.dateKey)
+    : -1;
+  const nextTrainingSlot =
+    selectedRestSlotIndex >= 0
+      ? currentWeekSchedule.find(
+          (slot, index) => index > selectedRestSlotIndex && slot.trainingDay
+        )
+      : null;
+  const selectedTrainingSlot =
+    selectedDay && !selectedRestSlot
+      ? currentWeekSchedule.find(
+          (slot) =>
+            selectedTrainingSlotKey &&
+            slot.dateKey === selectedTrainingSlotKey &&
+            slot.trainingDay?.day === selectedDay.day
+        ) ||
+        currentWeekSchedule.find(
+          (slot) =>
+            isSameCalendarDay(slot.date, today) &&
+            slot.trainingDay?.day === selectedDay.day
+        )
+      : null;
+  const selectedTrainingSlotIsToday =
+    Boolean(selectedTrainingSlot) &&
+    isSameCalendarDay(selectedTrainingSlot.date, today);
+  const selectedTrainingSlotIsFuture =
+    Boolean(selectedTrainingSlot) && selectedTrainingSlot.date > today;
+  const selectedDayCompletionKey = selectedDay
+    ? `${selectedDay.week}-${selectedDay.day}`
+    : "";
+  const selectedDayIsComplete =
+    Boolean(selectedDayCompletionKey) &&
+    completedDayEntries.includes(selectedDayCompletionKey);
+  const showTodayTrainingActions =
+    Boolean(selectedDay) && selectedTrainingSlotIsToday && !selectedDayIsComplete;
+  const showFutureTrainingPushBack =
+    Boolean(selectedDay) && selectedTrainingSlotIsFuture && !selectedDayIsComplete;
+  const showCompletedSessionStatus =
+    Boolean(selectedDay) && selectedDayIsComplete && !selectedRestSlot;
+  const showStartButton = showTodayTrainingActions;
+  const showCompleteButton = showTodayTrainingActions && Boolean(onFinishDay);
+  const showPushBackButton =
+    (showTodayTrainingActions || showFutureTrainingPushBack) &&
+    Boolean(onMissedDay);
+  const showActionButtons =
+    showStartButton || showCompleteButton || showPushBackButton;
+  const showActionContent = showActionButtons || showCompletedSessionStatus;
 
-  currentWeek?.days
-    ?.filter((day) => !assignedTrainingDays.has(day))
-    .forEach((day) => {
-      const restSlot = currentWeekSchedule.find((slot) => !slot.trainingDay);
+  function scrollWeekScheduleToToday() {
+    if (lastWeekScheduleScrollDateRef.current === todayDateKey) {
+      return;
+    }
 
-      if (restSlot) {
-        restSlot.trainingDay = day;
-        assignedTrainingDays.add(day);
-      }
+    weekScheduleScrollRef.current?.scrollTo?.({
+      x: WEEK_SCHEDULE_TODAY_OFFSET,
+      y: 0,
+      animated: false,
     });
+    lastWeekScheduleScrollDateRef.current = todayDateKey;
+  }
 
   function getPhaseRangeLabel(phase = {}) {
     if (phase.weekStart === phase.weekEnd) {
@@ -129,6 +200,34 @@ export default function ProgramOverviewView({
     }
 
     return `Weeks ${phase.weekStart}-${phase.weekEnd}`;
+  }
+
+  function getRestSlotDateLabel(date) {
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    }).format(date);
+  }
+
+  function getNextTrainingSlotLabel(slot) {
+    if (!slot?.trainingDay) {
+      return "";
+    }
+
+    return `Day ${slot.trainingDay.day} on ${getRestSlotDateLabel(slot.date)}`;
+  }
+
+  function handleSelectTrainingDay(weekNumber, dayNumber, dateKey) {
+    setSelectedRestSlotKey("");
+    setSelectedTrainingSlotKey(dateKey);
+    onSelectDay(weekNumber, dayNumber);
+  }
+
+  function handleSelectRestSlot(dateKey) {
+    setSelectedRestSlotKey(dateKey);
+    setSelectedTrainingSlotKey("");
+    onClearSelectedDay?.();
   }
 
   function buildSessionDayPayload(dayData = {}, weekNumber = currentWeek?.week) {
@@ -148,7 +247,9 @@ export default function ProgramOverviewView({
   function handleStartSession() {
     const nextTrainingDay =
       selectedDay?.dayData ||
-      currentWeekSchedule.find((slot) => slot.trainingDay)?.trainingDay;
+      currentWeekSchedule.find(
+        (slot, index) => index >= LOOKBACK_DAYS && slot.trainingDay
+      )?.trainingDay;
     const nextWeekNumber = selectedDay?.week || currentWeek?.week;
 
     if (!nextTrainingDay || !nextWeekNumber) {
@@ -219,29 +320,43 @@ export default function ProgramOverviewView({
             </View>
           ) : null}
           <ScrollView
+            ref={weekScheduleScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.weekScheduleScroller}
             contentContainerStyle={styles.weekSchedule}
+            contentOffset={{ x: WEEK_SCHEDULE_TODAY_OFFSET, y: 0 }}
+            onContentSizeChange={scrollWeekScheduleToToday}
           >
-            {currentWeekSchedule.map(({ date, weekday, trainingDay }) => {
-              const isToday = isSameCalendarDay(date, new Date());
+            {currentWeekSchedule.map(({ date, dateKey, weekday, trainingDay }, index) => {
+              const isToday = isSameCalendarDay(date, today);
               const isSelectedTrainingDay =
                 trainingDay &&
+                !selectedRestSlotKey &&
                 selectedDay?.week === currentWeek?.week &&
-                selectedDay?.day === trainingDay.day;
+                selectedDay?.day === trainingDay.day &&
+                (selectedTrainingSlotKey
+                  ? selectedTrainingSlotKey === dateKey
+                  : isToday);
+              const isSelectedRestDay = !trainingDay && selectedRestSlotKey === dateKey;
 
               return (
                 <View key={date.toISOString()} style={styles.weekScheduleItem}>
                   <View style={styles.weekScheduleTileSlot}>
                     <TouchableOpacity
-                      disabled={!trainingDay}
-                      onPress={() => onSelectDay(currentWeek.week, trainingDay.day)}
+                      onPress={() => {
+                        if (trainingDay) {
+                          handleSelectTrainingDay(currentWeek.week, trainingDay.day, dateKey);
+                        } else {
+                          handleSelectRestSlot(dateKey);
+                        }
+                      }}
                       style={[
                         styles.weekScheduleDay,
                         trainingDay && styles.weekScheduleTrainingDay,
                         isToday && styles.weekScheduleToday,
                         isSelectedTrainingDay && styles.weekScheduleSelectedDay,
+                        isSelectedRestDay && styles.weekScheduleSelectedDay,
                       ]}
                     >
                       <StandardText
@@ -261,43 +376,73 @@ export default function ProgramOverviewView({
               );
             })}
           </ScrollView>
-          <TouchableOpacity
-            style={styles.headerStartButton}
-            onPress={handleStartSession}
+          <View
+            style={[
+              styles.headerActionArea,
+              !showActionContent && styles.headerActionAreaEmpty,
+            ]}
           >
-            <StandardText style={styles.headerStartButtonText}>Start</StandardText>
-          </TouchableOpacity>
-          {selectedDay ? (
-            <View style={styles.headerSessionActionRow}>
-              {onFinishDay ? (
-                <TouchableOpacity
-                  style={styles.headerCompleteButton}
-                  onPress={() => onFinishDay()}
-                >
-                  <StandardText style={styles.headerCompleteButtonText}>
-                    Complete
-                  </StandardText>
-                </TouchableOpacity>
-              ) : null}
-              {onFinishDay && onMissedDay ? (
-                <View style={styles.headerSessionActionDivider} />
-              ) : null}
-              {onMissedDay ? (
-                <TouchableOpacity
-                  style={[
-                    styles.headerPushBackButton,
-                    updatingPlan && styles.headerPushBackButtonDisabled,
-                  ]}
-                  onPress={onMissedDay}
-                  disabled={updatingPlan}
-                >
-                  <StandardText style={styles.headerPushBackText}>
-                    {updatingPlan ? "Updating..." : "Push back"}
-                  </StandardText>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          ) : null}
+            {showCompletedSessionStatus ? (
+              <View style={styles.headerCompletedStatus}>
+                <View style={styles.headerCompletedIconBadge}>
+                  <Image
+                    source={checkIcon}
+                    style={styles.headerCompletedIcon}
+                    resizeMode="contain"
+                  />
+                </View>
+                <StandardText style={styles.headerCompletedText}>
+                  Session is complete.
+                </StandardText>
+              </View>
+            ) : null}
+            {showStartButton ? (
+              <TouchableOpacity
+                style={styles.headerStartButton}
+                onPress={handleStartSession}
+              >
+                <StandardText style={styles.headerStartButtonText}>Start</StandardText>
+              </TouchableOpacity>
+            ) : null}
+            {showCompleteButton || showPushBackButton ? (
+              <View
+                style={[
+                  styles.headerSessionActionRow,
+                  !showCompleteButton && styles.headerSessionActionRowCentered,
+                ]}
+              >
+                {showCompleteButton ? (
+                  <TouchableOpacity
+                    style={styles.headerCompleteButton}
+                    onPress={() => onFinishDay()}
+                  >
+                    <StandardText style={styles.headerCompleteButtonText}>
+                      Complete
+                    </StandardText>
+                  </TouchableOpacity>
+                ) : null}
+                {showCompleteButton && showPushBackButton ? (
+                  <View style={styles.headerSessionActionDivider} />
+                ) : null}
+                {showPushBackButton ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.headerPushBackButton,
+                      !showCompleteButton && styles.headerPushBackButtonSingle,
+                      updatingPlan && styles.headerPushBackButtonDisabled,
+                    ]}
+                    onPress={onMissedDay}
+                    disabled={updatingPlan}
+                  >
+                    <StandardText style={styles.headerPushBackText}>
+                      {updatingPlan ? "Updating..." : "Push back"}
+                    </StandardText>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.headerSessionActionRule} />
 
           {pendingTrainingCheckIn ? (
             <TrainingCheckInCard
@@ -310,25 +455,41 @@ export default function ProgramOverviewView({
             />
           ) : null}
 
-          {selectedDay ? (
-            <DayDetailView
-              week={selectedDay.week}
-              day={selectedDay.dayData}
-              exercises={selectedDay.exercises}
-              preferredWeekday={selectedDay.preferredWeekday}
-              sessionLabel={selectedDay.sessionLabel}
-              status={selectedDay.status}
-              rescueMode={selectedDay.rescueMode}
-              adjustmentSummary={selectedDay.adjustmentSummary}
-              initialPerformanceResults={selectedDayPerformanceResults}
-              initialAssessmentResults={selectedDayAssessmentResults}
-              strengthAssessmentSummary={strengthAssessmentSummary}
-              onBack={onClearSelectedDay}
-              onReplaceExercise={onReplaceExercise}
-              onFinish={onFinishDay}
-              onMissed={onMissedDay}
-              updatingPlan={updatingPlan}
-            />
+          {selectedRestSlot ? (
+            <View style={styles.restDayCard}>
+              <StandardText style={styles.restDayTitle}>Recovery day</StandardText>
+              <StandardText style={styles.restDayText}>
+                No strength session is scheduled for {getRestSlotDateLabel(selectedRestSlot.date)}.
+              </StandardText>
+              <StandardText style={styles.restDayText}>
+                {nextTrainingSlot
+                  ? `Your next planned session is ${getNextTrainingSlotLabel(nextTrainingSlot)}. Use this day to recover and prepare for that session.`
+                  : "No later session is currently scheduled in this visible week window. Use this day for recovery."}
+              </StandardText>
+            </View>
+          ) : null}
+
+          {selectedDay && !selectedRestSlot ? (
+            <View style={styles.dayDetailEdgeToEdge}>
+              <DayDetailView
+                week={selectedDay.week}
+                day={selectedDay.dayData}
+                exercises={selectedDay.exercises}
+                preferredWeekday={selectedDay.preferredWeekday}
+                sessionLabel={selectedDay.sessionLabel}
+                status={selectedDay.status}
+                rescueMode={selectedDay.rescueMode}
+                adjustmentSummary={selectedDay.adjustmentSummary}
+                initialPerformanceResults={selectedDayPerformanceResults}
+                initialAssessmentResults={selectedDayAssessmentResults}
+                strengthAssessmentSummary={strengthAssessmentSummary}
+                onBack={onClearSelectedDay}
+                onReplaceExercise={onReplaceExercise}
+                onFinish={onFinishDay}
+                onMissed={onMissedDay}
+                updatingPlan={updatingPlan}
+              />
+            </View>
           ) : null}
         </View>
       </ScrollView>
@@ -389,17 +550,51 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     fontSize: 16,
   },
+  headerActionArea: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 360,
+    marginTop: 30,
+  },
+  headerActionAreaEmpty: {
+    marginTop: 18,
+  },
   headerStartButton: {
     backgroundColor: "#fff",
     borderRadius: 120,
     justifyContent: "center",
     height: 46,
-    marginTop: 30,
   },
   headerStartButtonText: {
     color: "#000",
     alignSelf: "center",
     fontSize: 22,
+  },
+  headerCompletedStatus: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  headerCompletedIconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  headerCompletedIcon: {
+    width: 18,
+    height: 18,
+    tintColor: "#000",
+  },
+  headerCompletedText: {
+    color: "#fff",
+    fontSize: 17,
+    textAlign: "center",
   },
   headerSessionActionRow: {
     flexDirection: "row",
@@ -408,10 +603,9 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginTop: 14,
   },
-  headerSessionActionDivider: {
-    width: 1,
-    height: 31,
-    backgroundColor: "#6b7280",
+  headerSessionActionRowCentered: {
+    alignSelf: "center",
+    width: 180,
   },
   headerCompleteButton: {
     borderTopLeftRadius: 120,
@@ -426,6 +620,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
+  headerSessionActionDivider: {
+    width: 1,
+    height: 31,
+    backgroundColor: "#6b7280",
+  },
+  headerSessionActionRule: {
+    height: 1,
+    alignSelf: "stretch",
+    marginHorizontal: -28,
+    marginTop: 14,
+    backgroundColor: "#6b7280",
+  },
   headerPushBackButton: {
     borderTopRightRadius: 120,
     borderBottomRightRadius: 120,
@@ -433,6 +639,10 @@ const styles = StyleSheet.create({
     height: 46,
     justifyContent: "center",
     alignItems: "center",
+  },
+  headerPushBackButtonSingle: {
+    borderTopLeftRadius: 120,
+    borderBottomLeftRadius: 120,
   },
   headerPushBackButtonDisabled: {
     opacity: 0.5,
@@ -471,9 +681,29 @@ const styles = StyleSheet.create({
   },
   weekScheduleScroller: {
     flexGrow: 0,
-    alignSelf: "flex-start",
+    alignSelf: "stretch",
     marginHorizontal: -28,
     marginTop: 45,
+  },
+  dayDetailEdgeToEdge: {
+    alignSelf: "stretch",
+    marginHorizontal: -28,
+  },
+  restDayCard: {
+    alignSelf: "stretch",
+    marginTop: 24,
+    paddingVertical: 18,
+    gap: 8,
+  },
+  restDayTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: "700",
+  },
+  restDayText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#d1d5db",
   },
   weekScheduleItem: {
     alignItems: "center",

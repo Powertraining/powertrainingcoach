@@ -39,7 +39,7 @@ export default function PostView({
       require("../../assets/icons/user.png");
 
   return (
-    <QuestionnaireShell>
+    <QuestionnaireShell hideTabBar={false}>
       <View style={styles.wrapper}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <StandardText fontSize={18}>Back</StandardText>

@@ -16,7 +16,7 @@ export default function ForumView({
   onPressPostButton,
 }) {
   return (
-    <QuestionnaireShell>
+    <QuestionnaireShell hideTabBar={false}>
       <View style={styles.wrapper}>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
           <View style={styles.searchBarWrapper}>

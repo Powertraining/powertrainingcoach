@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import PlanSetTabs from "../components/planComponents/PlanSetTabs.jsx";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
   getExercisePerformanceTarget,
+  getExercisePercentagePrescription,
   getExerciseStrengthAssessment,
-  getTrainingDayLabel,
   normalizeExercise,
 } from "../services/utils/trainingPlan.js";
-import {
-  getStrengthAssessmentMethodLabel,
-  getStrengthAssessmentRequirements,
-} from "../services/utils/strengthAssessment.js";
+import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOneRepMaxKg } from "../services/utils/strengthAssessment.js";
+import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 
 function getExerciseDisplayName(exercise = {}) {
   return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
@@ -28,6 +27,10 @@ function parsePrescribedSetCount(exercise = {}) {
 }
 
 function getDraftKey(exerciseIndex, setIndex = 0) {
+  return `${exerciseIndex}:${setIndex}`;
+}
+
+function getStepKey(exerciseIndex, setIndex = 0) {
   return `${exerciseIndex}:${setIndex}`;
 }
 
@@ -51,6 +54,267 @@ function toFieldId(value, fallback = "field") {
 
 function getExerciseText(exercise = {}) {
   return `${exercise?.name || ""} ${exercise?.reps || ""} ${exercise?.notes || ""}`.toLowerCase();
+}
+
+function getExercisePrescriptionDisplay(exercise = {}) {
+  const sets = String(exercise.sets || "").trim();
+  const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, ", ");
+  const compactTimePrescription = getCompactTimePrescription(reps, exercise);
+
+  if (compactTimePrescription) {
+    return compactTimePrescription;
+  }
+
+  const compactDistancePrescription = getCompactDistancePrescription(reps, exercise);
+
+  if (compactDistancePrescription) {
+    return compactDistancePrescription;
+  }
+
+  if (/^\d+$/.test(sets) && reps) {
+    return Array.from({ length: Number.parseInt(sets, 10) }, () => reps).join(", ");
+  }
+
+  return reps;
+}
+
+function getCompactTimePrescription(value = "", exercise = {}) {
+  const normalizedValue = String(value || "")
+    .trim()
+    .replace(/\s*\+\s*/g, ", ");
+  const exerciseSearchText = getExerciseText(exercise);
+  const isLikelyDistance =
+    /\b\d+(?:[.,]\d+)?\s*m(?:\s*\/\s*\d+(?:[.,]\d+)?\s*ft)?\b/i.test(normalizedValue) &&
+    /\b(?:sprint|run|shuttle|carry|walk|prowler|sled|farmer|march)\b/i.test(exerciseSearchText);
+  const hasTimeUnit =
+    /\b(?:seconds?|secs?|s|minutes?|mins?|hours?|hrs?|h)\b/i.test(normalizedValue) ||
+    /\b\d+(?:[.,]\d+)?\s*[sh]\b/i.test(normalizedValue) ||
+    (!isLikelyDistance && /\b\d+(?:[.,]\d+)?\s*m\b/i.test(normalizedValue));
+
+  if (!hasTimeUnit) {
+    return "";
+  }
+
+  return normalizedValue
+    .replace(/\bhours?\b/gi, "h")
+    .replace(/\bhrs?\b/gi, "h")
+    .replace(/\bseconds?\b/gi, "sec")
+    .replace(/\bsecs?\b/gi, "sec")
+    .replace(/\bminutes?\b/gi, "min")
+    .replace(/\bmins?\b/gi, "min")
+    .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?)\s*s\b/gi, "$1 sec")
+    .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?)\s*m\b/gi, "$1 min")
+    .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?)\s*h\b/gi, "$1 h")
+    .replace(/\s+each(?:\s+(?:side|direction|leg|arm|way))?\b.*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getCompactDistancePrescription(value = "", exercise = {}) {
+  const normalizedValue = String(value || "").trim();
+  const exerciseSearchText = getExerciseText(exercise);
+
+  if (!/\b(?:sprint|run|shuttle|carry|walk|prowler|sled|farmer|march)\b/i.test(exerciseSearchText)) {
+    return "";
+  }
+
+  return normalizedValue
+    .replace(/\b(\d+(?:[.,]\d+)?)\s*m\b/gi, (_, distance) => `${distance} meters`)
+    .replace(/\b(\d+(?:[.,]\d+)?)\s*ft\b/gi, (_, distance) => `${distance} ft`)
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getExplicitLoadOrSpeedValue(exercise = {}) {
+  const exerciseText = `${exercise?.notes || ""} ${exercise?.reps || ""}`;
+  const speedMatch = exerciseText.match(/\b\d+(?:[.,]\d+)?\s*(?:km\/h|kmh|mph|m\/s)\b/i);
+
+  if (speedMatch) {
+    return speedMatch[0].replace(/\s+/g, "").replace(/kmh/i, "kmh");
+  }
+
+  const loadMatch = exerciseText.match(/\b\d+(?:[.,]\d+)?\s*(?:kg|kgs|kilogram|kilograms)\b/i);
+
+  if (loadMatch) {
+    return loadMatch[0]
+      .replace(/\s+/g, "")
+      .replace(/kgs?|kilograms?/i, "kg");
+  }
+
+  return "";
+}
+
+function getNotesIntensityDetails(exercise = {}) {
+  const exerciseText = `${exercise?.notes || ""} ${exercise?.reps || ""}`;
+  const detailParts = [];
+  const addDetail = (value = "") => {
+    const normalizedValue = value.replace(/\s+/g, " ").trim();
+
+    if (normalizedValue && !detailParts.includes(normalizedValue)) {
+      detailParts.push(normalizedValue);
+    }
+  };
+
+  exerciseText
+    .match(/\b\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\s*%\s*(?:1\s*rm|1rm)?\b/gi)
+    ?.forEach((match) => {
+      const percentText = match.replace(/\s+/g, " ").trim();
+      addDetail(/1\s*rm/i.test(percentText) ? percentText : `${percentText} 1RM`);
+    });
+
+  exerciseText
+    .match(/\b(?:@?\s*rpe|rir)\s*\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\b/gi)
+    ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").replace(/^@\s*/i, "").toUpperCase()));
+
+  exerciseText
+    .match(/\bri\s*\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\s*%?\b/gi)
+    ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").toUpperCase()));
+
+  exerciseText
+    .match(/\b(?:max\s*)?\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\s*bpm\b|\b(?:max\s*bpm|bpm)\s*\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\b/gi)
+    ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").toUpperCase()));
+
+  exerciseText
+    .match(/\b(?:hr|heart rate)\s*(?:zone\s*)?\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\b|\bzone\s*\d+\b/gi)
+    ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").toUpperCase()));
+
+  exerciseText
+    .match(/\b\d+\s*[-:]\s*\d+\s*[-:]\s*\d+(?:\s*[-:]\s*\d+)?\b/gi)
+    ?.forEach((match) => addDetail(`Tempo ${match.replace(/\s+/g, "")}`));
+
+  return detailParts.join(" * ");
+}
+
+function formatCompactNumberUnit(value, unit = "") {
+  if (value == null || value === "") {
+    return "";
+  }
+
+  return `${String(value).replace(/\s+/g, "")}${unit}`;
+}
+
+function formatCompactKg(value) {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  return `${Math.round(value * 10) / 10}kg`;
+}
+
+function getPrimaryPercentageWorkingSet(percentagePrescription = {}) {
+  const workingSets = Array.isArray(percentagePrescription?.workingSets)
+    ? percentagePrescription.workingSets
+    : [];
+
+  if (workingSets.length === 0) {
+    return null;
+  }
+
+  return workingSets.reduce((primarySet, workingSet) => {
+    if (!primarySet) {
+      return workingSet;
+    }
+
+    return (workingSet?.percent1RM || 0) >= (primarySet?.percent1RM || 0)
+      ? workingSet
+      : primarySet;
+  }, null);
+}
+
+function getPercentRangeFromNotes(exercise = {}) {
+  const exerciseText = `${exercise.notes || ""} ${exercise.reps || ""}`;
+  const percentMatch = exerciseText.match(/\b(\d+(?:[.,]\d+)?)(?:\s*[-\u2013]\s*(\d+(?:[.,]\d+)?))?\s*%\s*(?:1\s*rm|1rm)?\b/i);
+
+  if (!percentMatch) {
+    return null;
+  }
+
+  const startPercent = Number.parseFloat(percentMatch[1].replace(",", "."));
+  const endPercent = percentMatch[2]
+    ? Number.parseFloat(percentMatch[2].replace(",", "."))
+    : null;
+
+  if (!Number.isFinite(startPercent)) {
+    return null;
+  }
+
+  return {
+    startPercent,
+    endPercent: Number.isFinite(endPercent) ? endPercent : null,
+  };
+}
+
+function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+  const percentRange = getPercentRangeFromNotes(exercise);
+
+  if (!percentRange) {
+    return "";
+  }
+
+  const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
+    exercise.name || "",
+    strengthReferenceOneRepMaxByLift
+  );
+
+  if (!referenceLiftDetails.oneRepMaxKg) {
+    return "";
+  }
+
+  const startLoad = calculateTargetLoadFromPercentOneRepMax(
+    referenceLiftDetails.oneRepMaxKg,
+    percentRange.startPercent
+  );
+
+  if (!startLoad) {
+    return "";
+  }
+
+  if (percentRange.endPercent) {
+    const endLoad = calculateTargetLoadFromPercentOneRepMax(
+      referenceLiftDetails.oneRepMaxKg,
+      percentRange.endPercent
+    );
+
+    return endLoad ? `${formatCompactKg(startLoad)}-${formatCompactKg(endLoad)}` : formatCompactKg(startLoad);
+  }
+
+  return formatCompactKg(startLoad);
+}
+
+function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+  const percentagePrescription = getExercisePercentagePrescription(exercise);
+  const primaryWorkingSet = getPrimaryPercentageWorkingSet(percentagePrescription);
+  const notesDetails = getNotesIntensityDetails(exercise);
+
+  if (primaryWorkingSet) {
+    const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
+      percentagePrescription.referenceLiftName || exercise.name || "",
+      strengthReferenceOneRepMaxByLift
+    );
+    const estimatedLoadKg = referenceLiftDetails.oneRepMaxKg
+      ? calculateTargetLoadFromPercentOneRepMax(
+          referenceLiftDetails.oneRepMaxKg,
+          primaryWorkingSet.percent1RM
+        )
+      : null;
+    const detailParts = [
+      primaryWorkingSet.percent1RM ? `${primaryWorkingSet.percent1RM}% 1RM` : "",
+      primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
+      notesDetails,
+    ].filter(Boolean);
+
+    return {
+      primary: estimatedLoadKg ? formatCompactNumberUnit(estimatedLoadKg, "kg") : "",
+      details: detailParts.join(" * "),
+    };
+  }
+
+  return {
+    primary:
+      getExplicitLoadOrSpeedValue(exercise) ||
+      getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
+    details: notesDetails,
+  };
 }
 
 function getExerciseLoggingFieldSource(exercise = {}) {
@@ -299,17 +563,13 @@ function ExerciseSessionStep({
   exercise,
   exerciseIndex,
   setIndex,
-  setCount,
-  stepIndex,
-  stepCount,
-  exerciseCount,
   draft,
   prescribedSets,
+  completedSetIndexes,
   onSelectSet,
-  onBack,
   onNext,
+  onSkip,
   onDraftChange,
-  isLastStep,
 }) {
   const {
     performanceTarget,
@@ -329,95 +589,53 @@ function ExerciseSessionStep({
     rpe: "",
     customValues: {},
   };
+  const exercisePrescription = getExercisePrescriptionDisplay(exercise);
+  const recommendation = getExerciseRecommendationDisplay(exercise);
+  const exerciseWeight = recommendation.primary || (inputDraft.loadKg ? `${inputDraft.loadKg}kg` : "");
+  const hasRecommendationDetails = Boolean(recommendation.details);
 
   return (
     <View style={styles.exerciseCard}>
-      <View style={styles.progressRow}>
-        <Text style={styles.progressText}>
-          Exercise {exerciseIndex + 1} of {exerciseCount} | Set {setIndex + 1} of {setCount}
-        </Text>
-        <Text style={styles.progressSubText}>
-          Step {stepIndex + 1} of {stepCount}
-        </Text>
-      </View>
-
-      <View style={styles.exerciseHeader}>
-        <Text style={styles.exerciseIndex}>{exerciseIndex + 1}</Text>
-        <View style={styles.exerciseTitleBlock}>
-          <Text style={styles.exerciseName}>{getExerciseDisplayName(exercise)}</Text>
-          <Text style={styles.exercisePrescription}>
-            {exercise.sets ? `${exercise.sets} x ` : ""}
-            {exercise.reps || ""}
-          </Text>
-        </View>
-      </View>
-
-      {exercise.notes ? (
-        <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
-      ) : null}
-
-      {setCount > 1 ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.setTabsContainer}
+      <View style={styles.exerciseSummaryRow}>
+        <View
+          style={[
+            styles.exerciseInfoCard,
+            !hasRecommendationDetails && styles.exerciseInfoCardCentered,
+          ]}
         >
-          {prescribedSets.map((prescribedSet) => {
-            const isActive = prescribedSet.setIndex === setIndex;
-
-            return (
-              <TouchableOpacity
-                key={prescribedSet.setIndex}
-                style={[
-                  styles.setTabButton,
-                  isActive ? styles.setTabButtonActive : styles.setTabButtonInactive,
-                ]}
-                onPress={() => onSelectSet(prescribedSet.setIndex)}
-              >
-                <StandardText
-                  style={[
-                    styles.setTabButtonText,
-                    isActive ? styles.setTabButtonTextActive : styles.setTabButtonTextInactive,
-                  ]}
-                >
-                  Set {prescribedSet.setIndex + 1}
-                </StandardText>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      ) : null}
-
-      {(performanceTarget || strengthAssessment) ? (
-        <View style={styles.trackedBox}>
-          <View style={styles.trackedHeader}>
-            <Text style={styles.trackedTitle}>Tracking target</Text>
-            {strengthAssessment ? (
-              <Text style={styles.trackedTag}>
-                {getStrengthAssessmentMethodLabel(strengthAssessment.method)}
-              </Text>
-            ) : performanceTarget ? (
-              <Text style={styles.trackedTag}>
-                {performanceTarget.strategy.replace(/_/g, " ")}
-              </Text>
+          <View style={styles.exerciseInfoMainText}>
+            {exercisePrescription ? (
+              <Text style={styles.exercisePrescription}>{exercisePrescription}</Text>
+            ) : null}
+            {exerciseWeight ? (
+              <Text style={styles.exerciseWeight}>{exerciseWeight}</Text>
             ) : null}
           </View>
-          {performanceTarget?.prompt ? (
-            <Text style={styles.trackedPrompt}>{performanceTarget.prompt}</Text>
-          ) : null}
-          {strengthAssessment?.prompt &&
-          strengthAssessment.prompt !== performanceTarget?.prompt ? (
-            <Text style={styles.trackedPrompt}>{strengthAssessment.prompt}</Text>
+          {hasRecommendationDetails ? (
+            <View style={styles.exerciseMetaRow}>
+              <Text style={styles.exerciseIntensityDetails}>{recommendation.details}</Text>
+            </View>
           ) : null}
         </View>
-      ) : null}
+
+        {exercise.notes ? (
+          <Text style={styles.exerciseNotes}>
+            {exercise.notes}
+          </Text>
+        ) : null}
+      </View>
+
+      <View style={styles.setTabsBlock}>
+        <PlanSetTabs
+          prescribedSets={prescribedSets}
+          activeSetIndex={setIndex}
+          completedSetIndexes={completedSetIndexes}
+          onSelectSet={onSelectSet}
+        />
+      </View>
 
       {showInputs || customFields.length > 0 ? (
         <View style={styles.inputPanel}>
-          <Text style={styles.inputPanelTitle}>Set inputs</Text>
-          <Text style={styles.inputPanelSubtitle}>
-            Prescribed set {setIndex + 1}; log only the fields this exercise needs.
-          </Text>
           <View style={styles.inputRow}>
             {showLoad ? (
               <View style={styles.inputField}>
@@ -429,6 +647,7 @@ function ExerciseSessionStep({
                   onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "loadKg", value)}
                   keyboardType="decimal-pad"
                   placeholder="e.g. 150"
+                  placeholderTextColor="#A1A1AA"
                   style={styles.input}
                 />
               </View>
@@ -444,6 +663,7 @@ function ExerciseSessionStep({
                   onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "reps", value)}
                   keyboardType="number-pad"
                   placeholder={strengthAssessment ? "2-5" : "e.g. 8"}
+                  placeholderTextColor="#A1A1AA"
                   style={styles.input}
                 />
               </View>
@@ -459,6 +679,7 @@ function ExerciseSessionStep({
                   onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "rpe", value)}
                   keyboardType="decimal-pad"
                   placeholder="8-9"
+                  placeholderTextColor="#A1A1AA"
                   style={styles.input}
                 />
               </View>
@@ -472,30 +693,24 @@ function ExerciseSessionStep({
                   onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, field.id, value, true)}
                   keyboardType={field.keyboardType}
                   placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                  placeholderTextColor="#A1A1AA"
                   style={styles.input}
                 />
               </View>
             ))}
           </View>
         </View>
-      ) : (
-        <View style={styles.completionPanel}>
-          <Text style={styles.completionPanelTitle}>Set completion</Text>
-          <Text style={styles.completionPanelText}>
-            This set does not require extra logging. Move on when it is completed as prescribed.
-          </Text>
-        </View>
-      )}
+      ) : null}
 
-      <View style={styles.navigationRow}>
-        <TouchableOpacity style={styles.stepBackButton} onPress={onBack}>
-          <StandardText style={styles.stepBackButtonText}>Back</StandardText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.nextButton} onPress={onNext}>
-          <StandardText style={styles.nextButtonText}>
-            {isLastStep ? "Complete session" : "Complete set"}
-          </StandardText>
-        </TouchableOpacity>
+      <View style={styles.footerActions}>
+        <View style={styles.navigationRow}>
+          <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+            <StandardText style={styles.skipButtonText}>Skip</StandardText>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
+            <StandardText style={styles.nextButtonText}>Finish set</StandardText>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -518,6 +733,7 @@ export default function ActiveSessionView({
   );
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [activeSetIndex, setActiveSetIndex] = useState(0);
+  const [completedStepKeys, setCompletedStepKeys] = useState(() => new Set());
   const [trackingDrafts, setTrackingDrafts] = useState(() =>
     buildTrackingDrafts(
       normalizedExercises,
@@ -525,7 +741,6 @@ export default function ActiveSessionView({
       initialAssessmentResults
     )
   );
-  const dayLabel = getTrainingDayLabel(day);
   const sessionSteps = useMemo(
     () =>
       normalizedExercises.flatMap((exercise, exerciseIndex) =>
@@ -611,22 +826,42 @@ export default function ActiveSessionView({
     setActiveSetIndex(nextStep.setIndex);
   }
 
-  function handleBack() {
-    if (resolvedActiveStepIndex > 0) {
-      goToStep(resolvedActiveStepIndex - 1);
-      return;
-    }
-
-    onBack?.();
-  }
-
   function handleExitSession() {
     onBack?.();
   }
 
   function handleCompleteCurrentSet() {
+    if (!activeStep) {
+      return;
+    }
+
+    setCompletedStepKeys((currentCompletedStepKeys) => {
+      const nextCompletedStepKeys = new Set(currentCompletedStepKeys);
+      nextCompletedStepKeys.add(
+        getStepKey(activeStep.exerciseIndex, activeStep.setIndex)
+      );
+      return nextCompletedStepKeys;
+    });
+
     if (!isLastStep) {
       goToStep(resolvedActiveStepIndex + 1);
+      return;
+    }
+
+    onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
+  }
+
+  function handleSkipExercise() {
+    if (!activeStep) {
+      return;
+    }
+
+    const nextExerciseStepIndex = sessionSteps.findIndex(
+      (step) => step.exerciseIndex > activeStep.exerciseIndex
+    );
+
+    if (nextExerciseStepIndex >= 0) {
+      goToStep(nextExerciseStepIndex);
       return;
     }
 
@@ -637,13 +872,28 @@ export default function ActiveSessionView({
     <QuestionnaireShell hideTabBar={true}>
       <ScrollView contentContainerStyle={styles.center}>
         <View style={styles.header}>
-          <View>
-            <StandardText style={styles.eyebrow}>Active session</StandardText>
-            <StandardText style={styles.title}>{dayLabel}</StandardText>
-          </View>
-          <TouchableOpacity style={styles.backButton} onPress={handleExitSession}>
-            <StandardText style={styles.backButtonText}>Back</StandardText>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleExitSession}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+          >
+            <Text style={styles.backButtonIcon}>←</Text>
           </TouchableOpacity>
+          <View style={styles.headerTitleWrap}>
+            {activeExercise ? (
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                {getExerciseDisplayName(activeExercise)}
+              </Text>
+            ) : null}
+          </View>
+          {activeStep ? (
+            <View style={styles.progressRow}>
+              <Text style={styles.progressText}>
+                {activeStep.exerciseIndex + 1} of {normalizedExercises.length}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {activeExercise ? (
@@ -652,20 +902,22 @@ export default function ActiveSessionView({
             exercise={activeExercise}
             exerciseIndex={activeStep.exerciseIndex}
             setIndex={activeStep.setIndex}
-            setCount={activeStep.setCount}
-            stepIndex={resolvedActiveStepIndex}
-            stepCount={sessionSteps.length}
-            exerciseCount={normalizedExercises.length}
             draft={trackingDrafts[getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)]}
             prescribedSets={activeExerciseSetTabs}
+            completedSetIndexes={activeExerciseSetTabs
+              .filter(({ setIndex }) =>
+                completedStepKeys.has(
+                  getStepKey(activeStep.exerciseIndex, setIndex)
+                )
+              )
+              .map(({ setIndex }) => setIndex)}
             onSelectSet={(setIndex) => {
               setActiveExerciseIndex(activeStep.exerciseIndex);
               setActiveSetIndex(setIndex);
             }}
-            onBack={handleBack}
             onNext={handleCompleteCurrentSet}
+            onSkip={handleSkipExercise}
             onDraftChange={updateTrackingDraft}
-            isLastStep={isLastStep}
           />
         ) : (
           <View style={styles.emptyState}>
@@ -687,168 +939,113 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   header: {
+    width: "100%",
     flexDirection: "row",
-    alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 16,
-  },
-  eyebrow: {
-    color: "#7E7E7E",
-    fontSize: 13,
-    fontWeight: "700",
-    textTransform: "uppercase",
-  },
-  title: {
-    color: "#fff",
-    fontSize: 30,
-    fontWeight: "700",
+    alignItems: "center",
+    marginTop: 8,
   },
   backButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    flexShrink: 0,
+    minWidth: 28,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
-  backButtonText: {
+  backButtonIcon: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 24,
+    fontWeight: "700",
+    lineHeight: 24,
   },
-  exerciseCard: {
-    gap: 12,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#5A5A5A",
+  headerTitleWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+  headerTitle: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "700",
+    lineHeight: 20,
+    textAlign: "center",
   },
   progressRow: {
-    alignItems: "flex-start",
+    flexShrink: 0,
+    minWidth: 52,
+    alignItems: "flex-end",
   },
   progressText: {
-    color: "#7E7E7E",
+    color: "#fff",
     fontSize: 13,
     fontWeight: "700",
     textTransform: "uppercase",
   },
-  progressSubText: {
-    color: "#9ca3af",
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
+  exerciseCard: {
+    flex: 1,
+    gap: 12,
+    paddingVertical: 16,
   },
-  exerciseHeader: {
+  exerciseSummaryRow: {
+    marginTop: 24,
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "stretch",
     gap: 12,
   },
-  exerciseIndex: {
-    color: "#7E7E7E",
-    fontSize: 14,
-    fontWeight: "700",
-    minWidth: 24,
+  exerciseInfoCard: {
+    width: 98,
+    height: 118,
+    padding: 12,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    backgroundColor: "#101010",
+    justifyContent: "space-between",
   },
-  exerciseTitleBlock: {
-    flex: 1,
-    gap: 4,
+  exerciseInfoCardCentered: {
+    justifyContent: "center",
   },
-  exerciseName: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "700",
+  exerciseInfoMainText: {
+    gap: 2,
   },
   exercisePrescription: {
-    color: "#7E7E7E",
-    fontSize: 15,
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  exerciseWeight: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  exerciseIntensityDetails: {
+    color: "#C9B259",
+    fontSize: 9,
+    fontWeight: "700",
+    lineHeight: 11,
+  },
+  exerciseMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    alignItems: "center",
   },
   exerciseNotes: {
-    color: "#d1d5db",
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  trackedBox: {
-    gap: 10,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#101010",
-  },
-  trackedHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  trackedTitle: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  trackedTag: {
-    color: "#7E7E7E",
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-  },
-  trackedPrompt: {
+    flex: 1,
     color: "#d1d5db",
     fontSize: 13,
     lineHeight: 18,
+    alignSelf: "center",
   },
-  completionPanel: {
-    gap: 8,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#101010",
-  },
-  completionPanelTitle: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  completionPanelText: {
-    color: "#9ca3af",
-    fontSize: 13,
-    lineHeight: 18,
+  setTabsBlock: {
+    marginTop: 30,
   },
   inputPanel: {
+    marginTop: 30,
     gap: 10,
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 15,
     backgroundColor: "#101010",
-  },
-  inputPanelTitle: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  inputPanelSubtitle: {
-    color: "#9ca3af",
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  setTabsContainer: {
-    gap: 8,
-    paddingVertical: 2,
-  },
-  setTabButton: {
-    height: 38,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-  },
-  setTabButtonActive: {
-    backgroundColor: "#fff",
-    borderColor: "#fff",
-  },
-  setTabButtonInactive: {
-    backgroundColor: "#101010",
-    borderColor: "#374151",
-  },
-  setTabButtonText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  setTabButtonTextActive: {
-    color: "#111827",
-  },
-  setTabButtonTextInactive: {
-    color: "#fff",
   },
   inputRow: {
     flexDirection: "row",
@@ -861,36 +1058,57 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   inputLabel: {
-    color: "#7E7E7E",
+    color: "#D4D4D8",
     fontSize: 12,
     fontWeight: "700",
   },
   input: {
     minHeight: 42,
     borderRadius: 6,
-    backgroundColor: "#fff",
+    backgroundColor: "#000",
+    borderWidth: 1,
+    borderColor: "#2A2A2A",
     paddingHorizontal: 12,
     fontSize: 16,
-    color: "#111827",
+    color: "#fff",
+  },
+  footerActions: {
+    marginTop: "auto",
+    gap: 8,
+    alignItems: "center",
   },
   navigationRow: {
     flexDirection: "row",
-    gap: 10,
+    justifyContent: "center",
     alignItems: "center",
+    gap: 10,
+    paddingTop: 12,
   },
-  stepBackButton: {
-    height: 48,
+  skipButton: {
+    height: 44,
+    minWidth: 74,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 120,
     borderWidth: 1,
-    borderColor: "#5A5A5A",
-    paddingHorizontal: 20,
+    borderColor: "#585858",
+    backgroundColor: "#1E1E1E",
+    paddingHorizontal: 14,
   },
-  stepBackButtonText: {
+  skipButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
+  },
+  stepActionButton: {
+    width: "49%",
+    maxWidth: 198,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 120,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
   },
   nextButton: {
     flex: 1,
@@ -902,7 +1120,7 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     color: "#000",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
   },
   emptyState: {
