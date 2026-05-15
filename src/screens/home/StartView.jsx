@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
@@ -23,6 +23,11 @@ export default function StartView({
                     <StandardText style={styles.screenTitle} center>
                         Powertraining
                     </StandardText>
+                    <TouchableOpacity style={styles.testButton} onPress={onStart}>
+                        <StandardText textColor="#000" fontSize={18}>
+                            Test questionnaire
+                        </StandardText>
+                    </TouchableOpacity>
                     <View>
                         {hasProgram ? (
                             <View style={styles.programStatus}>
@@ -83,6 +88,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: "center",
         color: "#fff",
+    },
+    testButton: {
+        alignSelf: "center",
+        marginTop: 18,
+        paddingHorizontal: 22,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#fff",
+        alignItems: "center",
+        justifyContent: "center",
     },
     programStatus: {
         minHeight: 495,
