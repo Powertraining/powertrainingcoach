@@ -89,6 +89,20 @@ const ProfileScreen = observer(function ProfileScreen() {
     [model.subscription, model.subscriptionEndDate]
   );
 
+  const isSubscriptionActive = useMemo(
+    function isSubscriptionActiveACB() {
+      return (model.getDaysRemainingInSubscription?.() || 0) > 0;
+    },
+    [model.subscription, model.subscriptionEndDate]
+  );
+
+  const subscriptionPlanName = useMemo(
+    function subscriptionPlanNameACB() {
+      return isSubscriptionActive ? "Pro Plan" : "No Plan";
+    },
+    [isSubscriptionActive]
+  );
+
   const canSave = useMemo(
     function canSaveACB() {
       const changed =
@@ -231,7 +245,9 @@ const ProfileScreen = observer(function ProfileScreen() {
         username={username}
         email={email}
         password={password}
+        subscriptionPlanName={subscriptionPlanName}
         subscriptionText={subscriptionText}
+        isSubscriptionActive={isSubscriptionActive}
         isSubmitting={isSubmitting}
         error={error}
         canSave={canSave}

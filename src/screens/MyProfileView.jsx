@@ -1,8 +1,11 @@
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
 import TrainingPreferencesFields from "./TrainingPreferencesFields.jsx";
 
 export function MyProfileView(props) {
+  const insets = useSafeAreaInsets();
   const preferredWeekdaySummary = Array.isArray(props.trainingPreferences?.preferredWeekdays)
     ? props.trainingPreferences.preferredWeekdays
         .map((weekday, index) => (weekday ? `Day ${index + 1} - ${weekday}` : ""))
@@ -11,7 +14,20 @@ export function MyProfileView(props) {
     : "";
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: Math.max(insets.top + 12, 20) },
+      ]}
+    >
+      <SubscriptionCard
+        planName={props.subscriptionPlanName}
+        subscriptionText={props.subscriptionText}
+        isActive={props.isSubscriptionActive}
+        isSubmitting={props.isSubmitting}
+        onPress={props.onChangeSubscription}
+      />
+
       <View style={styles.card}>
         <Text style={styles.pageTitle}>My Profile</Text>
         <Text style={styles.pageDescription}>
@@ -54,11 +70,6 @@ export function MyProfileView(props) {
             />
           </View>
         )}
-
-        <View style={styles.subscriptionCard}>
-          <Text style={styles.subscriptionLabel}>Subscription</Text>
-          <Text style={styles.subscriptionValue}>{props.subscriptionText}</Text>
-        </View>
 
         <View style={styles.subscriptionCard}>
           <Text style={styles.subscriptionLabel}>Primary Sport</Text>
