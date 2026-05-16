@@ -64,12 +64,26 @@ function getActiveTabName(pathname) {
 }
 
 const VISIBLE_TAB_ROUTES = new Set(["index", "overview", "forum", "profile"]);
+const PROFILE_SECONDARY_ROUTES = new Set([
+  "/profile-personal-details",
+  "/(tabs)/profile-personal-details",
+  "/profile-plan-adjustments",
+  "/(tabs)/profile-plan-adjustments",
+  "/profile-event-preparation",
+  "/(tabs)/profile-event-preparation",
+  "/profile-injuries",
+  "/(tabs)/profile-injuries",
+]);
 
 function getTabBarBottomOffset(bottomInset) {
   return Math.max(Math.round(bottomInset / 2), 12);
 }
 
-function shouldHideTabBar(activeTabName, requestedHidden) {
+function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
+  if (PROFILE_SECONDARY_ROUTES.has(pathname)) {
+    return true;
+  }
+
   if (activeTabName === "forum") {
     return false;
   }
@@ -143,7 +157,7 @@ const TabsLayout = observer(function TabsLayout() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const activeTabName = getActiveTabName(pathname);
-  const isTabBarHidden = shouldHideTabBar(activeTabName, model.forumTabBarHidden);
+  const isTabBarHidden = shouldHideTabBar(pathname, activeTabName, model.forumTabBarHidden);
   const tabBarBottomOffset = getTabBarBottomOffset(insets.bottom);
 
   function buildProtectedReturnTo() {

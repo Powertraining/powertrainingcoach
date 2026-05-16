@@ -207,7 +207,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       setTrainingPreferences(
         getSyncedTrainingPreferences(nextQuestionnaire, sessionsPerWeek)
       );
-      if (mode !== "main") {
+      if (mode !== "main" && mode !== "personalDetails") {
         router.push("/(tabs)/profile");
       }
     } catch (e) {
@@ -218,7 +218,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     }
   }
 
-  function cancelACB() {
+  function resetUnsavedChangesACB() {
     setError(null);
     setUsername(user.displayName || "");
     setPassword("");
@@ -227,7 +227,11 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     );
     setPrimaryCombatSport(model.primaryCombatSport || "");
     setSessionsPerWeek(model.sessionsPerWeek || 3);
-    if (mode !== "main") {
+  }
+
+  function cancelACB() {
+    resetUnsavedChangesACB();
+    if (mode !== "main" && mode !== "personalDetails") {
       router.push("/(tabs)/profile");
     }
   }
@@ -263,6 +267,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
   }
 
   function backToProfileACB() {
+    resetUnsavedChangesACB();
     router.push("/(tabs)/profile");
   }
 

@@ -1,5 +1,14 @@
-import { Pressable, ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useState } from "react";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import RowCard from "../components/homeComponents/RowCard.jsx";
@@ -49,13 +58,17 @@ function ProfileNavigationCard({
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
   const [isScrollLocked, setIsScrollLocked] = useState(false);
+  const actionBarProgress = useRef(new Animated.Value(0)).current;
   const mode = props.mode || "main";
   const isMainMode = mode === "main";
   const isPersonalDetailsMode = mode === "personalDetails";
   const isPlanAdjustmentsMode = mode === "planAdjustments";
   const isEventPreparationMode = mode === "eventPreparation";
   const isInjuriesMode = mode === "injuries";
-  const showInlineActions = !isMainMode || props.canSave || props.isSubmitting;
+  const showInlineActions =
+    !isPersonalDetailsMode && (!isMainMode || props.canSave || props.isSubmitting);
+  const showFloatingActions =
+    isPersonalDetailsMode && (props.canSave || props.isSubmitting);
   const pageTitle = isPersonalDetailsMode
     ? "Personal Details"
     : isPlanAdjustmentsMode
@@ -66,6 +79,27 @@ export function MyProfileView(props) {
           ? "Report Injury"
           : "Profile";
 
+  useEffect(
+    function animateActionBarACB() {
+      Animated.timing(actionBarProgress, {
+        toValue: showFloatingActions ? 1 : 0,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    },
+    [actionBarProgress, showFloatingActions]
+  );
+
+  const actionBarTranslateY = actionBarProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [96, 0],
+  });
+  const actionBarOpacity = actionBarProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -75,7 +109,11 @@ export function MyProfileView(props) {
           styles.content,
           {
             paddingTop: Math.max(insets.top + 12, 20),
-            paddingBottom: isMainMode ? Math.max(insets.bottom + 96, 120) : 24,
+            paddingBottom: isMainMode
+              ? Math.max(insets.bottom + 96, 120)
+              : isPersonalDetailsMode
+                ? Math.max(insets.bottom + 132, 156)
+                : 24,
           },
         ]}
       >
@@ -228,6 +266,52 @@ export function MyProfileView(props) {
           </View>
         ) : null}
       </ScrollView>
+
+      {isPersonalDetailsMode ? (
+        <Animated.View
+          pointerEvents={showFloatingActions ? "auto" : "none"}
+          style={[
+            styles.floatingActionsWrap,
+            {
+              paddingBottom: Math.max(insets.bottom, 12),
+              opacity: actionBarOpacity,
+              transform: [{ translateY: actionBarTranslateY }],
+            },
+          ]}
+        >
+          <View style={styles.floatingActionsBar}>
+            <TouchableOpacity
+              onPress={props.onSave}
+              disabled={props.isSubmitting || !props.canSave}
+              style={[
+                styles.floatingSaveButton,
+                props.isSubmitting || !props.canSave
+                  ? styles.floatingSaveButtonDisabled
+                  : null,
+              ]}
+            >
+              <Text style={styles.floatingSaveButtonText}>
+                {props.isSubmitting ? "Saving..." : "Save changes"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={props.onCancel}
+              disabled={props.isSubmitting}
+              style={styles.floatingCancelButton}
+            >
+              <Text
+                style={[
+                  styles.floatingCancelButtonText,
+                  props.isSubmitting ? styles.floatingCancelButtonTextDisabled : null,
+                ]}
+              >
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
@@ -368,6 +452,60 @@ const styles = StyleSheet.create({
     color: "#111827",
     fontSize: 16,
     fontWeight: "600",
+  },
+  floatingActionsWrap: {
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    paddingHorizontal: 20,
+  },
+  floatingActionsBar: {
+    flexDirection: "row",
+    borderRadius: 22,
+    overflow: "hidden",
+    backgroundColor: "#0f172a",
+    borderWidth: 1,
+    borderColor: "#1e293b",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    elevation: 10,
+  },
+  floatingSaveButton: {
+    flex: 3,
+    minHeight: 58,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
+    paddingHorizontal: 16,
+  },
+  floatingSaveButtonDisabled: {
+    backgroundColor: "#cbd5e1",
+  },
+  floatingSaveButtonText: {
+    color: "#0f172a",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+  },
+  floatingCancelButton: {
+    flex: 1,
+    minHeight: 58,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#111827",
+    paddingHorizontal: 12,
+  },
+  floatingCancelButtonText: {
+    color: "#e5e7eb",
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: 0.2,
+  },
+  floatingCancelButtonTextDisabled: {
+    color: "#94a3b8",
   },
   logoutButton: {
     paddingVertical: 14,
