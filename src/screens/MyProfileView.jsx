@@ -30,7 +30,6 @@ function ProfileNavigationCard({
   description,
   actionLabel,
   onPress,
-  featured = false,
 }) {
   return (
     <Pressable
@@ -50,12 +49,9 @@ function ProfileNavigationCard({
               {description}
             </Text>
           </View>
-          <View style={[styles.navigationActionPill, featured ? styles.navigationActionPillFeatured : null]}>
-            <Text style={[styles.navigationActionText, featured ? styles.navigationActionTextFeatured : null]}>
-              {actionLabel}
-            </Text>
-            <Text style={[styles.navigationArrow, featured ? styles.navigationArrowFeatured : null]}>›</Text>
-          </View>
+          <Text style={styles.navigationActionText}>
+            {actionLabel} &gt;
+          </Text>
         </View>
       </RowCard>
     </Pressable>
@@ -261,7 +257,7 @@ export function MyProfileView(props) {
               disabled={props.isSubmitting}
               style={styles.backButton}
             >
-              <Text style={styles.backButtonText}>Back</Text>
+              <Text style={styles.backButtonText}>Go Back</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -387,8 +383,8 @@ export function MyProfileView(props) {
                 editable={!props.isSubmitting}
                 onChangeText={props.onUsernameChange}
                 onSubmitEditing={closeUsernameEditorACB}
-                placeholder="Username"
-                placeholderTextColor="#64748b"
+                placeholder=""
+                placeholderTextColor="#9ca3af"
                 returnKeyType="done"
                 selectionColor="#ffffff"
                 style={styles.usernameEditorInput}
@@ -403,7 +399,7 @@ export function MyProfileView(props) {
               style={[
                 styles.usernameEditorSaveButton,
                 props.isSubmitting || !props.canSave
-                  ? styles.usernameEditorButtonDisabled
+                  ? styles.usernameEditorSaveButtonDisabled
                   : null,
               ]}
             >
@@ -545,14 +541,14 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    gap: 14,
+    gap: 12,
   },
   personalDetailsContentContainer: {
     flexGrow: 1,
   },
   navigationRow: {
     flexDirection: "row",
-    gap: 14,
+    gap: 12,
   },
   navigationCardButton: {
     flex: 1,
@@ -571,16 +567,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   navigationCardCopy: {
-    gap: 5,
+    gap: 4,
   },
   navigationCardTitle: {
     color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-    lineHeight: 20,
-  },
-  navigationCardTitleFeatured: {
-    color: "#f8e7a2",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 18,
   },
   navigationCardText: {
     color: "#9ca3af",
@@ -588,70 +581,45 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 16,
   },
-  navigationActionPill: {
-    alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "#ffffff",
-    borderRadius: 999,
-    flexDirection: "row",
-    gap: 5,
-    minHeight: 32,
-    minWidth: 74,
-    justifyContent: "center",
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-  },
-  navigationActionPillFeatured: {
-    backgroundColor: "#fff",
-  },
   navigationActionText: {
-    color: "#111827",
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "800",
+    lineHeight: 16,
     textTransform: "uppercase",
-  },
-  navigationActionTextFeatured: {
-    color: "#000000",
-  },
-  navigationArrow: {
-    color: "#111827",
-    fontSize: 18,
-    fontWeight: "800",
-    lineHeight: 18,
-  },
-  navigationArrowFeatured: {
-    color: "#000000",
+    marginTop: 12,
   },
   pageHeader: {
     gap: 14,
   },
   profileIdentity: {
     alignItems: "center",
-    gap: 10,
+    gap: 0,
   },
   personalDetailsSpacer: {
-    flex: 1,
-    minHeight: 24,
+    height: 24,
   },
   profileGradientCircle: {
     alignSelf: "center",
     aspectRatio: 1,
     borderRadius: 999,
+    marginTop: "10%",
+    maxWidth: 150,
+    minWidth: 112,
     overflow: "hidden",
-    width: "40%",
+    width: "34%",
   },
   profileEmail: {
-    color: "#9ca3af",
-    fontSize: 14,
+    color: "#C9B259",
+    fontSize: 13,
     fontWeight: "600",
+    lineHeight: 18,
+    marginTop: "5%",
     maxWidth: "100%",
   },
   backButton: {
     alignSelf: "flex-start",
-    backgroundColor: "#111827",
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingVertical: 4,
   },
   backButtonText: {
     color: "#ffffff",
@@ -670,11 +638,11 @@ const styles = StyleSheet.create({
   primaryButton: {
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#111827",
+    backgroundColor: "#ffffff",
     alignItems: "center",
   },
   primaryButtonText: {
-    color: "#ffffff",
+    color: "#141414",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -682,12 +650,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.18)",
+    borderColor: "#d4d4d4",
     alignItems: "center",
     backgroundColor: "#ffffff",
   },
   secondaryButtonText: {
-    color: "#111827",
+    color: "#141414",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -702,9 +670,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderRadius: 22,
     overflow: "hidden",
-    backgroundColor: "#0f172a",
+    backgroundColor: "#141414",
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: "#1E1E1E",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
@@ -716,14 +684,14 @@ const styles = StyleSheet.create({
     minHeight: 58,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
   },
   floatingSaveButtonDisabled: {
-    backgroundColor: "#cbd5e1",
+    backgroundColor: "rgba(255,255,255,0.5)",
   },
   floatingSaveButtonText: {
-    color: "#0f172a",
+    color: "#141414",
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: 0.2,
@@ -733,17 +701,17 @@ const styles = StyleSheet.create({
     minHeight: 58,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#111827",
+    backgroundColor: "#141414",
     paddingHorizontal: 12,
   },
   floatingCancelButtonText: {
-    color: "#e5e7eb",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: 0.2,
   },
   floatingCancelButtonTextDisabled: {
-    color: "#94a3b8",
+    color: "#9ca3af",
   },
   usernameEditorLayer: {
     alignItems: "center",
@@ -762,10 +730,10 @@ const styles = StyleSheet.create({
   },
   usernameEditorCard: {
     alignSelf: "stretch",
-    backgroundColor: "#111111",
-    borderColor: "#222222",
-    borderRadius: 18,
-    borderWidth: 1,
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 20,
+    borderWidth: 2,
     minHeight: 84,
     overflow: "hidden",
     shadowColor: "#000000",
@@ -788,9 +756,9 @@ const styles = StyleSheet.create({
   },
   usernameEditorInput: {
     color: "#9ca3af",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
-    lineHeight: 15,
+    lineHeight: 17,
     marginTop: 4,
     minHeight: 20,
     padding: 0,
@@ -811,9 +779,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+  usernameEditorSaveButtonDisabled: {
+    backgroundColor: "rgba(255,255,255,0.5)",
+  },
   usernameEditorCancelButton: {
     alignItems: "center",
-    backgroundColor: "#111827",
+    backgroundColor: "#141414",
     borderRadius: 999,
     justifyContent: "center",
     minHeight: 34,
@@ -824,7 +795,7 @@ const styles = StyleSheet.create({
     opacity: 0.52,
   },
   usernameEditorSaveButtonText: {
-    color: "#111827",
+    color: "#141414",
     fontSize: 12,
     fontWeight: "800",
   },
@@ -835,12 +806,14 @@ const styles = StyleSheet.create({
   },
   passwordResetSheet: {
     backgroundColor: "#ffffff",
+    borderColor: "#e5e5e5",
+    borderWidth: 2,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     bottom: 0,
-    gap: 12,
+    gap: 14,
     left: 0,
-    paddingHorizontal: 22,
+    paddingHorizontal: 20,
     paddingTop: 12,
     position: "absolute",
     right: 0,
@@ -858,10 +831,10 @@ const styles = StyleSheet.create({
   },
   passwordResetHandle: {
     alignSelf: "center",
-    backgroundColor: "#d1d5db",
+    backgroundColor: "#d4d4d4",
     borderRadius: 999,
     height: 5,
-    marginBottom: 12,
+    marginBottom: 10,
     width: 48,
   },
   passwordResetHandleHitArea: {
@@ -871,34 +844,35 @@ const styles = StyleSheet.create({
     minHeight: 28,
   },
   passwordResetTitle: {
-    color: "#111827",
-    fontSize: 22,
+    color: "#141414",
+    fontSize: 20,
     fontWeight: "900",
-    lineHeight: 27,
+    lineHeight: 25,
   },
   passwordResetText: {
-    color: "#4b5563",
-    fontSize: 14,
+    color: "#5f5f5f",
+    fontSize: 13,
     fontWeight: "600",
-    lineHeight: 20,
+    lineHeight: 19,
   },
   passwordResetButton: {
     alignItems: "center",
-    backgroundColor: "#111827",
+    backgroundColor: "#141414",
     borderRadius: 999,
     justifyContent: "center",
     marginTop: 8,
-    minHeight: 52,
+    minHeight: 48,
     paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingVertical: 12,
   },
   passwordResetButtonDisabled: {
     opacity: 0.58,
   },
   passwordResetButtonText: {
     color: "#ffffff",
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "900",
+    lineHeight: 17,
   },
   passwordResetSuccessText: {
     color: "#047857",
@@ -927,6 +901,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   buttonDisabled: {
-    opacity: 0.55,
+    backgroundColor: "rgba(255,255,255,0.5)",
   },
 });

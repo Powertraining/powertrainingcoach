@@ -16,6 +16,7 @@ export default function PersonalDetailsPasswordCard({ onPress, disabled }) {
           <Text style={styles.title}>Password</Text>
           <Text style={styles.text}>*****</Text>
         </View>
+        <Text style={styles.actionText}>Reset &gt;</Text>
       </View>
     </Pressable>
   );
@@ -26,10 +27,10 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "stretch",
     minHeight: 84,
-    backgroundColor: "#111111",
-    borderWidth: 1,
-    borderColor: "#222222",
-    borderRadius: 18,
+    backgroundColor: "#141414",
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    borderRadius: 20,
     overflow: "hidden",
   },
   cardPressed: {
@@ -40,13 +41,18 @@ const styles = StyleSheet.create({
     opacity: 0.58,
   },
   content: {
+    alignItems: "center",
     flex: 1,
-    justifyContent: "center",
+    flexDirection: "row",
+    gap: 14,
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
   copy: {
+    flex: 1,
     gap: 4,
+    minWidth: 0,
   },
   title: {
     color: "#ffffff",
@@ -56,8 +62,16 @@ const styles = StyleSheet.create({
   },
   text: {
     color: "#9ca3af",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
-    lineHeight: 15,
+    lineHeight: 17,
+  },
+  actionText: {
+    color: "#ffffff",
+    flexShrink: 0,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
   },
 });

@@ -47,9 +47,13 @@ export default function SubscriptionCard({
         <View style={styles.benefitsRow}>
           {BENEFITS.map((benefit) => (
             <View key={benefit.title} style={styles.benefitItem}>
-              <Text style={styles.benefitTitle}>{benefit.title}</Text>
+              <Text numberOfLines={1} style={styles.benefitTitle}>
+                {benefit.title}
+              </Text>
               <View style={styles.benefitDivider} />
-              <Text style={styles.benefitDescription}>{benefit.description}</Text>
+              <Text numberOfLines={2} style={styles.benefitDescription}>
+                {benefit.description}
+              </Text>
             </View>
           ))}
         </View>
@@ -90,8 +94,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   content: {
-    padding: 20,
-    gap: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    gap: 22,
   },
   planHeader: {
     alignItems: "center",
@@ -113,25 +118,25 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   timePillText: {
-    color: "#e5e7eb",
+    color: "#9ca3af",
     fontSize: 12,
     lineHeight: 16,
     fontWeight: "700",
   },
   benefitsRow: {
     flexDirection: "row",
-    gap: 10,
-    marginTop: 4,
-    marginBottom: 8,
+    gap: 12,
+    marginTop: 12,
+    marginBottom: 14,
   },
   benefitItem: {
     flex: 1,
-    gap: 5,
+    gap: 6,
   },
   benefitTitle: {
     color: "#ffffff",
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 17,
     fontWeight: "700",
     textAlign: "center",
     flexShrink: 1,
@@ -139,18 +144,18 @@ const styles = StyleSheet.create({
   benefitDivider: {
     height: 1,
     backgroundColor: "#ffffff",
-    opacity: 0.8,
+    opacity: 0.42,
   },
   benefitDescription: {
-    color: "#cbd5e1",
-    fontSize: 10,
-    lineHeight: 14,
+    color: "#9ca3af",
+    fontSize: 11,
+    lineHeight: 15,
     textAlign: "center",
     flexShrink: 1,
   },
   actionRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
     justifyContent: "center",
   },
   actionButton: {
@@ -167,9 +172,11 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.22)",
   },
   actionButtonText: {
-    color: "#111827",
-    fontSize: 13,
-    fontWeight: "700",
+    color: "#141414",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
   },
   secondaryButtonText: {
     color: "#ffffff",
