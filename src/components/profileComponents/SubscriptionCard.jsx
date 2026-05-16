@@ -60,7 +60,7 @@ export default function SubscriptionCard({
             disabled={isSubmitting}
             style={[styles.actionButton, isSubmitting ? styles.buttonDisabled : null]}
           >
-            <Text style={styles.actionButtonText}>Upgrade</Text>
+            <Text style={styles.actionButtonText}>Subscribe</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

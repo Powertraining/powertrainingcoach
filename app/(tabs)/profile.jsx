@@ -124,7 +124,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
   const subscriptionTimeRemainingText = useMemo(
     function subscriptionTimeRemainingTextACB() {
       if (!isSubscriptionActive) {
-        return "No time remaining";
+        return "No subscription";
       }
 
       return subscriptionDaysRemaining === 1
