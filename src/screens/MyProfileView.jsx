@@ -1,16 +1,22 @@
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
 import ProfileSportSelector from "../components/profileComponents/ProfileSportSelector.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
-import ProfileTrainingPreferencesFields from "./ProfileTrainingPreferencesFields.jsx";
+import ProfileTrainingPreferencesFields, {
+  ProfileSessionDurationSelector,
+} from "./ProfileTrainingPreferencesFields.jsx";
+import { SESSION_DURATION_OPTIONS } from "../constants/trainingPreferences.js";
 
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
+  const [isScrollLocked, setIsScrollLocked] = useState(false);
 
   return (
     <ScrollView
+      scrollEnabled={!isScrollLocked}
       contentContainerStyle={[
         styles.content,
         {
@@ -92,12 +98,25 @@ export function MyProfileView(props) {
         </View>
       </View>
 
-      <View style={styles.card}>
+      <View style={styles.inlineSection}>
+        <Text style={styles.preferenceSummaryLabel}>Session Duration</Text>
+        <ProfileSessionDurationSelector
+          options={SESSION_DURATION_OPTIONS}
+          value={props.trainingPreferences?.sessionDuration}
+          onChange={(value) =>
+            props.onTrainingPreferencesChange?.({
+              ...(props.trainingPreferences || {}),
+              sessionDuration: value,
+            })
+          }
+        />
+      </View>
+
+      <View style={styles.inlineSection}>
         <ProfileTrainingPreferencesFields
-          title="Training Preferences"
-          description="These values are saved to your profile and used when the app builds or regenerates training plans."
           values={props.trainingPreferences}
           onChange={props.onTrainingPreferencesChange}
+          onCombatIntensityDragChange={setIsScrollLocked}
         />
       </View>
 
@@ -142,14 +161,6 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 16,
   },
-  card: {
-    padding: 20,
-    borderRadius: 18,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(15,23,42,0.08)",
-    gap: 14,
-  },
   accountCard: {
     padding: 20,
     borderRadius: 20,
@@ -179,14 +190,6 @@ const styles = StyleSheet.create({
   inputDisabled: {
     color: "#8E8E8E",
   },
-  preferenceSummaryCard: {
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(15,23,42,0.08)",
-    gap: 5,
-  },
   inlineSection: {
     gap: 5,
   },
@@ -204,26 +207,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#475569",
     textTransform: "uppercase",
-  },
-  preferenceText: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: "#8E8E8E",
-    marginTop: 2,
-  },
-  inlineActionButton: {
-    marginTop: 7,
-    paddingVertical: 9,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(17,24,39,0.12)",
-    alignItems: "center",
-    backgroundColor: "#f8fafc",
-  },
-  inlineActionButtonText: {
-    color: "#111827",
-    fontSize: 12,
-    fontWeight: "700",
   },
   errorText: {
     color: "#b91c1c",
