@@ -31,7 +31,7 @@ function getSyncedTrainingPreferences(questionnaire = {}, sessionsPerWeek = 3) {
   };
 }
 
-const ProfileScreen = observer(function ProfileScreen() {
+export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) {
   const model = reactiveModel;
   const router = useRouter();
 
@@ -207,6 +207,9 @@ const ProfileScreen = observer(function ProfileScreen() {
       setTrainingPreferences(
         getSyncedTrainingPreferences(nextQuestionnaire, sessionsPerWeek)
       );
+      if (mode !== "main") {
+        router.push("/(tabs)/profile");
+      }
     } catch (e) {
       setError(e.message || "Update failed.");
     } finally {
@@ -224,6 +227,9 @@ const ProfileScreen = observer(function ProfileScreen() {
     );
     setPrimaryCombatSport(model.primaryCombatSport || "");
     setSessionsPerWeek(model.sessionsPerWeek || 3);
+    if (mode !== "main") {
+      router.push("/(tabs)/profile");
+    }
   }
 
   function changeSessionsPerWeekACB(nextSessionsPerWeek) {
@@ -238,6 +244,26 @@ const ProfileScreen = observer(function ProfileScreen() {
       pathname: "/(tabs)/subscription",
       params: { returnTo: "/(tabs)/profile" },
     });
+  }
+
+  function openPersonalDetailsACB() {
+    router.push("/(tabs)/profile-personal-details");
+  }
+
+  function openPlanAdjustmentsACB() {
+    router.push("/(tabs)/profile-plan-adjustments");
+  }
+
+  function openEventPreparationACB() {
+    router.push("/(tabs)/profile-event-preparation");
+  }
+
+  function openInjuriesACB() {
+    router.push("/(tabs)/profile-injuries");
+  }
+
+  function backToProfileACB() {
+    router.push("/(tabs)/profile");
   }
 
   async function logoutACB() {
@@ -261,6 +287,7 @@ const ProfileScreen = observer(function ProfileScreen() {
   return (
     <View style={styles.container}>
       <MyProfileView
+        mode={mode}
         username={username}
         email={email}
         password={password}
@@ -284,6 +311,11 @@ const ProfileScreen = observer(function ProfileScreen() {
         onSave={saveACB}
         onCancel={cancelACB}
         onChangeSubscription={changeSubscriptionACB}
+        onOpenPersonalDetails={openPersonalDetailsACB}
+        onOpenPlanAdjustments={openPlanAdjustmentsACB}
+        onOpenEventPreparation={openEventPreparationACB}
+        onOpenInjuries={openInjuriesACB}
+        onBack={backToProfileACB}
         onLogout={logoutACB}
         hidePassword={isGoogleUser}
       />

@@ -84,9 +84,9 @@ export default function SubscriptionCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 40,
-    borderWidth: 0.6,
-    borderColor: "rgba(255,255,255,0.85)",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
     overflow: "hidden",
   },
   content: {

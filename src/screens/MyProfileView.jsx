@@ -1,212 +1,340 @@
-import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { Pressable, ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
-import ProfileSportSelector from "../components/profileComponents/ProfileSportSelector.jsx";
+import RowCard from "../components/homeComponents/RowCard.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
-import ProfileTrainingPreferencesFields, {
-  ProfileSessionDurationSelector,
-} from "./ProfileTrainingPreferencesFields.jsx";
-import { SESSION_DURATION_OPTIONS } from "../constants/trainingPreferences.js";
+import ProfilePersonalDetailsView from "./profile/ProfilePersonalDetailsView.jsx";
+import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx";
+import TrainingPreferencesEventPreparationView from "./trainingPreferences/TrainingPreferencesEventPreparationView.jsx";
+import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPreferencesInjuriesView.jsx";
+
+function ProfileNavigationCard({
+  title,
+  description,
+  actionLabel,
+  onPress,
+  featured = false,
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.navigationCardButton,
+        pressed ? styles.navigationCardButtonPressed : null,
+      ]}
+    >
+      <RowCard style={styles.navigationCard}>
+        <View style={styles.navigationCardContent}>
+          <View style={styles.navigationCardCopy}>
+            <Text numberOfLines={2} adjustsFontSizeToFit style={styles.navigationCardTitle}>
+              {title}
+            </Text>
+            <Text numberOfLines={2} style={styles.navigationCardText}>
+              {description}
+            </Text>
+          </View>
+          <View style={[styles.navigationActionPill, featured ? styles.navigationActionPillFeatured : null]}>
+            <Text style={[styles.navigationActionText, featured ? styles.navigationActionTextFeatured : null]}>
+              {actionLabel}
+            </Text>
+            <Text style={[styles.navigationArrow, featured ? styles.navigationArrowFeatured : null]}>›</Text>
+          </View>
+        </View>
+      </RowCard>
+    </Pressable>
+  );
+}
 
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
   const [isScrollLocked, setIsScrollLocked] = useState(false);
+  const mode = props.mode || "main";
+  const isMainMode = mode === "main";
+  const isPersonalDetailsMode = mode === "personalDetails";
+  const isPlanAdjustmentsMode = mode === "planAdjustments";
+  const isEventPreparationMode = mode === "eventPreparation";
+  const isInjuriesMode = mode === "injuries";
+  const showInlineActions = !isMainMode || props.canSave || props.isSubmitting;
+  const pageTitle = isPersonalDetailsMode
+    ? "Personal Details"
+    : isPlanAdjustmentsMode
+      ? "Plan Adjustments"
+      : isEventPreparationMode
+        ? "Register Event"
+        : isInjuriesMode
+          ? "Report Injury"
+          : "Profile";
 
   return (
-    <ScrollView
-      scrollEnabled={!isScrollLocked}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: Math.max(insets.top + 12, 20),
-          paddingBottom: Math.max(insets.bottom + 96, 120),
-        },
-      ]}
-    >
-      <SubscriptionCard
-        planName={props.subscriptionPlanName}
-        timeRemainingText={props.subscriptionTimeRemainingText}
-        subscriptionText={props.subscriptionText}
-        isActive={props.isSubscriptionActive}
-        isSubmitting={props.isSubmitting}
-        onPress={props.onChangeSubscription}
-      />
-
-      <View style={styles.inlineSection}>
-        <Text style={styles.preferenceSummaryLabel}>Personal Details</Text>
-        <View style={styles.accountCard}>
-          <View style={styles.field}>
-            <Text style={styles.label}>E-mail</Text>
-            <TextInput
-              value={props.email}
-              placeholder={props.emailPlaceholder}
-              editable={false}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholderTextColor="#8E8E8E"
-              style={[styles.input, styles.inputDisabled]}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Username</Text>
-            <TextInput
-              value={props.username}
-              placeholder={props.usernamePlaceholder}
-              placeholderTextColor="#8E8E8E"
-              onChangeText={props.onUsernameChange}
-              editable={!props.isSubmitting}
-              style={styles.input}
-            />
-          </View>
-
-          {!props.hidePassword && (
-            <View style={styles.field}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                value={props.password}
-                onChangeText={props.onPasswordChange}
-                editable={!props.isSubmitting}
-                secureTextEntry
-                placeholder="••••••••"
-                placeholderTextColor="#8E8E8E"
-                style={styles.input}
-              />
-            </View>
-          )}
-        </View>
-      </View>
-
-      <View style={styles.inlineSection}>
-        <Text style={styles.preferenceSummaryLabel}>Primary Sport</Text>
-        <ProfileSportSelector
-          options={props.combatSportOptions}
-          value={props.primaryCombatSport}
-          onChange={props.onPrimaryCombatSportChange}
-        />
-      </View>
-
-      <View style={styles.inlineSection}>
-        <Text style={styles.preferenceSummaryLabel}>Training Frequency</Text>
-        <View style={styles.frequencyBox}>
-          <ProfileFrequencySelector
-            value={props.sessionsPerWeek}
-            onChange={props.onSessionsPerWeekChange}
+    <View style={styles.screen}>
+      <ScrollView
+        scrollEnabled={!isScrollLocked}
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: Math.max(insets.top + 12, 20),
+            paddingBottom: isMainMode ? Math.max(insets.bottom + 96, 120) : 24,
+          },
+        ]}
+      >
+        {isMainMode ? (
+          <SubscriptionCard
+            planName={props.subscriptionPlanName}
+            timeRemainingText={props.subscriptionTimeRemainingText}
+            subscriptionText={props.subscriptionText}
+            isActive={props.isSubscriptionActive}
+            isSubmitting={props.isSubmitting}
+            onPress={props.onChangeSubscription}
           />
-        </View>
-      </View>
+        ) : null}
 
-      <View style={styles.inlineSection}>
-        <Text style={styles.preferenceSummaryLabel}>Session Duration</Text>
-        <ProfileSessionDurationSelector
-          options={SESSION_DURATION_OPTIONS}
-          value={props.trainingPreferences?.sessionDuration}
-          onChange={(value) =>
-            props.onTrainingPreferencesChange?.({
-              ...(props.trainingPreferences || {}),
-              sessionDuration: value,
-            })
-          }
-        />
-      </View>
+        {isMainMode ? (
+          <View style={styles.navigationRow}>
+            <ProfileNavigationCard
+              title="Personal Details"
+              description="Account and login info"
+              actionLabel="View"
+              onPress={props.onOpenPersonalDetails}
+            />
 
-      <View style={styles.inlineSection}>
-        <ProfileTrainingPreferencesFields
-          values={props.trainingPreferences}
-          onChange={props.onTrainingPreferencesChange}
-          onCombatIntensityDragChange={setIsScrollLocked}
-        />
-      </View>
+            <ProfileNavigationCard
+              title="Plan Adjustments"
+              description="Sport, schedule, and training logic"
+              actionLabel="Adjust"
+              onPress={props.onOpenPlanAdjustments}
+              featured
+            />
+          </View>
+        ) : null}
 
-      {props.error ? <Text style={styles.errorText}>{props.error}</Text> : null}
+        {isMainMode ? (
+          <View style={styles.navigationRow}>
+            <ProfileNavigationCard
+              title="Register Event"
+              description="Competition date and details"
+              actionLabel="Register"
+              onPress={props.onOpenEventPreparation}
+            />
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          onPress={props.onSave}
-          disabled={props.isSubmitting || !props.canSave}
-          style={[
-            styles.primaryButton,
-            props.isSubmitting || !props.canSave ? styles.buttonDisabled : null,
-          ]}
-        >
-          <Text style={styles.primaryButtonText}>
-            {props.isSubmitting ? "Saving..." : "Save changes"}
-          </Text>
-        </TouchableOpacity>
+            <ProfileNavigationCard
+              title="Report Injury"
+              description="Injuries and limitations"
+              actionLabel="Report"
+              onPress={props.onOpenInjuries}
+            />
+          </View>
+        ) : null}
 
-        <TouchableOpacity
-          onPress={props.onCancel}
-          disabled={props.isSubmitting}
-          style={styles.secondaryButton}
-        >
-          <Text style={styles.secondaryButtonText}>Cancel</Text>
-        </TouchableOpacity>
+        {isMainMode ? (
+          <TouchableOpacity
+            onPress={props.onLogout}
+            disabled={props.isSubmitting}
+            style={styles.logoutButton}
+          >
+            <Text style={styles.logoutButtonText}>Log out</Text>
+          </TouchableOpacity>
+        ) : null}
 
-        <TouchableOpacity
-          onPress={props.onLogout}
-          disabled={props.isSubmitting}
-          style={styles.logoutButton}
-        >
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        {!isMainMode ? (
+          <View style={styles.pageHeader}>
+            <TouchableOpacity
+              onPress={props.onBack}
+              disabled={props.isSubmitting}
+              style={styles.backButton}
+            >
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageTitle}>{pageTitle}</Text>
+          </View>
+        ) : null}
+
+        {isPersonalDetailsMode ? (
+          <ProfilePersonalDetailsView
+            email={props.email}
+            emailPlaceholder={props.emailPlaceholder}
+            username={props.username}
+            usernamePlaceholder={props.usernamePlaceholder}
+            password={props.password}
+            hidePassword={props.hidePassword}
+            isSubmitting={props.isSubmitting}
+            onUsernameChange={props.onUsernameChange}
+            onPasswordChange={props.onPasswordChange}
+          />
+        ) : null}
+
+        {isPlanAdjustmentsMode ? (
+          <ProfilePlanAdjustmentsView
+            trainingPreferences={props.trainingPreferences}
+            combatSportOptions={props.combatSportOptions}
+            primaryCombatSport={props.primaryCombatSport}
+            sessionsPerWeek={props.sessionsPerWeek}
+            onTrainingPreferencesChange={props.onTrainingPreferencesChange}
+            onPrimaryCombatSportChange={props.onPrimaryCombatSportChange}
+            onSessionsPerWeekChange={props.onSessionsPerWeekChange}
+            onCombatIntensityDragChange={setIsScrollLocked}
+          />
+        ) : null}
+
+        {isEventPreparationMode ? (
+          <TrainingPreferencesEventPreparationView
+            value={props.trainingPreferences?.eventPreparation}
+            onChange={(value) =>
+              props.onTrainingPreferencesChange?.({
+                ...(props.trainingPreferences || {}),
+                eventPreparation: value,
+              })
+            }
+          />
+        ) : null}
+
+        {isInjuriesMode ? (
+          <TrainingPreferencesInjuriesView
+            value={props.trainingPreferences?.injuriesInput}
+            onChange={(value) =>
+              props.onTrainingPreferencesChange?.({
+                ...(props.trainingPreferences || {}),
+                injuriesInput: value,
+              })
+            }
+          />
+        ) : null}
+
+        {props.error ? <Text style={styles.errorText}>{props.error}</Text> : null}
+
+        {showInlineActions ? (
+          <View style={styles.actions}>
+            <TouchableOpacity
+              onPress={props.onSave}
+              disabled={props.isSubmitting || !props.canSave}
+              style={[
+                styles.primaryButton,
+                props.isSubmitting || !props.canSave ? styles.buttonDisabled : null,
+              ]}
+            >
+              <Text style={styles.primaryButtonText}>
+                {props.isSubmitting ? "Saving..." : "Save changes"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={props.onCancel}
+              disabled={props.isSubmitting}
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.secondaryButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
   content: {
     padding: 20,
-    gap: 16,
-  },
-  accountCard: {
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: "#141414",
-    borderWidth: 2,
-    borderColor: "#1E1E1E",
     gap: 14,
   },
-  field: {
-    gap: 6,
+  navigationRow: {
+    flexDirection: "row",
+    gap: 14,
   },
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#ffffff",
+  navigationCardButton: {
+    flex: 1,
   },
-  input: {
-    height: 46,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#1E1E1E",
-    backgroundColor: "#000000",
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: "#ffffff",
+  navigationCardButtonPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.98 }],
   },
-  inputDisabled: {
-    color: "#8E8E8E",
+  navigationCard: {
+    backgroundColor: "#141414",
   },
-  inlineSection: {
+  navigationCardContent: {
+    flex: 1,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  navigationCardCopy: {
     gap: 5,
   },
-  frequencyBox: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: "#141414",
-    borderWidth: 2,
-    borderColor: "#1E1E1E",
-    gap: 6,
-  },
-  preferenceSummaryLabel: {
-    fontSize: 12,
+  navigationCardTitle: {
+    color: "#ffffff",
+    fontSize: 16,
     fontWeight: "700",
-    color: "#475569",
+    lineHeight: 20,
+  },
+  navigationCardTitleFeatured: {
+    color: "#f8e7a2",
+  },
+  navigationCardText: {
+    color: "#9ca3af",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+  },
+  navigationActionPill: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    flexDirection: "row",
+    gap: 5,
+    minHeight: 32,
+    minWidth: 74,
+    justifyContent: "center",
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  navigationActionPillFeatured: {
+    backgroundColor: "#fff",
+  },
+  navigationActionText: {
+    color: "#111827",
+    fontSize: 12,
+    fontWeight: "800",
     textTransform: "uppercase",
+  },
+  navigationActionTextFeatured: {
+    color: "#000000",
+  },
+  navigationArrow: {
+    color: "#111827",
+    fontSize: 18,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  navigationArrowFeatured: {
+    color: "#000000",
+  },
+  pageHeader: {
+    gap: 14,
+  },
+  pageTitle: {
+    color: "#111827",
+    fontSize: 28,
+    fontWeight: "800",
+    lineHeight: 34,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#111827",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
   },
   errorText: {
     color: "#b91c1c",
@@ -244,11 +372,14 @@ const styles = StyleSheet.create({
   logoutButton: {
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#fee2e2",
     alignItems: "center",
+    minHeight: 48,
+    minWidth: 92,
+    alignSelf: "center",
   },
   logoutButtonText: {
-    color: "#991b1b",
+    color: "#fff",
+    opacity: 0.5,
     fontSize: 16,
     fontWeight: "600",
   },

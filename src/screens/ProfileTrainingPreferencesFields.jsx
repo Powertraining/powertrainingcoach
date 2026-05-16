@@ -27,6 +27,7 @@ import StandardText from "../components/textComponents/StandardText.jsx";
 
 const SESSION_DURATION_ITEM_WIDTH = 96;
 const SESSION_DURATION_ITEM_HEIGHT = 70;
+const PROFILE_PILL_HEIGHT = 72;
 const COMBAT_INTENSITY_METER_HEIGHT = 48;
 const COMBAT_INTENSITY_VALUES = ["light", "moderate", "intense"];
 const ARROW_IMAGE = require("../assets/icons/arrow.png");
@@ -323,9 +324,6 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
 function DesiredTrainingPills({ value, onChange }) {
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
-  const selectedIndex = DESIRED_TRAINING_OPTIONS.findIndex(
-    (option) => option.value === displayedValue
-  );
 
   return (
     <View style={styles.desiredPills}>
@@ -337,12 +335,6 @@ function DesiredTrainingPills({ value, onChange }) {
             : index === DESIRED_TRAINING_OPTIONS.length - 1
               ? styles.desiredPillRight
               : styles.desiredPillMiddle;
-        const imagePositionStyle =
-          isSelected || selectedIndex < 0
-            ? null
-            : index < selectedIndex
-              ? styles.desiredPillImageLeft
-              : styles.desiredPillImageRight;
 
         return (
           <TouchableOpacity
@@ -357,7 +349,7 @@ function DesiredTrainingPills({ value, onChange }) {
               isSelected ? styles.desiredPillSelected : null,
             ]}
           >
-            <View style={[styles.desiredPillImageSlot, imagePositionStyle]}>
+            <View style={styles.desiredPillImageSlot}>
               <Image
                 source={DESIRED_TRAINING_IMAGES[option.value]}
                 style={[
@@ -387,9 +379,6 @@ function DesiredTrainingPills({ value, onChange }) {
 function EquipmentPills({ value, onChange }) {
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
-  const selectedIndex = EQUIPMENT_OPTIONS.findIndex(
-    (option) => option.value === displayedValue
-  );
 
   return (
     <View style={styles.connectedPills}>
@@ -401,12 +390,6 @@ function EquipmentPills({ value, onChange }) {
             : index === EQUIPMENT_OPTIONS.length - 1
               ? styles.connectedPillRight
               : styles.connectedPillMiddle;
-        const imagePositionStyle =
-          isSelected || selectedIndex < 0
-            ? null
-            : index < selectedIndex
-              ? styles.connectedPillImageLeft
-              : styles.connectedPillImageRight;
 
         return (
           <TouchableOpacity
@@ -421,7 +404,7 @@ function EquipmentPills({ value, onChange }) {
               isSelected ? styles.connectedPillSelected : null,
             ]}
           >
-            <View style={[styles.connectedPillImageSlot, imagePositionStyle]}>
+            <View style={styles.connectedPillImageSlot}>
               <Image
                 source={EQUIPMENT_IMAGES[option.value]}
                 style={[
@@ -977,6 +960,7 @@ function ProfileLoadingStrategyOptions({ value, onChange }) {
 export default function ProfileTrainingPreferencesFields({
   title,
   description,
+  sections = "all",
   values,
   onChange,
   onCombatIntensityDragChange,
@@ -984,6 +968,8 @@ export default function ProfileTrainingPreferencesFields({
   const safeValues = values && typeof values === "object" ? values : {};
   const resolvedValues = getTrainingPreferencesFormState(safeValues);
   const [activeWeekdayMenu, setActiveWeekdayMenu] = useState(null);
+  const showPlanFields = sections !== "constraints";
+  const showConstraintFields = sections !== "plan";
 
   function updateFields(patch) {
     onChange?.({
@@ -1050,192 +1036,200 @@ export default function ProfileTrainingPreferencesFields({
         </View>
       )}
 
-      <FieldPanel label="Desired training" bare>
-        <DesiredTrainingPills
-          value={resolvedValues.desiredTraining}
-          onChange={(value) => updateField("desiredTraining", value)}
-        />
-      </FieldPanel>
+      {showPlanFields ? (
+        <>
+          <FieldPanel label="Desired training" bare>
+            <DesiredTrainingPills
+              value={resolvedValues.desiredTraining}
+              onChange={(value) => updateField("desiredTraining", value)}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Equipment" bare>
-        <EquipmentPills
-          value={resolvedValues.equipment}
-          onChange={(value) => updateField("equipment", value)}
-        />
-      </FieldPanel>
+          <FieldPanel label="Equipment" bare>
+            <EquipmentPills
+              value={resolvedValues.equipment}
+              onChange={(value) => updateField("equipment", value)}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Training phase" bare>
-        <TrainingPhasePills
-          value={resolvedValues.trainingPhase}
-          onChange={(value) => updateField("trainingPhase", value)}
-        />
-      </FieldPanel>
+          <FieldPanel label="Training phase" bare>
+            <TrainingPhasePills
+              value={resolvedValues.trainingPhase}
+              onChange={(value) => updateField("trainingPhase", value)}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Combat training intensity" bare>
-        <CombatTrainingIntensityMeter
-          value={resolvedValues.combatTrainingIntensity}
-          onChange={(value) => updateField("combatTrainingIntensity", value)}
-          onDragChange={onCombatIntensityDragChange}
-        />
-      </FieldPanel>
+          <FieldPanel label="Combat training intensity" bare>
+            <CombatTrainingIntensityMeter
+              value={resolvedValues.combatTrainingIntensity}
+              onChange={(value) => updateField("combatTrainingIntensity", value)}
+              onDragChange={onCombatIntensityDragChange}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Lift intensity logic" bare>
-        <LiftIntensityOptions
-          liftIntensityMethod={resolvedValues.liftIntensityMethod}
-          percentageReferenceMethod={resolvedValues.percentageReferenceMethod}
-          onChange={updateFields}
-        />
-      </FieldPanel>
+          <FieldPanel label="Lift intensity logic" bare>
+            <LiftIntensityOptions
+              liftIntensityMethod={resolvedValues.liftIntensityMethod}
+              percentageReferenceMethod={resolvedValues.percentageReferenceMethod}
+              onChange={updateFields}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Loading strategy" bare>
-        <ProfileLoadingStrategyOptions
-          value={resolvedValues.loadingStrategy}
-          onChange={(value) => updateField("loadingStrategy", value)}
-        />
-      </FieldPanel>
+          <FieldPanel label="Loading strategy" bare>
+            <ProfileLoadingStrategyOptions
+              value={resolvedValues.loadingStrategy}
+              onChange={(value) => updateField("loadingStrategy", value)}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Deload strategy" bare>
-        <DeloadStrategyPills
-          value={resolvedValues.deloadStrategy}
-          onChange={(value) => updateField("deloadStrategy", value)}
-        />
-      </FieldPanel>
+          <FieldPanel label="Deload strategy" bare>
+            <DeloadStrategyPills
+              value={resolvedValues.deloadStrategy}
+              onChange={(value) => updateField("deloadStrategy", value)}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Preferred weekdays" bare>
-        <View style={styles.weekdayButtonRow}>
-          {WEEKDAY_CHIP_OPTIONS.map((option) => {
-            const selectedIndex = resolvedValues.preferredWeekdays.findIndex(
-              (weekday) => weekday === option.value
-            );
-            const isSelected = selectedIndex >= 0;
-            const assignableDayIndexes = Array.from(
-              { length: resolvedValues.daysPerWeek },
-              (_, index) => index
-            ).filter((dayIndex) =>
-              canAssignWeekdayToDay(dayIndex, option.value)
-            );
-            const hasMenuOptions = isSelected || assignableDayIndexes.length > 0;
-            const isMenuOpen = activeWeekdayMenu === option.value;
+          <FieldPanel label="Preferred weekdays" bare>
+            <View style={styles.weekdayButtonRow}>
+              {WEEKDAY_CHIP_OPTIONS.map((option) => {
+                const selectedIndex = resolvedValues.preferredWeekdays.findIndex(
+                  (weekday) => weekday === option.value
+                );
+                const isSelected = selectedIndex >= 0;
+                const assignableDayIndexes = Array.from(
+                  { length: resolvedValues.daysPerWeek },
+                  (_, index) => index
+                ).filter((dayIndex) =>
+                  canAssignWeekdayToDay(dayIndex, option.value)
+                );
+                const hasMenuOptions = isSelected || assignableDayIndexes.length > 0;
+                const isMenuOpen = activeWeekdayMenu === option.value;
 
-            return (
-              <View
-                key={option.value}
-                style={[
-                  styles.weekdayButtonSlot,
-                  isMenuOpen ? styles.weekdayButtonSlotActive : null,
-                ]}
-              >
-                <Pressable
-                  disabled={!hasMenuOptions}
-                  onPress={() =>
-                    setActiveWeekdayMenu(isMenuOpen ? null : option.value)
-                  }
-                  style={({ pressed }) => [
-                    styles.weekdayButton,
-                    isSelected ? styles.weekdayButtonSelected : null,
-                    !hasMenuOptions ? styles.weekdayButtonDisabled : null,
-                    pressed ? styles.weekdayButtonPressed : null,
-                  ]}
-                >
-                  <Text
+                return (
+                  <View
+                    key={option.value}
                     style={[
-                      styles.weekdayAssignmentText,
-                      isSelected ? styles.weekdayAssignmentTextSelected : null,
-                      !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
+                      styles.weekdayButtonSlot,
+                      isMenuOpen ? styles.weekdayButtonSlotActive : null,
                     ]}
                   >
-                    {isSelected ? `Day ${selectedIndex + 1}` : " "}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.weekdayButtonText,
-                      isSelected ? styles.weekdayButtonTextSelected : null,
-                      !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
-                    ]}
-                  >
-                    {option.label.slice(0, 3)}
-                  </Text>
-                </Pressable>
-
-                {isMenuOpen ? (
-                  <View style={styles.weekdayDropdown}>
-                    {assignableDayIndexes.map((dayIndex) => {
-                      const isCurrentAssignment = selectedIndex === dayIndex;
-
-                      return (
-                        <Pressable
-                          key={`${option.value}-day-${dayIndex + 1}`}
-                          onPress={() =>
-                            assignPreferredWeekdayToDay(dayIndex, option.value)
-                          }
-                          style={({ pressed }) => [
-                            styles.weekdayDropdownItem,
-                            isCurrentAssignment
-                              ? styles.weekdayDropdownItemSelected
-                              : null,
-                            pressed ? styles.weekdayDropdownItemPressed : null,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.weekdayDropdownText,
-                              isCurrentAssignment
-                                ? styles.weekdayDropdownTextSelected
-                                : null,
-                            ]}
-                          >
-                            Day {dayIndex + 1}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                    {isSelected ? (
-                      <Pressable
-                        onPress={() => clearPreferredWeekday(selectedIndex)}
-                        style={({ pressed }) => [
-                          styles.weekdayDropdownItem,
-                          styles.weekdayDropdownClearItem,
-                          pressed ? styles.weekdayDropdownItemPressed : null,
+                    <Pressable
+                      disabled={!hasMenuOptions}
+                      onPress={() =>
+                        setActiveWeekdayMenu(isMenuOpen ? null : option.value)
+                      }
+                      style={({ pressed }) => [
+                        styles.weekdayButton,
+                        isSelected ? styles.weekdayButtonSelected : null,
+                        !hasMenuOptions ? styles.weekdayButtonDisabled : null,
+                        pressed ? styles.weekdayButtonPressed : null,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.weekdayAssignmentText,
+                          isSelected ? styles.weekdayAssignmentTextSelected : null,
+                          !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
                         ]}
                       >
-                        <Text
-                          style={[
-                            styles.weekdayDropdownText,
-                            styles.weekdayDropdownClearText,
-                          ]}
-                        >
-                          Clear
-                        </Text>
-                      </Pressable>
+                        {isSelected ? `Day ${selectedIndex + 1}` : " "}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.weekdayButtonText,
+                          isSelected ? styles.weekdayButtonTextSelected : null,
+                          !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
+                        ]}
+                      >
+                        {option.label.slice(0, 3)}
+                      </Text>
+                    </Pressable>
+
+                    {isMenuOpen ? (
+                      <View style={styles.weekdayDropdown}>
+                        {assignableDayIndexes.map((dayIndex) => {
+                          const isCurrentAssignment = selectedIndex === dayIndex;
+
+                          return (
+                            <Pressable
+                              key={`${option.value}-day-${dayIndex + 1}`}
+                              onPress={() =>
+                                assignPreferredWeekdayToDay(dayIndex, option.value)
+                              }
+                              style={({ pressed }) => [
+                                styles.weekdayDropdownItem,
+                                isCurrentAssignment
+                                  ? styles.weekdayDropdownItemSelected
+                                  : null,
+                                pressed ? styles.weekdayDropdownItemPressed : null,
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.weekdayDropdownText,
+                                  isCurrentAssignment
+                                    ? styles.weekdayDropdownTextSelected
+                                    : null,
+                                ]}
+                              >
+                                Day {dayIndex + 1}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                        {isSelected ? (
+                          <Pressable
+                            onPress={() => clearPreferredWeekday(selectedIndex)}
+                            style={({ pressed }) => [
+                              styles.weekdayDropdownItem,
+                              styles.weekdayDropdownClearItem,
+                              pressed ? styles.weekdayDropdownItemPressed : null,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.weekdayDropdownText,
+                                styles.weekdayDropdownClearText,
+                              ]}
+                            >
+                              Clear
+                            </Text>
+                          </Pressable>
+                        ) : null}
+                      </View>
                     ) : null}
                   </View>
-                ) : null}
-              </View>
-            );
-          })}
-        </View>
-      </FieldPanel>
+                );
+              })}
+            </View>
+          </FieldPanel>
+        </>
+      ) : null}
 
-      <FieldPanel label="Event preparation">
-        <TextInput
-          value={resolvedValues.eventPreparation}
-          onChangeText={(value) => updateField("eventPreparation", value)}
-          placeholder="e.g. 2026-06-20 or 8 weeks out"
-          placeholderTextColor="#585858"
-          style={styles.input}
-        />
-      </FieldPanel>
+      {showConstraintFields ? (
+        <>
+          <FieldPanel label="Event preparation">
+            <TextInput
+              value={resolvedValues.eventPreparation}
+              onChangeText={(value) => updateField("eventPreparation", value)}
+              placeholder="e.g. 2026-06-20 or 8 weeks out"
+              placeholderTextColor="#585858"
+              style={styles.input}
+            />
+          </FieldPanel>
 
-      <FieldPanel label="Injuries or limitations">
-        <TextInput
-          value={resolvedValues.injuriesInput}
-          onChangeText={(value) => updateField("injuriesInput", value)}
-          placeholder="e.g. left shoulder, knee pain"
-          placeholderTextColor="#585858"
-          multiline
-          style={[styles.input, styles.textarea]}
-        />
-      </FieldPanel>
+          <FieldPanel label="Injuries or limitations">
+            <TextInput
+              value={resolvedValues.injuriesInput}
+              onChangeText={(value) => updateField("injuriesInput", value)}
+              placeholder="e.g. left shoulder, knee pain"
+              placeholderTextColor="#585858"
+              multiline
+              style={[styles.input, styles.textarea]}
+            />
+          </FieldPanel>
+        </>
+      ) : null}
     </View>
   );
 }
@@ -1277,16 +1271,19 @@ const styles = StyleSheet.create({
   },
   desiredPills: {
     flexDirection: "row",
-    gap: 2,
+    flexWrap: "wrap",
+    gap: 8,
     width: "100%",
   },
   desiredPill: {
     alignItems: "center",
     backgroundColor: "#1E1E1E",
+    borderRadius: 22,
     borderColor: "#2D2D2D",
     borderWidth: 1,
-    flex: 1,
-    height: 88,
+    flexBasis: "31%",
+    flexGrow: 1,
+    height: PROFILE_PILL_HEIGHT,
     justifyContent: "center",
     overflow: "hidden",
     paddingHorizontal: 6,
@@ -1295,34 +1292,21 @@ const styles = StyleSheet.create({
   desiredPillSelected: {
     backgroundColor: "#ffffff",
     borderColor: "#ffffff",
-    flex: 2,
   },
   desiredPillLeft: {
-    borderTopLeftRadius: 22,
-    borderBottomLeftRadius: 22,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    borderRadius: 22,
   },
   desiredPillMiddle: {
-    borderRadius: 4,
+    borderRadius: 22,
   },
   desiredPillRight: {
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
-    borderTopRightRadius: 22,
-    borderBottomRightRadius: 22,
+    borderRadius: 22,
   },
   desiredPillImageSlot: {
     alignItems: "center",
-    height: 40,
+    height: 36,
     justifyContent: "center",
     width: "100%",
-  },
-  desiredPillImageLeft: {
-    transform: [{ translateX: -5 }],
-  },
-  desiredPillImageRight: {
-    transform: [{ translateX: 5 }],
   },
   desiredPillImage: {
     height: 34,
@@ -1330,9 +1314,7 @@ const styles = StyleSheet.create({
     width: 34,
   },
   desiredPillImageSelected: {
-    height: 38,
     tintColor: "#000000",
-    width: 38,
   },
   desiredPillText: {
     color: "#8E8E8E",
@@ -1343,20 +1325,22 @@ const styles = StyleSheet.create({
   },
   desiredPillTextSelected: {
     color: "#000000",
-    fontSize: 12,
   },
   connectedPills: {
     flexDirection: "row",
-    gap: 2,
+    flexWrap: "wrap",
+    gap: 8,
     width: "100%",
   },
   connectedPill: {
     alignItems: "center",
     backgroundColor: "#1E1E1E",
+    borderRadius: 22,
     borderColor: "#2D2D2D",
     borderWidth: 1,
-    flex: 1,
-    height: 88,
+    flexBasis: "31%",
+    flexGrow: 1,
+    height: PROFILE_PILL_HEIGHT,
     justifyContent: "center",
     overflow: "hidden",
     paddingHorizontal: 6,
@@ -1365,34 +1349,21 @@ const styles = StyleSheet.create({
   connectedPillSelected: {
     backgroundColor: "#ffffff",
     borderColor: "#ffffff",
-    flex: 2,
   },
   connectedPillLeft: {
-    borderTopLeftRadius: 22,
-    borderBottomLeftRadius: 22,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    borderRadius: 22,
   },
   connectedPillMiddle: {
-    borderRadius: 4,
+    borderRadius: 22,
   },
   connectedPillRight: {
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
-    borderTopRightRadius: 22,
-    borderBottomRightRadius: 22,
+    borderRadius: 22,
   },
   connectedPillImageSlot: {
     alignItems: "center",
-    height: 40,
+    height: 36,
     justifyContent: "center",
     width: "100%",
-  },
-  connectedPillImageLeft: {
-    transform: [{ translateX: -5 }],
-  },
-  connectedPillImageRight: {
-    transform: [{ translateX: 5 }],
   },
   connectedPillImage: {
     height: 34,
@@ -1400,9 +1371,7 @@ const styles = StyleSheet.create({
     width: 34,
   },
   connectedPillImageSelected: {
-    height: 38,
     tintColor: "#000000",
-    width: 38,
   },
   connectedPillText: {
     color: "#8E8E8E",
@@ -1413,42 +1382,37 @@ const styles = StyleSheet.create({
   },
   connectedPillTextSelected: {
     color: "#000000",
-    fontSize: 12,
   },
   phasePills: {
     flexDirection: "row",
-    gap: 2,
+    flexWrap: "wrap",
+    gap: 8,
     width: "100%",
   },
   phasePill: {
     alignItems: "center",
     backgroundColor: "#1E1E1E",
+    borderRadius: 22,
     borderColor: "#2D2D2D",
     borderWidth: 1,
-    flex: 1,
-    height: 50,
+    flexBasis: "48%",
+    flexGrow: 1,
+    height: PROFILE_PILL_HEIGHT,
     justifyContent: "center",
     paddingHorizontal: 12,
   },
   phasePillSelected: {
     backgroundColor: "#ffffff",
     borderColor: "#ffffff",
-    flex: 2,
   },
   phasePillLeft: {
-    borderTopLeftRadius: 22,
-    borderBottomLeftRadius: 22,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    borderRadius: 22,
   },
   phasePillMiddle: {
-    borderRadius: 4,
+    borderRadius: 22,
   },
   phasePillRight: {
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
-    borderTopRightRadius: 22,
-    borderBottomRightRadius: 22,
+    borderRadius: 22,
   },
   phasePillText: {
     color: "#8E8E8E",
@@ -1459,20 +1423,22 @@ const styles = StyleSheet.create({
   },
   phasePillTextSelected: {
     color: "#000000",
-    fontSize: 13,
   },
   liftIntensityPills: {
     flexDirection: "row",
-    gap: 2,
+    flexWrap: "wrap",
+    gap: 8,
     width: "100%",
   },
   liftIntensityPill: {
     alignItems: "center",
     backgroundColor: "#1E1E1E",
+    borderRadius: 22,
     borderColor: "#2D2D2D",
     borderWidth: 1,
-    flex: 1,
-    minHeight: 58,
+    flexBasis: "48%",
+    flexGrow: 1,
+    height: PROFILE_PILL_HEIGHT,
     justifyContent: "center",
     overflow: "hidden",
     paddingHorizontal: 6,
@@ -1481,22 +1447,15 @@ const styles = StyleSheet.create({
   liftIntensityPillSelected: {
     backgroundColor: "#ffffff",
     borderColor: "#ffffff",
-    flex: 1.45,
   },
   liftIntensityPillLeft: {
-    borderTopLeftRadius: 22,
-    borderBottomLeftRadius: 22,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    borderRadius: 22,
   },
   liftIntensityPillMiddle: {
-    borderRadius: 4,
+    borderRadius: 22,
   },
   liftIntensityPillRight: {
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
-    borderTopRightRadius: 22,
-    borderBottomRightRadius: 22,
+    borderRadius: 22,
   },
   liftIntensityPillText: {
     color: "#8E8E8E",
@@ -1506,7 +1465,6 @@ const styles = StyleSheet.create({
   },
   liftIntensityPillTextSelected: {
     color: "#000000",
-    fontSize: 12,
   },
   liftIntensityPillMeta: {
     color: "#6B6B6B",
@@ -1704,17 +1662,20 @@ const styles = StyleSheet.create({
   },
   deloadPills: {
     flexDirection: "row",
-    gap: 2,
+    flexWrap: "wrap",
+    gap: 8,
     width: "100%",
   },
   deloadPill: {
     alignItems: "center",
     backgroundColor: "#1E1E1E",
+    borderRadius: 22,
     borderColor: "#2D2D2D",
     borderWidth: 1,
-    flex: 1,
+    flexBasis: "48%",
+    flexGrow: 1,
+    height: PROFILE_PILL_HEIGHT,
     justifyContent: "center",
-    minHeight: 62,
     paddingHorizontal: 10,
     paddingVertical: 10,
   },
@@ -1723,16 +1684,10 @@ const styles = StyleSheet.create({
     borderColor: "#ffffff",
   },
   deloadPillLeft: {
-    borderTopLeftRadius: 22,
-    borderBottomLeftRadius: 22,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    borderRadius: 22,
   },
   deloadPillRight: {
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
-    borderTopRightRadius: 22,
-    borderBottomRightRadius: 22,
+    borderRadius: 22,
   },
   deloadPillText: {
     color: "#8E8E8E",
@@ -1742,7 +1697,6 @@ const styles = StyleSheet.create({
   },
   deloadPillTextSelected: {
     color: "#000000",
-    fontSize: 12,
   },
   cardOptions: {
     gap: 10,

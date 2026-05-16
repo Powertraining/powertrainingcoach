@@ -45,7 +45,18 @@ function getActiveTabName(pathname) {
     return "overview";
   }
 
-  if (pathname === "/profile" || pathname === "/(tabs)/profile") {
+  if (
+    pathname === "/profile" ||
+    pathname === "/(tabs)/profile" ||
+    pathname === "/profile-personal-details" ||
+    pathname === "/(tabs)/profile-personal-details" ||
+    pathname === "/profile-plan-adjustments" ||
+    pathname === "/(tabs)/profile-plan-adjustments" ||
+    pathname === "/profile-event-preparation" ||
+    pathname === "/(tabs)/profile-event-preparation" ||
+    pathname === "/profile-injuries" ||
+    pathname === "/(tabs)/profile-injuries"
+  ) {
     return "profile";
   }
 
@@ -251,6 +262,30 @@ const TabsLayout = observer(function TabsLayout() {
           name="subscription"
           options={{
             href: null, // Hide from tab bar, accessible via navigation
+          }}
+        />
+        <Tabs.Screen
+          name="profile-personal-details"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-plan-adjustments"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-event-preparation"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-injuries"
+          options={{
+            href: null,
           }}
         />
         <Tabs.Screen
