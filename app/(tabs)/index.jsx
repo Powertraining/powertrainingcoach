@@ -138,6 +138,7 @@ const HomeScreen = observer(function HomeScreen() {
   function buildQuestionnairePayload(input, pendingPlanGeneration) {
     return {
       ...input,
+      daysPerWeek: model.sessionsPerWeek,
       primaryCombatSport: model.primaryCombatSport,
       sessionsPerWeek: model.sessionsPerWeek,
       trainingPlanBatch: model.getTrainingPlanBatch?.() || 1,
@@ -251,7 +252,10 @@ const HomeScreen = observer(function HomeScreen() {
       <InputFormView
         onSubmit={handleQuestionnaireSubmit}
         onBack={goBack}
-        initialValues={model.questionnaire || {}}
+        initialValues={{
+          ...(model.questionnaire || {}),
+          daysPerWeek: model.sessionsPerWeek,
+        }}
         subscription={model.isSubscribed?.() || false}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
       />
