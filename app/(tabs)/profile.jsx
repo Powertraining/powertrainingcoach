@@ -48,6 +48,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
   const [email, setEmail] = useState(user.email || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [passwordResetMessage, setPasswordResetMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [trainingPreferences, setTrainingPreferences] = useState(
     getSyncedTrainingPreferences(model.questionnaire || {}, model.sessionsPerWeek || 3)
@@ -63,6 +64,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       setUsername(user.displayName || "");
       setEmail(user.email || "");
       setPassword("");
+      setPasswordResetMessage(null);
       setTrainingPreferences(
         getSyncedTrainingPreferences(model.questionnaire || {}, model.sessionsPerWeek || 3)
       );
@@ -183,6 +185,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
 
   async function saveACB() {
     setError(null);
+    setPasswordResetMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -220,6 +223,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
 
   function resetUnsavedChangesACB() {
     setError(null);
+    setPasswordResetMessage(null);
     setUsername(user.displayName || "");
     setPassword("");
     setTrainingPreferences(
@@ -273,6 +277,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
 
   async function logoutACB() {
     setError(null);
+    setPasswordResetMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -285,6 +290,29 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     }
 
     if (model.user) {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function sendPasswordResetACB() {
+    const resetEmail = (email || user.email || "").trim();
+
+    if (!resetEmail) {
+      setError("No e-mail address is available for this account.");
+      setPasswordResetMessage(null);
+      return;
+    }
+
+    setError(null);
+    setPasswordResetMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      await model.submitPasswordReset(resetEmail);
+      setPasswordResetMessage("Password reset e-mail sent.");
+    } catch (e) {
+      setError(e.message || "Could not send password reset e-mail.");
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -302,6 +330,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         isSubscriptionActive={isSubscriptionActive}
         isSubmitting={isSubmitting}
         error={error}
+        passwordResetMessage={passwordResetMessage}
         canSave={canSave}
         trainingPreferences={trainingPreferences}
         combatSportOptions={PRIMARY_COMBAT_SPORT_OPTIONS}
@@ -310,6 +339,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onUsernameChange={setUsername}
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
+        onPasswordReset={sendPasswordResetACB}
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}
         onSessionsPerWeekChange={changeSessionsPerWeekACB}

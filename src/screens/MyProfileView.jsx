@@ -1,18 +1,25 @@
 import {
   Animated,
   Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  PanResponder,
   Pressable,
+  Platform,
   ScrollView,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
+  useWindowDimensions,
 } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import RowCard from "../components/homeComponents/RowCard.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
+import BlackGradient from "../components/colorComponents/BlackGradient.jsx";
 import ProfilePersonalDetailsView from "./profile/ProfilePersonalDetailsView.jsx";
 import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx";
 import TrainingPreferencesEventPreparationView from "./trainingPreferences/TrainingPreferencesEventPreparationView.jsx";
@@ -57,8 +64,12 @@ function ProfileNavigationCard({
 
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const [isScrollLocked, setIsScrollLocked] = useState(false);
+  const [isUsernameEditing, setIsUsernameEditing] = useState(false);
+  const [isPasswordResetMenuVisible, setIsPasswordResetMenuVisible] = useState(false);
   const actionBarProgress = useRef(new Animated.Value(0)).current;
+  const passwordResetSheetTranslateY = useRef(new Animated.Value(0)).current;
   const mode = props.mode || "main";
   const isMainMode = mode === "main";
   const isPersonalDetailsMode = mode === "personalDetails";
@@ -67,17 +78,7 @@ export function MyProfileView(props) {
   const isInjuriesMode = mode === "injuries";
   const showInlineActions =
     !isPersonalDetailsMode && (!isMainMode || props.canSave || props.isSubmitting);
-  const showFloatingActions =
-    isPersonalDetailsMode && (props.canSave || props.isSubmitting);
-  const pageTitle = isPersonalDetailsMode
-    ? "Personal Details"
-    : isPlanAdjustmentsMode
-      ? "Plan Adjustments"
-      : isEventPreparationMode
-        ? "Register Event"
-        : isInjuriesMode
-          ? "Report Injury"
-          : "Profile";
+  const showFloatingActions = false;
 
   useEffect(
     function animateActionBarACB() {
@@ -91,6 +92,15 @@ export function MyProfileView(props) {
     [actionBarProgress, showFloatingActions]
   );
 
+  useEffect(
+    function resetPasswordResetSheetPositionACB() {
+      if (isPasswordResetMenuVisible) {
+        passwordResetSheetTranslateY.setValue(0);
+      }
+    },
+    [isPasswordResetMenuVisible, passwordResetSheetTranslateY]
+  );
+
   const actionBarTranslateY = actionBarProgress.interpolate({
     inputRange: [0, 1],
     outputRange: [96, 0],
@@ -100,20 +110,89 @@ export function MyProfileView(props) {
     outputRange: [0, 1],
   });
 
+  const passwordResetSheetDragResponder = useMemo(
+    function passwordResetSheetDragResponderACB() {
+      return PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dy) > 4,
+        onPanResponderMove: (_, gestureState) => {
+          if (gestureState.dy > 0) {
+            passwordResetSheetTranslateY.setValue(gestureState.dy);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dy > 70 || gestureState.vy > 0.75) {
+            Animated.timing(passwordResetSheetTranslateY, {
+              toValue: Math.max(windowHeight / 3, 220),
+              duration: 160,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }).start(closePasswordResetMenuACB);
+            return;
+          }
+
+          Animated.spring(passwordResetSheetTranslateY, {
+            toValue: 0,
+            damping: 18,
+            stiffness: 220,
+            useNativeDriver: true,
+          }).start();
+        },
+      });
+    },
+    [passwordResetSheetTranslateY, windowHeight]
+  );
+
+  function closeUsernameEditorACB() {
+    Keyboard.dismiss();
+    setIsUsernameEditing(false);
+  }
+
+  function openUsernameEditorACB() {
+    setIsPasswordResetMenuVisible(false);
+    setIsUsernameEditing(true);
+  }
+
+  function openPasswordResetMenuACB() {
+    Keyboard.dismiss();
+    setIsUsernameEditing(false);
+    setIsPasswordResetMenuVisible(true);
+  }
+
+  function closePasswordResetMenuACB() {
+    passwordResetSheetTranslateY.setValue(0);
+    setIsPasswordResetMenuVisible(false);
+  }
+
+  function saveProfileACB() {
+    closeUsernameEditorACB();
+    props.onSave?.();
+  }
+
+  function cancelProfileACB() {
+    closeUsernameEditorACB();
+    props.onCancel?.();
+  }
+
   return (
     <View style={styles.screen}>
       <ScrollView
         scrollEnabled={!isScrollLocked}
-        style={styles.scroll}
+        style={[
+          styles.scroll,
+          isUsernameEditing ? styles.blurredContent : null,
+        ]}
         contentContainerStyle={[
           styles.content,
+          isPersonalDetailsMode ? styles.personalDetailsContentContainer : null,
           {
             paddingTop: Math.max(insets.top + 12, 20),
             paddingBottom: isMainMode
               ? Math.max(insets.bottom + 96, 120)
               : isPersonalDetailsMode
-                ? Math.max(insets.bottom + 132, 156)
-                : 24,
+              ? Math.max(insets.bottom + 132, 156)
+              : 24,
           },
         ]}
       >
@@ -184,21 +263,33 @@ export function MyProfileView(props) {
             >
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
-            <Text style={styles.pageTitle}>{pageTitle}</Text>
           </View>
         ) : null}
 
         {isPersonalDetailsMode ? (
+          <View style={styles.profileIdentity}>
+            <View style={styles.profileGradientCircle}>
+              <BlackGradient />
+            </View>
+            <Text style={styles.profileEmail} numberOfLines={1}>
+              {props.email || props.emailPlaceholder || ""}
+            </Text>
+          </View>
+        ) : null}
+
+        {isPersonalDetailsMode ? <View style={styles.personalDetailsSpacer} /> : null}
+
+        {isPersonalDetailsMode ? (
           <ProfilePersonalDetailsView
-            email={props.email}
-            emailPlaceholder={props.emailPlaceholder}
             username={props.username}
             usernamePlaceholder={props.usernamePlaceholder}
             password={props.password}
             hidePassword={props.hidePassword}
             isSubmitting={props.isSubmitting}
             onUsernameChange={props.onUsernameChange}
+            onUsernameEdit={openUsernameEditorACB}
             onPasswordChange={props.onPasswordChange}
+            onPasswordResetMenuOpen={openPasswordResetMenuACB}
           />
         ) : null}
 
@@ -244,7 +335,7 @@ export function MyProfileView(props) {
         {showInlineActions ? (
           <View style={styles.actions}>
             <TouchableOpacity
-              onPress={props.onSave}
+              onPress={saveProfileACB}
               disabled={props.isSubmitting || !props.canSave}
               style={[
                 styles.primaryButton,
@@ -257,7 +348,7 @@ export function MyProfileView(props) {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={props.onCancel}
+              onPress={cancelProfileACB}
               disabled={props.isSubmitting}
               style={styles.secondaryButton}
             >
@@ -267,11 +358,136 @@ export function MyProfileView(props) {
         ) : null}
       </ScrollView>
 
-      {isPersonalDetailsMode ? (
+      {isPersonalDetailsMode && isUsernameEditing ? (
+        <Pressable
+          onPress={cancelProfileACB}
+          style={styles.usernameEditorDimLayer}
+        />
+      ) : null}
+
+      {isPersonalDetailsMode && isUsernameEditing ? (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          pointerEvents="box-none"
+          style={[
+            styles.usernameEditorLayer,
+            {
+              height: Math.max(windowHeight / 2, 260),
+              paddingTop: Math.max(insets.top + 20, 32),
+            },
+          ]}
+        >
+          <View style={styles.usernameEditorCard}>
+            <View style={styles.usernameEditorContent}>
+              <Text style={styles.usernameEditorLabel}>Username</Text>
+              <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoFocus
+                editable={!props.isSubmitting}
+                onChangeText={props.onUsernameChange}
+                onSubmitEditing={closeUsernameEditorACB}
+                placeholder="Username"
+                placeholderTextColor="#64748b"
+                returnKeyType="done"
+                selectionColor="#ffffff"
+                style={styles.usernameEditorInput}
+                value={props.username || ""}
+              />
+            </View>
+          </View>
+          <View style={styles.usernameEditorActions}>
+            <TouchableOpacity
+              onPress={saveProfileACB}
+              disabled={props.isSubmitting || !props.canSave}
+              style={[
+                styles.usernameEditorSaveButton,
+                props.isSubmitting || !props.canSave
+                  ? styles.usernameEditorButtonDisabled
+                  : null,
+              ]}
+            >
+              <Text style={styles.usernameEditorSaveButtonText}>
+                {props.isSubmitting ? "Saving..." : "Save"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={cancelProfileACB}
+              disabled={props.isSubmitting}
+              style={[
+                styles.usernameEditorCancelButton,
+                props.isSubmitting ? styles.usernameEditorButtonDisabled : null,
+              ]}
+            >
+              <Text style={styles.usernameEditorCancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      ) : null}
+
+      {isPersonalDetailsMode && isPasswordResetMenuVisible ? (
+        <Pressable
+          onPress={closePasswordResetMenuACB}
+          style={styles.passwordResetDismissLayer}
+        />
+      ) : null}
+
+      {isPersonalDetailsMode && isPasswordResetMenuVisible ? (
+        <Animated.View
+          style={[
+            styles.passwordResetSheet,
+            {
+              height: Math.max(windowHeight / 3, 220),
+              paddingBottom: Math.max(insets.bottom + 18, 28),
+              transform: [{ translateY: passwordResetSheetTranslateY }],
+            },
+          ]}
+        >
+          <View
+            style={styles.passwordResetHandleHitArea}
+            {...passwordResetSheetDragResponder.panHandlers}
+          >
+            <View style={styles.passwordResetHandle} />
+          </View>
+          <Text style={styles.passwordResetTitle}>
+            Did you forget your password?
+          </Text>
+          <Text style={styles.passwordResetText}>
+            We will send a reset link to {props.email || "your e-mail address"}.
+          </Text>
+
+          <TouchableOpacity
+            onPress={props.onPasswordReset}
+            disabled={props.isSubmitting}
+            style={[
+              styles.passwordResetButton,
+              props.isSubmitting ? styles.passwordResetButtonDisabled : null,
+            ]}
+          >
+            <Text style={styles.passwordResetButtonText}>
+              {props.isSubmitting ? "Sending..." : "Reset password"}
+            </Text>
+          </TouchableOpacity>
+
+          {props.passwordResetMessage ? (
+            <Text style={styles.passwordResetSuccessText}>
+              {props.passwordResetMessage}
+            </Text>
+          ) : null}
+
+          {props.error ? (
+            <Text style={styles.passwordResetErrorText}>{props.error}</Text>
+          ) : null}
+        </Animated.View>
+      ) : null}
+
+      {showFloatingActions ? (
         <Animated.View
           pointerEvents={showFloatingActions ? "auto" : "none"}
           style={[
             styles.floatingActionsWrap,
+            isUsernameEditing ? styles.blurredContent : null,
             {
               paddingBottom: Math.max(insets.bottom, 12),
               opacity: actionBarOpacity,
@@ -281,7 +497,7 @@ export function MyProfileView(props) {
         >
           <View style={styles.floatingActionsBar}>
             <TouchableOpacity
-              onPress={props.onSave}
+              onPress={saveProfileACB}
               disabled={props.isSubmitting || !props.canSave}
               style={[
                 styles.floatingSaveButton,
@@ -296,7 +512,7 @@ export function MyProfileView(props) {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={props.onCancel}
+              onPress={cancelProfileACB}
               disabled={props.isSubmitting}
               style={styles.floatingCancelButton}
             >
@@ -323,9 +539,16 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
   },
+  blurredContent: {
+    opacity: 0.42,
+    filter: [{ blur: 4 }],
+  },
   content: {
     padding: 20,
     gap: 14,
+  },
+  personalDetailsContentContainer: {
+    flexGrow: 1,
   },
   navigationRow: {
     flexDirection: "row",
@@ -402,11 +625,26 @@ const styles = StyleSheet.create({
   pageHeader: {
     gap: 14,
   },
-  pageTitle: {
-    color: "#111827",
-    fontSize: 28,
-    fontWeight: "800",
-    lineHeight: 34,
+  profileIdentity: {
+    alignItems: "center",
+    gap: 10,
+  },
+  personalDetailsSpacer: {
+    flex: 1,
+    minHeight: 24,
+  },
+  profileGradientCircle: {
+    alignSelf: "center",
+    aspectRatio: 1,
+    borderRadius: 999,
+    overflow: "hidden",
+    width: "40%",
+  },
+  profileEmail: {
+    color: "#9ca3af",
+    fontSize: 14,
+    fontWeight: "600",
+    maxWidth: "100%",
   },
   backButton: {
     alignSelf: "flex-start",
@@ -506,6 +744,173 @@ const styles = StyleSheet.create({
   },
   floatingCancelButtonTextDisabled: {
     color: "#94a3b8",
+  },
+  usernameEditorLayer: {
+    alignItems: "center",
+    justifyContent: "center",
+    left: 0,
+    paddingHorizontal: 20,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 20,
+  },
+  usernameEditorDimLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.48)",
+    zIndex: 19,
+  },
+  usernameEditorCard: {
+    alignSelf: "stretch",
+    backgroundColor: "#111111",
+    borderColor: "#222222",
+    borderRadius: 18,
+    borderWidth: 1,
+    minHeight: 84,
+    overflow: "hidden",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    elevation: 12,
+  },
+  usernameEditorContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  usernameEditorLabel: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  usernameEditorInput: {
+    color: "#9ca3af",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 15,
+    marginTop: 4,
+    minHeight: 20,
+    padding: 0,
+  },
+  usernameEditorActions: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-start",
+    marginTop: 10,
+  },
+  usernameEditorSaveButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 34,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  usernameEditorCancelButton: {
+    alignItems: "center",
+    backgroundColor: "#111827",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 34,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  usernameEditorButtonDisabled: {
+    opacity: 0.52,
+  },
+  usernameEditorSaveButtonText: {
+    color: "#111827",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  usernameEditorCancelButtonText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  passwordResetSheet: {
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    bottom: 0,
+    gap: 12,
+    left: 0,
+    paddingHorizontal: 22,
+    paddingTop: 12,
+    position: "absolute",
+    right: 0,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 22,
+    elevation: 16,
+    zIndex: 21,
+  },
+  passwordResetDismissLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+    zIndex: 20,
+  },
+  passwordResetHandle: {
+    alignSelf: "center",
+    backgroundColor: "#d1d5db",
+    borderRadius: 999,
+    height: 5,
+    marginBottom: 12,
+    width: 48,
+  },
+  passwordResetHandleHitArea: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+    minHeight: 28,
+  },
+  passwordResetTitle: {
+    color: "#111827",
+    fontSize: 22,
+    fontWeight: "900",
+    lineHeight: 27,
+  },
+  passwordResetText: {
+    color: "#4b5563",
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 20,
+  },
+  passwordResetButton: {
+    alignItems: "center",
+    backgroundColor: "#111827",
+    borderRadius: 999,
+    justifyContent: "center",
+    marginTop: 8,
+    minHeight: 52,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  passwordResetButtonDisabled: {
+    opacity: 0.58,
+  },
+  passwordResetButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  passwordResetSuccessText: {
+    color: "#047857",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
+  },
+  passwordResetErrorText: {
+    color: "#b91c1c",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
   },
   logoutButton: {
     paddingVertical: 14,
