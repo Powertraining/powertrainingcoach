@@ -183,12 +183,19 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     );
   }
 
-  async function saveACB() {
+  async function saveACB(overrides = {}) {
     setError(null);
     setPasswordResetMessage(null);
     setIsSubmitting(true);
 
     try {
+      const nextTrainingPreferencesState =
+        overrides.trainingPreferences || trainingPreferences;
+      const nextPrimaryCombatSport =
+        overrides.primaryCombatSport ?? primaryCombatSport;
+      const nextSessionsPerWeek =
+        overrides.sessionsPerWeek ?? sessionsPerWeek;
+
       await model.updateProfile({
         displayName: username,
         password: password,
@@ -197,24 +204,25 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       const nextQuestionnaire = mergeTrainingPreferences(
         model.questionnaire,
         {
-          ...trainingPreferences,
-          daysPerWeek: sessionsPerWeek,
-          primaryCombatSport,
-          sessionsPerWeek,
+          ...nextTrainingPreferencesState,
+          daysPerWeek: nextSessionsPerWeek,
+          primaryCombatSport: nextPrimaryCombatSport,
+          sessionsPerWeek: nextSessionsPerWeek,
         }
       );
-      model.primaryCombatSport = primaryCombatSport;
-      model.sessionsPerWeek = sessionsPerWeek;
+      model.primaryCombatSport = nextPrimaryCombatSport;
+      model.sessionsPerWeek = nextSessionsPerWeek;
       model.setQuestionnaire?.(nextQuestionnaire);
       model.applySportLoadSettingToFollowingWeek?.();
       setTrainingPreferences(
-        getSyncedTrainingPreferences(nextQuestionnaire, sessionsPerWeek)
+        getSyncedTrainingPreferences(nextQuestionnaire, nextSessionsPerWeek)
       );
       if (
         mode !== "main" &&
         mode !== "personalDetails" &&
         mode !== "planAdjustments" &&
-        mode !== "eventPreparation"
+        mode !== "eventPreparation" &&
+        mode !== "injuries"
       ) {
         router.push("/(tabs)/profile");
       }

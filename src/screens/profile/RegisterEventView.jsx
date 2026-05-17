@@ -4,7 +4,6 @@ import {
   Easing,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   PanResponder,
   Pressable,
   Platform,
@@ -17,6 +16,7 @@ import {
 } from "react-native";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
+import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import DateSelector from "../../components/questionnaireComponents/DateSelector.jsx";
 
 const DESCRIPTION_CONTAINER_HEIGHT = 252;
@@ -46,10 +46,19 @@ function formatEventPreparation(date, description) {
     .join("; ");
 }
 
+function formatDateValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function RegisterEventView({
   value,
   isSubmitting,
   onChange,
+  onSaveChange,
   onClearEvent,
 }) {
   const { height: screenHeight } = useWindowDimensions();
@@ -57,13 +66,21 @@ export default function RegisterEventView({
   const dateEditorSheetTranslateY = useRef(new Animated.Value(0)).current;
   const [eventDate, setEventDate] = useState(initialEvent.date);
   const [eventDescription, setEventDescription] = useState(initialEvent.description);
+  const [draftEventDate, setDraftEventDate] = useState(initialEvent.date);
+  const [draftEventDescription, setDraftEventDescription] = useState(
+    initialEvent.description
+  );
   const [editingField, setEditingField] = useState(null);
   const [clearConfirmVisible, setClearConfirmVisible] = useState(false);
 
   useEffect(() => {
     setEventDate(initialEvent.date);
     setEventDescription(initialEvent.description);
-  }, [initialEvent.date, initialEvent.description]);
+    if (!editingField) {
+      setDraftEventDate(initialEvent.date);
+      setDraftEventDescription(initialEvent.description);
+    }
+  }, [editingField, initialEvent.date, initialEvent.description]);
 
   useEffect(
     function resetDateEditorSheetPositionACB() {
@@ -108,14 +125,30 @@ export default function RegisterEventView({
     [dateEditorSheetTranslateY, screenHeight]
   );
 
-  function updateDate(nextDate) {
-    setEventDate(nextDate);
-    onChange?.(formatEventPreparation(nextDate, eventDescription));
+  function openDateEditor() {
+    setDraftEventDate(eventDate || formatDateValue(new Date()));
+    setEditingField("date");
   }
 
-  function updateDescription(nextDescription) {
-    setEventDescription(nextDescription);
-    onChange?.(formatEventPreparation(eventDate, nextDescription));
+  function openDescriptionEditor() {
+    setDraftEventDescription(eventDescription);
+    setEditingField("description");
+  }
+
+  function saveDateEditor() {
+    const nextValue = formatEventPreparation(draftEventDate, eventDescription);
+    setEventDate(draftEventDate);
+    onChange?.(nextValue);
+    onSaveChange?.(nextValue);
+    closeSavedEditor();
+  }
+
+  function saveDescriptionEditor() {
+    const nextValue = formatEventPreparation(eventDate, draftEventDescription);
+    setEventDescription(draftEventDescription);
+    onChange?.(nextValue);
+    onSaveChange?.(nextValue);
+    closeSavedEditor();
   }
 
   function openClearConfirm() {
@@ -129,12 +162,22 @@ export default function RegisterEventView({
   function clearEvent() {
     setEventDate("");
     setEventDescription("");
+    setDraftEventDate("");
+    setDraftEventDescription("");
     onChange?.("");
     onClearEvent?.();
     closeClearConfirm();
   }
 
   function closeEditor() {
+    Keyboard.dismiss();
+    dateEditorSheetTranslateY.setValue(0);
+    setDraftEventDate(eventDate);
+    setDraftEventDescription(eventDescription);
+    setEditingField(null);
+  }
+
+  function closeSavedEditor() {
     Keyboard.dismiss();
     dateEditorSheetTranslateY.setValue(0);
     setEditingField(null);
@@ -171,7 +214,7 @@ export default function RegisterEventView({
 
         <View style={styles.rowsStack}>
           <Pressable
-            onPress={() => setEditingField("date")}
+            onPress={openDateEditor}
             style={({ pressed }) => [
               styles.detailRow,
               pressed ? styles.detailRowPressed : null,
@@ -189,7 +232,7 @@ export default function RegisterEventView({
           </Pressable>
 
           <Pressable
-            onPress={() => setEditingField("description")}
+            onPress={openDescriptionEditor}
             style={({ pressed }) => [
               styles.detailRow,
               styles.descriptionDetailRow,
@@ -232,116 +275,42 @@ export default function RegisterEventView({
         </View>
       </View>
 
-      <Modal
-        animationType="slide"
-        hardwareAccelerated
-        navigationBarTranslucent
-        presentationStyle="overFullScreen"
-        statusBarTranslucent
-        transparent
+      <WhiteBottomMenu
         visible={clearConfirmVisible}
-        onRequestClose={closeClearConfirm}
-      >
-        <View style={styles.dateModalRoot}>
-          <Pressable
-            onPress={closeClearConfirm}
-            style={styles.dateModalDimLayer}
-          />
-          <View style={styles.clearConfirmSheet}>
-            <View style={styles.dateEditorHandleHitArea}>
-              <View style={styles.dateEditorHandle} />
-            </View>
-            <Text style={styles.dateEditorTitle}>Clear event?</Text>
-            <Text style={styles.dateEditorDescription}>
-              This removes the saved event date and description from your program.
-            </Text>
-            <View style={styles.clearConfirmActions}>
-              <Pressable
-                onPress={clearEvent}
-                disabled={isSubmitting}
-                style={[
-                  styles.clearConfirmPrimaryButton,
-                  isSubmitting ? styles.dateEditorButtonDisabled : null,
-                ]}
-              >
-                <Text style={styles.clearConfirmPrimaryText}>
-                  {isSubmitting ? "Saving..." : "Yes, clear event"}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={closeClearConfirm}
-                disabled={isSubmitting}
-                style={[
-                  styles.clearConfirmSecondaryButton,
-                  isSubmitting ? styles.descriptionEditorButtonDisabled : null,
-                ]}
-              >
-                <Text style={styles.clearConfirmSecondaryText}>Cancel</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onDismiss={closeClearConfirm}
+        title="Clear event?"
+        description="This removes the saved event date and description from your program."
+        buttonText={isSubmitting ? "Saving..." : "Yes, clear event"}
+        buttonDisabled={isSubmitting}
+        onButtonPress={clearEvent}
+      />
 
-      {editingField === "date" ? (
-        <Modal
-          animationType="slide"
-          hardwareAccelerated
-          navigationBarTranslucent
-          presentationStyle="overFullScreen"
-          statusBarTranslucent
-          transparent
-          visible
-          onRequestClose={closeEditor}
-        >
-          <View style={styles.dateModalRoot}>
-            <Pressable
-              onPress={closeEditor}
-              style={styles.dateModalDimLayer}
+      <WhiteBottomMenu
+        visible={editingField === "date"}
+        onDismiss={closeEditor}
+        title="Event date"
+        description="Modify the event date"
+        buttonText={isSubmitting ? "Saving..." : "Save"}
+        buttonDisabled={isSubmitting}
+        onButtonPress={saveDateEditor}
+        panHandlers={dateEditorSheetDragResponder.panHandlers}
+        sheetStyle={{ maxHeight: screenHeight - 32 }}
+        animatedStyle={{
+          transform: [{ translateY: dateEditorSheetTranslateY }],
+        }}
+        bottomPadding={16}
+        content={
+          <View style={styles.dateSelectorWrap}>
+            <DateSelector
+              value={draftEventDate}
+              onChange={setDraftEventDate}
+              placeholder="Competition date"
+              showInput={false}
+              variant="light"
             />
-            <Animated.View
-              style={[
-                styles.dateEditorSheet,
-                {
-                  height: Math.min(Math.max(screenHeight * 0.48, 380), screenHeight - 32),
-                  transform: [{ translateY: dateEditorSheetTranslateY }],
-                },
-              ]}
-            >
-              <View
-                style={styles.dateEditorHandleHitArea}
-                {...dateEditorSheetDragResponder.panHandlers}
-              >
-                <View style={styles.dateEditorHandle} />
-              </View>
-              <Text style={styles.dateEditorTitle}>Event date</Text>
-              <Text style={styles.dateEditorDescription}>Modify the event date</Text>
-              <View style={styles.dateSelectorWrap}>
-                <DateSelector
-                  value={eventDate}
-                  onChange={updateDate}
-                  placeholder="Competition date"
-                  showInput={false}
-                  variant="light"
-                />
-              </View>
-
-              <Pressable
-                onPress={closeEditor}
-                disabled={isSubmitting}
-                style={[
-                  styles.dateEditorButton,
-                  isSubmitting ? styles.dateEditorButtonDisabled : null,
-                ]}
-              >
-                <Text style={styles.dateEditorButtonText}>
-                  {isSubmitting ? "Saving..." : "Save"}
-                </Text>
-              </Pressable>
-            </Animated.View>
           </View>
-        </Modal>
-      ) : null}
+        }
+      />
 
       {editingField === "description" ? (
         <>
@@ -363,8 +332,8 @@ export default function RegisterEventView({
               <View style={styles.descriptionEditorContent}>
                 <Text style={styles.descriptionEditorLabel}>Description</Text>
                 <TextInput
-                  value={eventDescription}
-                  onChangeText={updateDescription}
+                  value={draftEventDescription}
+                  onChangeText={setDraftEventDescription}
                   placeholder=""
                   placeholderTextColor="#9ca3af"
                   multiline
@@ -381,7 +350,7 @@ export default function RegisterEventView({
 
             <View style={styles.descriptionEditorActions}>
               <Pressable
-                onPress={closeEditor}
+                onPress={saveDescriptionEditor}
                 disabled={isSubmitting}
                 style={[
                   styles.descriptionEditorSaveButton,
@@ -427,6 +396,8 @@ const styles = StyleSheet.create({
   },
   currentEventCard: {
     borderRadius: 20,
+    marginBottom: 26,
+    marginTop: 28,
     minHeight: 128,
     overflow: "hidden",
   },
@@ -544,58 +515,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     opacity: 0.5,
   },
-  clearConfirmSheet: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e5e5e5",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderWidth: 2,
-    gap: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 18,
-    paddingTop: 10,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-    elevation: 16,
-  },
-  clearConfirmActions: {
-    gap: 10,
-    marginTop: 8,
-  },
-  clearConfirmPrimaryButton: {
-    alignItems: "center",
-    backgroundColor: "#141414",
-    borderRadius: 999,
-    justifyContent: "center",
-    minHeight: 48,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  clearConfirmSecondaryButton: {
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#d4d4d4",
-    borderRadius: 999,
-    borderWidth: 1,
-    justifyContent: "center",
-    minHeight: 44,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-  },
-  clearConfirmPrimaryText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "900",
-    lineHeight: 17,
-  },
-  clearConfirmSecondaryText: {
-    color: "#141414",
-    fontSize: 13,
-    fontWeight: "800",
-    lineHeight: 17,
-  },
   editorDimLayer: {
     backgroundColor: "rgba(0,0,0,0.58)",
     bottom: -420,
@@ -693,80 +612,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800",
   },
-  dateModalRoot: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  dateModalDimLayer: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "transparent",
-  },
-  dateEditorSheet: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e5e5e5",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderWidth: 2,
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    paddingTop: 10,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-    elevation: 16,
-    zIndex: 21,
-  },
-  dateEditorHandle: {
-    alignSelf: "center",
-    backgroundColor: "#d4d4d4",
-    borderRadius: 999,
-    height: 5,
-    marginBottom: 4,
-    width: 48,
-  },
-  dateEditorHandleHitArea: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 22,
-  },
-  dateEditorTitle: {
-    color: "#141414",
-    fontSize: 20,
-    fontWeight: "900",
-    lineHeight: 25,
-    textAlign: "left",
-  },
-  dateEditorDescription: {
-    color: "#5f5f5f",
-    fontSize: 13,
-    fontWeight: "600",
-    lineHeight: 19,
-  },
   dateSelectorWrap: {
-    flex: 1,
     marginHorizontal: -20,
     minHeight: 210,
-  },
-  dateEditorButton: {
-    alignItems: "center",
-    backgroundColor: "#141414",
-    borderRadius: 999,
-    flexShrink: 0,
-    justifyContent: "center",
-    marginTop: 0,
-    minHeight: 48,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  dateEditorButtonDisabled: {
-    opacity: 0.58,
-  },
-  dateEditorButtonText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "900",
-    lineHeight: 17,
   },
 });

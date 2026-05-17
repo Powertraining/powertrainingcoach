@@ -19,11 +19,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import RowCard from "../components/homeComponents/RowCard.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
+import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import BlackGradient from "../components/colorComponents/BlackGradient.jsx";
 import ProfilePersonalDetailsView from "./profile/ProfilePersonalDetailsView.jsx";
 import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx";
 import RegisterEventView from "./profile/RegisterEventView.jsx";
-import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPreferencesInjuriesView.jsx";
+import ProfileReportInjuryView from "./profile/ProfileReportInjuryView.jsx";
 
 function ProfileNavigationCard({
   title,
@@ -76,6 +77,7 @@ export function MyProfileView(props) {
     !isPersonalDetailsMode &&
     !isPlanAdjustmentsMode &&
     !isEventPreparationMode &&
+    !isInjuriesMode &&
     (!isMainMode || props.canSave || props.isSubmitting);
   const showFloatingActions =
     isPlanAdjustmentsMode && (props.canSave || props.isSubmitting);
@@ -168,6 +170,26 @@ export function MyProfileView(props) {
   function saveProfileACB() {
     closeUsernameEditorACB();
     props.onSave?.();
+  }
+
+  function saveEventPreparationACB(value) {
+    const nextTrainingPreferences = {
+      ...(props.trainingPreferences || {}),
+      eventPreparation: value,
+    };
+
+    props.onTrainingPreferencesChange?.(nextTrainingPreferences);
+    props.onSave?.({ trainingPreferences: nextTrainingPreferences });
+  }
+
+  function saveInjuryReportACB(value) {
+    const nextTrainingPreferences = {
+      ...(props.trainingPreferences || {}),
+      injuriesInput: value,
+    };
+
+    props.onTrainingPreferencesChange?.(nextTrainingPreferences);
+    props.onSave?.({ trainingPreferences: nextTrainingPreferences });
   }
 
   function cancelProfileACB() {
@@ -318,19 +340,22 @@ export function MyProfileView(props) {
                 eventPreparation: value,
               })
             }
+            onSaveChange={saveEventPreparationACB}
             onClearEvent={props.onClearEventPreparation}
           />
         ) : null}
 
         {isInjuriesMode ? (
-          <TrainingPreferencesInjuriesView
+          <ProfileReportInjuryView
             value={props.trainingPreferences?.injuriesInput}
+            isSubmitting={props.isSubmitting}
             onChange={(value) =>
               props.onTrainingPreferencesChange?.({
                 ...(props.trainingPreferences || {}),
                 injuriesInput: value,
               })
             }
+            onSaveChange={saveInjuryReportACB}
           />
         ) : null}
 
@@ -430,61 +455,35 @@ export function MyProfileView(props) {
         </KeyboardAvoidingView>
       ) : null}
 
-      {isPersonalDetailsMode && isPasswordResetMenuVisible ? (
-        <Pressable
-          onPress={closePasswordResetMenuACB}
-          style={styles.passwordResetDismissLayer}
-        />
-      ) : null}
+      <WhiteBottomMenu
+        visible={isPersonalDetailsMode && isPasswordResetMenuVisible}
+        onDismiss={closePasswordResetMenuACB}
+        title="Did you forget your password?"
+        description={`We will send a reset link to ${
+          props.email || "your e-mail address"
+        }.`}
+        buttonText={props.isSubmitting ? "Sending..." : "Reset password"}
+        buttonDisabled={props.isSubmitting}
+        onButtonPress={props.onPasswordReset}
+        panHandlers={passwordResetSheetDragResponder.panHandlers}
+        sheetStyle={{ minHeight: Math.max(windowHeight / 3, 220) }}
+        animatedStyle={{
+          transform: [{ translateY: passwordResetSheetTranslateY }],
+        }}
+        content={
+          <View style={styles.passwordResetMessages}>
+            {props.passwordResetMessage ? (
+              <Text style={styles.passwordResetSuccessText}>
+                {props.passwordResetMessage}
+              </Text>
+            ) : null}
 
-      {isPersonalDetailsMode && isPasswordResetMenuVisible ? (
-        <Animated.View
-          style={[
-            styles.passwordResetSheet,
-            {
-              height: Math.max(windowHeight / 3, 220),
-              paddingBottom: Math.max(insets.bottom + 18, 28),
-              transform: [{ translateY: passwordResetSheetTranslateY }],
-            },
-          ]}
-        >
-          <View
-            style={styles.passwordResetHandleHitArea}
-            {...passwordResetSheetDragResponder.panHandlers}
-          >
-            <View style={styles.passwordResetHandle} />
+            {props.error ? (
+              <Text style={styles.passwordResetErrorText}>{props.error}</Text>
+            ) : null}
           </View>
-          <Text style={styles.passwordResetTitle}>
-            Did you forget your password?
-          </Text>
-          <Text style={styles.passwordResetText}>
-            We will send a reset link to {props.email || "your e-mail address"}.
-          </Text>
-
-          <TouchableOpacity
-            onPress={props.onPasswordReset}
-            disabled={props.isSubmitting}
-            style={[
-              styles.passwordResetButton,
-              props.isSubmitting ? styles.passwordResetButtonDisabled : null,
-            ]}
-          >
-            <Text style={styles.passwordResetButtonText}>
-              {props.isSubmitting ? "Sending..." : "Reset password"}
-            </Text>
-          </TouchableOpacity>
-
-          {props.passwordResetMessage ? (
-            <Text style={styles.passwordResetSuccessText}>
-              {props.passwordResetMessage}
-            </Text>
-          ) : null}
-
-          {props.error ? (
-            <Text style={styles.passwordResetErrorText}>{props.error}</Text>
-          ) : null}
-        </Animated.View>
-      ) : null}
+        }
+      />
 
       {showFloatingActions ? (
         <Animated.View
@@ -819,75 +818,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800",
   },
-  passwordResetSheet: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e5e5e5",
-    borderWidth: 2,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    bottom: 0,
-    gap: 14,
-    left: 0,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    position: "absolute",
-    right: 0,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-    elevation: 16,
-    zIndex: 21,
-  },
-  passwordResetDismissLayer: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "transparent",
-    zIndex: 20,
-  },
-  passwordResetHandle: {
-    alignSelf: "center",
-    backgroundColor: "#d4d4d4",
-    borderRadius: 999,
-    height: 5,
-    marginBottom: 10,
-    width: 48,
-  },
-  passwordResetHandleHitArea: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-    minHeight: 28,
-  },
-  passwordResetTitle: {
-    color: "#141414",
-    fontSize: 20,
-    fontWeight: "900",
-    lineHeight: 25,
-  },
-  passwordResetText: {
-    color: "#5f5f5f",
-    fontSize: 13,
-    fontWeight: "600",
-    lineHeight: 19,
-  },
-  passwordResetButton: {
-    alignItems: "center",
-    backgroundColor: "#141414",
-    borderRadius: 999,
-    justifyContent: "center",
-    marginTop: 8,
-    minHeight: 48,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  passwordResetButtonDisabled: {
-    opacity: 0.58,
-  },
-  passwordResetButtonText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "900",
-    lineHeight: 17,
+  passwordResetMessages: {
+    gap: 8,
   },
   passwordResetSuccessText: {
     color: "#047857",
