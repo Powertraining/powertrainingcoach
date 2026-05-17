@@ -22,7 +22,6 @@ export default function PostCard({
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
-  onPressComments,
   onPressPost,
   onPressTopic,
 }) {
@@ -91,13 +90,13 @@ export default function PostCard({
                 {post?.likesCount}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.countButton}
-              onPress={() => onPressComments?.(post.id)}
-            >
-              <Image source={require("../../assets/icons/conversation.png")} style={styles.buttonIcon} />
+            <View style={styles.commentCount}>
+              <Image
+                source={require("../../assets/icons/conversation.png")}
+                style={styles.buttonIcon}
+              />
               <Text style={styles.countText}>{post?.commentsCount}</Text>
-            </TouchableOpacity>
+            </View>
             {post?.coachResponseStatus === "responded" ? (
               <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                 <GoldGradient style={styles.coachResponseStatus}>
@@ -216,6 +215,15 @@ const styles = StyleSheet.create({
   countButtonActive: {
     backgroundColor: COLORS.text,
     borderColor: COLORS.text,
+  },
+  commentCount: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    gap: 8,
+    height: 36,
+    justifyContent: "center",
+    minWidth: 66,
   },
   standardButton: {
     backgroundColor: "rgba(255,255,255,0.12)",

@@ -49,7 +49,6 @@ export default function ForumView({
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
-  onPressComments,
   onPressPost,
   onPressTopic,
   onPressPostButton,
@@ -168,7 +167,6 @@ export default function ForumView({
                   onTogglePostLike={onTogglePostLike}
                   onTogglePostSave={onTogglePostSave}
                   onToggleCoachResponse={onToggleCoachResponse}
-                  onPressComments={onPressComments}
                   onPressPost={onPressPost}
                   onPressTopic={onPressTopic}
                 />

@@ -23,7 +23,6 @@ export default function SavedPostsView({
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
-  onPressComments,
   onPressPost,
   onPressTopic,
 }) {
@@ -94,7 +93,6 @@ export default function SavedPostsView({
                 onTogglePostLike={onTogglePostLike}
                 onTogglePostSave={onTogglePostSave}
                 onToggleCoachResponse={onToggleCoachResponse}
-                onPressComments={onPressComments}
                 onPressPost={onPressPost}
                 onPressTopic={onPressTopic}
               />
