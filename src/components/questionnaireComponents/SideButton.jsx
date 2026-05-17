@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   optionSelected: {
     width: "80%",
-    backgroundColor: "#ffffff",
+    borderColor: "#ffffff",
     borderStyle: "solid",
   },
   optionText: {
@@ -76,6 +76,6 @@ const styles = StyleSheet.create({
     textAlign: "left",
   },
   optionTextSelected: {
-    color: "#000000",
+    color: "#ffffff",
   },
 });

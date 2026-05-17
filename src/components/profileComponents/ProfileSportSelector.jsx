@@ -4,6 +4,7 @@ export default function ProfileSportSelector({
   options = [],
   value = "",
   onChange,
+  allowDeselect = true,
 }) {
   return (
     <View style={styles.container}>
@@ -19,7 +20,13 @@ export default function ProfileSportSelector({
             <TouchableOpacity
               key={option.id}
               style={[styles.option, isSelected ? styles.optionSelected : null]}
-              onPress={() => onChange?.(isSelected ? "" : option.value)}
+              onPress={() => {
+                if (isSelected && !allowDeselect) {
+                  return;
+                }
+
+                onChange?.(isSelected ? "" : option.value);
+              }}
             >
               <Image
                 source={option.image}
@@ -56,16 +63,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#585858",
-    borderStyle: "dashed",
-    backgroundColor: "#1E1E1E",
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    backgroundColor: "#141414",
     alignItems: "center",
     justifyContent: "center",
   },
   optionSelected: {
-    backgroundColor: "#ffffff",
-    borderStyle: "solid",
+    borderColor: "#ffffff",
   },
   image: {
     width: "58%",
@@ -77,7 +82,7 @@ const styles = StyleSheet.create({
     width: "58%",
     height: "58%",
     marginBottom: 8,
-    tintColor: "#000000",
+    tintColor: "#ffffff",
   },
   text: {
     color: "#8E8E8E",
@@ -85,7 +90,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   selectedText: {
-    color: "#000000",
+    color: "#ffffff",
     fontFamily: "BebasNeue",
     fontSize: 16,
   },

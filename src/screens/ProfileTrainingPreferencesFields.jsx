@@ -18,6 +18,7 @@ import {
 } from "../constants/trainingPreferences.js";
 import {
   DELOAD_STRATEGY_OPTIONS,
+  LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
   TRAINING_PHASE_OPTIONS,
@@ -27,6 +28,8 @@ import StandardText from "../components/textComponents/StandardText.jsx";
 
 const SESSION_DURATION_ITEM_WIDTH = 96;
 const SESSION_DURATION_ITEM_HEIGHT = 70;
+const LIFT_INTENSITY_CARD_WIDTH = 190;
+const LIFT_INTENSITY_CARD_HEIGHT = 124;
 const PROFILE_PILL_HEIGHT = 72;
 const COMBAT_INTENSITY_METER_HEIGHT = 48;
 const COMBAT_INTENSITY_VALUES = ["light", "moderate", "intense"];
@@ -67,11 +70,29 @@ const COMBAT_INTENSITY_LABELS = Object.freeze({
   intense: "Intense",
 });
 
+const DELOAD_OPTION_TEXT = Object.freeze({
+  maintain_intensity_reduce_volume: {
+    mediaText: "Maintain intensity",
+    description: "Volume -30-50%",
+    afterReps: "5r",
+    afterWeight: "10kg",
+  },
+  maintain_volume_reduce_intensity: {
+    mediaText: "Maintain volume",
+    description: "Load down",
+    afterReps: "10r",
+    afterWeight: "5kg",
+  },
+});
+
 const LIFT_INTENSITY_PROFILE_OPTIONS = Object.freeze([
   {
     label: "RPE",
     liftIntensityMethod: "rpe",
     percentageReferenceMethod: null,
+    description:
+      LIFT_INTENSITY_METHOD_OPTIONS.find((option) => option.value === "rpe")
+        ?.description ?? "Use Rate of Perceived Exertion to autoregulate lift intensity.",
   },
   ...PERCENTAGE_REFERENCE_METHOD_OPTIONS.map((option) => ({
     label:
@@ -84,6 +105,7 @@ const LIFT_INTENSITY_PROFILE_OPTIONS = Object.freeze([
             : option.label,
     liftIntensityMethod: "percentage",
     percentageReferenceMethod: option.value,
+    description: option.description,
   })),
 ]);
 
@@ -321,7 +343,7 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
   );
 }
 
-function DesiredTrainingPills({ value, onChange }) {
+function DesiredTrainingPills({ value, onChange, allowDeselect = true }) {
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
 
@@ -340,6 +362,10 @@ function DesiredTrainingPills({ value, onChange }) {
           <TouchableOpacity
             key={option.value}
             onPress={() => {
+              if (isSelected && !allowDeselect) {
+                return;
+              }
+
               setIsSelectionCleared(isSelected);
               onChange?.(isSelected ? null : option.value);
             }}
@@ -376,7 +402,7 @@ function DesiredTrainingPills({ value, onChange }) {
   );
 }
 
-function EquipmentPills({ value, onChange }) {
+function EquipmentPills({ value, onChange, allowDeselect = true }) {
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
 
@@ -395,6 +421,10 @@ function EquipmentPills({ value, onChange }) {
           <TouchableOpacity
             key={option.value}
             onPress={() => {
+              if (isSelected && !allowDeselect) {
+                return;
+              }
+
               setIsSelectionCleared(isSelected);
               onChange?.(isSelected ? null : option.value);
             }}
@@ -431,7 +461,7 @@ function EquipmentPills({ value, onChange }) {
   );
 }
 
-function TrainingPhasePills({ value, onChange }) {
+function TrainingPhasePills({ value, onChange, allowDeselect = true }) {
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
 
@@ -450,6 +480,10 @@ function TrainingPhasePills({ value, onChange }) {
           <TouchableOpacity
             key={option.value}
             onPress={() => {
+              if (isSelected && !allowDeselect) {
+                return;
+              }
+
               setIsSelectionCleared(isSelected);
               onChange?.(isSelected ? null : option.value);
             }}
@@ -476,7 +510,7 @@ function TrainingPhasePills({ value, onChange }) {
   );
 }
 
-function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) {
+export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) {
   const [fillRatio, setFillRatio] = useState(() =>
     getCombatIntensityFillRatioFromValue(value)
   );
@@ -596,48 +630,6 @@ function FieldPanel({ label, children, bare = false }) {
   );
 }
 
-function DeloadStrategyPills({ value, onChange }) {
-  const deloadLabels = Object.freeze({
-    maintain_intensity_reduce_volume: "Maintain intensity",
-    maintain_volume_reduce_intensity: "Maintain volume",
-  });
-
-  return (
-    <View style={styles.deloadPills}>
-      {DELOAD_STRATEGY_OPTIONS.map((option, index) => {
-        const isSelected = value === option.value;
-        const optionPositionStyle =
-          index === 0
-            ? styles.deloadPillLeft
-            : styles.deloadPillRight;
-
-        return (
-          <TouchableOpacity
-            key={option.value}
-            onPress={() => onChange?.(isSelected ? null : option.value)}
-            style={[
-              styles.deloadPill,
-              optionPositionStyle,
-              isSelected ? styles.deloadPillSelected : null,
-            ]}
-          >
-            <Text
-              numberOfLines={2}
-              adjustsFontSizeToFit
-              style={[
-                styles.deloadPillText,
-                isSelected ? styles.deloadPillTextSelected : null,
-              ]}
-            >
-              {deloadLabels[option.value] ?? option.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
-
 function CardOptions({ options, value, onChange, imageMap, scrollable = true, stretch = false }) {
   const Container = scrollable ? ScrollView : View;
   const containerProps = scrollable
@@ -670,63 +662,83 @@ function CardOptions({ options, value, onChange, imageMap, scrollable = true, st
   );
 }
 
-function LiftIntensityOptions({ liftIntensityMethod, percentageReferenceMethod, onChange }) {
+function LiftIntensityOptions({
+  liftIntensityMethod,
+  percentageReferenceMethod,
+  onChange,
+  allowDeselect = true,
+}) {
   return (
-    <View style={styles.liftIntensityPills}>
-      {LIFT_INTENSITY_PROFILE_OPTIONS.map((option) => {
-        const isSelected =
-          liftIntensityMethod === option.liftIntensityMethod &&
-          (option.liftIntensityMethod === "rpe" ||
-            percentageReferenceMethod === option.percentageReferenceMethod);
-        const optionPositionStyle =
-          option === LIFT_INTENSITY_PROFILE_OPTIONS[0]
-            ? styles.liftIntensityPillLeft
-            : option === LIFT_INTENSITY_PROFILE_OPTIONS[LIFT_INTENSITY_PROFILE_OPTIONS.length - 1]
-              ? styles.liftIntensityPillRight
-              : styles.liftIntensityPillMiddle;
+    <View style={styles.liftIntensityCarousel}>
+      <ScrollView
+        horizontal
+        decelerationRate="fast"
+        showsHorizontalScrollIndicator={false}
+        bounces={false}
+        nestedScrollEnabled
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.liftIntensityCarouselContent}
+      >
+        {LIFT_INTENSITY_PROFILE_OPTIONS.map((option) => {
+          const isSelected =
+            liftIntensityMethod === option.liftIntensityMethod &&
+            (option.liftIntensityMethod === "rpe" ||
+              percentageReferenceMethod === option.percentageReferenceMethod);
 
-        return (
-          <TouchableOpacity
-            key={`${option.liftIntensityMethod}-${option.percentageReferenceMethod || "none"}`}
-            onPress={() =>
-              onChange?.({
-                liftIntensityMethod: isSelected ? null : option.liftIntensityMethod,
-                percentageReferenceMethod: isSelected
-                  ? null
-                  : option.percentageReferenceMethod,
-              })
-            }
-            style={[
-              styles.liftIntensityPill,
-              optionPositionStyle,
-              isSelected ? styles.liftIntensityPillSelected : null,
-            ]}
-          >
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
+          return (
+            <TouchableOpacity
+              key={`${option.liftIntensityMethod}-${option.percentageReferenceMethod || "none"}`}
+              onPress={() => {
+                if (isSelected && !allowDeselect) {
+                  return;
+                }
+
+                onChange?.({
+                  liftIntensityMethod: isSelected ? null : option.liftIntensityMethod,
+                  percentageReferenceMethod: isSelected
+                    ? null
+                    : option.percentageReferenceMethod,
+                });
+              }}
               style={[
-                styles.liftIntensityPillText,
-                isSelected ? styles.liftIntensityPillTextSelected : null,
+                styles.liftIntensityCard,
+                isSelected ? styles.liftIntensityCardSelected : null,
               ]}
             >
-              {option.label}
-            </Text>
-            {option.liftIntensityMethod === "rpe" ? (
               <Text
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 style={[
-                  styles.liftIntensityPillMeta,
-                  isSelected ? styles.liftIntensityPillMetaSelected : null,
+                  styles.liftIntensityCardTitle,
+                  isSelected ? styles.liftIntensityCardTitleSelected : null,
                 ]}
               >
-                Recommended
+                {option.label}
               </Text>
-            ) : null}
-          </TouchableOpacity>
-        );
-      })}
+              {option.liftIntensityMethod === "rpe" ? (
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  style={[
+                    styles.liftIntensityCardTag,
+                    isSelected ? styles.liftIntensityCardTagSelected : null,
+                  ]}
+                >
+                  Recommended
+                </Text>
+              ) : null}
+              <Text
+                style={[
+                  styles.liftIntensityCardDescription,
+                  isSelected ? styles.liftIntensityCardDescriptionSelected : null,
+                ]}
+              >
+                {option.description}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -771,6 +783,26 @@ function getLoopedLoadingStrategyOptions() {
   ];
 }
 
+function getActiveDeloadStrategyIndex(value) {
+  const foundIndex = DELOAD_STRATEGY_OPTIONS.findIndex(
+    (option) => option.value === value
+  );
+
+  return foundIndex >= 0 ? foundIndex : 0;
+}
+
+function getLoopedDeloadStrategyOptions() {
+  if (DELOAD_STRATEGY_OPTIONS.length < 2) {
+    return DELOAD_STRATEGY_OPTIONS;
+  }
+
+  return [
+    DELOAD_STRATEGY_OPTIONS[DELOAD_STRATEGY_OPTIONS.length - 1],
+    ...DELOAD_STRATEGY_OPTIONS,
+    DELOAD_STRATEGY_OPTIONS[0],
+  ];
+}
+
 function ProfileLoadingBlock({ width, isSelected }) {
   const isHidden = parseFloat(width) <= 0;
 
@@ -795,7 +827,216 @@ function ProfileLoadingBlock({ width, isSelected }) {
   );
 }
 
-function ProfileLoadingStrategyOptions({ value, onChange }) {
+export function ProfileDeloadStrategyOptions({ value, onChange, compact = false }) {
+  const scrollRef = useRef(null);
+  const isAdjustingRef = useRef(false);
+  const { width: screenWidth } = useWindowDimensions();
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const activeIndex = getActiveDeloadStrategyIndex(value);
+  const slideWidth = viewportWidth || Math.min(screenWidth - 112, 280);
+  const loopedOptions = getLoopedDeloadStrategyOptions();
+  const loopedActiveIndex =
+    DELOAD_STRATEGY_OPTIONS.length < 2 ? activeIndex : activeIndex + 1;
+
+  useEffect(() => {
+    if (!slideWidth) {
+      return;
+    }
+
+    scrollRef.current?.scrollTo({
+      x: loopedActiveIndex * slideWidth,
+      animated: false,
+    });
+  }, [activeIndex, loopedActiveIndex, slideWidth]);
+
+  function selectIndex(index, animated = true) {
+    const nextIndex =
+      (index + DELOAD_STRATEGY_OPTIONS.length) %
+      DELOAD_STRATEGY_OPTIONS.length;
+
+    scrollRef.current?.scrollTo({
+      x: (DELOAD_STRATEGY_OPTIONS.length < 2 ? nextIndex : nextIndex + 1) * slideWidth,
+      animated,
+    });
+    onChange?.(DELOAD_STRATEGY_OPTIONS[nextIndex]?.value);
+  }
+
+  function selectFromOffset(offsetX) {
+    if (!slideWidth || isAdjustingRef.current) {
+      return;
+    }
+
+    if (DELOAD_STRATEGY_OPTIONS.length < 2) {
+      onChange?.(DELOAD_STRATEGY_OPTIONS[0]?.value);
+      return;
+    }
+
+    const rawIndex = Math.round(offsetX / slideWidth);
+    const lastRealIndex = DELOAD_STRATEGY_OPTIONS.length;
+
+    if (rawIndex <= 0) {
+      isAdjustingRef.current = true;
+      scrollRef.current?.scrollTo({
+        x: lastRealIndex * slideWidth,
+        animated: false,
+      });
+      onChange?.(DELOAD_STRATEGY_OPTIONS[lastRealIndex - 1]?.value);
+      setTimeout(() => {
+        isAdjustingRef.current = false;
+      }, 0);
+      return;
+    }
+
+    if (rawIndex >= lastRealIndex + 1) {
+      isAdjustingRef.current = true;
+      scrollRef.current?.scrollTo({
+        x: slideWidth,
+        animated: false,
+      });
+      onChange?.(DELOAD_STRATEGY_OPTIONS[0]?.value);
+      setTimeout(() => {
+        isAdjustingRef.current = false;
+      }, 0);
+      return;
+    }
+
+    onChange?.(loopedOptions[rawIndex]?.value);
+  }
+
+  return (
+    <View style={styles.loadingStrategyCarousel}>
+      <Pressable
+        accessibilityLabel="Previous deload strategy"
+        accessibilityRole="button"
+        onPress={() => selectIndex(activeIndex - 1)}
+        style={styles.loadingStrategyArrowButton}
+      >
+        <Image
+          source={ARROW_IMAGE}
+          style={[styles.loadingStrategyArrow, styles.loadingStrategyArrowLeft]}
+          resizeMode="contain"
+        />
+      </Pressable>
+
+      <View
+        style={styles.loadingStrategyViewport}
+        onLayout={(event) => setViewportWidth(event.nativeEvent.layout.width)}
+      >
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          snapToInterval={slideWidth}
+          decelerationRate="fast"
+          disableIntervalMomentum
+          showsHorizontalScrollIndicator={false}
+          bounces={false}
+          nestedScrollEnabled
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={(event) =>
+            selectFromOffset(event.nativeEvent.contentOffset.x)
+          }
+          onScrollEndDrag={(event) => {
+            const velocityX = Math.abs(event.nativeEvent.velocity?.x || 0);
+            if (velocityX > 0.05) {
+              return;
+            }
+            selectFromOffset(event.nativeEvent.contentOffset.x);
+          }}
+        >
+          {loopedOptions.map((option, index) => {
+            const content = DELOAD_OPTION_TEXT[option.value];
+            const repsChange =
+              option.value === "maintain_intensity_reduce_volume";
+            const loadChange =
+              option.value === "maintain_volume_reduce_intensity";
+
+            return (
+              <View
+                key={`deload-strategy-${option.value}-${index}`}
+                style={[
+                  styles.loadingStrategySlide,
+                  compact ? styles.loadingStrategySlideCompact : null,
+                  { width: slideWidth },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.deloadVisualCompact,
+                    compact ? styles.deloadVisualCompactDense : null,
+                  ]}
+                >
+                  <View style={styles.deloadMetricPair}>
+                    <Text
+                      style={[
+                        styles.deloadMetric,
+                        repsChange ? styles.deloadMetricChanged : null,
+                      ]}
+                    >
+                      10r
+                    </Text>
+                    <Text
+                      style={[
+                        styles.deloadMetric,
+                        loadChange ? styles.deloadMetricChanged : null,
+                      ]}
+                    >
+                      10kg
+                    </Text>
+                  </View>
+                  <Image
+                    source={ARROW_IMAGE}
+                    style={styles.deloadMetricArrow}
+                    resizeMode="contain"
+                  />
+                  <View style={styles.deloadMetricPair}>
+                    <Text
+                      style={[
+                        styles.deloadMetric,
+                        repsChange ? styles.deloadMetricChanged : null,
+                      ]}
+                    >
+                      {content?.afterReps ?? "5r"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.deloadMetric,
+                        loadChange ? styles.deloadMetricChanged : null,
+                      ]}
+                    >
+                      {content?.afterWeight ?? "10kg"}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  numberOfLines={2}
+                  adjustsFontSizeToFit
+                  style={styles.loadingStrategyText}
+                >
+                  {content?.mediaText ?? option.label}
+                </Text>
+              </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      <Pressable
+        accessibilityLabel="Next deload strategy"
+        accessibilityRole="button"
+        onPress={() => selectIndex(activeIndex + 1)}
+        style={styles.loadingStrategyArrowButton}
+      >
+        <Image
+          source={ARROW_IMAGE}
+          style={styles.loadingStrategyArrow}
+          resizeMode="contain"
+        />
+      </Pressable>
+    </View>
+  );
+}
+
+export function ProfileLoadingStrategyOptions({ value, onChange, compact = false }) {
   const scrollRef = useRef(null);
   const isAdjustingRef = useRef(false);
   const { width: screenWidth } = useWindowDimensions();
@@ -917,7 +1158,11 @@ function ProfileLoadingStrategyOptions({ value, onChange }) {
             return (
               <View
                 key={`loading-strategy-${option.value}-${index}`}
-                style={[styles.loadingStrategySlide, { width: slideWidth }]}
+                style={[
+                  styles.loadingStrategySlide,
+                  compact ? styles.loadingStrategySlideCompact : null,
+                  { width: slideWidth },
+                ]}
               >
                 <View style={styles.loadingVisualCompact}>
                   {barWidths.map((barWidth, index) => (
@@ -961,15 +1206,32 @@ export default function ProfileTrainingPreferencesFields({
   title,
   description,
   sections = "all",
+  visiblePlanFields,
+  hiddenPlanFields,
   values,
   onChange,
   onCombatIntensityDragChange,
+  allowDeselect = true,
 }) {
   const safeValues = values && typeof values === "object" ? values : {};
   const resolvedValues = getTrainingPreferencesFormState(safeValues);
   const [activeWeekdayMenu, setActiveWeekdayMenu] = useState(null);
   const showPlanFields = sections !== "constraints";
   const showConstraintFields = sections !== "plan";
+  const visiblePlanFieldSet = Array.isArray(visiblePlanFields)
+    ? new Set(visiblePlanFields)
+    : null;
+  const hiddenPlanFieldSet = Array.isArray(hiddenPlanFields)
+    ? new Set(hiddenPlanFields)
+    : null;
+
+  function shouldShowPlanField(field) {
+    if (visiblePlanFieldSet && !visiblePlanFieldSet.has(field)) {
+      return false;
+    }
+
+    return !hiddenPlanFieldSet?.has(field);
+  }
 
   function updateFields(patch) {
     onChange?.({
@@ -1038,171 +1300,191 @@ export default function ProfileTrainingPreferencesFields({
 
       {showPlanFields ? (
         <>
-          <FieldPanel label="Desired training" bare>
-            <DesiredTrainingPills
-              value={resolvedValues.desiredTraining}
-              onChange={(value) => updateField("desiredTraining", value)}
-            />
-          </FieldPanel>
+          {shouldShowPlanField("desiredTraining") ? (
+            <FieldPanel label="Desired training" bare>
+              <DesiredTrainingPills
+                value={resolvedValues.desiredTraining}
+                onChange={(value) => updateField("desiredTraining", value)}
+                allowDeselect={allowDeselect}
+              />
+            </FieldPanel>
+          ) : null}
 
-          <FieldPanel label="Equipment" bare>
-            <EquipmentPills
-              value={resolvedValues.equipment}
-              onChange={(value) => updateField("equipment", value)}
-            />
-          </FieldPanel>
+          {shouldShowPlanField("equipment") ? (
+            <FieldPanel label="Equipment" bare>
+              <EquipmentPills
+                value={resolvedValues.equipment}
+                onChange={(value) => updateField("equipment", value)}
+                allowDeselect={allowDeselect}
+              />
+            </FieldPanel>
+          ) : null}
 
-          <FieldPanel label="Training phase" bare>
-            <TrainingPhasePills
-              value={resolvedValues.trainingPhase}
-              onChange={(value) => updateField("trainingPhase", value)}
-            />
-          </FieldPanel>
+          {shouldShowPlanField("trainingPhase") ? (
+            <FieldPanel label="Training phase" bare>
+              <TrainingPhasePills
+                value={resolvedValues.trainingPhase}
+                onChange={(value) => updateField("trainingPhase", value)}
+                allowDeselect={allowDeselect}
+              />
+            </FieldPanel>
+          ) : null}
 
-          <FieldPanel label="Combat training intensity" bare>
-            <CombatTrainingIntensityMeter
-              value={resolvedValues.combatTrainingIntensity}
-              onChange={(value) => updateField("combatTrainingIntensity", value)}
-              onDragChange={onCombatIntensityDragChange}
-            />
-          </FieldPanel>
+          {shouldShowPlanField("combatTrainingIntensity") ? (
+            <FieldPanel label="Combat training intensity">
+              <CombatTrainingIntensityMeter
+                value={resolvedValues.combatTrainingIntensity}
+                onChange={(value) => updateField("combatTrainingIntensity", value)}
+                onDragChange={onCombatIntensityDragChange}
+              />
+            </FieldPanel>
+          ) : null}
 
-          <FieldPanel label="Lift intensity logic" bare>
-            <LiftIntensityOptions
-              liftIntensityMethod={resolvedValues.liftIntensityMethod}
-              percentageReferenceMethod={resolvedValues.percentageReferenceMethod}
-              onChange={updateFields}
-            />
-          </FieldPanel>
+          {shouldShowPlanField("liftIntensityLogic") ? (
+            <FieldPanel label="Lift intensity logic" bare>
+              <LiftIntensityOptions
+                liftIntensityMethod={resolvedValues.liftIntensityMethod}
+                percentageReferenceMethod={resolvedValues.percentageReferenceMethod}
+                onChange={updateFields}
+                allowDeselect={allowDeselect}
+              />
+            </FieldPanel>
+          ) : null}
 
-          <FieldPanel label="Loading strategy" bare>
-            <ProfileLoadingStrategyOptions
-              value={resolvedValues.loadingStrategy}
-              onChange={(value) => updateField("loadingStrategy", value)}
-            />
-          </FieldPanel>
+          {shouldShowPlanField("loadingStrategy") ? (
+            <FieldPanel label="Loading strategy">
+              <ProfileLoadingStrategyOptions
+                value={resolvedValues.loadingStrategy}
+                onChange={(value) => updateField("loadingStrategy", value)}
+              />
+            </FieldPanel>
+          ) : null}
 
-          <FieldPanel label="Deload strategy" bare>
-            <DeloadStrategyPills
-              value={resolvedValues.deloadStrategy}
-              onChange={(value) => updateField("deloadStrategy", value)}
-            />
-          </FieldPanel>
+          {shouldShowPlanField("deloadStrategy") ? (
+            <FieldPanel label="Deload strategy">
+              <ProfileDeloadStrategyOptions
+                value={resolvedValues.deloadStrategy}
+                onChange={(value) => updateField("deloadStrategy", value)}
+              />
+            </FieldPanel>
+          ) : null}
 
-          <FieldPanel label="Preferred weekdays" bare>
-            <View style={styles.weekdayButtonRow}>
-              {WEEKDAY_CHIP_OPTIONS.map((option) => {
-                const selectedIndex = resolvedValues.preferredWeekdays.findIndex(
-                  (weekday) => weekday === option.value
-                );
-                const isSelected = selectedIndex >= 0;
-                const assignableDayIndexes = Array.from(
-                  { length: resolvedValues.daysPerWeek },
-                  (_, index) => index
-                ).filter((dayIndex) =>
-                  canAssignWeekdayToDay(dayIndex, option.value)
-                );
-                const hasMenuOptions = isSelected || assignableDayIndexes.length > 0;
-                const isMenuOpen = activeWeekdayMenu === option.value;
+          {shouldShowPlanField("preferredWeekdays") ? (
+            <FieldPanel label="Preferred weekdays">
+              <View style={styles.weekdayButtonRow}>
+                {WEEKDAY_CHIP_OPTIONS.map((option) => {
+                  const selectedIndex = resolvedValues.preferredWeekdays.findIndex(
+                    (weekday) => weekday === option.value
+                  );
+                  const isSelected = selectedIndex >= 0;
+                  const assignableDayIndexes = Array.from(
+                    { length: resolvedValues.daysPerWeek },
+                    (_, index) => index
+                  ).filter((dayIndex) =>
+                    canAssignWeekdayToDay(dayIndex, option.value)
+                  );
+                  const hasMenuOptions = isSelected || assignableDayIndexes.length > 0;
+                  const isMenuOpen = activeWeekdayMenu === option.value;
 
-                return (
-                  <View
-                    key={option.value}
-                    style={[
-                      styles.weekdayButtonSlot,
-                      isMenuOpen ? styles.weekdayButtonSlotActive : null,
-                    ]}
-                  >
-                    <Pressable
-                      disabled={!hasMenuOptions}
-                      onPress={() =>
-                        setActiveWeekdayMenu(isMenuOpen ? null : option.value)
-                      }
-                      style={({ pressed }) => [
-                        styles.weekdayButton,
-                        isSelected ? styles.weekdayButtonSelected : null,
-                        !hasMenuOptions ? styles.weekdayButtonDisabled : null,
-                        pressed ? styles.weekdayButtonPressed : null,
+                  return (
+                    <View
+                      key={option.value}
+                      style={[
+                        styles.weekdayButtonSlot,
+                        isMenuOpen ? styles.weekdayButtonSlotActive : null,
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.weekdayAssignmentText,
-                          isSelected ? styles.weekdayAssignmentTextSelected : null,
-                          !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
+                      <Pressable
+                        disabled={!hasMenuOptions}
+                        onPress={() =>
+                          setActiveWeekdayMenu(isMenuOpen ? null : option.value)
+                        }
+                        style={({ pressed }) => [
+                          styles.weekdayButton,
+                          isSelected ? styles.weekdayButtonSelected : null,
+                          !hasMenuOptions ? styles.weekdayButtonDisabled : null,
+                          pressed ? styles.weekdayButtonPressed : null,
                         ]}
                       >
-                        {isSelected ? `Day ${selectedIndex + 1}` : " "}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.weekdayButtonText,
-                          isSelected ? styles.weekdayButtonTextSelected : null,
-                          !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
-                        ]}
-                      >
-                        {option.label.slice(0, 3)}
-                      </Text>
-                    </Pressable>
+                        <Text
+                          style={[
+                            styles.weekdayAssignmentText,
+                            isSelected ? styles.weekdayAssignmentTextSelected : null,
+                            !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
+                          ]}
+                        >
+                          {isSelected ? `Day ${selectedIndex + 1}` : " "}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.weekdayButtonText,
+                            isSelected ? styles.weekdayButtonTextSelected : null,
+                            !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
+                          ]}
+                        >
+                          {option.label.slice(0, 3)}
+                        </Text>
+                      </Pressable>
 
-                    {isMenuOpen ? (
-                      <View style={styles.weekdayDropdown}>
-                        {assignableDayIndexes.map((dayIndex) => {
-                          const isCurrentAssignment = selectedIndex === dayIndex;
+                      {isMenuOpen ? (
+                        <View style={styles.weekdayDropdown}>
+                          {assignableDayIndexes.map((dayIndex) => {
+                            const isCurrentAssignment = selectedIndex === dayIndex;
 
-                          return (
+                            return (
+                              <Pressable
+                                key={`${option.value}-day-${dayIndex + 1}`}
+                                onPress={() =>
+                                  assignPreferredWeekdayToDay(dayIndex, option.value)
+                                }
+                                style={({ pressed }) => [
+                                  styles.weekdayDropdownItem,
+                                  isCurrentAssignment
+                                    ? styles.weekdayDropdownItemSelected
+                                    : null,
+                                  pressed ? styles.weekdayDropdownItemPressed : null,
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.weekdayDropdownText,
+                                    isCurrentAssignment
+                                      ? styles.weekdayDropdownTextSelected
+                                      : null,
+                                  ]}
+                                >
+                                  Day {dayIndex + 1}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                          {isSelected ? (
                             <Pressable
-                              key={`${option.value}-day-${dayIndex + 1}`}
-                              onPress={() =>
-                                assignPreferredWeekdayToDay(dayIndex, option.value)
-                              }
+                              onPress={() => clearPreferredWeekday(selectedIndex)}
                               style={({ pressed }) => [
                                 styles.weekdayDropdownItem,
-                                isCurrentAssignment
-                                  ? styles.weekdayDropdownItemSelected
-                                  : null,
+                                styles.weekdayDropdownClearItem,
                                 pressed ? styles.weekdayDropdownItemPressed : null,
                               ]}
                             >
                               <Text
                                 style={[
                                   styles.weekdayDropdownText,
-                                  isCurrentAssignment
-                                    ? styles.weekdayDropdownTextSelected
-                                    : null,
+                                  styles.weekdayDropdownClearText,
                                 ]}
                               >
-                                Day {dayIndex + 1}
+                                Clear
                               </Text>
                             </Pressable>
-                          );
-                        })}
-                        {isSelected ? (
-                          <Pressable
-                            onPress={() => clearPreferredWeekday(selectedIndex)}
-                            style={({ pressed }) => [
-                              styles.weekdayDropdownItem,
-                              styles.weekdayDropdownClearItem,
-                              pressed ? styles.weekdayDropdownItemPressed : null,
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.weekdayDropdownText,
-                                styles.weekdayDropdownClearText,
-                              ]}
-                            >
-                              Clear
-                            </Text>
-                          </Pressable>
-                        ) : null}
-                      </View>
-                    ) : null}
-                  </View>
-                );
-              })}
-            </View>
-          </FieldPanel>
+                          ) : null}
+                        </View>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+            </FieldPanel>
+          ) : null}
         </>
       ) : null}
 
@@ -1277,30 +1559,28 @@ const styles = StyleSheet.create({
   },
   desiredPill: {
     alignItems: "center",
-    backgroundColor: "#1E1E1E",
-    borderRadius: 22,
-    borderColor: "#2D2D2D",
-    borderWidth: 1,
-    flexBasis: "31%",
-    flexGrow: 1,
-    height: PROFILE_PILL_HEIGHT,
+    backgroundColor: "#141414",
+    borderRadius: 24,
+    borderColor: "#1E1E1E",
+    borderWidth: 2,
+    height: 100,
     justifyContent: "center",
     overflow: "hidden",
-    paddingHorizontal: 6,
-    paddingVertical: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    width: 100,
   },
   desiredPillSelected: {
-    backgroundColor: "#ffffff",
     borderColor: "#ffffff",
   },
   desiredPillLeft: {
-    borderRadius: 22,
+    borderRadius: 24,
   },
   desiredPillMiddle: {
-    borderRadius: 22,
+    borderRadius: 24,
   },
   desiredPillRight: {
-    borderRadius: 22,
+    borderRadius: 24,
   },
   desiredPillImageSlot: {
     alignItems: "center",
@@ -1314,7 +1594,7 @@ const styles = StyleSheet.create({
     width: 34,
   },
   desiredPillImageSelected: {
-    tintColor: "#000000",
+    tintColor: "#ffffff",
   },
   desiredPillText: {
     color: "#8E8E8E",
@@ -1324,7 +1604,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   desiredPillTextSelected: {
-    color: "#000000",
+    color: "#ffffff",
   },
   connectedPills: {
     flexDirection: "row",
@@ -1334,30 +1614,28 @@ const styles = StyleSheet.create({
   },
   connectedPill: {
     alignItems: "center",
-    backgroundColor: "#1E1E1E",
-    borderRadius: 22,
-    borderColor: "#2D2D2D",
-    borderWidth: 1,
-    flexBasis: "31%",
-    flexGrow: 1,
-    height: PROFILE_PILL_HEIGHT,
+    backgroundColor: "#141414",
+    borderRadius: 24,
+    borderColor: "#1E1E1E",
+    borderWidth: 2,
+    height: 100,
     justifyContent: "center",
     overflow: "hidden",
-    paddingHorizontal: 6,
-    paddingVertical: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    width: 100,
   },
   connectedPillSelected: {
-    backgroundColor: "#ffffff",
     borderColor: "#ffffff",
   },
   connectedPillLeft: {
-    borderRadius: 22,
+    borderRadius: 24,
   },
   connectedPillMiddle: {
-    borderRadius: 22,
+    borderRadius: 24,
   },
   connectedPillRight: {
-    borderRadius: 22,
+    borderRadius: 24,
   },
   connectedPillImageSlot: {
     alignItems: "center",
@@ -1371,7 +1649,7 @@ const styles = StyleSheet.create({
     width: 34,
   },
   connectedPillImageSelected: {
-    tintColor: "#000000",
+    tintColor: "#ffffff",
   },
   connectedPillText: {
     color: "#8E8E8E",
@@ -1381,7 +1659,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   connectedPillTextSelected: {
-    color: "#000000",
+    color: "#ffffff",
   },
   phasePills: {
     flexDirection: "row",
@@ -1391,10 +1669,10 @@ const styles = StyleSheet.create({
   },
   phasePill: {
     alignItems: "center",
-    backgroundColor: "#1E1E1E",
+    backgroundColor: "#141414",
     borderRadius: 22,
-    borderColor: "#2D2D2D",
-    borderWidth: 1,
+    borderColor: "#1E1E1E",
+    borderWidth: 2,
     flexBasis: "48%",
     flexGrow: 1,
     height: PROFILE_PILL_HEIGHT,
@@ -1402,7 +1680,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   phasePillSelected: {
-    backgroundColor: "#ffffff",
     borderColor: "#ffffff",
   },
   phasePillLeft: {
@@ -1422,60 +1699,57 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   phasePillTextSelected: {
-    color: "#000000",
+    color: "#ffffff",
   },
-  liftIntensityPills: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+  liftIntensityCarousel: {
     width: "100%",
+    position: "relative",
   },
-  liftIntensityPill: {
-    alignItems: "center",
-    backgroundColor: "#1E1E1E",
-    borderRadius: 22,
-    borderColor: "#2D2D2D",
-    borderWidth: 1,
-    flexBasis: "48%",
-    flexGrow: 1,
-    height: PROFILE_PILL_HEIGHT,
+  liftIntensityCarouselContent: {
+    gap: 8,
+    alignItems: "stretch",
+  },
+  liftIntensityCard: {
+    width: LIFT_INTENSITY_CARD_WIDTH,
+    minHeight: LIFT_INTENSITY_CARD_HEIGHT,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    backgroundColor: "#141414",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     justifyContent: "center",
-    overflow: "hidden",
-    paddingHorizontal: 6,
-    paddingVertical: 8,
   },
-  liftIntensityPillSelected: {
-    backgroundColor: "#ffffff",
+  liftIntensityCardSelected: {
     borderColor: "#ffffff",
   },
-  liftIntensityPillLeft: {
-    borderRadius: 22,
-  },
-  liftIntensityPillMiddle: {
-    borderRadius: 22,
-  },
-  liftIntensityPillRight: {
-    borderRadius: 22,
-  },
-  liftIntensityPillText: {
-    color: "#8E8E8E",
-    fontSize: 11,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  liftIntensityPillTextSelected: {
-    color: "#000000",
-  },
-  liftIntensityPillMeta: {
-    color: "#6B6B6B",
-    fontSize: 8,
-    fontWeight: "700",
-    marginTop: 3,
-    textAlign: "center",
+  liftIntensityCardTitle: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "800",
     textTransform: "uppercase",
   },
-  liftIntensityPillMetaSelected: {
-    color: "#3F3F3F",
+  liftIntensityCardTitleSelected: {
+    color: "#ffffff",
+  },
+  liftIntensityCardTag: {
+    color: "#8E8E8E",
+    fontSize: 9,
+    fontWeight: "700",
+    marginTop: 4,
+    textTransform: "uppercase",
+  },
+  liftIntensityCardTagSelected: {
+    color: "#8E8E8E",
+  },
+  liftIntensityCardDescription: {
+    color: "#8E8E8E",
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 8,
+  },
+  liftIntensityCardDescriptionSelected: {
+    color: "#ffffff",
   },
   loadingStrategyCarousel: {
     alignItems: "center",
@@ -1509,6 +1783,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 112,
+  },
+  loadingStrategySlideCompact: {
+    height: 92,
   },
   loadingVisualCompact: {
     alignItems: "center",
@@ -1552,9 +1829,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   combatIntensityOutline: {
-    borderColor: "#2D2D2D",
+    borderColor: "#1E1E1E",
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 2,
     height: COMBAT_INTENSITY_METER_HEIGHT,
     overflow: "hidden",
     position: "relative",
@@ -1660,43 +1937,37 @@ const styles = StyleSheet.create({
     top: 0,
     width: SESSION_DURATION_ITEM_WIDTH,
   },
-  deloadPills: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    width: "100%",
-  },
-  deloadPill: {
+  deloadVisualCompact: {
     alignItems: "center",
-    backgroundColor: "#1E1E1E",
-    borderRadius: 22,
-    borderColor: "#2D2D2D",
-    borderWidth: 1,
-    flexBasis: "48%",
-    flexGrow: 1,
-    height: PROFILE_PILL_HEIGHT,
+    flexDirection: "row",
+    gap: 9,
     justifyContent: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    minHeight: 52,
   },
-  deloadPillSelected: {
+  deloadVisualCompactDense: {
+    minHeight: 42,
+  },
+  deloadMetricPair: {
+    gap: 4,
+    width: 46,
+  },
+  deloadMetric: {
     backgroundColor: "#ffffff",
-    borderColor: "#ffffff",
-  },
-  deloadPillLeft: {
-    borderRadius: 22,
-  },
-  deloadPillRight: {
-    borderRadius: 22,
-  },
-  deloadPillText: {
-    color: "#8E8E8E",
+    borderRadius: 4,
+    color: "#000000",
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "800",
+    lineHeight: 17,
+    overflow: "hidden",
     textAlign: "center",
   },
-  deloadPillTextSelected: {
-    color: "#000000",
+  deloadMetricChanged: {
+    backgroundColor: "#C9B259",
+  },
+  deloadMetricArrow: {
+    height: 14,
+    tintColor: "#ffffff",
+    width: 14,
   },
   cardOptions: {
     gap: 10,
@@ -1711,10 +1982,9 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 10,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#585858",
-    borderStyle: "dashed",
-    backgroundColor: "#1E1E1E",
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    backgroundColor: "#141414",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1724,7 +1994,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   optionCardSelected: {
-    backgroundColor: "#ffffff",
     borderStyle: "solid",
     borderColor: "#ffffff",
   },
@@ -1735,7 +2004,7 @@ const styles = StyleSheet.create({
     tintColor: "#8E8E8E",
   },
   optionImageSelected: {
-    tintColor: "#000000",
+    tintColor: "#ffffff",
   },
   optionCardText: {
     color: "#8E8E8E",
@@ -1744,14 +2013,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   optionCardTextSelected: {
-    color: "#000000",
+    color: "#ffffff",
   },
   input: {
     minHeight: 42,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#2A2A2A",
-    backgroundColor: "#000000",
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    backgroundColor: "#141414",
     paddingHorizontal: 12,
     paddingVertical: 9,
     fontSize: 14,
@@ -1763,7 +2032,7 @@ const styles = StyleSheet.create({
   },
   weekdayButtonRow: {
     flexDirection: "row",
-    gap: 3,
+    gap: 4,
     overflow: "visible",
     width: "100%",
     zIndex: 5,
@@ -1782,14 +2051,17 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderRadius: 8,
     justifyContent: "center",
-    minHeight: 46,
+    minHeight: 54,
     minWidth: 0,
-    paddingHorizontal: 1,
+    borderColor: "transparent",
+    borderWidth: 1,
+    paddingHorizontal: 2,
     paddingVertical: 5,
     width: "100%",
   },
   weekdayButtonSelected: {
     backgroundColor: "#ffffff",
+    borderColor: "#ffffff",
   },
   weekdayButtonDisabled: {
     opacity: 1,
@@ -1799,7 +2071,7 @@ const styles = StyleSheet.create({
   },
   weekdayButtonText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
   },
   weekdayButtonTextSelected: {
@@ -1810,10 +2082,10 @@ const styles = StyleSheet.create({
   },
   weekdayAssignmentText: {
     color: "#ffffff",
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: "700",
-    lineHeight: 10,
-    minHeight: 10,
+    lineHeight: 13,
+    minHeight: 13,
     textAlign: "center",
   },
   weekdayAssignmentTextSelected: {
@@ -1821,36 +2093,39 @@ const styles = StyleSheet.create({
   },
   weekdayDropdown: {
     backgroundColor: "#141414",
-    borderColor: "#2D2D2D",
+    borderColor: "#1E1E1E",
     borderRadius: 8,
-    borderWidth: 1,
+    borderWidth: 2,
     left: "50%",
     marginLeft: -39,
     minWidth: 78,
     overflow: "hidden",
     position: "absolute",
-    top: 50,
+    bottom: 58,
     zIndex: 20,
   },
   weekdayDropdownItem: {
     alignItems: "center",
+    borderColor: "transparent",
+    borderWidth: 1,
     justifyContent: "center",
     minHeight: 35,
     paddingHorizontal: 9,
   },
   weekdayDropdownItemSelected: {
     backgroundColor: "#ffffff",
+    borderColor: "#ffffff",
   },
   weekdayDropdownItemPressed: {
     opacity: 0.78,
   },
   weekdayDropdownClearItem: {
-    borderColor: "#2D2D2D",
-    borderTopWidth: 1,
+    borderColor: "#1E1E1E",
+    borderTopWidth: 2,
   },
   weekdayDropdownText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
   },
   weekdayDropdownTextSelected: {

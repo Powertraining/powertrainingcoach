@@ -27,7 +27,7 @@ export default function PreferenceOptionButton({
       ) : mediaText ? (
         <StandardText
           style={styles.mediaText}
-          textColor={isSelected ? "#000000" : "#ffffff"}
+          textColor="#ffffff"
           center
         >
           {mediaText}
@@ -36,7 +36,7 @@ export default function PreferenceOptionButton({
       <StandardText
         fontSize={14}
         style={styles.label}
-        textColor={isSelected ? "#000000" : "#ffffff"}
+        textColor="#ffffff"
         center
       >
         {label}
@@ -60,7 +60,8 @@ const styles = StyleSheet.create({
     width: "75%",
   },
   buttonSelected: {
-    backgroundColor: "#ffffff",
+    borderColor: "#ffffff",
+    borderStyle: "solid",
   },
   image: {
     height: 42,

@@ -37,10 +37,10 @@ const styles = StyleSheet.create({
         width: "60%",
         height: "60%",
         marginBottom: 10,
-        tintColor: "#000"
+        tintColor: "#fff"
     },
     optionSelected: {
-        backgroundColor: "#fff",
+        borderColor: "#fff",
         borderStyle: "solid",
     },
     optionText: {
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
     optionTextSelected: {
-        color: "#000",
+        color: "#fff",
         fontFamily: "BebasNeue",
         fontSize: 20
     },

@@ -210,7 +210,11 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       setTrainingPreferences(
         getSyncedTrainingPreferences(nextQuestionnaire, sessionsPerWeek)
       );
-      if (mode !== "main" && mode !== "personalDetails") {
+      if (
+        mode !== "main" &&
+        mode !== "personalDetails" &&
+        mode !== "planAdjustments"
+      ) {
         router.push("/(tabs)/profile");
       }
     } catch (e) {
@@ -235,7 +239,11 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
 
   function cancelACB() {
     resetUnsavedChangesACB();
-    if (mode !== "main" && mode !== "personalDetails") {
+    if (
+      mode !== "main" &&
+      mode !== "personalDetails" &&
+      mode !== "planAdjustments"
+    ) {
       router.push("/(tabs)/profile");
     }
   }

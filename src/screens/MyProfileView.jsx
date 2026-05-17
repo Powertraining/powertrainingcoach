@@ -73,8 +73,11 @@ export function MyProfileView(props) {
   const isEventPreparationMode = mode === "eventPreparation";
   const isInjuriesMode = mode === "injuries";
   const showInlineActions =
-    !isPersonalDetailsMode && (!isMainMode || props.canSave || props.isSubmitting);
-  const showFloatingActions = false;
+    !isPersonalDetailsMode &&
+    !isPlanAdjustmentsMode &&
+    (!isMainMode || props.canSave || props.isSubmitting);
+  const showFloatingActions =
+    isPlanAdjustmentsMode && (props.canSave || props.isSubmitting);
 
   useEffect(
     function animateActionBarACB() {
@@ -188,6 +191,8 @@ export function MyProfileView(props) {
               ? Math.max(insets.bottom + 96, 120)
               : isPersonalDetailsMode
               ? Math.max(insets.bottom + 132, 156)
+              : isPlanAdjustmentsMode
+              ? Math.max(insets.bottom + 84, 108)
               : 24,
           },
         ]}
@@ -213,7 +218,7 @@ export function MyProfileView(props) {
             />
 
             <ProfileNavigationCard
-              title="Plan Adjustments"
+              title="Adjust Plan"
               description="Sport, schedule, and training logic"
               actionLabel="Adjust"
               onPress={props.onOpenPlanAdjustments}
@@ -665,14 +670,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     paddingHorizontal: 20,
+    alignItems: "center",
   },
   floatingActionsBar: {
     flexDirection: "row",
-    borderRadius: 22,
+    gap: 8,
+    borderRadius: 999,
     overflow: "hidden",
-    backgroundColor: "#141414",
-    borderWidth: 1,
-    borderColor: "#1E1E1E",
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+    borderColor: "#ffffff",
+    padding: 5,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
@@ -680,33 +688,37 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   floatingSaveButton: {
-    flex: 3,
-    minHeight: 58,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#141414",
+    borderRadius: 999,
+    minHeight: 38,
+    minWidth: 112,
     paddingHorizontal: 16,
+    paddingVertical: 9,
   },
   floatingSaveButtonDisabled: {
-    backgroundColor: "rgba(255,255,255,0.5)",
+    backgroundColor: "rgba(20,20,20,0.38)",
   },
   floatingSaveButtonText: {
-    color: "#141414",
-    fontSize: 16,
+    color: "#ffffff",
+    fontSize: 12,
     fontWeight: "800",
     letterSpacing: 0.2,
   },
   floatingCancelButton: {
-    flex: 1,
-    minHeight: 58,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#141414",
-    paddingHorizontal: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    minHeight: 38,
+    minWidth: 82,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
   floatingCancelButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
+    color: "#141414",
+    fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.2,
   },
