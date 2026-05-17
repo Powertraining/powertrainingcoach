@@ -50,11 +50,10 @@ export default function ProfileSportSelector({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 8,
     marginHorizontal: -20,
   },
   content: {
-    gap: 12,
+    gap: 8,
     paddingHorizontal: 20,
   },
   option: {

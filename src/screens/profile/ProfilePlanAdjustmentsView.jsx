@@ -24,14 +24,16 @@ export default function ProfilePlanAdjustmentsView(props) {
         </View>
       </View>
 
-      <View style={styles.inlineSection}>
-        <Text style={styles.preferenceSummaryLabel}>Primary Sport</Text>
-        <ProfileSportSelector
-          options={props.combatSportOptions}
-          value={props.primaryCombatSport}
-          onChange={props.onPrimaryCombatSportChange}
-          allowDeselect={false}
-        />
+      <View style={styles.planFields}>
+        <View style={styles.preferenceField}>
+          <Text style={styles.preferenceSummaryLabel}>Primary Sport</Text>
+          <ProfileSportSelector
+            options={props.combatSportOptions}
+            value={props.primaryCombatSport}
+            onChange={props.onPrimaryCombatSportChange}
+            allowDeselect={false}
+          />
+        </View>
         <ProfileTrainingPreferencesFields
           sections="plan"
           visiblePlanFields={["desiredTraining", "equipment", "trainingPhase"]}
@@ -144,57 +146,68 @@ export default function ProfilePlanAdjustmentsView(props) {
 
 const styles = StyleSheet.create({
   heroHeader: {
-    marginVertical: 40,
+    marginTop: 28,
+    marginBottom: 26,
   },
   heroCopy: {
-    gap: 3,
+    gap: 6,
     minWidth: 0,
   },
   heroEyebrow: {
     color: "#C9B259",
     fontSize: 11,
     fontWeight: "800",
+    lineHeight: 14,
     textTransform: "uppercase",
   },
   heroTitle: {
     color: "#ffffff",
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "900",
-    lineHeight: 29,
+    lineHeight: 33,
   },
   heroText: {
     color: "#9ca3af",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
-    lineHeight: 17,
-    maxWidth: 270,
+    lineHeight: 18,
+    maxWidth: 310,
   },
   inlineSection: {
+    gap: 8,
+    marginBottom: 18,
+  },
+  planFields: {
+    gap: 18,
+    marginBottom: 18,
+  },
+  preferenceField: {
     gap: 5,
   },
   preferenceBox: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     borderRadius: 20,
     backgroundColor: "#141414",
     borderWidth: 2,
     borderColor: "#1E1E1E",
-    gap: 12,
+    gap: 14,
   },
   preferenceControl: {
-    gap: 6,
+    gap: 5,
   },
   structureBox: {
-    gap: 8,
-    paddingVertical: 10,
+    gap: 12,
+    paddingVertical: 14,
   },
   structureControl: {
-    gap: 2,
+    gap: 5,
   },
   preferenceControlLabel: {
     fontSize: 11,
     fontWeight: "700",
     color: "#8E8E8E",
+    lineHeight: 14,
     textTransform: "uppercase",
   },
   preferenceDivider: {
@@ -203,8 +216,9 @@ const styles = StyleSheet.create({
   },
   preferenceSummaryLabel: {
     fontSize: 12,
-    fontWeight: "700",
-    color: "#475569",
+    fontWeight: "800",
+    color: "#8E8E8E",
+    lineHeight: 15,
     textTransform: "uppercase",
   },
 });

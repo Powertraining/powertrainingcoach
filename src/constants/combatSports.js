@@ -19,7 +19,7 @@ export const PRIMARY_COMBAT_SPORT_OPTIONS = Object.freeze([
   }),
   Object.freeze({
     id: "muay-thai-kickboxing",
-    label: "Muay Thai / Kickboxing",
+    label: "Kickboxing",
     value: "Muay Thai / Kickboxing",
     image: require("../assets/icons/sports/kickboxing.png"),
   }),

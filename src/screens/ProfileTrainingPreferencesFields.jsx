@@ -1518,15 +1518,16 @@ export default function ProfileTrainingPreferencesFields({
 
 const styles = StyleSheet.create({
   section: {
-    gap: 14,
+    gap: 18,
   },
   header: {
     gap: 6,
   },
   title: {
-    color: "#475569",
+    color: "#8E8E8E",
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
+    lineHeight: 15,
     textTransform: "uppercase",
   },
   description: {
@@ -1538,9 +1539,10 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   label: {
-    color: "#475569",
+    color: "#8E8E8E",
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
+    lineHeight: 15,
     textTransform: "uppercase",
   },
   panel: {
