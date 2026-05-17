@@ -85,6 +85,7 @@ function WheelColumn({
   selectedIndex = 0,
   onSelect,
   columnStyle,
+  variant = "dark",
 }) {
   const scrollRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -158,7 +159,11 @@ function WheelColumn({
             <StandardText
               style={[
                 styles.itemText,
+                variant === "light" ? styles.itemTextLight : null,
                 index === safeSelectedIndex && styles.itemTextSelected,
+                variant === "light" && index === safeSelectedIndex
+                  ? styles.itemTextSelectedLight
+                  : null,
               ]}
             >
               {value}
@@ -175,6 +180,7 @@ export default function DateSelector({
   onChange,
   placeholder = "e.g. 2026-06-20 or 8 weeks out",
   showInput = true,
+  variant = "dark",
 }) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const maxDate = useMemo(
@@ -317,6 +323,7 @@ export default function DateSelector({
           key={dayWheelKey}
           values={days.map((day) => padNumber(day))}
           selectedIndex={days.findIndex((day) => day === selectedDay)}
+          variant={variant}
           onSelect={(_, index) => {
             commitDate(selectedYear, selectedMonth, days[index]);
           }}
@@ -324,6 +331,7 @@ export default function DateSelector({
         <WheelColumn
           values={months.map((month) => month.label)}
           selectedIndex={months.findIndex((month) => month.value === selectedMonth)}
+          variant={variant}
           onSelect={(_, index) => {
             commitDate(selectedYear, months[index].value, selectedDay);
           }}
@@ -331,11 +339,18 @@ export default function DateSelector({
         <WheelColumn
           values={years.map(String)}
           selectedIndex={years.findIndex((year) => year === selectedYear)}
+          variant={variant}
           onSelect={(_, index) => {
             commitDate(years[index], selectedMonth, selectedDay);
           }}
         />
-        <View pointerEvents="none" style={styles.selectedFrame} />
+        <View
+          pointerEvents="none"
+          style={[
+            styles.selectedFrame,
+            variant === "light" ? styles.selectedFrameLight : null,
+          ]}
+        />
       </View>
 
       {showInput ? (
@@ -378,10 +393,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     opacity: 0.5,
   },
+  itemTextLight: {
+    color: "#5f5f5f",
+    opacity: 0.62,
+  },
   itemTextSelected: {
     fontSize: 24,
     fontWeight: "600",
     opacity: 1,
+  },
+  itemTextSelectedLight: {
+    color: "#141414",
+    fontWeight: "900",
   },
   selectedFrame: {
     position: "absolute",
@@ -393,6 +416,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderColor: "#C9B259",
     backgroundColor: "transparent",
+  },
+  selectedFrameLight: {
+    backgroundColor: "rgba(20,20,20,0.05)",
+    borderColor: "#141414",
   },
   input: {
     height: 40,

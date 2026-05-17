@@ -213,7 +213,8 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       if (
         mode !== "main" &&
         mode !== "personalDetails" &&
-        mode !== "planAdjustments"
+        mode !== "planAdjustments" &&
+        mode !== "eventPreparation"
       ) {
         router.push("/(tabs)/profile");
       }
@@ -242,7 +243,8 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     if (
       mode !== "main" &&
       mode !== "personalDetails" &&
-      mode !== "planAdjustments"
+      mode !== "planAdjustments" &&
+      mode !== "eventPreparation"
     ) {
       router.push("/(tabs)/profile");
     }
@@ -252,6 +254,26 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     setSessionsPerWeek(nextSessionsPerWeek);
     setTrainingPreferences((currentPreferences) =>
       getSyncedTrainingPreferences(currentPreferences, nextSessionsPerWeek)
+    );
+  }
+
+  function clearEventPreparationACB() {
+    const nextTrainingPreferences = {
+      ...trainingPreferences,
+      eventPreparation: "",
+    };
+    const nextQuestionnaire = mergeTrainingPreferences(model.questionnaire, {
+      ...nextTrainingPreferences,
+      daysPerWeek: sessionsPerWeek,
+      primaryCombatSport,
+      sessionsPerWeek,
+    });
+
+    model.primaryCombatSport = primaryCombatSport;
+    model.sessionsPerWeek = sessionsPerWeek;
+    model.setQuestionnaire?.(nextQuestionnaire);
+    setTrainingPreferences(
+      getSyncedTrainingPreferences(nextQuestionnaire, sessionsPerWeek)
     );
   }
 
@@ -351,6 +373,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}
         onSessionsPerWeekChange={changeSessionsPerWeekACB}
+        onClearEventPreparation={clearEventPreparationACB}
         onSave={saveACB}
         onCancel={cancelACB}
         onChangeSubscription={changeSubscriptionACB}

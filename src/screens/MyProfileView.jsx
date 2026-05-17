@@ -22,7 +22,7 @@ import SubscriptionCard from "../components/profileComponents/SubscriptionCard.j
 import BlackGradient from "../components/colorComponents/BlackGradient.jsx";
 import ProfilePersonalDetailsView from "./profile/ProfilePersonalDetailsView.jsx";
 import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx";
-import TrainingPreferencesEventPreparationView from "./trainingPreferences/TrainingPreferencesEventPreparationView.jsx";
+import RegisterEventView from "./profile/RegisterEventView.jsx";
 import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPreferencesInjuriesView.jsx";
 
 function ProfileNavigationCard({
@@ -75,6 +75,7 @@ export function MyProfileView(props) {
   const showInlineActions =
     !isPersonalDetailsMode &&
     !isPlanAdjustmentsMode &&
+    !isEventPreparationMode &&
     (!isMainMode || props.canSave || props.isSubmitting);
   const showFloatingActions =
     isPlanAdjustmentsMode && (props.canSave || props.isSubmitting);
@@ -308,14 +309,16 @@ export function MyProfileView(props) {
         ) : null}
 
         {isEventPreparationMode ? (
-          <TrainingPreferencesEventPreparationView
+          <RegisterEventView
             value={props.trainingPreferences?.eventPreparation}
+            isSubmitting={props.isSubmitting}
             onChange={(value) =>
               props.onTrainingPreferencesChange?.({
                 ...(props.trainingPreferences || {}),
                 eventPreparation: value,
               })
             }
+            onClearEvent={props.onClearEventPreparation}
           />
         ) : null}
 
