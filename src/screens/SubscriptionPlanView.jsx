@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Linking,
   ScrollView,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,7 +35,11 @@ const PLAN_OPTIONS = [
     title: "STARTER PLAN",
   },
 ];
-const DEFAULT_SELECTED_PLAN_KEY = "pro_plan_setup";
+const PLAN_RANK_BY_KEY = {
+  starter_plan_setup: 1,
+  pro_plan_setup: 2,
+  expert_plan_setup: 3,
+};
 
 const TRUST_ITEMS = [
   { label: "CANCEL ANYTIME", icon: "shield" },
@@ -101,6 +106,7 @@ function TrustBenefitIcon({ type }) {
 }
 
 export default function SubscriptionPlanView({
+  currentPlanKey = "",
   onBack,
   onCheckoutSuccess,
   returnTo = "",
@@ -110,8 +116,16 @@ export default function SubscriptionPlanView({
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState("");
   const [error, setError] = useState(null);
-  const [selectedPlanKey, setSelectedPlanKey] = useState(
-    DEFAULT_SELECTED_PLAN_KEY
+  const [selectedPlanKey, setSelectedPlanKey] = useState("");
+
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedPlanKey("");
+
+      return () => {
+        setSelectedPlanKey("");
+      };
+    }, [])
   );
 
   useEffect(() => {
@@ -165,12 +179,16 @@ export default function SubscriptionPlanView({
           ? "Loading price..."
           : remotePlan.priceLabel || "Price unavailable",
         priceId: remotePlan.priceId,
+        isCurrentPlan: option.lookupKey === currentPlanKey,
+        isCurrentOrLowerPlan:
+          Boolean(PLAN_RANK_BY_KEY[currentPlanKey]) &&
+          PLAN_RANK_BY_KEY[option.lookupKey] <= PLAN_RANK_BY_KEY[currentPlanKey],
         isAvailable:
           loadingPlans ||
           remotePlanByKey.has(option.lookupKey),
       };
     });
-  }, [loadingPlans, remotePlans]);
+  }, [currentPlanKey, loadingPlans, remotePlans]);
 
   const visiblePlans = useMemo(
     () => plans.filter((plan) => loadingPlans || plan.isAvailable),
@@ -181,9 +199,12 @@ export default function SubscriptionPlanView({
     loadingPlans ||
     Boolean(loadingPlan) ||
     !selectedPlan?.lookupKey ||
-    !selectedPlan?.isAvailable;
+    !selectedPlan?.isAvailable ||
+    selectedPlan?.isCurrentOrLowerPlan;
   const showCheckoutBar = Boolean(
-    selectedPlan?.lookupKey && selectedPlan?.isAvailable
+    selectedPlan?.lookupKey &&
+    selectedPlan?.isAvailable &&
+    !selectedPlan?.isCurrentOrLowerPlan
   );
 
   useEffect(() => {
@@ -193,12 +214,21 @@ export default function SubscriptionPlanView({
 
     if (
       selectedPlanKey &&
-      !selectedPlan?.isAvailable &&
-      visiblePlans[0]?.lookupKey
+      (!selectedPlan?.isAvailable || selectedPlan?.isCurrentOrLowerPlan)
     ) {
-      setSelectedPlanKey(visiblePlans[0].lookupKey);
+      const nextSelectablePlan = visiblePlans.find(
+        (plan) => plan.isAvailable && !plan.isCurrentOrLowerPlan
+      );
+
+      setSelectedPlanKey(nextSelectablePlan?.lookupKey || "");
     }
-  }, [loadingPlans, selectedPlan?.isAvailable, selectedPlanKey, visiblePlans]);
+  }, [
+    loadingPlans,
+    selectedPlan?.isAvailable,
+    selectedPlan?.isCurrentOrLowerPlan,
+    selectedPlanKey,
+    visiblePlans,
+  ]);
 
   async function handleCheckout() {
     if (!selectedPlan?.lookupKey || isCheckoutDisabled) {
@@ -274,10 +304,15 @@ export default function SubscriptionPlanView({
               title={plan.title}
               price={plan.price}
               badge={plan.badge}
+              current={plan.isCurrentPlan}
               selected={selectedPlanKey === plan.lookupKey}
-              disabled={Boolean(loadingPlan) || !plan.isAvailable}
+              disabled={
+                Boolean(loadingPlan) ||
+                !plan.isAvailable ||
+                plan.isCurrentOrLowerPlan
+              }
               onPress={() => {
-                if (plan.isAvailable) {
+                if (plan.isAvailable && !plan.isCurrentOrLowerPlan) {
                   setSelectedPlanKey((currentPlanKey) =>
                     currentPlanKey === plan.lookupKey ? "" : plan.lookupKey
                   );

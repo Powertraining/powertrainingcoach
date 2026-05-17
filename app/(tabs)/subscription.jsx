@@ -217,6 +217,9 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     return (
       <View style={styles.container}>
         <SubscriptionPlanView
+          currentPlanKey={
+            model.getDaysRemainingInSubscription?.() > 0 ? "pro_plan_setup" : ""
+          }
           onBack={handleBack}
           onCheckoutSuccess={handleCheckoutSuccess}
           returnTo={returnTo}

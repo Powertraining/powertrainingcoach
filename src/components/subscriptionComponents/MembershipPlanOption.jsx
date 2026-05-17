@@ -9,6 +9,7 @@ export default function MembershipPlanOption({
   price,
   badge,
   selected = false,
+  current = false,
   disabled = false,
   onPress,
 }) {
@@ -20,12 +21,14 @@ export default function MembershipPlanOption({
       onPress={onPress}
       style={({ pressed }) => [
         styles.row,
+        current ? styles.rowCurrent : null,
         selected ? styles.rowSelected : null,
         disabled ? styles.rowDisabled : null,
         pressed ? styles.rowPressed : null,
       ]}
     >
       <View style={styles.copy}>
+        {current ? <Text style={styles.currentLabel}>YOUR PLAN</Text> : null}
         <View style={styles.titleRow}>
           <Text numberOfLines={1} adjustsFontSizeToFit style={styles.title}>
             {title}
@@ -63,8 +66,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   rowSelected: {},
+  rowCurrent: {
+    backgroundColor: "rgba(255,255,255,0.14)",
+    minHeight: 84,
+  },
   rowDisabled: {
-    opacity: 0.55,
+    opacity: 0.65,
   },
   rowPressed: {
     transform: [{ scale: 0.99 }],
@@ -73,6 +80,12 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 5,
     minWidth: 0,
+  },
+  currentLabel: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "900",
+    lineHeight: 14,
   },
   titleRow: {
     alignItems: "center",
