@@ -116,6 +116,8 @@ export const model = {
 
   subscription: false,
   subscriptionEndDate: null,
+  subscriptionStartDate: null,
+  stripePriceLookupKey: "",
   trainingPerformanceState: createDefaultTrainingPerformanceState(),
   strengthAssessmentState: createDefaultStrengthAssessmentState(),
   trainingCheckInState: createDefaultTrainingCheckInState(),
@@ -1224,7 +1226,13 @@ export const model = {
    * @param {boolean} nextState.subscription
    * @param {string|null} nextState.subscriptionEndDate
    */
-  applySubscriptionState({ subscription, subscriptionEndDate }) {
+  applySubscriptionState({
+    subscription,
+    subscriptionEndDate,
+    subscriptionStartDate,
+    stripePriceLookupKey,
+    lookupKey,
+  }) {
     const normalizedSubscriptionEndDate = subscriptionEndDate || null;
     const hasActiveSubscription = Boolean(
       normalizedSubscriptionEndDate &&
@@ -1236,6 +1244,10 @@ export const model = {
 
     this.subscription = Boolean(subscription) || hasActiveSubscription;
     this.subscriptionEndDate = normalizedSubscriptionEndDate;
+    this.subscriptionStartDate =
+      subscriptionStartDate || this.subscriptionStartDate || null;
+    this.stripePriceLookupKey =
+      stripePriceLookupKey || lookupKey || this.stripePriceLookupKey || "";
 
     if (shouldResetTrainingProgress) {
       this.resetTrainingProgress();
@@ -1364,6 +1376,10 @@ export const model = {
    */
   getSubscriptionEndDate() {
     return this.subscriptionEndDate;
+  },
+
+  getSubscriptionStartDate() {
+    return this.subscriptionStartDate;
   },
 
   /**

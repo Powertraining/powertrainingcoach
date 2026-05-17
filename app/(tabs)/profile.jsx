@@ -292,6 +292,10 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     });
   }
 
+  function openSubscriptionDetailsACB() {
+    router.push("/(tabs)/profile-subscription-details");
+  }
+
   function openPersonalDetailsACB() {
     router.push("/(tabs)/profile-personal-details");
   }
@@ -385,6 +389,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onSave={saveACB}
         onCancel={cancelACB}
         onChangeSubscription={changeSubscriptionACB}
+        onOpenSubscriptionDetails={openSubscriptionDetailsACB}
         onOpenPersonalDetails={openPersonalDetailsACB}
         onOpenPlanAdjustments={openPlanAdjustmentsACB}
         onOpenEventPreparation={openEventPreparationACB}

@@ -66,6 +66,8 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     model.completedWeeks = persistedData.completedWeeks ?? 0;
     model.subscription = hasActiveSubscription;
     model.subscriptionEndDate = normalizedSubscriptionEndDate;
+    model.subscriptionStartDate = persistedData.subscriptionStartDate ?? null;
+    model.stripePriceLookupKey = persistedData.stripePriceLookupKey ?? "";
     model.trainingPerformanceState = normalizeTrainingPerformanceState(
       persistedData.trainingPerformanceState
     );
@@ -98,6 +100,8 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.sessionsPerWeek,
       model.subscription,
       model.subscriptionEndDate,
+      model.subscriptionStartDate,
+      model.stripePriceLookupKey,
       model.trainingPlan,
       model.completedDays,
       model.trainingPlanBatch,
@@ -113,6 +117,8 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       sessionsPerWeek: model.sessionsPerWeek,
       subscription: model.subscription,
       subscriptionEndDate: model.subscriptionEndDate,
+      subscriptionStartDate: model.subscriptionStartDate,
+      stripePriceLookupKey: model.stripePriceLookupKey,
       trainingPlan: model.trainingPlan ? 'exists' : 'null',
       trainingPlanBatch: model.trainingPlanBatch,
       completedWeeks: model.completedWeeks,
@@ -130,6 +136,8 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         sessionsPerWeek: model.sessionsPerWeek,
         subscription: model.subscription,
         subscriptionEndDate: model.subscriptionEndDate,
+        subscriptionStartDate: model.subscriptionStartDate,
+        stripePriceLookupKey: model.stripePriceLookupKey,
         trainingPlan: model.trainingPlan,
         completedDays: Array.from(model.completedDays || []),
         trainingPlanBatch: model.trainingPlanBatch,
@@ -202,7 +210,9 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
           });
           console.log('[firebaseModel.onAuthStateChangedACB] ✅ Loaded subscription data from Firestore:', {
             subscription: model.subscription,
-            subscriptionEndDate: model.subscriptionEndDate
+            subscriptionEndDate: model.subscriptionEndDate,
+            subscriptionStartDate: model.subscriptionStartDate,
+            stripePriceLookupKey: model.stripePriceLookupKey
           });
         } else {
           // New user or no document yet - reset to defaults
@@ -235,6 +245,8 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       // Reset subscription data on logout to prevent it from persisting to next user
       model.subscription = false;
       model.subscriptionEndDate = null;
+      model.subscriptionStartDate = null;
+      model.stripePriceLookupKey = "";
       model.primaryCombatSport = "";
       model.sessionsPerWeek = 3;
       model.trainingPerformanceState = normalizeTrainingPerformanceState();

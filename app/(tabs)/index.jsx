@@ -94,6 +94,8 @@ const HomeScreen = observer(function HomeScreen() {
         model.applySubscriptionState?.({
           subscription: result.active,
           subscriptionEndDate: result.subscriptionEndDate,
+          subscriptionStartDate: result.subscriptionStartDate,
+          lookupKey: result.lookupKey,
         });
       })
       .catch((error) => {

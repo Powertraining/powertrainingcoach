@@ -48,6 +48,8 @@ function getActiveTabName(pathname) {
   if (
     pathname === "/profile" ||
     pathname === "/(tabs)/profile" ||
+    pathname === "/profile-subscription-details" ||
+    pathname === "/(tabs)/profile-subscription-details" ||
     pathname === "/profile-personal-details" ||
     pathname === "/(tabs)/profile-personal-details" ||
     pathname === "/profile-plan-adjustments" ||
@@ -67,6 +69,8 @@ const VISIBLE_TAB_ROUTES = new Set(["index", "overview", "forum", "profile"]);
 const PROFILE_SECONDARY_ROUTES = new Set([
   "/profile-personal-details",
   "/(tabs)/profile-personal-details",
+  "/profile-subscription-details",
+  "/(tabs)/profile-subscription-details",
   "/profile-plan-adjustments",
   "/(tabs)/profile-plan-adjustments",
   "/profile-event-preparation",
@@ -288,6 +292,12 @@ const TabsLayout = observer(function TabsLayout() {
         />
         <Tabs.Screen
           name="profile-personal-details"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-subscription-details"
           options={{
             href: null,
           }}

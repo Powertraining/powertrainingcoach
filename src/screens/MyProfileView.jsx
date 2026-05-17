@@ -227,7 +227,12 @@ export function MyProfileView(props) {
             subscriptionText={props.subscriptionText}
             isActive={props.isSubscriptionActive}
             isSubmitting={props.isSubmitting}
-            onPress={props.onChangeSubscription}
+            onUpgradePress={props.onChangeSubscription}
+            onDetailsPress={
+              props.isSubscriptionActive
+                ? props.onOpenSubscriptionDetails
+                : props.onChangeSubscription
+            }
           />
         ) : null}
 

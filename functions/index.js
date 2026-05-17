@@ -248,6 +248,42 @@ function getSubscriptionPeriodEndUnixTimestamp(subscription) {
 
 /**
  * @param {object} subscription
+ * @return {number|null}
+ */
+function getSubscriptionPeriodStartUnixTimestamp(subscription) {
+  if (!subscription) {
+    return null;
+  }
+
+  if (typeof subscription.current_period_start === "number") {
+    return subscription.current_period_start;
+  }
+
+  const itemPeriodStarts = (
+    (subscription.items && subscription.items.data) || []
+  )
+      .map((item) => item && typeof item.current_period_start === "number" ?
+        item.current_period_start :
+        null)
+      .filter((value) => typeof value === "number");
+
+  if (itemPeriodStarts.length > 0) {
+    return Math.min(...itemPeriodStarts);
+  }
+
+  if (typeof subscription.start_date === "number") {
+    return subscription.start_date;
+  }
+
+  if (typeof subscription.created === "number") {
+    return subscription.created;
+  }
+
+  return null;
+}
+
+/**
+ * @param {object} subscription
  * @return {boolean}
  */
 function isSubscriptionEntitled(subscription) {
@@ -547,11 +583,15 @@ async function syncStripeSubscriptionToFirestore({
   const subscriptionEndDate = formatDateFromUnixTimestamp(
       subscriptionPeriodEnd,
   );
+  const subscriptionStartDate = formatDateFromUnixTimestamp(
+      getSubscriptionPeriodStartUnixTimestamp(resolvedSubscription),
+  );
   const active = isSubscriptionEntitled(resolvedSubscription);
 
   await getCombatModelCollection().doc(firebaseUID).set({
     subscription: active,
     subscriptionEndDate,
+    subscriptionStartDate,
     stripeSubscriptionId: resolvedSubscription.id,
     stripeCustomerId: customerId || null,
     stripePriceLookupKey: lookupKey,
@@ -572,6 +612,7 @@ async function syncStripeSubscriptionToFirestore({
     firebaseUID,
     lookupKey,
     subscriptionEndDate,
+    subscriptionStartDate,
     subscriptionId: resolvedSubscription.id,
     subscriptionStatus: resolvedSubscription.status,
   };
