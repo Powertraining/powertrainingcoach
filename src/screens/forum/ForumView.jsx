@@ -15,6 +15,21 @@ const COLORS = {
   muted: "#9ca3af",
 };
 
+function hasActiveFilters(filters = {}) {
+  const topics = Array.isArray(filters?.topics) ? filters.topics.filter(Boolean) : [];
+  const legacyTopic = String(filters?.topic ?? "all").trim();
+
+  return Boolean(
+    String(filters?.searchQuery ?? "").trim() ||
+      (legacyTopic && legacyTopic !== "all") ||
+      topics.length > 0 ||
+      String(filters?.exerciseId ?? "").trim() ||
+      String(filters?.tag ?? "").trim() ||
+      filters?.followedOnly ||
+      (filters?.sortBy && filters.sortBy !== "recent")
+  );
+}
+
 export default function ForumView({
   posts = [],
   isPostsLoading = false,
@@ -33,11 +48,17 @@ export default function ForumView({
   onToggleCoachResponse,
   onPressComments,
   onPressPost,
+  onPressTopic,
   onPressPostButton,
   onRetryPosts,
 }) {
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef(null);
+  const isResetFiltersVisible = hasActiveFilters(filters);
+  const shouldShowResetFiltersButton =
+    isResetFiltersVisible && !isSearchFiltersVisible;
+  const hasFilterHeaderControl =
+    shouldShowResetFiltersButton || isSearchFiltersVisible;
   const closeFiltersFromPosts = () => {
     if (isSearchFiltersVisible) {
       onCloseSearchFilters?.();
@@ -54,7 +75,12 @@ export default function ForumView({
             { paddingTop: Math.max(insets.top + 8, 16) },
           ]}
         >
-          <View style={styles.searchBarWrapper}>
+          <View
+            style={[
+              styles.searchBarWrapper,
+              hasFilterHeaderControl ? styles.searchBarWrapperWithReset : null,
+            ]}
+          >
             <View style={styles.searchBar}>
               <TouchableOpacity
                 accessibilityRole="button"
@@ -86,6 +112,16 @@ export default function ForumView({
               </TouchableOpacity>
             </View>
           </View>
+
+          {shouldShowResetFiltersButton ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onResetFilters}
+              style={styles.resetFiltersButton}
+            >
+              <Text style={styles.resetFiltersButtonText}>Reset filters</Text>
+            </TouchableOpacity>
+          ) : null}
 
           <SearchFiltersView
             visible={isSearchFiltersVisible}
@@ -123,6 +159,7 @@ export default function ForumView({
                   onToggleCoachResponse={onToggleCoachResponse}
                   onPressComments={onPressComments}
                   onPressPost={onPressPost}
+                  onPressTopic={onPressTopic}
                 />
               ))
             )}
@@ -192,6 +229,9 @@ const styles = StyleSheet.create({
     height: 60,
     marginBottom: 24,
   },
+  searchBarWrapperWithReset: {
+    marginBottom: 12,
+  },
   searchBar: {
     flex: 1,
     flexDirection: "row",
@@ -230,6 +270,24 @@ const styles = StyleSheet.create({
     height: 30,
     tintColor: COLORS.text,
     width: 30,
+  },
+  resetFiltersButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: COLORS.text,
+    borderRadius: 999,
+    justifyContent: "center",
+    marginBottom: 12,
+    marginLeft: 20,
+    minHeight: 34,
+    paddingHorizontal: 14,
+  },
+  resetFiltersButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
   },
   postButton: {
     position: "absolute",

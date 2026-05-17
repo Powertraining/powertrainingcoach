@@ -24,6 +24,7 @@ export default function PostCard({
   onToggleCoachResponse,
   onPressComments,
   onPressPost,
+  onPressTopic,
 }) {
   const { height } = useWindowDimensions();
   const isPostLiked = Boolean(post?.isLiked);
@@ -58,7 +59,7 @@ export default function PostCard({
 
             <View style={styles.dot} />
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => onPressTopic?.(post?.topic)}>
               <Text numberOfLines={1} style={styles.postTopic}>
                 {post?.topic}
               </Text>

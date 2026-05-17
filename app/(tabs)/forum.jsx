@@ -297,6 +297,17 @@ const ForumScreen = observer(function ForumScreen() {
     }
   }
 
+  async function handlePostTopicPress(topic) {
+    const normalizedTopic = String(topic ?? "").trim().toLowerCase();
+
+    if (!normalizedTopic) {
+      return;
+    }
+
+    hideSearchFiltersView();
+    await handleForumFilterChange({ topics: [normalizedTopic], topic: "all" });
+  }
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -337,6 +348,7 @@ const ForumScreen = observer(function ForumScreen() {
           onRetryPosts={handleRetry}
           onPressComments={showCommentsView}
           onPressPost={showPostView}
+          onPressTopic={handlePostTopicPress}
         />
       ) : null}
       {currentView === "compose" ? (
