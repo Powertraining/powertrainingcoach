@@ -4,12 +4,20 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import Comment from "../../components/forumComponents/Comment.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
+
+const COLORS = {
+  panel: "#141414",
+  panelBorder: "#1E1E1E",
+  text: "#ffffff",
+  muted: "#9ca3af",
+  error: "#fca5a5",
+};
 
 export default function CommentsView({
   onClose,
@@ -48,7 +56,7 @@ export default function CommentsView({
                 onChangeText={onChangeCommentText}
                 editable={!isSubmittingComment}
                 placeholder="Write a comment"
-                placeholderTextColor="#8A8A8A"
+                placeholderTextColor={COLORS.muted}
                 selectionColor="#fff"
                 style={styles.commentInput}
               />
@@ -57,12 +65,12 @@ export default function CommentsView({
                 onPress={onCreateComment}
                 disabled={isSubmittingComment}
               >
-                <StandardText fontSize={16} textColor="#000">
+                <Text style={styles.commentSubmitButtonText}>
                   {isSubmittingComment ? "Posting..." : "Post Comment"}
-                </StandardText>
+                </Text>
               </TouchableOpacity>
               {commentError ? (
-                <StandardText style={styles.commentError}>{commentError}</StandardText>
+                <Text style={styles.commentError}>{commentError}</Text>
               ) : null}
             </View>
           </View>
@@ -108,7 +116,9 @@ const styles = StyleSheet.create({
   content: {
     width: "85%",
     height: "75%",
-    backgroundColor: "#1C1C1C",
+    backgroundColor: COLORS.panel,
+    borderColor: COLORS.panelBorder,
+    borderWidth: 2,
     borderTopLeftRadius: 45,
     borderTopRightRadius: 45,
     paddingTop: 40,
@@ -133,12 +143,14 @@ const styles = StyleSheet.create({
   commentInput: {
     minHeight: 90,
     borderWidth: 1,
-    borderColor: "#4A4A4A",
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: "#fff",
-    fontSize: 16,
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 20,
     textAlignVertical: "top",
   },
   commentSubmitButton: {
@@ -146,13 +158,21 @@ const styles = StyleSheet.create({
     minHeight: 36,
     paddingHorizontal: 14,
     borderRadius: 120,
-    backgroundColor: "#C9B259",
+    backgroundColor: COLORS.text,
     justifyContent: "center",
     alignItems: "center",
   },
+  commentSubmitButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+  },
   commentError: {
-    color: "#FF7A7A",
-    fontSize: 15,
+    color: COLORS.error,
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 17,
   },
   commentsList: {
     flex: 1,

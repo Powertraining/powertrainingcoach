@@ -1,6 +1,13 @@
 import { StyleSheet, TouchableWithoutFeedback, View, Text } from "react-native";
 import Comment from "../../components/forumComponents/Comment.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
+
+const COLORS = {
+  gold: "#C9B259",
+  panel: "#141414",
+  panelBorder: "#1E1E1E",
+  text: "#ffffff",
+  muted: "#9ca3af",
+};
 
 export default function CoachResponseView({ onClose, comments = [] }) {
   return (
@@ -10,7 +17,7 @@ export default function CoachResponseView({ onClose, comments = [] }) {
         <TouchableWithoutFeedback onPress={() => {}}>
           <View style={styles.content}>
             <View style={styles.box}>
-              <StandardText textColor="#C9B259" fontSize={24}>Coach Response</StandardText>
+              <Text style={styles.title}>Coach Response</Text>
               <Text style={styles.description}>
                 Coach Response shows that a verified coach has contributed to the thread, so you can weigh the advice with more confidence.
               </Text>
@@ -41,16 +48,26 @@ const styles = StyleSheet.create({
   },
   content: {
     width: "85%",
-    backgroundColor: "#121212",
+    backgroundColor: COLORS.panel,
+    borderColor: COLORS.panelBorder,
+    borderWidth: 2,
     borderRadius: 45,
     padding: 40,
   },
   box: {
     alignItems: "center",
   },
+  title: {
+    color: COLORS.gold,
+    fontSize: 20,
+    fontWeight: "900",
+    lineHeight: 25,
+  },
   description: {
-    fontSize: 17,
-    color: "#C9B259",
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 20,
+    color: COLORS.muted,
     marginTop: 10,
     textAlign: "center",
   },

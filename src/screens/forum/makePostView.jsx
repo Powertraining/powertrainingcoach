@@ -1,7 +1,12 @@
 import { Text, Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
 
-const stockProfileImage = require("../../assets/icons/user.png");
+const COLORS = {
+  gold: "#C9B259",
+  panel: "#141414",
+  panelBorder: "#1E1E1E",
+  text: "#ffffff",
+  muted: "#9ca3af",
+};
 
 export default function MakePostView({
   value = "",
@@ -23,24 +28,33 @@ export default function MakePostView({
     <View style={styles.header}>
       <Image source={avatarSource} style={styles.avatar} />
       <View style={styles.tagContainer}>
-        <TouchableOpacity><StandardText  fontSize={20}>Tags</StandardText></TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.tagText}>Tags</Text>
+        </TouchableOpacity>
       </View>
     </View>
-    <TextInput multiline style={styles.textInput} placeholder="What's on your mind?" value={value} onChangeText={onChangeText} />
+    <TextInput
+      multiline
+      style={styles.textInput}
+      placeholder="What's on your mind?"
+      placeholderTextColor={COLORS.muted}
+      value={value}
+      onChangeText={onChangeText}
+    />
     <View style={styles.footer}>
       <View style={styles.footerButtons}>
         <TouchableOpacity onPress={onDiscard}>
-          <StandardText fontSize={16} textColor="#000">Discard</StandardText>
+          <Text style={styles.footerButtonText}>Discard</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.footerButtons}>
         <TouchableOpacity onPress={onUploadImage}>
-          <StandardText fontSize={16} textColor="#000">Image</StandardText>
+          <Text style={styles.footerButtonText}>Image</Text>
         </TouchableOpacity>
       </View>
-      <View style={[styles.footerButtons,{backgroundColor:"#C9B259"}]}>
+      <View style={styles.footerButtons}>
         <TouchableOpacity onPress={onPost}>
-          <StandardText fontSize={16} textColor="#000">Post</StandardText>
+          <Text style={styles.footerButtonText}>Post</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -65,7 +79,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   tagContainer: {
-  borderColor: "#fff",
+  borderColor: "rgba(255,255,255,0.48)",
   borderWidth: 1,
   borderRadius: 120,
   height:40,
@@ -73,11 +87,18 @@ const styles = StyleSheet.create({
   paddingHorizontal: 20,
   borderStyle: "dashed",
   },
+  tagText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
   textInput: {
     marginTop: 28,
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: "600",
     lineHeight: 22,
-    color: "#fff",
+    color: COLORS.text,
     width: "100%",
     height:"86%",
     textAlignVertical: "top",
@@ -85,8 +106,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingTop: 15,
-    borderColor: "#fff",
-    borderTopWidth: 2,
+    borderColor: COLORS.panelBorder,
+    borderTopWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
 
@@ -94,9 +115,15 @@ const styles = StyleSheet.create({
   footerButtons: {
     width:90,
     height: 38,
-    backgroundColor:"#fff",
+    backgroundColor:COLORS.text,
     borderRadius: 120,
     justifyContent: "center",
     alignItems: "center",
+  },
+  footerButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
   }
 });

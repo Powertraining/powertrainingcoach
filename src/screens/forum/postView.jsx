@@ -1,9 +1,17 @@
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
 import VerifiedBadge from "../../components/forumComponents/VerifiedBadge.jsx";
 import Comment from "../../components/forumComponents/Comment.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
+
+const COLORS = {
+  gold: "#C9B259",
+  panel: "#141414",
+  panelBorder: "#1E1E1E",
+  text: "#ffffff",
+  muted: "#9ca3af",
+  error: "#fca5a5",
+};
 
 export default function PostView({
   post,
@@ -42,19 +50,23 @@ export default function PostView({
     <QuestionnaireShell hideTabBar={false}>
       <View style={styles.wrapper}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <StandardText fontSize={18}>Back</StandardText>
+          <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
           <View style={styles.header}>
             <View style={styles.authorRow}>
               {post?.isCoachVerified ? <VerifiedBadge /> : null}
-              <StandardText style={styles.authorName}>{post?.authorDisplayName}</StandardText>
+              <Text numberOfLines={1} style={styles.authorName}>
+                {post?.authorDisplayName}
+              </Text>
             </View>
-            <StandardText style={styles.topicText}>{post?.topic}</StandardText>
+            <Text numberOfLines={1} style={styles.topicText}>
+              {post?.topic}
+            </Text>
           </View>
 
-          <StandardText style={styles.title}>{post?.title}</StandardText>
+          <Text style={styles.title}>{post?.title}</Text>
           <Text style={styles.body}>{post?.body}</Text>
 
           <View style={styles.menu}>
@@ -75,23 +87,23 @@ export default function PostView({
                 source={require("../../assets/icons/like.png")}
                 style={[styles.buttonIcon, isPostLiked ? styles.buttonIconActive : null]}
               />
-              <StandardText fontSize={18} textColor={isPostLiked ? "#000" : "#fff"}>
+              <Text style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
                 {post?.likesCount}
-              </StandardText>
+              </Text>
             </TouchableOpacity>
             {post?.coachResponseStatus === "responded" ? (
               <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                 <GoldGradient style={styles.coachResponseStatus}>
-                  <StandardText style={styles.coachResponseText} textColor="#111111">
+                  <Text style={styles.coachResponseText}>
                     Coach Response
-                  </StandardText>
+                  </Text>
                 </GoldGradient>
               </TouchableOpacity>
             ) : null}
           </View>
 
           <View style={styles.commentsSection}>
-            <StandardText textColor="#C9B259" fontSize={22}>Comments</StandardText>
+            <Text style={styles.commentsTitle}>Comments</Text>
             <View style={styles.commentComposer}>
               <Image source={avatarSource} style={styles.commentAvatar} />
               <View style={styles.commentComposerBody}>
@@ -101,7 +113,7 @@ export default function PostView({
                   onChangeText={onChangeCommentText}
                   editable={!isSubmittingComment}
                   placeholder="Write a comment"
-                  placeholderTextColor="#8A8A8A"
+                  placeholderTextColor={COLORS.muted}
                   selectionColor="#fff"
                   style={styles.commentInput}
                 />
@@ -110,15 +122,12 @@ export default function PostView({
                   onPress={onCreateComment}
                   disabled={isSubmittingComment}
                 >
-                  <StandardText
-                    fontSize={16}
-                    textColor="#000"
-                  >
+                  <Text style={styles.commentSubmitButtonText}>
                     {isSubmittingComment ? "Posting..." : "Post Comment"}
-                  </StandardText>
+                  </Text>
                 </TouchableOpacity>
                 {commentError ? (
-                  <StandardText style={styles.commentError}>{commentError}</StandardText>
+                  <Text style={styles.commentError}>{commentError}</Text>
                 ) : null}
               </View>
             </View>
@@ -151,8 +160,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
+    alignSelf: "flex-start",
     paddingHorizontal: 24,
     paddingTop: 16,
+    paddingVertical: 4,
+  },
+  backButtonText: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 17,
   },
   scrollView: {
     flex: 1,
@@ -171,22 +188,31 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   authorName: {
-    color: "#fff",
-    fontSize: 18,
+    color: COLORS.text,
+    flexShrink: 1,
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 21,
   },
   topicText: {
-    color: "#C9B259",
-    fontSize: 18,
+    color: COLORS.muted,
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 20,
+    textTransform: "uppercase",
   },
   title: {
-    color: "#fff",
-    fontSize: 24,
+    color: COLORS.text,
+    fontSize: 22,
+    fontWeight: "900",
+    lineHeight: 28,
     marginTop: 20,
   },
   body: {
-    color: "#fff",
-    fontSize: 16,
-    lineHeight: 24,
+    color: COLORS.muted,
+    fontSize: 15,
+    fontWeight: "600",
+    lineHeight: 23,
     marginTop: 20,
   },
   menu: {
@@ -201,6 +227,12 @@ const styles = StyleSheet.create({
   },
   commentsList: {
     marginHorizontal: -24,
+  },
+  commentsTitle: {
+    color: COLORS.gold,
+    fontSize: 20,
+    fontWeight: "900",
+    lineHeight: 25,
   },
   commentComposer: {
     flexDirection: "row",
@@ -221,45 +253,60 @@ const styles = StyleSheet.create({
   commentInput: {
     minHeight: 90,
     borderWidth: 1,
-    borderColor: "#4A4A4A",
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: "#fff",
-    fontSize: 16,
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 20,
     textAlignVertical: "top",
   },
   commentSubmitButton: {
     alignSelf: "flex-start",
     minHeight: 36,
-    paddingHorizontal: 14,
-    borderRadius: 120,
-    backgroundColor: "#C9B259",
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    backgroundColor: COLORS.text,
     justifyContent: "center",
     alignItems: "center",
   },
+  commentSubmitButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+  },
   commentError: {
-    color: "#FF7A7A",
-    fontSize: 15,
+    color: COLORS.error,
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 17,
   },
   coachResponseStatus: {
     alignSelf: "flex-start",
-    borderRadius: 120,
-    paddingHorizontal: 10,
+    borderRadius: 999,
+    paddingHorizontal: 14,
     height: 36,
     justifyContent: "center",
     position: "relative",
     overflow: "hidden",
   },
   coachResponseText: {
-    fontSize: 19,
+    color: "#111111",
+    fontSize: 11,
+    fontWeight: "900",
+    lineHeight: 14,
+    textTransform: "uppercase",
   },
   countButton: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.22)",
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 120,
     height: 36,
-    width: 62,
+    minWidth: 66,
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "flex-start",
@@ -267,26 +314,38 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   countButtonActive: {
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.text,
+    borderColor: COLORS.text,
   },
   standardButton: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.22)",
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 120,
     height: 36,
-    width: 36,
+    width: 42,
     justifyContent: "center",
     alignItems: "center",
   },
   standardButtonActive: {
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.text,
+    borderColor: COLORS.text,
   },
   buttonIcon: {
     width: 18,
     height: 18,
-    tintColor: "#fff",
+    tintColor: COLORS.text,
   },
   buttonIconActive: {
     tintColor: "#000",
+  },
+  countText: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 17,
+  },
+  countTextActive: {
+    color: "#111111",
   },
 });

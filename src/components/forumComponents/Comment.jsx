@@ -2,14 +2,22 @@ import { useState } from "react";
 import {
   Image,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
 import { MAX_FORUM_COMMENT_REPLY_DEPTH } from "../../services/models/forumModel.js";
-import StandardText from "../textComponents/StandardText.jsx";
 import VerifiedBadge from "./VerifiedBadge.jsx";
+
+const COLORS = {
+  gold: "#C9B259",
+  text: "#ffffff",
+  muted: "#9ca3af",
+  panel: "#141414",
+  error: "#fca5a5",
+};
 
 export default function Comment({
   comment,
@@ -55,10 +63,12 @@ export default function Comment({
         <View style={styles.textContent}>
           <View style={styles.nameRow}>
             {comment?.isCoachVerified ? <VerifiedBadge /> : null}
-            <StandardText style={styles.name}>{comment?.authorDisplayName}</StandardText>
+            <Text numberOfLines={1} style={styles.name}>
+              {comment?.authorDisplayName}
+            </Text>
           </View>
-          <StandardText
-            lines={bodyLines}
+          <Text
+            numberOfLines={bodyLines}
             style={styles.body}
             onTextLayout={(event) => {
               if (expanded) {
@@ -72,20 +82,20 @@ export default function Comment({
             }}
           >
             {comment?.body}
-          </StandardText>
+          </Text>
           <View style={styles.buttons}>
             {canReply ? (
               <TouchableOpacity onPress={() => onPressReply?.(comment)}>
-                <StandardText style={styles.readMore}>
+                <Text style={styles.readMore}>
                   {isReplying ? "Close" : "Reply"}
-                </StandardText>
+                </Text>
               </TouchableOpacity>
             ) : null}
             {needsToggle ? (
               <TouchableOpacity onPress={() => setExpanded((current) => !current)}>
-                <StandardText style={styles.readMore}>
+                <Text style={styles.readMore}>
                   {expanded ? "Less" : "More"}
-                </StandardText>
+                </Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -109,20 +119,20 @@ export default function Comment({
                     onPress={onCreateReply}
                     disabled={isSubmittingReply}
                   >
-                    <StandardText fontSize={15} textColor="#000">
+                    <Text style={styles.replySubmitButtonText}>
                       {isSubmittingReply ? "Posting..." : "Post Reply"}
-                    </StandardText>
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.replyCancelButton}
                     onPress={onCancelReply}
                     disabled={isSubmittingReply}
                   >
-                    <StandardText fontSize={15}>Cancel</StandardText>
+                    <Text style={styles.replyCancelButtonText}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
                 {replyError ? (
-                  <StandardText style={styles.replyError}>{replyError}</StandardText>
+                  <Text style={styles.replyError}>{replyError}</Text>
                 ) : null}
               </View>
             </View>
@@ -195,13 +205,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: {
-    fontSize: 18,
-    color: "#fff",
+    color: COLORS.text,
+    flexShrink: 1,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
   },
   body: {
-    fontSize: 15,
-    color: "#fff",
-    lineHeight: 22,
+    color: COLORS.muted,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 21,
   },
   buttons: {
     flexDirection: "row",
@@ -209,7 +223,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   readMore: {
-    fontSize: 15,
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 17,
   },
   replyComposer: {
     flexDirection: "row",
@@ -230,12 +247,14 @@ const styles = StyleSheet.create({
   replyInput: {
     minHeight: 78,
     borderWidth: 1,
-    borderColor: "#4A4A4A",
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: "#fff",
-    fontSize: 15,
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 20,
     textAlignVertical: "top",
   },
   replyComposerActions: {
@@ -244,24 +263,39 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   replySubmitButton: {
-    minHeight: 34,
-    paddingHorizontal: 14,
-    borderRadius: 120,
-    backgroundColor: "#C9B259",
+    minHeight: 36,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    backgroundColor: COLORS.text,
     justifyContent: "center",
     alignItems: "center",
+  },
+  replySubmitButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
   },
   replyCancelButton: {
-    minHeight: 34,
-    paddingHorizontal: 14,
-    borderRadius: 120,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.22)",
     borderWidth: 1,
-    borderColor: "#4A4A4A",
+    minHeight: 36,
+    paddingHorizontal: 18,
+    borderRadius: 999,
     justifyContent: "center",
     alignItems: "center",
   },
+  replyCancelButtonText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+  },
   replyError: {
-    color: "#FF7A7A",
-    fontSize: 14,
+    color: COLORS.error,
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 17,
   },
 });

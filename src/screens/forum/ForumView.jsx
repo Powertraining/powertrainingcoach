@@ -1,7 +1,15 @@
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View, TextInput } from "react-native";
+
 import PostCard from "../../components/forumComponents/PostCard.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
+
+const COLORS = {
+  gold: "#C9B259",
+  panel: "#141414",
+  panelBorder: "#1E1E1E",
+  text: "#ffffff",
+  muted: "#9ca3af",
+};
 
 export default function ForumView({
   posts = [],
@@ -27,15 +35,21 @@ export default function ForumView({
               />
               <TextInput
                 selectionColor="#fff"
-                placeholderTextColor="rgba(255, 255, 255, 0.65)"
+                placeholder="Search"
+                placeholderTextColor={COLORS.muted}
                 value={searchQuery}
                 onChangeText={onChangeSearchQuery}
                 style={styles.searchInput}
               />
-              <TouchableOpacity onPress={onPressSearchFiltersButton}>
-                <Image source={require("../../assets/icons/filter.png")} style={{width: 30, height: 30}} />
+              <TouchableOpacity
+                onPress={onPressSearchFiltersButton}
+                style={styles.filterButton}
+              >
+                <Image
+                  source={require("../../assets/icons/filter.png")}
+                  style={styles.filterIcon}
+                />
               </TouchableOpacity>
-              
             </View>
           </View>
            
@@ -76,35 +90,51 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
 
-  // Search
   searchBarWrapper: {
+    backgroundColor: COLORS.panel,
+    borderColor: COLORS.panelBorder,
     borderRadius: 120,
+    borderWidth: 2,
     marginHorizontal: 16,
     height: 60,
     marginBottom: 24,
     marginTop: 8,
-    backgroundColor: "rgba(126, 126, 126, 0.5)",
   },
   searchBar: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     paddingHorizontal: 16,
   },
   searchIcon: {
-    width: 24,
-    height: 24,
-    tintColor: "#fff",
+    width: 20,
+    height: 20,
+    tintColor: COLORS.muted,
   },
   searchInput: {
     flex: 1,
-    color: "#fff",
+    color: COLORS.text,
     height: "100%",
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: 18,
+    padding: 0,
   },
-
-  // Floating action
+  filterButton: {
+    alignItems: "center",
+    borderColor: "rgba(255,255,255,0.26)",
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 34,
+    justifyContent: "center",
+    width: 34,
+  },
+  filterIcon: {
+    height: 18,
+    tintColor: COLORS.text,
+    width: 18,
+  },
   postButton: {
     position: "absolute",
     right: 30,
@@ -112,10 +142,15 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 120,
-    backgroundColor: "#C9B259",
+    backgroundColor: COLORS.gold,
     zIndex: 10,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    elevation: 10,
   },
   postButtonIcon: {
     width: 26,

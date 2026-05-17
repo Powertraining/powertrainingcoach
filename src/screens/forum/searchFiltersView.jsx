@@ -2,11 +2,19 @@ import {
   Modal,
   Pressable,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
 import { FORUM_TOPIC_SUGGESTIONS } from "../../services/models/forumModel.js";
+
+const COLORS = {
+  gold: "#C9B259",
+  panel: "#141414",
+  panelBorder: "#1E1E1E",
+  text: "#ffffff",
+  muted: "#9ca3af",
+};
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
@@ -36,16 +44,16 @@ export default function SearchFiltersView({
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={styles.content}>
           <View style={styles.header}>
-            <StandardText fontSize={24}>Search Filters</StandardText>
+            <Text style={styles.title}>Search Filters</Text>
             <TouchableOpacity onPress={onClose}>
-              <StandardText fontSize={16} textColor="#C9B259">
+              <Text style={styles.closeText}>
                 Close
-              </StandardText>
+              </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
-            <StandardText fontSize={18}>Topic</StandardText>
+            <Text style={styles.sectionTitle}>Topic</Text>
             <View style={styles.chipRow}>
               {topicOptions.map((topic) => {
                 const isSelected = selectedTopic === topic;
@@ -56,9 +64,9 @@ export default function SearchFiltersView({
                     style={[styles.chip, isSelected ? styles.chipSelected : null]}
                     onPress={() => onChangeTopic?.(topic)}
                   >
-                    <StandardText textColor={isSelected ? "#000" : "#fff"}>
+                    <Text style={[styles.chipText, isSelected ? styles.chipTextSelected : null]}>
                       {topic}
-                    </StandardText>
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -66,7 +74,7 @@ export default function SearchFiltersView({
           </View>
 
           <View style={styles.section}>
-            <StandardText fontSize={18}>Sort By</StandardText>
+            <Text style={styles.sectionTitle}>Sort By</Text>
             <View style={styles.chipRow}>
               {SORT_OPTIONS.map((option) => {
                 const isSelected = selectedSortBy === option.value;
@@ -77,9 +85,9 @@ export default function SearchFiltersView({
                     style={[styles.chip, isSelected ? styles.chipSelected : null]}
                     onPress={() => onChangeSortBy?.(option.value)}
                   >
-                    <StandardText textColor={isSelected ? "#000" : "#fff"}>
+                    <Text style={[styles.chipText, isSelected ? styles.chipTextSelected : null]}>
                       {option.label}
-                    </StandardText>
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -87,7 +95,7 @@ export default function SearchFiltersView({
           </View>
 
           <TouchableOpacity style={styles.resetButton} onPress={onReset}>
-            <StandardText textColor="#000">Reset Filters</StandardText>
+            <Text style={styles.resetButtonText}>Reset Filters</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -109,8 +117,10 @@ const styles = StyleSheet.create({
   },
   content: {
     width: "88%",
+    borderColor: COLORS.panelBorder,
     borderRadius: 28,
-    backgroundColor: "#1C1C1C",
+    borderWidth: 2,
+    backgroundColor: COLORS.panel,
     padding: 24,
     gap: 24,
   },
@@ -119,8 +129,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  title: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: "900",
+    lineHeight: 25,
+  },
+  closeText: {
+    color: COLORS.gold,
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 17,
+    textTransform: "uppercase",
+  },
   section: {
     gap: 12,
+  },
+  sectionTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 19,
   },
   chipRow: {
     flexDirection: "row",
@@ -132,19 +161,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 120,
     borderWidth: 1,
-    borderColor: "#5A5A5A",
+    borderColor: "rgba(255,255,255,0.32)",
     justifyContent: "center",
     alignItems: "center",
   },
   chipSelected: {
-    backgroundColor: "#C9B259",
-    borderColor: "#C9B259",
+    backgroundColor: COLORS.text,
+    borderColor: COLORS.text,
+  },
+  chipText: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 17,
+  },
+  chipTextSelected: {
+    color: COLORS.panel,
   },
   resetButton: {
     minHeight: 44,
     borderRadius: 120,
-    backgroundColor: "#C9B259",
+    backgroundColor: COLORS.text,
     justifyContent: "center",
     alignItems: "center",
+  },
+  resetButtonText: {
+    color: COLORS.panel,
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 17,
   },
 });
