@@ -19,8 +19,15 @@ const BENEFITS = [
 
 export default function SubscriptionCard({
   planName,
+  cardStyle,
+  contentStyle,
+  planLabelStyle,
   timeRemainingText,
   subscriptionText,
+  benefits = BENEFITS,
+  showActions = true,
+  showBackground = true,
+  showBraces = true,
   isActive = false,
   isSubmitting = false,
   onPress,
@@ -30,13 +37,16 @@ export default function SubscriptionCard({
   const handleDetailsPress = onDetailsPress || onPress;
   const handleUpgradePress = onUpgradePress || onPress;
   const planLabel = planName || (isActive ? "Pro Plan" : "No Plan");
+  const displayedPlanLabel = showBraces ? `{ ${planLabel} }` : planLabel;
 
   return (
-    <View style={styles.card}>
-      <BlackGradient />
-      <View style={styles.content}>
+    <View style={[styles.card, !showBackground ? styles.cardPlain : null, cardStyle]}>
+      {showBackground ? <BlackGradient /> : null}
+      <View style={[styles.content, contentStyle]}>
         <View style={styles.planHeader}>
-          <Text style={styles.planLabel}>{`{ ${planLabel} }`}</Text>
+          <Text style={[styles.planLabel, planLabelStyle]}>
+            {displayedPlanLabel}
+          </Text>
           {timeRemainingText ? (
             <View style={styles.timePill}>
               <Text style={styles.timePillText}>{timeRemainingText}</Text>
@@ -45,42 +55,44 @@ export default function SubscriptionCard({
         </View>
 
         <View style={styles.benefitsRow}>
-          {BENEFITS.map((benefit) => (
+          {benefits.map((benefit) => (
             <View key={benefit.title} style={styles.benefitItem}>
-              <Text numberOfLines={1} style={styles.benefitTitle}>
+              <Text numberOfLines={2} adjustsFontSizeToFit style={styles.benefitTitle}>
                 {benefit.title}
               </Text>
               <View style={styles.benefitDivider} />
-              <Text numberOfLines={2} style={styles.benefitDescription}>
+              <Text numberOfLines={4} style={styles.benefitDescription}>
                 {benefit.description}
               </Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            onPress={handleUpgradePress}
-            disabled={isSubmitting}
-            style={[styles.actionButton, isSubmitting ? styles.buttonDisabled : null]}
-          >
-            <Text style={styles.actionButtonText}>Subscribe</Text>
-          </TouchableOpacity>
+        {showActions ? (
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              onPress={handleUpgradePress}
+              disabled={isSubmitting}
+              style={[styles.actionButton, isSubmitting ? styles.buttonDisabled : null]}
+            >
+              <Text style={styles.actionButtonText}>Subscribe</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={handleDetailsPress}
-            disabled={isSubmitting}
-            style={[
-              styles.actionButton,
-              styles.secondaryButton,
-              isSubmitting ? styles.buttonDisabled : null,
-            ]}
-          >
-            <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>
-              Details
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              onPress={handleDetailsPress}
+              disabled={isSubmitting}
+              style={[
+                styles.actionButton,
+                styles.secondaryButton,
+                isSubmitting ? styles.buttonDisabled : null,
+              ]}
+            >
+              <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>
+                Details
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -92,6 +104,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#1E1E1E",
     overflow: "hidden",
+  },
+  cardPlain: {
+    borderRadius: 0,
+    borderWidth: 0,
+    overflow: "visible",
   },
   content: {
     paddingHorizontal: 20,

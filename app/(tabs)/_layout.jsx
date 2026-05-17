@@ -74,12 +74,20 @@ const PROFILE_SECONDARY_ROUTES = new Set([
   "/profile-injuries",
   "/(tabs)/profile-injuries",
 ]);
+const FULL_SCREEN_ROUTES = new Set([
+  "/subscription",
+  "/(tabs)/subscription",
+]);
 
 function getTabBarBottomOffset(bottomInset) {
   return Math.max(Math.round(bottomInset / 2), 12);
 }
 
 function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
+  if (FULL_SCREEN_ROUTES.has(pathname)) {
+    return true;
+  }
+
   if (PROFILE_SECONDARY_ROUTES.has(pathname)) {
     return true;
   }
