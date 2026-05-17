@@ -5,14 +5,12 @@ import { StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
-import ErrorView from "../../src/screens/ErrorView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import CoachResponseView from "../../src/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/forum/commentsView.jsx";
 import ForumView from "../../src/screens/forum/ForumView.jsx";
 import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
-import SearchFiltersView from "../../src/screens/forum/searchFiltersView.jsx";
 
 const ForumScreen = observer(function ForumScreen() {
   const model = reactiveModel;
@@ -269,8 +267,8 @@ const ForumScreen = observer(function ForumScreen() {
     }
   }
 
-  function showSearchFiltersView() {
-    setIsSearchFiltersVisible(true);
+  function toggleSearchFiltersView() {
+    setIsSearchFiltersVisible((isVisible) => !isVisible);
   }
 
   function hideSearchFiltersView() {
@@ -299,7 +297,7 @@ const ForumScreen = observer(function ForumScreen() {
     }
   }
 
-  if (!model.ready || isFeedLoading) {
+  if (!model.ready) {
     return (
       <View style={styles.container}>
         <LoadingView />
@@ -316,29 +314,27 @@ const ForumScreen = observer(function ForumScreen() {
     );
   }
 
-  if (feedError && model.forumFeed.length === 0) {
-    return (
-      <View style={styles.container}>
-        <ErrorView
-          message={feedError.message || "Could not load the forum feed."}
-          onRetry={handleRetry}
-        />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       {currentView === "feed" ? (
         <ForumView
           posts={model.forumFeed}
+          isPostsLoading={isFeedLoading}
+          postsError={feedError && model.forumFeed.length === 0 ? feedError : null}
           searchQuery={model.forumFilters?.searchQuery || ""}
+          filters={model.forumFilters}
+          isSearchFiltersVisible={isSearchFiltersVisible}
           onChangeSearchQuery={handleSearchQueryChange}
-          onPressSearchFiltersButton={showSearchFiltersView}
+          onPressSearchFiltersButton={toggleSearchFiltersView}
+          onCloseSearchFilters={hideSearchFiltersView}
+          onChangeFilterTopic={(topics) => handleForumFilterChange({ topics, topic: "all" })}
+          onChangeFilterSortBy={(sortBy) => handleForumFilterChange({ sortBy })}
+          onResetFilters={handleResetForumFilters}
           onTogglePostLike={handleTogglePostLike}
           onTogglePostSave={handleTogglePostSave}
           onToggleCoachResponse={showCoachResponseView}
           onPressPostButton={handlePressPostButton}
+          onRetryPosts={handleRetry}
           onPressComments={showCommentsView}
           onPressPost={showPostView}
         />
@@ -406,16 +402,6 @@ const ForumScreen = observer(function ForumScreen() {
           onChangeReplyText={setReplyDraft}
           onCreateReply={handleCreateReply}
           onCancelReply={resetReplyComposer}
-        />
-      ) : null}
-      {isSearchFiltersVisible ? (
-        <SearchFiltersView
-          visible={isSearchFiltersVisible}
-          filters={model.forumFilters}
-          onClose={hideSearchFiltersView}
-          onChangeTopic={(topic) => handleForumFilterChange({ topic })}
-          onChangeSortBy={(sortBy) => handleForumFilterChange({ sortBy })}
-          onReset={handleResetForumFilters}
         />
       ) : null}
     </View>

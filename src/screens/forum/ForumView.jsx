@@ -1,7 +1,11 @@
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View, TextInput } from "react-native";
+import { useRef } from "react";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, TextInput } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PostCard from "../../components/forumComponents/PostCard.jsx";
+import LoadingView from "../LoadingView.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
+import SearchFiltersView from "./searchFiltersView.jsx";
 
 const COLORS = {
   gold: "#C9B259",
@@ -13,27 +17,57 @@ const COLORS = {
 
 export default function ForumView({
   posts = [],
+  isPostsLoading = false,
+  postsError = null,
   searchQuery = "",
+  filters = {},
+  isSearchFiltersVisible = false,
   onChangeSearchQuery,
   onPressSearchFiltersButton,
+  onCloseSearchFilters,
+  onChangeFilterTopic,
+  onChangeFilterSortBy,
+  onResetFilters,
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
   onPressComments,
   onPressPost,
   onPressPostButton,
+  onRetryPosts,
 }) {
+  const insets = useSafeAreaInsets();
+  const searchInputRef = useRef(null);
+  const closeFiltersFromPosts = () => {
+    if (isSearchFiltersVisible) {
+      onCloseSearchFilters?.();
+    }
+  };
+
   return (
     <QuestionnaireShell hideTabBar={false}>
       <View style={styles.wrapper}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.container,
+            { paddingTop: Math.max(insets.top + 8, 16) },
+          ]}
+        >
           <View style={styles.searchBarWrapper}>
             <View style={styles.searchBar}>
-              <Image
-                source={require("../../assets/icons/search.png")}
-                style={styles.searchIcon}
-              />
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => searchInputRef.current?.focus()}
+                style={styles.searchIconButton}
+              >
+                <Image
+                  source={require("../../assets/icons/search.png")}
+                  style={styles.searchIcon}
+                />
+              </TouchableOpacity>
               <TextInput
+                ref={searchInputRef}
                 selectionColor="#fff"
                 placeholder="Search"
                 placeholderTextColor={COLORS.muted}
@@ -52,18 +86,47 @@ export default function ForumView({
               </TouchableOpacity>
             </View>
           </View>
+
+          <SearchFiltersView
+            visible={isSearchFiltersVisible}
+            filters={filters}
+            onClose={onCloseSearchFilters}
+            onChangeTopic={onChangeFilterTopic}
+            onChangeSortBy={onChangeFilterSortBy}
+            onReset={onResetFilters}
+          />
            
-          {posts.map((_, index) => (
-            <PostCard
-              key={posts[index].id}
-              post={posts[index]}
-              onTogglePostLike={onTogglePostLike}
-              onTogglePostSave={onTogglePostSave}
-              onToggleCoachResponse={onToggleCoachResponse}
-              onPressComments={onPressComments}
-              onPressPost={onPressPost}
-            />
-          ))}
+          <View
+            style={styles.postsSection}
+            onTouchStart={closeFiltersFromPosts}
+          >
+            {isPostsLoading ? (
+              <View style={styles.postsState}>
+                <LoadingView />
+              </View>
+            ) : postsError ? (
+              <View style={styles.postsState}>
+                <Text style={styles.postsErrorText}>
+                  {postsError.message || "Could not load the forum feed."}
+                </Text>
+                <TouchableOpacity style={styles.retryButton} onPress={onRetryPosts}>
+                  <Text style={styles.retryButtonText}>Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              posts.map((_, index) => (
+                <PostCard
+                  key={posts[index].id}
+                  post={posts[index]}
+                  onTogglePostLike={onTogglePostLike}
+                  onTogglePostSave={onTogglePostSave}
+                  onToggleCoachResponse={onToggleCoachResponse}
+                  onPressComments={onPressComments}
+                  onPressPost={onPressPost}
+                />
+              ))
+            )}
+          </View>
         </ScrollView>
         <TouchableOpacity style={styles.postButton} onPress={onPressPostButton}>
           <Image
@@ -85,32 +148,67 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    paddingVertical: 16,
     gap: 8,
     paddingBottom: 120,
   },
+  postsSection: {
+    gap: 8,
+  },
+  postsState: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 220,
+    paddingHorizontal: 24,
+  },
+  postsErrorText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 20,
+    marginBottom: 14,
+    textAlign: "center",
+  },
+  retryButton: {
+    alignItems: "center",
+    backgroundColor: COLORS.text,
+    borderRadius: 999,
+    justifyContent: "center",
+    minWidth: 104,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+  },
+  retryButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
+  },
 
   searchBarWrapper: {
-    backgroundColor: COLORS.panel,
-    borderColor: COLORS.panelBorder,
+    backgroundColor: "rgba(126, 126, 126, 0.5)",
     borderRadius: 120,
-    borderWidth: 2,
     marginHorizontal: 16,
     height: 60,
     marginBottom: 24,
-    marginTop: 8,
   },
   searchBar: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
     paddingHorizontal: 16,
   },
   searchIcon: {
-    width: 20,
-    height: 20,
-    tintColor: COLORS.muted,
+    width: 24,
+    height: 24,
+    tintColor: COLORS.text,
+  },
+  searchIconButton: {
+    alignItems: "center",
+    height: 34,
+    justifyContent: "center",
+    width: 34,
   },
   searchInput: {
     flex: 1,
@@ -123,17 +221,15 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     alignItems: "center",
-    borderColor: "rgba(255,255,255,0.26)",
     borderRadius: 999,
-    borderWidth: 1,
     height: 34,
     justifyContent: "center",
     width: 34,
   },
   filterIcon: {
-    height: 18,
+    height: 30,
     tintColor: COLORS.text,
-    width: 18,
+    width: 30,
   },
   postButton: {
     position: "absolute",

@@ -15,6 +15,7 @@ export const FORUM_TOPIC_SUGGESTIONS = Object.freeze([
   "muay thai",
   "bjj",
   "wrestling",
+  "coach",
   "strength",
   "conditioning",
   "recovery",
@@ -145,6 +146,7 @@ export function createDefaultForumFilters() {
   return {
     searchQuery: "",
     topic: "all",
+    topics: [],
     exerciseId: "",
     tag: "",
     followedOnly: false,
@@ -338,11 +340,28 @@ export function applyForumFilters(
   filters = {},
   viewerProfile = {}
 ) {
+  const normalizedTopics = Array.isArray(filters?.topics)
+    ? Array.from(
+        new Set(
+          filters.topics
+            .map((topic) => normalizeString(topic).toLowerCase())
+            .filter((topic) => topic && topic !== "all")
+        )
+      )
+    : [];
+  const legacyTopic = normalizeString(filters?.topic).toLowerCase();
+
   const normalizedFilters = {
     ...createDefaultForumFilters(),
     ...(filters || {}),
     searchQuery: normalizeString(filters?.searchQuery),
-    topic: normalizeString(filters?.topic).toLowerCase() || "all",
+    topic: legacyTopic || "all",
+    topics:
+      normalizedTopics.length > 0
+        ? normalizedTopics
+        : legacyTopic && legacyTopic !== "all"
+          ? [legacyTopic]
+          : [],
     exerciseId: normalizeString(filters?.exerciseId),
     tag: normalizeString(filters?.tag).toLowerCase(),
     followedOnly: Boolean(filters?.followedOnly),
@@ -367,8 +386,8 @@ export function applyForumFilters(
       }
 
       if (
-        normalizedFilters.topic !== "all" &&
-        post.topic.toLowerCase() !== normalizedFilters.topic
+        normalizedFilters.topics.length > 0 &&
+        !normalizedFilters.topics.includes(post.topic.toLowerCase())
       ) {
         return false;
       }
