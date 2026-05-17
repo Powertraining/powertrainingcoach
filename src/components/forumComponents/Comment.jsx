@@ -3,7 +3,6 @@ import {
   Image,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -15,8 +14,6 @@ const COLORS = {
   gold: "#C9B259",
   text: "#ffffff",
   muted: "#9ca3af",
-  panel: "#141414",
-  error: "#fca5a5",
 };
 
 export default function Comment({
@@ -24,15 +21,7 @@ export default function Comment({
   isLastReply = false,
   replyDepth = 0,
   replyToDisplayName = "",
-  activeReplyCommentId = null,
-  replyValue = "",
-  replyError = null,
-  currentUserPhotoUrl = "",
-  isSubmittingReply = false,
   onPressReply,
-  onChangeReplyText,
-  onCreateReply,
-  onCancelReply,
 }) {
   const [expanded, setExpanded] = useState(false);
   const [needsToggle, setNeedsToggle] = useState(false);
@@ -48,7 +37,6 @@ export default function Comment({
   const nextReplyDepth = Math.min(replyDepth + 1, 1);
   const bodyLines = expanded ? undefined : 3;
   const commentDepth = Number(comment?.depth) || 0;
-  const isReplying = activeReplyCommentId === comment.id;
   const canReply =
     typeof onPressReply === "function" &&
     commentDepth < MAX_FORUM_COMMENT_REPLY_DEPTH;
@@ -56,10 +44,6 @@ export default function Comment({
   const avatarSource =
     comment?.authorAvatarUrl ?
       { uri: comment.authorAvatarUrl } :
-      require("../../assets/icons/user.png");
-  const replyAvatarSource =
-    currentUserPhotoUrl ?
-      { uri: currentUserPhotoUrl } :
       require("../../assets/icons/user.png");
 
   return (
@@ -102,9 +86,7 @@ export default function Comment({
           <View style={styles.buttons}>
             {canReply ? (
               <TouchableOpacity onPress={() => onPressReply?.(comment)}>
-                <Text style={styles.readMore}>
-                  {isReplying ? "Cancel reply" : "Reply"}
-                </Text>
+                <Text style={styles.readMore}>Reply</Text>
               </TouchableOpacity>
             ) : null}
             {hasReplies ? (
@@ -124,44 +106,6 @@ export default function Comment({
               </TouchableOpacity>
             ) : null}
           </View>
-          {isReplying ? (
-            <View style={styles.replyComposer}>
-              <Image source={replyAvatarSource} style={styles.replyAvatar} />
-              <View style={styles.replyComposerBody}>
-                <TextInput
-                  multiline
-                  value={replyValue}
-                  onChangeText={onChangeReplyText}
-                  editable={!isSubmittingReply}
-                  placeholder={`Reply to ${comment?.authorDisplayName || "comment"}`}
-                  placeholderTextColor="#8A8A8A"
-                  selectionColor="#fff"
-                  style={styles.replyInput}
-                />
-                <View style={styles.replyComposerActions}>
-                  <TouchableOpacity
-                    style={styles.replySubmitButton}
-                    onPress={onCreateReply}
-                    disabled={isSubmittingReply}
-                  >
-                    <Text style={styles.replySubmitButtonText}>
-                      {isSubmittingReply ? "Posting..." : "Post Reply"}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.replyCancelButton}
-                    onPress={onCancelReply}
-                    disabled={isSubmittingReply}
-                  >
-                    <Text style={styles.replyCancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-                {replyError ? (
-                  <Text style={styles.replyError}>{replyError}</Text>
-                ) : null}
-              </View>
-            </View>
-          ) : null}
           {hasReplies && areRepliesVisible && !shouldFlattenReplies ? (
             <View style={styles.replies}>
               {comment.replies.map((reply, index) => (
@@ -171,15 +115,7 @@ export default function Comment({
                   isLastReply={index === comment.replies.length - 1}
                   replyDepth={nextReplyDepth}
                   replyToDisplayName=""
-                  activeReplyCommentId={activeReplyCommentId}
-                  replyValue={replyValue}
-                  replyError={replyError}
-                  currentUserPhotoUrl={currentUserPhotoUrl}
-                  isSubmittingReply={isSubmittingReply}
                   onPressReply={onPressReply}
-                  onChangeReplyText={onChangeReplyText}
-                  onCreateReply={onCreateReply}
-                  onCancelReply={onCancelReply}
                 />
               ))}
             </View>
@@ -195,15 +131,7 @@ export default function Comment({
               isLastReply={index === comment.replies.length - 1}
               replyDepth={nextReplyDepth}
               replyToDisplayName={comment?.authorDisplayName}
-              activeReplyCommentId={activeReplyCommentId}
-              replyValue={replyValue}
-              replyError={replyError}
-              currentUserPhotoUrl={currentUserPhotoUrl}
-              isSubmittingReply={isSubmittingReply}
               onPressReply={onPressReply}
-              onChangeReplyText={onChangeReplyText}
-              onCreateReply={onCreateReply}
-              onCancelReply={onCancelReply}
             />
           ))}
         </View>
@@ -282,76 +210,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 13,
     fontWeight: "800",
-    lineHeight: 17,
-  },
-  replyComposer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    marginTop: 4,
-  },
-  replyAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#2A2A2A",
-  },
-  replyComposerBody: {
-    flex: 1,
-    gap: 8,
-  },
-  replyInput: {
-    minHeight: 78,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "600",
-    lineHeight: 20,
-    textAlignVertical: "top",
-  },
-  replyComposerActions: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  replySubmitButton: {
-    minHeight: 36,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    backgroundColor: COLORS.text,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  replySubmitButtonText: {
-    color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
-    lineHeight: 16,
-  },
-  replyCancelButton: {
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderColor: "rgba(255,255,255,0.22)",
-    borderWidth: 1,
-    minHeight: 36,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  replyCancelButtonText: {
-    color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "800",
-    lineHeight: 16,
-  },
-  replyError: {
-    color: COLORS.error,
-    fontSize: 12,
-    fontWeight: "700",
     lineHeight: 17,
   },
 });

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useEffect, useRef, useState } from "react";
 import Comment from "../../components/forumComponents/Comment.jsx";
 
 const COLORS = {
@@ -24,7 +25,6 @@ export default function CommentsView({
   comments = [],
   commentValue = "",
   commentError = null,
-  activeReplyCommentId = null,
   replyValue = "",
   replyError = null,
   currentUserPhotoUrl = "",
@@ -37,40 +37,111 @@ export default function CommentsView({
   onCreateReply,
   onCancelReply,
 }) {
+  const [replyTargetComment, setReplyTargetComment] = useState(null);
+  const wasSubmittingReplyRef = useRef(false);
   const avatarSource =
     currentUserPhotoUrl ?
       { uri: currentUserPhotoUrl } :
       require("../../assets/icons/user.png");
+  const isReplyComposer = Boolean(replyTargetComment);
+  const composerValue = isReplyComposer ? replyValue : commentValue;
+  const composerError = isReplyComposer ? replyError : commentError;
+  const isSubmittingComposer = isReplyComposer ? isSubmittingReply : isSubmittingComment;
+  const replyTargetAvatarSource =
+    replyTargetComment?.authorAvatarUrl ?
+      { uri: replyTargetComment.authorAvatarUrl } :
+      require("../../assets/icons/user.png");
+
+  useEffect(() => {
+    if (
+      wasSubmittingReplyRef.current &&
+      !isSubmittingReply &&
+      replyTargetComment &&
+      !replyError
+    ) {
+      setReplyTargetComment(null);
+    }
+
+    wasSubmittingReplyRef.current = isSubmittingReply;
+  }, [isSubmittingReply, replyError, replyTargetComment]);
+
+  function handleClose() {
+    setReplyTargetComment(null);
+    onCancelReply?.();
+    onClose?.();
+  }
+
+  function handlePressReply(comment) {
+    if (!comment) {
+      return;
+    }
+
+    setReplyTargetComment(comment);
+    onPressReply?.(comment);
+  }
+
+  function handleChangeComposerText(value) {
+    if (isReplyComposer) {
+      onChangeReplyText?.(value);
+      return;
+    }
+
+    onChangeCommentText?.(value);
+  }
+
+  function handleSubmitComposer() {
+    if (isReplyComposer) {
+      onCreateReply?.();
+      return;
+    }
+
+    onCreateComment?.();
+  }
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible transparent animationType="fade" onRequestClose={handleClose}>
       <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable style={styles.backdrop} onPress={handleClose} />
         <View style={styles.content}>
+          {isReplyComposer ? (
+            <View style={styles.replyTargetPreview}>
+              <Image source={replyTargetAvatarSource} style={styles.replyTargetAvatar} />
+              <View style={styles.replyTargetTextContent}>
+                <Text numberOfLines={1} style={styles.replyTargetName}>
+                  {replyTargetComment?.authorDisplayName}
+                </Text>
+                <Text numberOfLines={3} style={styles.replyTargetBody}>
+                  {replyTargetComment?.body}
+                </Text>
+              </View>
+            </View>
+          ) : null}
           <View style={styles.commentComposer}>
             <Image source={avatarSource} style={styles.commentAvatar} />
             <View style={styles.commentComposerBody}>
               <TextInput
                 multiline
-                value={commentValue}
-                onChangeText={onChangeCommentText}
-                editable={!isSubmittingComment}
-                placeholder="Write a comment"
+                value={composerValue}
+                onChangeText={handleChangeComposerText}
+                editable={!isSubmittingComposer}
+                placeholder={isReplyComposer ? "Write a reply" : "Write a comment"}
                 placeholderTextColor={COLORS.muted}
                 selectionColor="#fff"
                 style={styles.commentInput}
               />
               <TouchableOpacity
                 style={styles.commentSubmitButton}
-                onPress={onCreateComment}
-                disabled={isSubmittingComment}
+                onPress={handleSubmitComposer}
+                disabled={isSubmittingComposer}
               >
                 <Text style={styles.commentSubmitButtonText}>
-                  {isSubmittingComment ? "Posting..." : "Post Comment"}
+                  {isSubmittingComposer ?
+                    "Posting..." :
+                    isReplyComposer ? "Post Reply" : "Post Comment"}
                 </Text>
               </TouchableOpacity>
-              {commentError ? (
-                <Text style={styles.commentError}>{commentError}</Text>
+              {composerError ? (
+                <Text style={styles.commentError}>{composerError}</Text>
               ) : null}
             </View>
           </View>
@@ -83,15 +154,7 @@ export default function CommentsView({
               <Comment
                 key={comment.id}
                 comment={comment}
-                activeReplyCommentId={activeReplyCommentId}
-                replyValue={replyValue}
-                replyError={replyError}
-                currentUserPhotoUrl={currentUserPhotoUrl}
-                isSubmittingReply={isSubmittingReply}
-                onPressReply={onPressReply}
-                onChangeReplyText={onChangeReplyText}
-                onCreateReply={onCreateReply}
-                onCancelReply={onCancelReply}
+                onPressReply={handlePressReply}
               />
             ))}
           </ScrollView>
@@ -173,6 +236,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     lineHeight: 17,
+  },
+  replyTargetPreview: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    paddingBottom: 14,
+    marginBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.14)",
+  },
+  replyTargetAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#2A2A2A",
+  },
+  replyTargetTextContent: {
+    flex: 1,
+    gap: 5,
+  },
+  replyTargetName: {
+    color: COLORS.text,
+    flexShrink: 1,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  replyTargetBody: {
+    color: COLORS.muted,
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 18,
   },
   commentsList: {
     flex: 1,

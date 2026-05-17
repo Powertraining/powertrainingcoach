@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Image,
   Keyboard,
@@ -32,7 +32,6 @@ export default function PostView({
   comments = [],
   commentValue = "",
   commentError = null,
-  activeReplyCommentId = null,
   replyValue = "",
   replyError = null,
   currentUserPhotoUrl = "",
@@ -51,6 +50,9 @@ export default function PostView({
 }) {
   const { height: windowHeight } = useWindowDimensions();
   const [isCommentEditorOpen, setIsCommentEditorOpen] = useState(false);
+  const [replyTargetComment, setReplyTargetComment] = useState(null);
+  const wasSubmittingCommentRef = useRef(false);
+  const wasSubmittingReplyRef = useRef(false);
   const commentEditorHeight = windowHeight * 0.35;
 
   if (!post) {
@@ -67,17 +69,88 @@ export default function PostView({
     currentUserPhotoUrl ?
       { uri: currentUserPhotoUrl } :
       require("../../assets/icons/user.png");
+  const isReplyEditor = Boolean(replyTargetComment);
+  const editorValue = isReplyEditor ? replyValue : commentValue;
+  const editorError = isReplyEditor ? replyError : commentError;
+  const isSubmittingEditor = isReplyEditor ? isSubmittingReply : isSubmittingComment;
+  const replyTargetAvatarSource =
+    replyTargetComment?.authorAvatarUrl ?
+      { uri: replyTargetComment.authorAvatarUrl } :
+      require("../../assets/icons/user.png");
+
+  useEffect(() => {
+    if (
+      wasSubmittingCommentRef.current &&
+      !isSubmittingComment &&
+      !replyTargetComment &&
+      !commentError
+    ) {
+      Keyboard.dismiss();
+      setIsCommentEditorOpen(false);
+    }
+
+    wasSubmittingCommentRef.current = isSubmittingComment;
+  }, [commentError, isSubmittingComment, replyTargetComment]);
+
+  useEffect(() => {
+    if (
+      wasSubmittingReplyRef.current &&
+      !isSubmittingReply &&
+      replyTargetComment &&
+      !replyError
+    ) {
+      Keyboard.dismiss();
+      setReplyTargetComment(null);
+      setIsCommentEditorOpen(false);
+    }
+
+    wasSubmittingReplyRef.current = isSubmittingReply;
+  }, [isSubmittingReply, replyError, replyTargetComment]);
 
   function openCommentEditor() {
+    if (replyTargetComment) {
+      onCancelReply?.();
+      setReplyTargetComment(null);
+    }
+
     setIsCommentEditorOpen(true);
   }
 
   function closeCommentEditor() {
     Keyboard.dismiss();
+    if (replyTargetComment) {
+      onCancelReply?.();
+      setReplyTargetComment(null);
+    }
+
     setIsCommentEditorOpen(false);
   }
 
-  function handleCreateComment() {
+  function handlePressReply(comment) {
+    if (!comment) {
+      return;
+    }
+
+    setReplyTargetComment(comment);
+    onPressReply?.(comment);
+    setIsCommentEditorOpen(true);
+  }
+
+  function handleChangeEditorText(value) {
+    if (isReplyEditor) {
+      onChangeReplyText?.(value);
+      return;
+    }
+
+    onChangeCommentText?.(value);
+  }
+
+  function handleSubmitEditor() {
+    if (isReplyEditor) {
+      onCreateReply?.();
+      return;
+    }
+
     onCreateComment?.();
   }
 
@@ -168,15 +241,7 @@ export default function PostView({
                   <Comment
                     key={comment.id}
                     comment={comment}
-                    activeReplyCommentId={activeReplyCommentId}
-                    replyValue={replyValue}
-                    replyError={replyError}
-                    currentUserPhotoUrl={currentUserPhotoUrl}
-                    isSubmittingReply={isSubmittingReply}
-                    onPressReply={onPressReply}
-                    onChangeReplyText={onChangeReplyText}
-                    onCreateReply={onCreateReply}
-                    onCancelReply={onCancelReply}
+                    onPressReply={handlePressReply}
                   />
                 ))}
               </View>
@@ -204,7 +269,26 @@ export default function PostView({
             ]}
           >
             <View style={[styles.commentEditorCard, { height: commentEditorHeight }]}>
-              <View style={[styles.commentEditorComposer, { height: commentEditorHeight }]}>
+              {isReplyEditor ? (
+                <View style={styles.replyTargetPreview}>
+                  <Image
+                    source={replyTargetAvatarSource}
+                    style={styles.replyTargetAvatar}
+                  />
+                  <View style={styles.replyTargetTextContent}>
+                    <View style={styles.replyTargetNameRow}>
+                      {replyTargetComment?.isCoachVerified ? <VerifiedBadge /> : null}
+                      <Text numberOfLines={1} style={styles.replyTargetName}>
+                        {replyTargetComment?.authorDisplayName}
+                      </Text>
+                    </View>
+                    <Text numberOfLines={3} style={styles.replyTargetBody}>
+                      {replyTargetComment?.body}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+              <View style={styles.commentEditorComposer}>
                 <Image
                   source={avatarSource}
                   style={[styles.commentAvatar, styles.commentEditorAvatar]}
@@ -213,21 +297,21 @@ export default function PostView({
                   <TextInput
                     autoFocus
                     multiline
-                    value={commentValue}
-                    onChangeText={onChangeCommentText}
-                    editable={!isSubmittingComment}
+                    value={editorValue}
+                    onChangeText={handleChangeEditorText}
+                    editable={!isSubmittingEditor}
                     scrollEnabled
-                    placeholder="Write a comment"
+                    placeholder={isReplyEditor ? "Write a reply" : "Write a comment"}
                     placeholderTextColor={COLORS.muted}
                     selectionColor="#fff"
                     style={[
                       styles.commentInput,
                       styles.commentEditorInput,
-                      { height: commentEditorHeight },
+                      { flex: 1 },
                     ]}
                   />
-                  {commentError ? (
-                    <Text style={styles.commentError}>{commentError}</Text>
+                  {editorError ? (
+                    <Text style={styles.commentError}>{editorError}</Text>
                   ) : null}
                 </View>
               </View>
@@ -235,17 +319,19 @@ export default function PostView({
             <View style={styles.commentEditorActions}>
               <TouchableOpacity
                 style={styles.commentSubmitButton}
-                onPress={handleCreateComment}
-                disabled={isSubmittingComment}
+                onPress={handleSubmitEditor}
+                disabled={isSubmittingEditor}
               >
                 <Text style={styles.commentSubmitButtonText}>
-                  {isSubmittingComment ? "Posting..." : "Post Comment"}
+                  {isSubmittingEditor ?
+                    "Posting..." :
+                    isReplyEditor ? "Post Reply" : "Post Comment"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.commentCancelButton}
                 onPress={closeCommentEditor}
-                disabled={isSubmittingComment}
+                disabled={isSubmittingEditor}
               >
                 <Text style={styles.commentCancelButtonText}>Cancel</Text>
               </TouchableOpacity>
@@ -424,6 +510,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   commentEditorComposer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 12,
@@ -474,6 +561,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     lineHeight: 17,
+  },
+  replyTargetPreview: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.14)",
+  },
+  replyTargetAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#2A2A2A",
+  },
+  replyTargetTextContent: {
+    flex: 1,
+    gap: 5,
+  },
+  replyTargetNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  replyTargetName: {
+    color: COLORS.text,
+    flexShrink: 1,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  replyTargetBody: {
+    color: COLORS.muted,
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 18,
   },
   coachResponseStatus: {
     alignSelf: "flex-start",
