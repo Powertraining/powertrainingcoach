@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Linking,
   ScrollView,
   StyleSheet,
@@ -18,8 +17,6 @@ import {
   createCheckoutSession,
   listSubscriptionPlans,
 } from "../services/utils/stripeClient.js";
-
-const GOLD = "#C9B259";
 
 const PLAN_OPTIONS = [
   {
@@ -259,14 +256,16 @@ export default function SubscriptionPlanView({
           </View>
         ) : null}
 
-        <SubscriptionCard
-          planName="BECOME A MEMBER TO GENERATE YOUR PLAN"
-          planLabelStyle={styles.subscriptionCardPlanLabel}
-          showBackground={false}
-          showActions={false}
-          showBraces={false}
-          isSubmitting={Boolean(loadingPlan)}
-        />
+        <View style={styles.headerBenefitsSection}>
+          <SubscriptionCard
+            planName="BECOME A MEMBER TO GENERATE YOUR PLAN"
+            planLabelStyle={styles.subscriptionCardPlanLabel}
+            showBackground={false}
+            showActions={false}
+            showBraces={false}
+            isSubmitting={Boolean(loadingPlan)}
+          />
+        </View>
 
         <View style={styles.planSection}>
           {visiblePlans.map((plan) => (
@@ -287,13 +286,6 @@ export default function SubscriptionPlanView({
             />
           ))}
         </View>
-
-        {loadingPlans ? (
-          <View style={styles.statusRow}>
-            <ActivityIndicator color={GOLD} />
-            <Text style={styles.statusCopy}>Loading subscription plans...</Text>
-          </View>
-        ) : null}
 
         {!loadingPlans && !error && visiblePlans.length === 0 ? (
           <Text style={styles.statusCopy}>
@@ -375,16 +367,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 26,
   },
+  headerBenefitsSection: {
+    flex: 1,
+    justifyContent: "center",
+  },
   planSection: {
     gap: 12,
-    marginTop: 32,
-  },
-  statusRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 10,
-    justifyContent: "center",
-    marginTop: 18,
   },
   statusCopy: {
     color: "rgba(255,255,255,0.72)",
@@ -418,28 +406,31 @@ const styles = StyleSheet.create({
   },
   checkoutButton: {
     alignItems: "center",
-    backgroundColor: "transparent",
-    borderRadius: 999,
+    alignSelf: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
     justifyContent: "center",
-    minHeight: 52,
+    marginBottom: 18,
+    minHeight: 60,
     paddingHorizontal: 20,
     paddingVertical: 14,
+    width: "82%",
   },
   checkoutButtonDisabled: {
     opacity: 0.58,
   },
   checkoutButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
+    color: "#141414",
+    fontSize: 16,
     fontWeight: "900",
-    lineHeight: 18,
+    lineHeight: 21,
   },
   trustRow: {
     flexDirection: "row",
     gap: 6,
     justifyContent: "space-between",
-    marginTop: "auto",
-    paddingTop: 34,
+    marginTop: 24,
+    paddingTop: 12,
   },
   trustItem: {
     alignItems: "center",
