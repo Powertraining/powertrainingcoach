@@ -312,6 +312,10 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     router.push("/(tabs)/profile-injuries");
   }
 
+  function openSavedPostsACB() {
+    router.push("/(tabs)/profile-saved-posts");
+  }
+
   function backToProfileACB() {
     resetUnsavedChangesACB();
     router.push("/(tabs)/profile");
@@ -394,6 +398,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onOpenPlanAdjustments={openPlanAdjustmentsACB}
         onOpenEventPreparation={openEventPreparationACB}
         onOpenInjuries={openInjuriesACB}
+        onOpenSavedPosts={openSavedPostsACB}
         onBack={backToProfileACB}
         onLogout={logoutACB}
         hidePassword={isGoogleUser}

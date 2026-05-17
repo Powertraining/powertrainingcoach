@@ -57,7 +57,9 @@ function getActiveTabName(pathname) {
     pathname === "/profile-event-preparation" ||
     pathname === "/(tabs)/profile-event-preparation" ||
     pathname === "/profile-injuries" ||
-    pathname === "/(tabs)/profile-injuries"
+    pathname === "/(tabs)/profile-injuries" ||
+    pathname === "/profile-saved-posts" ||
+    pathname === "/(tabs)/profile-saved-posts"
   ) {
     return "profile";
   }
@@ -77,6 +79,8 @@ const PROFILE_SECONDARY_ROUTES = new Set([
   "/(tabs)/profile-event-preparation",
   "/profile-injuries",
   "/(tabs)/profile-injuries",
+  "/profile-saved-posts",
+  "/(tabs)/profile-saved-posts",
 ]);
 const FULL_SCREEN_ROUTES = new Set([
   "/subscription",
@@ -312,6 +316,12 @@ const TabsLayout = observer(function TabsLayout() {
         />
         <Tabs.Screen
           name="profile-injuries"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-saved-posts"
           options={{
             href: null,
           }}

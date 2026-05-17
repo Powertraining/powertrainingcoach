@@ -31,7 +31,10 @@ function ProfileNavigationCard({
   description,
   actionLabel,
   onPress,
+  wide = false,
 }) {
+  const Card = wide ? View : RowCard;
+
   return (
     <Pressable
       onPress={onPress}
@@ -40,9 +43,24 @@ function ProfileNavigationCard({
         pressed ? styles.navigationCardButtonPressed : null,
       ]}
     >
-      <RowCard style={styles.navigationCard}>
-        <View style={styles.navigationCardContent}>
-          <View style={styles.navigationCardCopy}>
+      <Card
+        style={[
+          styles.navigationCard,
+          wide ? styles.navigationCardWide : null,
+        ]}
+      >
+        <View
+          style={[
+            styles.navigationCardContent,
+            wide ? styles.navigationCardContentWide : null,
+          ]}
+        >
+          <View
+            style={[
+              styles.navigationCardCopy,
+              wide ? styles.navigationCardCopyWide : null,
+            ]}
+          >
             <Text numberOfLines={2} adjustsFontSizeToFit style={styles.navigationCardTitle}>
               {title}
             </Text>
@@ -50,11 +68,16 @@ function ProfileNavigationCard({
               {description}
             </Text>
           </View>
-          <Text style={styles.navigationActionText}>
+          <Text
+            style={[
+              styles.navigationActionText,
+              wide ? styles.navigationActionTextWide : null,
+            ]}
+          >
             {actionLabel} &gt;
           </Text>
         </View>
-      </RowCard>
+      </Card>
     </Pressable>
   );
 }
@@ -269,6 +292,18 @@ export function MyProfileView(props) {
               description="Injuries and limitations"
               actionLabel="Report"
               onPress={props.onOpenInjuries}
+            />
+          </View>
+        ) : null}
+
+        {isMainMode ? (
+          <View style={styles.navigationRow}>
+            <ProfileNavigationCard
+              title="Saved Posts"
+              description="Forum posts you saved"
+              actionLabel="View"
+              onPress={props.onOpenSavedPosts}
+              wide
             />
           </View>
         ) : null}
@@ -572,14 +607,33 @@ const styles = StyleSheet.create({
   navigationCard: {
     backgroundColor: "#141414",
   },
+  navigationCardWide: {
+    alignSelf: "stretch",
+    borderColor: "#1E1E1E",
+    borderRadius: 20,
+    borderWidth: 2,
+    minHeight: 84,
+    overflow: "hidden",
+    width: "100%",
+  },
   navigationCardContent: {
     flex: 1,
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
+  navigationCardContentWide: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+    paddingVertical: 14,
+  },
   navigationCardCopy: {
     gap: 4,
+  },
+  navigationCardCopyWide: {
+    flex: 1,
+    minWidth: 0,
   },
   navigationCardTitle: {
     color: "#ffffff",
@@ -600,6 +654,10 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     textTransform: "uppercase",
     marginTop: 12,
+  },
+  navigationActionTextWide: {
+    flexShrink: 0,
+    marginTop: 0,
   },
   pageHeader: {
     gap: 14,

@@ -128,12 +128,14 @@ export const model = {
   forumFilters: createDefaultForumFilters(),
   forumComposer: createDefaultForumComposer(),
   forumFeed: [],
+  savedForumPosts: [],
   forumSelectedPost: null,
   forumComments: [],
   forumOverlayVisible: false,
   forumTabBarHidden: false,
   forumOverlayDismissCount: 0,
   forumFeedPromiseState: {},
+  savedForumPostsPromiseState: {},
   forumSelectedPostPromiseState: {},
   forumCommentsPromiseState: {},
 
@@ -238,12 +240,14 @@ export const model = {
     this.forumFilters = createDefaultForumFilters();
     this.forumComposer = createDefaultForumComposer();
     this.forumFeed = [];
+    this.savedForumPosts = [];
     this.forumSelectedPost = null;
     this.forumComments = [];
     this.forumOverlayVisible = false;
     this.forumTabBarHidden = false;
     this.forumOverlayDismissCount = 0;
     this.forumFeedPromiseState = {};
+    this.savedForumPostsPromiseState = {};
     this.forumSelectedPostPromiseState = {};
     this.forumCommentsPromiseState = {};
   },
@@ -301,6 +305,7 @@ export const model = {
     };
 
     this.forumFeed = this.forumFeed.map(applyPatch);
+    this.savedForumPosts = this.savedForumPosts.map(applyPatch);
     this.forumSelectedPost = applyPatch(this.forumSelectedPost);
   },
 
@@ -324,6 +329,9 @@ export const model = {
 
     const normalizedProfile = this.getNormalizedForumProfile();
     this.forumFeed = this.forumFeed.map((post) =>
+      normalizeForumPost(post, normalizedProfile)
+    );
+    this.savedForumPosts = this.savedForumPosts.map((post) =>
       normalizeForumPost(post, normalizedProfile)
     );
 
@@ -394,6 +402,34 @@ export const model = {
     });
 
     resolvePromise(prms, this.forumFeedPromiseState);
+    return prms;
+  },
+
+  async loadSavedForumPosts(filterOverrides = {}) {
+    const nextFilters = {
+      ...this.forumFilters,
+      ...(filterOverrides || {}),
+    };
+    this.setForumFilters(nextFilters);
+
+    const savedPostIds = this.getNormalizedForumProfile().savedPostIds;
+    const prms = Promise.all(savedPostIds.map((postId) => getForumPost(postId))).then(
+      (results) => {
+        const savedPosts = results
+          .filter((result) => result.success && result.data)
+          .map((result) => result.data);
+        const normalizedPosts = applyForumFilters(
+          savedPosts,
+          nextFilters,
+          this.getNormalizedForumProfile()
+        );
+
+        this.savedForumPosts = normalizedPosts;
+        return normalizedPosts;
+      }
+    );
+
+    resolvePromise(prms, this.savedForumPostsPromiseState);
     return prms;
   },
 

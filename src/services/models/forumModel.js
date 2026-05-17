@@ -177,6 +177,7 @@ export function createDefaultForumState() {
     forumFilters: createDefaultForumFilters(),
     forumComposer: createDefaultForumComposer(),
     forumFeed: [],
+    savedForumPosts: [],
     forumComments: [],
     forumSelectedPost: null,
   };

@@ -34,6 +34,9 @@ export default function ForumView({
   posts = [],
   isPostsLoading = false,
   postsError = null,
+  title = "",
+  emptyText = "No forum posts found.",
+  showPostButton = true,
   searchQuery = "",
   filters = {},
   isSearchFiltersVisible = false,
@@ -75,6 +78,10 @@ export default function ForumView({
             { paddingTop: Math.max(insets.top + 8, 16) },
           ]}
         >
+          {title ? (
+            <Text style={styles.title}>{title}</Text>
+          ) : null}
+
           <View
             style={[
               styles.searchBarWrapper,
@@ -149,6 +156,10 @@ export default function ForumView({
                   <Text style={styles.retryButtonText}>Try Again</Text>
                 </TouchableOpacity>
               </View>
+            ) : posts.length === 0 ? (
+              <View style={styles.postsState}>
+                <Text style={styles.emptyText}>{emptyText}</Text>
+              </View>
             ) : (
               posts.map((_, index) => (
                 <PostCard
@@ -165,12 +176,14 @@ export default function ForumView({
             )}
           </View>
         </ScrollView>
-        <TouchableOpacity style={styles.postButton} onPress={onPressPostButton}>
-          <Image
-            source={require("../../assets/icons/post.png")}
-            style={styles.postButtonIcon}
-          />
-        </TouchableOpacity>
+        {showPostButton ? (
+          <TouchableOpacity style={styles.postButton} onPress={onPressPostButton}>
+            <Image
+              source={require("../../assets/icons/post.png")}
+              style={styles.postButtonIcon}
+            />
+          </TouchableOpacity>
+        ) : null}
       </View>
     </QuestionnaireShell>
   );
@@ -228,6 +241,21 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     height: 60,
     marginBottom: 24,
+  },
+  title: {
+    color: COLORS.text,
+    fontSize: 24,
+    fontWeight: "900",
+    lineHeight: 30,
+    marginHorizontal: 20,
+    marginBottom: 8,
+  },
+  emptyText: {
+    color: COLORS.muted,
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 20,
+    textAlign: "center",
   },
   searchBarWrapperWithReset: {
     marginBottom: 12,
