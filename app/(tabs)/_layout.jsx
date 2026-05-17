@@ -96,10 +96,6 @@ function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
     return true;
   }
 
-  if (activeTabName === "forum") {
-    return false;
-  }
-
   return Boolean(requestedHidden);
 }
 
