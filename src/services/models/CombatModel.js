@@ -1653,8 +1653,8 @@ export const model = {
         "general";
 
     return {
-      title: "New training question",
-      body: "What would you adjust here based on my current training week?",
+      title: "",
+      body: "",
       topic: normalizedTopic,
       coachResponseRequested: false,
     };

@@ -15,7 +15,6 @@ export const FORUM_TOPIC_SUGGESTIONS = Object.freeze([
   "muay thai",
   "bjj",
   "wrestling",
-  "coach",
   "strength",
   "conditioning",
   "recovery",
@@ -79,7 +78,7 @@ function normalizeTags(tags) {
     new Set(
       sourceValues
         .map((tag) => normalizeString(tag, 40).toLowerCase())
-        .filter(Boolean)
+        .filter((tag) => tag && tag !== "coach")
     )
   ).slice(0, MAX_FORUM_TAGS);
 }

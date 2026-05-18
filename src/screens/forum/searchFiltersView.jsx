@@ -56,6 +56,9 @@ function SportFilterOption({ option, selected = false, onPress }) {
 export default function SearchFiltersView({
   visible = false,
   filters = {},
+  showSortOptions = true,
+  style,
+  contentHorizontalInset = 20,
   onClose,
   onChangeTopic,
   onChangeSortBy,
@@ -84,9 +87,17 @@ export default function SearchFiltersView({
     return null;
   }
 
+  const insetStyle = { marginHorizontal: contentHorizontalInset };
+  const scrollerStyle = {
+    marginHorizontal: contentHorizontalInset > 0 ? -4 : 0,
+  };
+  const scrollerContentStyle = {
+    paddingHorizontal: contentHorizontalInset,
+  };
+
   return (
-    <View style={styles.content}>
-      <View style={styles.actionRow}>
+    <View style={[styles.content, style]}>
+      <View style={[styles.actionRow, insetStyle]}>
         <TouchableOpacity style={styles.doneButton} onPress={onClose}>
           <Text style={styles.doneButtonText}>Close</Text>
         </TouchableOpacity>
@@ -95,12 +106,12 @@ export default function SearchFiltersView({
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.rowLabel}>Sports</Text>
+      <Text style={[styles.rowLabel, insetStyle]}>Sports</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.sportScrollerContent}
-        style={styles.sportScroller}
+        contentContainerStyle={[styles.sportScrollerContent, scrollerContentStyle]}
+        style={[styles.sportScroller, scrollerStyle]}
       >
         {SPORT_TOPIC_OPTIONS.map((option) => {
           const isSelected = selectedTopicSet.has(option.topic);
@@ -116,12 +127,12 @@ export default function SearchFiltersView({
         })}
       </ScrollView>
 
-      <Text style={styles.rowLabel}>Topics</Text>
+      <Text style={[styles.rowLabel, insetStyle]}>Topics</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.topicScrollerContent}
-        style={styles.topicScroller}
+        contentContainerStyle={[styles.topicScrollerContent, scrollerContentStyle]}
+        style={[styles.topicScroller, scrollerStyle]}
       >
         {topicOptions.map((topic) => {
           const isSelected = selectedTopicSet.has(topic);
@@ -143,32 +154,36 @@ export default function SearchFiltersView({
         })}
       </ScrollView>
 
-      <Text style={styles.rowLabel}>Sort</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.sortScrollerContent}
-        style={styles.sortScroller}
-      >
-        {SORT_OPTIONS.map((option) => {
-          const isSelected = selectedSortBy === option.value;
+      {showSortOptions ? (
+        <>
+          <Text style={[styles.rowLabel, insetStyle]}>Sort</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[styles.sortScrollerContent, scrollerContentStyle]}
+            style={[styles.sortScroller, scrollerStyle]}
+          >
+            {SORT_OPTIONS.map((option) => {
+              const isSelected = selectedSortBy === option.value;
 
-          return (
-            <TouchableOpacity
-              key={option.value}
-              style={[styles.topicOption, isSelected ? styles.topicOptionSelected : null]}
-              onPress={() => onChangeSortBy?.(option.value)}
-            >
-              <Text
-                numberOfLines={1}
-                style={isSelected ? styles.topicSelectedText : styles.topicText}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[styles.topicOption, isSelected ? styles.topicOptionSelected : null]}
+                  onPress={() => onChangeSortBy?.(option.value)}
+                >
+                  <Text
+                    numberOfLines={1}
+                    style={isSelected ? styles.topicSelectedText : styles.topicText}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </>
+      ) : null}
 
     </View>
   );

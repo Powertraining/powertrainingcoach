@@ -49,7 +49,7 @@ const ForumScreen = observer(function ForumScreen() {
   }, [model.forumOverlayDismissCount]);
 
   useEffect(() => {
-    model.setForumTabBarHidden(currentView === "post");
+    model.setForumTabBarHidden(currentView === "post" || currentView === "compose");
 
     return () => {
       model.setForumTabBarHidden(false);
@@ -104,18 +104,28 @@ const ForumScreen = observer(function ForumScreen() {
     setCurrentView("compose");
   }
 
+  function handleComposeTitleChange(title) {
+    model.updateForumComposer({
+      title: String(title ?? "").slice(0, 140),
+    });
+  }
+
   function handleComposeTextChange(body) {
-    const normalizedBody = String(body ?? "");
-    const derivedTitle =
-      normalizedBody
-        .trim()
-        .split(/\r?\n/)[0]
-        ?.trim()
-        .slice(0, 140) || model.getDefaultForumPostDraft().title;
+    model.updateForumComposer({
+      body: String(body ?? ""),
+    });
+  }
+
+  function handleComposeTagsChange(tags = []) {
+    const normalizedTags = Array.isArray(tags) ?
+      tags
+        .map((tag) => String(tag ?? "").trim().toLowerCase())
+        .filter((tag) => tag && tag !== "coach") :
+      [];
 
     model.updateForumComposer({
-      title: derivedTitle,
-      body: normalizedBody,
+      tags: normalizedTags,
+      topic: normalizedTags[0] || model.getDefaultForumPostDraft().topic,
     });
   }
 
@@ -361,11 +371,15 @@ const ForumScreen = observer(function ForumScreen() {
       ) : null}
       {currentView === "compose" ? (
         <MakePostView
+          titleValue={model.forumComposer?.title || ""}
           value={model.forumComposer?.body || ""}
           userPhotoUrl={model.user?.photoURL || ""}
           isSubmitting={isCreatingPost}
           error={createPostError}
+          selectedTags={model.forumComposer?.tags || []}
+          onChangeTitle={handleComposeTitleChange}
           onChangeText={handleComposeTextChange}
+          onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
           onUploadImage={handleUploadImage}
           onDiscard={handleDiscardPost}
