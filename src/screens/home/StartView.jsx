@@ -1,4 +1,5 @@
 import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
@@ -13,10 +14,14 @@ export default function StartView({
     completedDays,
     onStart,
 }) {
+    const insets = useSafeAreaInsets();
+
     return (
             <Dotted>
                 <ScrollView
-                    contentContainerStyle={styles.content}
+                    contentContainerStyle={{
+                        paddingBottom: Math.max(insets.bottom + 96, 120),
+                    }}
                     showsVerticalScrollIndicator={false}
                     style={styles.column}
                 >
@@ -80,9 +85,6 @@ export default function StartView({
 // }
 
 const styles = StyleSheet.create({
-    content: {
-        paddingBottom: 24,
-    },
     screenTitle: {
         marginTop: 64,
         fontSize: 14,
@@ -104,7 +106,9 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    column:{marginBottom: 70},
+    column: {
+        flex: 1,
+    },
     row: {
         flexDirection: "row",
         gap: 15,
