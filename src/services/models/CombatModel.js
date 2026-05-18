@@ -128,6 +128,7 @@ export const model = {
   forumFilters: createDefaultForumFilters(),
   forumComposer: createDefaultForumComposer(),
   forumFeed: [],
+  myForumPosts: [],
   savedForumPosts: [],
   forumSelectedPost: null,
   forumComments: [],
@@ -135,6 +136,7 @@ export const model = {
   forumTabBarHidden: false,
   forumOverlayDismissCount: 0,
   forumFeedPromiseState: {},
+  myForumPostsPromiseState: {},
   savedForumPostsPromiseState: {},
   forumSelectedPostPromiseState: {},
   forumCommentsPromiseState: {},
@@ -240,6 +242,7 @@ export const model = {
     this.forumFilters = createDefaultForumFilters();
     this.forumComposer = createDefaultForumComposer();
     this.forumFeed = [];
+    this.myForumPosts = [];
     this.savedForumPosts = [];
     this.forumSelectedPost = null;
     this.forumComments = [];
@@ -247,6 +250,7 @@ export const model = {
     this.forumTabBarHidden = false;
     this.forumOverlayDismissCount = 0;
     this.forumFeedPromiseState = {};
+    this.myForumPostsPromiseState = {};
     this.savedForumPostsPromiseState = {};
     this.forumSelectedPostPromiseState = {};
     this.forumCommentsPromiseState = {};
@@ -305,6 +309,7 @@ export const model = {
     };
 
     this.forumFeed = this.forumFeed.map(applyPatch);
+    this.myForumPosts = this.myForumPosts.map(applyPatch);
     this.savedForumPosts = this.savedForumPosts.map(applyPatch);
     this.forumSelectedPost = applyPatch(this.forumSelectedPost);
   },
@@ -329,6 +334,9 @@ export const model = {
 
     const normalizedProfile = this.getNormalizedForumProfile();
     this.forumFeed = this.forumFeed.map((post) =>
+      normalizeForumPost(post, normalizedProfile)
+    );
+    this.myForumPosts = this.myForumPosts.map((post) =>
       normalizeForumPost(post, normalizedProfile)
     );
     this.savedForumPosts = this.savedForumPosts.map((post) =>
@@ -433,6 +441,41 @@ export const model = {
     return prms;
   },
 
+  async loadMyForumPosts(filterOverrides = {}) {
+    if (!this.user?.uid) {
+      throw new Error("You need to be logged in to load your forum posts.");
+    }
+
+    const nextFilters = {
+      ...this.forumFilters,
+      ...(filterOverrides || {}),
+    };
+    this.setForumFilters(nextFilters);
+
+    const prms = getForumPosts({
+      limitCount: Math.max((nextFilters.limit || 25) * 2, 25),
+    }).then((result) => {
+      if (!result.success) {
+        throw result.error || new Error("Could not load your forum posts.");
+      }
+
+      const ownPosts = result.data.filter(
+        (post) => post?.authorId === this.user?.uid
+      );
+      const normalizedPosts = applyForumFilters(
+        ownPosts,
+        nextFilters,
+        this.getNormalizedForumProfile()
+      );
+
+      this.myForumPosts = normalizedPosts;
+      return normalizedPosts;
+    });
+
+    resolvePromise(prms, this.myForumPostsPromiseState);
+    return prms;
+  },
+
   async loadForumPost(postId) {
     const prms = getForumPost(postId).then((result) => {
       if (!result.success || !result.data) {
@@ -513,6 +556,10 @@ export const model = {
     );
 
     this.forumFeed = [normalizedPost, ...this.forumFeed].slice(
+      0,
+      this.forumFilters.limit || 25
+    );
+    this.myForumPosts = [normalizedPost, ...this.myForumPosts].slice(
       0,
       this.forumFilters.limit || 25
     );

@@ -299,11 +299,17 @@ export function MyProfileView(props) {
         {isMainMode ? (
           <View style={styles.navigationRow}>
             <ProfileNavigationCard
+              title="My posts"
+              description="Forum posts you created"
+              actionLabel="View"
+              onPress={props.onOpenMyPosts}
+            />
+
+            <ProfileNavigationCard
               title="Saved Posts"
               description="Forum posts you saved"
               actionLabel="View"
               onPress={props.onOpenSavedPosts}
-              wide
             />
           </View>
         ) : null}

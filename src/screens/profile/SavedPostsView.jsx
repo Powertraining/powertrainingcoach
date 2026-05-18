@@ -16,6 +16,10 @@ export default function SavedPostsView({
   posts = [],
   isLoading = false,
   error = null,
+  title = "Saved Posts",
+  searchPlaceholder = "Search saved posts",
+  emptyText = "Saved posts will show up here.",
+  errorText = "Could not load saved posts.",
   searchQuery = "",
   onBack,
   onChangeSearchQuery,
@@ -42,7 +46,7 @@ export default function SavedPostsView({
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Saved Posts</Text>
+          <Text style={styles.title}>{title}</Text>
         </View>
 
         <View style={styles.searchBar}>
@@ -59,7 +63,7 @@ export default function SavedPostsView({
           <TextInput
             ref={searchInputRef}
             selectionColor="#fff"
-            placeholder="Search saved posts"
+            placeholder={searchPlaceholder}
             placeholderTextColor={COLORS.muted}
             value={searchQuery}
             onChangeText={onChangeSearchQuery}
@@ -74,7 +78,7 @@ export default function SavedPostsView({
         ) : error ? (
           <View style={styles.state}>
             <Text style={styles.errorText}>
-              {error.message || "Could not load saved posts."}
+              {error.message || errorText}
             </Text>
             <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
               <Text style={styles.retryButtonText}>Try Again</Text>
@@ -82,7 +86,7 @@ export default function SavedPostsView({
           </View>
         ) : posts.length === 0 ? (
           <View style={styles.state}>
-            <Text style={styles.emptyText}>Saved posts will show up here.</Text>
+            <Text style={styles.emptyText}>{emptyText}</Text>
           </View>
         ) : (
           <View style={styles.postsSection}>
