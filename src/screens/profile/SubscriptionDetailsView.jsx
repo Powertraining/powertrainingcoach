@@ -20,6 +20,13 @@ export default function SubscriptionDetailsView({
   return (
     <View style={styles.screen}>
       <BlackGradient />
+      <TouchableOpacity
+        onPress={onBack}
+        disabled={isSubmitting}
+        style={styles.backButton}
+      >
+        <Text style={styles.backButtonText}>Go Back</Text>
+      </TouchableOpacity>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -30,16 +37,6 @@ export default function SubscriptionDetailsView({
           },
         ]}
       >
-        <View style={styles.pageHeader}>
-          <TouchableOpacity
-            onPress={onBack}
-            disabled={isSubmitting}
-            style={styles.backButton}
-          >
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.planHeader}>
           <Text style={styles.planTitle}>{`{ ${planName} }`}</Text>
           {subscribedText ? (
@@ -113,13 +110,19 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 8,
+    zIndex: 20,
   },
   backButtonText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
+    lineHeight: 18,
   },
   planHeader: {
     alignItems: "center",

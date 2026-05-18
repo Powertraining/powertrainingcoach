@@ -264,6 +264,15 @@ export default function SubscriptionPlanView({
   return (
     <View style={styles.screen}>
       <BlackGradient />
+      {onBack ? (
+        <TouchableOpacity
+          onPress={onBack}
+          disabled={Boolean(loadingPlan)}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      ) : null}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -274,18 +283,6 @@ export default function SubscriptionPlanView({
           },
         ]}
       >
-        {onBack ? (
-          <View style={styles.pageHeader}>
-            <TouchableOpacity
-              onPress={onBack}
-              disabled={Boolean(loadingPlan)}
-              style={styles.backButton}
-            >
-              <Text style={styles.backButtonText}>Go Back</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-
         <View style={styles.headerBenefitsSection}>
           <SubscriptionCard
             planName="BECOME A MEMBER TO GENERATE YOUR PLAN"
@@ -389,13 +386,19 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 8,
+    zIndex: 20,
   },
   backButtonText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
+    lineHeight: 18,
   },
   subscriptionCardPlanLabel: {
     fontSize: 20,

@@ -1,19 +1,15 @@
 import { View, StyleSheet, ScrollView } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
-import QuestionnaireDecorativeRing from "../../components/questionnaireComponents/QuestionnaireDecorativeRing.jsx";
 import QuestionnaireSportOptionButton from "../../components/questionnaireComponents/QuestionnaireSportOptionButton.jsx";
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 
-export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick }) {
+export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick, onClose }) {
     const canContinue = Boolean(value);
 
     return (
-        <QuestionnaireShell onLogoClick={onLogoClick}>
+        <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View>
-            <QuestionnaireDecorativeRing style={{ left: -105, top: -105, width: 180, borderRadius: 75, borderColor: "#C9B259" }} />
-            <QuestionnaireDecorativeRing />
-    
             <ScrollView>
             <TitleText >select your primary combat sport</TitleText>
                 <View >

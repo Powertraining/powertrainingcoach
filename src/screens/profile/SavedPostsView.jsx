@@ -35,6 +35,9 @@ export default function SavedPostsView({
 
   return (
     <QuestionnaireShell hideTabBar={false}>
+      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <Text style={styles.backButtonText}>Go Back</Text>
+      </TouchableOpacity>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -43,9 +46,6 @@ export default function SavedPostsView({
         ]}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
           <Text style={styles.title}>{title}</Text>
         </View>
 
@@ -121,13 +121,19 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 8,
+    zIndex: 20,
   },
   backButtonText: {
     color: COLORS.text,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
+    lineHeight: 18,
   },
   title: {
     color: COLORS.text,

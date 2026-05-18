@@ -222,6 +222,15 @@ export function MyProfileView(props) {
 
   return (
     <View style={styles.screen}>
+      {!isMainMode ? (
+        <TouchableOpacity
+          onPress={props.onBack}
+          disabled={props.isSubmitting}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      ) : null}
       <ScrollView
         scrollEnabled={!isScrollLocked}
         style={[
@@ -322,18 +331,6 @@ export function MyProfileView(props) {
           >
             <Text style={styles.logoutButtonText}>Log out</Text>
           </TouchableOpacity>
-        ) : null}
-
-        {!isMainMode ? (
-          <View style={styles.pageHeader}>
-            <TouchableOpacity
-              onPress={props.onBack}
-              disabled={props.isSubmitting}
-              style={styles.backButton}
-            >
-              <Text style={styles.backButtonText}>Go Back</Text>
-            </TouchableOpacity>
-          </View>
         ) : null}
 
         {isPersonalDetailsMode ? (
@@ -694,13 +691,19 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
   },
   backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 8,
+    zIndex: 20,
   },
   backButtonText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
+    lineHeight: 18,
   },
   errorText: {
     color: "#b91c1c",

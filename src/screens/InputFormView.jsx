@@ -35,6 +35,7 @@ export default function InputFormView({
     subscription,
     daysRemaining,
     initialValues = {},
+    onClose,
 }) {
     const [trainingPreferences, setTrainingPreferences] = useState(() => {
         const formState = getTrainingPreferencesFormState(initialValues);
@@ -87,7 +88,7 @@ export default function InputFormView({
     }
 
     return (
-        <QuestionnaireShell>
+        <QuestionnaireShell onClose={onClose}>
             <View style={styles.center}>
                 <View style={styles.card}>
                     <View style={styles.form}>

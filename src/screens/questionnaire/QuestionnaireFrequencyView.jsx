@@ -10,7 +10,7 @@ const MAX_SESSIONS = 5;
 const THUMB_SIZE = 24;
 const SLIDER_TOUCH_HEIGHT = 90;
 
-export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick }) {
+export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick, onClose }) {
     const [sliderWidth, setSliderWidth] = useState(0);
     const [dragValue, setDragValue] = useState(value);
     const activeValue = Math.round(dragValue);
@@ -75,7 +75,7 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     });
 
     return (
-        <QuestionnaireShell onLogoClick={onLogoClick}>
+        <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View style={styles.container}>
                 <TitleText>How many strength sessions per week do you do?</TitleText>
                 

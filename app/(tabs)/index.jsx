@@ -137,6 +137,10 @@ const HomeScreen = observer(function HomeScreen() {
     }
   }
 
+  function closeQuestionnaire() {
+    setStep(STEPS.START);
+  }
+
   function buildQuestionnairePayload(input, pendingPlanGeneration) {
     return {
       ...input,
@@ -235,6 +239,7 @@ const HomeScreen = observer(function HomeScreen() {
           model.primaryCombatSport = sport;
         }}
         onBack={goBack}
+        onClose={closeQuestionnaire}
         onContinue={() => setStep(STEPS.Q_FREQ)}
       />
     ),
@@ -246,6 +251,7 @@ const HomeScreen = observer(function HomeScreen() {
           model.sessionsPerWeek = freq;
         }}
         onBack={goBack}
+        onClose={closeQuestionnaire}
         onContinue={() => setStep(STEPS.INPUT)}
       />
     ),
@@ -260,6 +266,7 @@ const HomeScreen = observer(function HomeScreen() {
         }}
         subscription={model.isSubscribed?.() || false}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
+        onClose={closeQuestionnaire}
       />
     ),
   };

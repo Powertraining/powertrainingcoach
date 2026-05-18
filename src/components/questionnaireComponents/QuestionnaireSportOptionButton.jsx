@@ -1,29 +1,36 @@
-import { Image, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Image, Text, TouchableOpacity, StyleSheet, View } from "react-native";
 
 export default function QuestionnaireSportOptionButton({ option, isSelected, onPress }) {
     return (
         <TouchableOpacity
             onPress={onPress}
-            style={[styles.option, isSelected && styles.optionSelected]}
+            style={[styles.optionBorder, isSelected && styles.optionBorderSelected]}
         >
-            <Image source={option.image} style={isSelected ? styles.selectedImageStyle : styles.nonSelctedImageStyle} resizeMode="contain" />
-            <Text style={isSelected ? styles.optionTextSelected : styles.optionText}>{option.label}</Text>
+            <View style={styles.option}>
+                <Image source={option.image} style={isSelected ? styles.selectedImageStyle : styles.nonSelctedImageStyle} resizeMode="contain" />
+                <Text style={isSelected ? styles.optionTextSelected : styles.optionText}>{option.label}</Text>
+            </View>
         </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
+    optionBorder: {
+        borderRadius: 30,
+        paddingTop: 1.2,
+        paddingRight: 1.2,
+        paddingBottom: 12,
+        paddingLeft: 1.2,
+        width: 127.4,
+        height: 138.2,
+        backgroundColor: "#303030",
+    },
     option: {
+        flex: 1,
         paddingVertical: 10,
         paddingHorizontal: 16,
-        borderRadius: 30,
-        borderWidth: 1.2,
-        borderColor: "#585858",
-        borderStyle: "dashed",
-        color: "#585858",
-        width: 125,
-        height: 125,
-        backgroundColor: "#1E1E1E",
+        borderRadius: 28.8,
+        backgroundColor: "#0D0D0D",
         alignItems: "center",
         justifyContent: "center"
     },
@@ -31,7 +38,7 @@ const styles = StyleSheet.create({
         width: "60%",
         height: "60%",
         marginBottom: 10,
-        tintColor: "#8E8E8E"
+        tintColor: "#ffffff"
     },
     selectedImageStyle: {
         width: "60%",
@@ -39,12 +46,9 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         tintColor: "#fff"
     },
-    optionSelected: {
-        borderColor: "#fff",
-        borderStyle: "solid",
-    },
+    optionBorderSelected: {},
     optionText: {
-        color: "#8E8E8E",
+        color: "#ffffff",
         fontFamily: "BebasNeue",
         fontSize: 20,
     },
