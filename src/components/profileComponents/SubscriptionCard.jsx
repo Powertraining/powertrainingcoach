@@ -18,7 +18,7 @@ const BENEFITS = [
 ];
 
 export default function SubscriptionCard({
-  planName,
+  planName = "No Plan",
   cardStyle,
   contentStyle,
   planLabelStyle,
@@ -28,7 +28,6 @@ export default function SubscriptionCard({
   showActions = true,
   showBackground = true,
   showBraces = true,
-  isActive = false,
   isSubmitting = false,
   onPress,
   onDetailsPress,
@@ -36,7 +35,7 @@ export default function SubscriptionCard({
 }) {
   const handleDetailsPress = onDetailsPress || onPress;
   const handleUpgradePress = onUpgradePress || onPress;
-  const planLabel = planName || (isActive ? "Pro Plan" : "No Plan");
+  const planLabel = planName;
   const displayedPlanLabel = showBraces ? `{ ${planLabel} }` : planLabel;
 
   return (

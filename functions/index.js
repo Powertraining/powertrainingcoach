@@ -56,14 +56,17 @@ const SUBSCRIPTION_TRIAL_DAYS = parsePositiveInteger(
 );
 const SUBSCRIPTION_PLAN_CONFIGS = Object.freeze([
   {
+    subscriptionType: "starter",
     lookupKey: "starter_plan_setup",
     fallbackName: "Starter Plan",
   },
   {
+    subscriptionType: "pro",
     lookupKey: "pro_plan_setup",
     fallbackName: "Pro Plan",
   },
   {
+    subscriptionType: "expert",
     lookupKey: "expert_plan_setup",
     fallbackName: "Expert Plan",
   },
@@ -577,6 +580,9 @@ async function syncStripeSubscriptionToFirestore({
       firstSubscriptionItem.price.lookup_key :
       null) ||
     null;
+  const subscriptionType =
+    SUBSCRIPTION_PLAN_CONFIGS.find((config) => config.lookupKey === lookupKey)
+        ?.subscriptionType || null;
   const subscriptionPeriodEnd = getSubscriptionPeriodEndUnixTimestamp(
       resolvedSubscription,
   );
@@ -592,6 +598,7 @@ async function syncStripeSubscriptionToFirestore({
     subscription: active,
     subscriptionEndDate,
     subscriptionStartDate,
+    subscriptionType,
     stripeSubscriptionId: resolvedSubscription.id,
     stripeCustomerId: customerId || null,
     stripePriceLookupKey: lookupKey,
@@ -611,6 +618,7 @@ async function syncStripeSubscriptionToFirestore({
     customerId: customerId || null,
     firebaseUID,
     lookupKey,
+    subscriptionType,
     subscriptionEndDate,
     subscriptionStartDate,
     subscriptionId: resolvedSubscription.id,

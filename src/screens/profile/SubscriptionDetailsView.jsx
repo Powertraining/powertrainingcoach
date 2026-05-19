@@ -6,7 +6,7 @@ import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 const ANALYSIS_SLOTS = ["1", "2", "3", "4"];
 
 export default function SubscriptionDetailsView({
-  planName = "Pro Plan",
+  planName = "No Plan",
   subscribedText = "",
   nextBillingText = "",
   isSubmitting = false,

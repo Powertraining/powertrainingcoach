@@ -95,6 +95,7 @@ const HomeScreen = observer(function HomeScreen() {
           subscription: result.active,
           subscriptionEndDate: result.subscriptionEndDate,
           subscriptionStartDate: result.subscriptionStartDate,
+          subscriptionType: result.subscriptionType,
           lookupKey: result.lookupKey,
         });
       })

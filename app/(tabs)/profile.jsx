@@ -84,57 +84,12 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     [model.questionnaire, model.sessionsPerWeek]
   );
 
-  const subscriptionText = useMemo(
-    function subscriptionTextACB() {
-      const daysRemaining = model.getDaysRemainingInSubscription?.() || 0;
-
-      if (daysRemaining <= 0) {
-        return "No active subscription";
-      }
-
-      const endDate = model.getSubscriptionEndDate?.();
-      if (daysRemaining === 1) {
-        return `Active - expires ${endDate} (1 day remaining)`;
-      } else {
-        return `Active - expires ${endDate} (${daysRemaining} days remaining)`;
-      }
-    },
-    [model.subscription, model.subscriptionEndDate]
-  );
-
-  const subscriptionDaysRemaining = useMemo(
-    function subscriptionDaysRemainingACB() {
-      return model.getDaysRemainingInSubscription?.() || 0;
-    },
-    [model.subscription, model.subscriptionEndDate]
-  );
-
-  const isSubscriptionActive = useMemo(
-    function isSubscriptionActiveACB() {
-      return subscriptionDaysRemaining > 0;
-    },
-    [subscriptionDaysRemaining]
-  );
-
-  const subscriptionPlanName = useMemo(
-    function subscriptionPlanNameACB() {
-      return isSubscriptionActive ? "Pro Plan" : "No Plan";
-    },
-    [isSubscriptionActive]
-  );
-
-  const subscriptionTimeRemainingText = useMemo(
-    function subscriptionTimeRemainingTextACB() {
-      if (!isSubscriptionActive) {
-        return "No subscription";
-      }
-
-      return subscriptionDaysRemaining === 1
-        ? "1 day remaining"
-        : `${subscriptionDaysRemaining} days remaining`;
-    },
-    [isSubscriptionActive, subscriptionDaysRemaining]
-  );
+  const subscriptionText = model.getSubscriptionSummaryText?.() ||
+    "No active subscription";
+  const isSubscriptionActive = model.isSubscribed?.() || false;
+  const subscriptionPlanName = model.getSubscriptionPlanName?.() || "No Plan";
+  const subscriptionTimeRemainingText =
+    model.getSubscriptionTimeRemainingText?.() || "No subscription";
 
   const canSave = useMemo(
     function canSaveACB() {

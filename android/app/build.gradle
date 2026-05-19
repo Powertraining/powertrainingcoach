@@ -81,48 +81,48 @@ def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInRelea
 def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
-    ndkVersion rootProject.ext.ndkVersion
+    ndkVersion = rootProject.ext.ndkVersion
 
-    buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
+    compileSdk = rootProject.ext.compileSdkVersion
 
-    namespace 'com.powertraining.coach'
+    namespace = 'com.powertraining.coach'
     defaultConfig {
-        applicationId 'com.powertraining.coach'
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        applicationId = 'com.powertraining.coach'
+        minSdkVersion = rootProject.ext.minSdkVersion
+        targetSdkVersion = rootProject.ext.targetSdkVersion
+        versionCode = 1
+        versionName = "1.0.0"
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            storeFile = file('debug.keystore')
+            storePassword = 'android'
+            keyAlias = 'androiddebugkey'
+            keyPassword = 'android'
         }
     }
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.debug
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
-            shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
-            minifyEnabled enableProguardInReleaseBuilds
+            signingConfig = signingConfigs.debug
+            shrinkResources = (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
+            minifyEnabled = enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
+            crunchPngs = (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
         }
     }
     packagingOptions {
         jniLibs {
-            useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
+            useLegacyPackaging = (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
         }
     }
     androidResources {
-        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+        ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
 }
 
@@ -154,10 +154,9 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.2.0")
 
-    // Import the Firebase BoM (using 32.x for Kotlin 1.9.x compatibility)
+    // Import the Firebase BoM (when using the BoM, don't specify versions in Firebase dependencies).
     implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
 
-    // Firebase Analytics (when using the BoM, don't specify versions in Firebase dependencies)
     implementation("com.google.firebase:firebase-analytics")
 
     // Add the dependencies for any other desired Firebase products

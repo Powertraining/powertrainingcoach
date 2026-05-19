@@ -29,7 +29,7 @@ class GoogleCredentialManagerModule(
 
   @ReactMethod
   fun signIn(options: ReadableMap, promise: Promise) {
-    val activity = currentActivity
+    val activity = reactApplicationContext.currentActivity
 
     if (activity == null) {
       promise.reject(

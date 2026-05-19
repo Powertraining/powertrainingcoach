@@ -68,6 +68,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     model.subscriptionEndDate = normalizedSubscriptionEndDate;
     model.subscriptionStartDate = persistedData.subscriptionStartDate ?? null;
     model.stripePriceLookupKey = persistedData.stripePriceLookupKey ?? "";
+    const persistedSubscriptionType =
+      persistedData.subscriptionType ||
+      model.getSubscriptionType?.() ||
+      (hasActiveSubscription ? "pro" : "");
+    model.subscriptionType = hasActiveSubscription ? persistedSubscriptionType : "";
     model.trainingPerformanceState = normalizeTrainingPerformanceState(
       persistedData.trainingPerformanceState
     );
@@ -101,6 +106,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.subscription,
       model.subscriptionEndDate,
       model.subscriptionStartDate,
+      model.subscriptionType,
       model.stripePriceLookupKey,
       model.trainingPlan,
       model.completedDays,
@@ -118,6 +124,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       subscription: model.subscription,
       subscriptionEndDate: model.subscriptionEndDate,
       subscriptionStartDate: model.subscriptionStartDate,
+      subscriptionType: model.subscriptionType,
       stripePriceLookupKey: model.stripePriceLookupKey,
       trainingPlan: model.trainingPlan ? 'exists' : 'null',
       trainingPlanBatch: model.trainingPlanBatch,
@@ -137,6 +144,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         subscription: model.subscription,
         subscriptionEndDate: model.subscriptionEndDate,
         subscriptionStartDate: model.subscriptionStartDate,
+        subscriptionType: model.subscriptionType,
         stripePriceLookupKey: model.stripePriceLookupKey,
         trainingPlan: model.trainingPlan,
         completedDays: Array.from(model.completedDays || []),
@@ -212,6 +220,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
             subscription: model.subscription,
             subscriptionEndDate: model.subscriptionEndDate,
             subscriptionStartDate: model.subscriptionStartDate,
+            subscriptionType: model.subscriptionType,
             stripePriceLookupKey: model.stripePriceLookupKey
           });
         } else {
@@ -246,6 +255,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.subscription = false;
       model.subscriptionEndDate = null;
       model.subscriptionStartDate = null;
+      model.subscriptionType = "";
       model.stripePriceLookupKey = "";
       model.primaryCombatSport = "";
       model.sessionsPerWeek = 3;

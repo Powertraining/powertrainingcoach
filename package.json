@@ -29,10 +29,10 @@
     "jest-environment-jsdom": "^30.3.0"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "3.0.2",
-    "@react-native-community/slider": "^5.2.0",
-    "@react-native-picker/picker": "^2.10.2",
-    "@stripe/stripe-react-native": "0.65.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/slider": "5.1.2",
+    "@react-native-picker/picker": "2.11.4",
+    "@stripe/stripe-react-native": "0.63.0",
     "expo": "~55.0.19",
     "expo-application": "~55.0.14",
     "expo-auth-session": "~55.0.15",
@@ -48,12 +48,13 @@
     "mobx": "latest",
     "mobx-react-lite": "latest",
     "openai": "^6.15.0",
-    "react": "19.2.6",
-    "react-native": "0.85.3",
-    "react-native-safe-area-context": "5.7.0",
-    "react-native-screens": "~4.24.0",
-    "react-native-svg": "^15.15.4",
-    "react-native-webview": "13.16.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-svg": "15.15.3",
+    "react-native-webview": "13.16.0",
     "stripe": "^22.1.0"
   }
 }

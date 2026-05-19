@@ -96,6 +96,64 @@ import {
   getPendingTrainingCheckIn,
   normalizeTrainingCheckInState,
 } from "../utils/trainingCheckIn.js";
+
+const SUBSCRIPTION_PLAN_CONFIGS = Object.freeze({
+  starter: Object.freeze({
+    lookupKey: "starter_plan_setup",
+    legacyPlanType: "starter_plan",
+    name: "Starter Plan",
+  }),
+  pro: Object.freeze({
+    lookupKey: "pro_plan_setup",
+    legacyPlanType: "pro_plan",
+    name: "Pro Plan",
+  }),
+  expert: Object.freeze({
+    lookupKey: "expert_plan_setup",
+    legacyPlanType: "expert_plan",
+    name: "Expert Plan",
+  }),
+});
+
+const DEFAULT_ACTIVE_SUBSCRIPTION_TYPE = "pro";
+
+function parseDateOnly(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function normalizeSubscriptionType(value) {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  const normalizedValue = value.trim();
+
+  if (SUBSCRIPTION_PLAN_CONFIGS[normalizedValue]) {
+    return normalizedValue;
+  }
+
+  return (
+    Object.entries(SUBSCRIPTION_PLAN_CONFIGS).find(([, config]) =>
+      normalizedValue === config.lookupKey ||
+      normalizedValue === config.legacyPlanType
+    )?.[0] || ""
+  );
+}
+
+function getSubscriptionPlanConfig(typeOrKey) {
+  return SUBSCRIPTION_PLAN_CONFIGS[normalizeSubscriptionType(typeOrKey)] || null;
+}
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -117,6 +175,7 @@ export const model = {
   subscription: false,
   subscriptionEndDate: null,
   subscriptionStartDate: null,
+  subscriptionType: "",
   stripePriceLookupKey: "",
   trainingPerformanceState: createDefaultTrainingPerformanceState(),
   strengthAssessmentState: createDefaultStrengthAssessmentState(),
@@ -1303,6 +1362,116 @@ export const model = {
     return today <= endDate;
   },
 
+  getSubscriptionType() {
+    return (
+      normalizeSubscriptionType(this.subscriptionType) ||
+      normalizeSubscriptionType(this.stripePriceLookupKey) ||
+      ""
+    );
+  },
+
+  getActiveSubscriptionType() {
+    if (!this.isSubscribed()) {
+      return "";
+    }
+
+    return this.getSubscriptionType() || DEFAULT_ACTIVE_SUBSCRIPTION_TYPE;
+  },
+
+  getActiveSubscriptionLookupKey() {
+    const activeSubscriptionType = this.getActiveSubscriptionType();
+
+    if (!activeSubscriptionType) {
+      return "";
+    }
+
+    return (
+      getSubscriptionPlanConfig(activeSubscriptionType)?.lookupKey ||
+      this.stripePriceLookupKey ||
+      ""
+    );
+  },
+
+  getSubscriptionPlanName() {
+    const activeSubscriptionType = this.getActiveSubscriptionType();
+
+    if (!activeSubscriptionType) {
+      return "No Plan";
+    }
+
+    return (
+      getSubscriptionPlanConfig(activeSubscriptionType)?.name ||
+      getSubscriptionPlanConfig(this.stripePriceLookupKey)?.name ||
+      "Pro Plan"
+    );
+  },
+
+  getSubscriptionSummaryText() {
+    const daysRemaining = this.getDaysRemainingInSubscription();
+
+    if (daysRemaining <= 0) {
+      return "No active subscription";
+    }
+
+    const endDate = this.getSubscriptionEndDate();
+    const dayLabel =
+      daysRemaining === 1 ? "1 day remaining" : `${daysRemaining} days remaining`;
+
+    return `Active - expires ${endDate} (${dayLabel})`;
+  },
+
+  getSubscriptionTimeRemainingText() {
+    const daysRemaining = this.getDaysRemainingInSubscription();
+
+    if (daysRemaining <= 0) {
+      return "No subscription";
+    }
+
+    return daysRemaining === 1
+      ? "1 day remaining"
+      : `${daysRemaining} days remaining`;
+  },
+
+  getSubscriptionMemberDurationText() {
+    const startDate = parseDateOnly(this.subscriptionStartDate);
+
+    if (!startDate) {
+      return "";
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const elapsedDays = Math.max(
+      0,
+      Math.floor((today - startDate) / (1000 * 60 * 60 * 24))
+    );
+
+    if (elapsedDays === 0) {
+      return "Member since today";
+    }
+
+    if (elapsedDays === 1) {
+      return "Member for 1 day";
+    }
+
+    return `Member for ${elapsedDays} days`;
+  },
+
+  getSubscriptionNextBillingText() {
+    const endDate = parseDateOnly(this.subscriptionEndDate);
+
+    if (!endDate) {
+      return "Next billing date unavailable";
+    }
+
+    return `Next billing: ${new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(endDate)}`;
+  },
+
   /**
    * Applies server-verified subscription state directly.
    * @param {object} nextState
@@ -1313,10 +1482,17 @@ export const model = {
     subscription,
     subscriptionEndDate,
     subscriptionStartDate,
+    subscriptionType,
     stripePriceLookupKey,
     lookupKey,
   }) {
     const normalizedSubscriptionEndDate = subscriptionEndDate || null;
+    const nextLookupKey = stripePriceLookupKey || lookupKey || "";
+    const nextSubscriptionType =
+      normalizeSubscriptionType(subscriptionType) ||
+      normalizeSubscriptionType(nextLookupKey) ||
+      normalizeSubscriptionType(this.subscriptionType) ||
+      normalizeSubscriptionType(this.stripePriceLookupKey);
     const hasActiveSubscription = Boolean(
       normalizedSubscriptionEndDate &&
       new Date(normalizedSubscriptionEndDate) >= new Date(new Date().setHours(0, 0, 0, 0))
@@ -1329,8 +1505,14 @@ export const model = {
     this.subscriptionEndDate = normalizedSubscriptionEndDate;
     this.subscriptionStartDate =
       subscriptionStartDate || this.subscriptionStartDate || null;
+    this.subscriptionType =
+      (this.subscription ? nextSubscriptionType : "") ||
+      (this.subscription ? DEFAULT_ACTIVE_SUBSCRIPTION_TYPE : "");
     this.stripePriceLookupKey =
-      stripePriceLookupKey || lookupKey || this.stripePriceLookupKey || "";
+      nextLookupKey ||
+      getSubscriptionPlanConfig(this.subscriptionType)?.lookupKey ||
+      this.stripePriceLookupKey ||
+      "";
 
     if (shouldResetTrainingProgress) {
       this.resetTrainingProgress();
@@ -1357,15 +1539,16 @@ export const model = {
   calculateSubscriptionEndDate(planType) {
     const today = new Date();
     let endDate = new Date(today);
+    const subscriptionType = normalizeSubscriptionType(planType);
 
-    switch (planType) {
-      case 'starter_plan':
+    switch (subscriptionType) {
+      case 'starter':
         endDate.setDate(endDate.getDate() + 7);
         break;
-      case 'pro_plan':
+      case 'pro':
         endDate.setMonth(endDate.getMonth() + 1);
         break;
-      case 'expert_plan':
+      case 'expert':
         endDate.setFullYear(endDate.getFullYear() + 1);
         break;
       default:
@@ -1386,26 +1569,32 @@ export const model = {
    */
   setSubscriptionWithPlan(planType) {
     console.log('[CombatModel.setSubscriptionWithPlan] Called with planType:', planType);
+    const nextSubscriptionType = normalizeSubscriptionType(planType);
+
+    if (!nextSubscriptionType) {
+      throw new Error(`Invalid plan type: ${planType}`);
+    }
     
     // If this is a first-time subscription (no previous end date), reset progress
     const isFirstSubscription = !this.subscriptionEndDate;
     
     this.subscription = true;
+    this.subscriptionType = nextSubscriptionType;
+    this.stripePriceLookupKey =
+      getSubscriptionPlanConfig(nextSubscriptionType)?.lookupKey || "";
     
     // Determine days to add based on plan type
     let daysToAdd = 0;
-    switch (planType) {
-      case 'starter_plan':
+    switch (nextSubscriptionType) {
+      case 'starter':
         daysToAdd = 7;
         break;
-      case 'pro_plan':
+      case 'pro':
         daysToAdd = 30;
         break;
-      case 'expert_plan':
+      case 'expert':
         daysToAdd = 365;
         break;
-      default:
-        throw new Error(`Invalid plan type: ${planType}`);
     }
 
     // Calculate new end date
@@ -1451,6 +1640,14 @@ export const model = {
    */
   setSubscription(subscription) {
     this.subscription = subscription;
+
+    if (!subscription) {
+      this.subscriptionType = "";
+    } else if (!this.subscriptionType) {
+      this.subscriptionType =
+        normalizeSubscriptionType(this.stripePriceLookupKey) ||
+        DEFAULT_ACTIVE_SUBSCRIPTION_TYPE;
+    }
   },
 
   /**

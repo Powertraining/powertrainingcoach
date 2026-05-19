@@ -298,6 +298,7 @@ export function createDefaultUserData() {
     subscription: false,
     subscriptionEndDate: null,
     subscriptionStartDate: null,
+    subscriptionType: "",
     stripePriceLookupKey: "",
     trainingPerformanceState: createDefaultTrainingPerformanceState(),
     strengthAssessmentState: createDefaultStrengthAssessmentState(),
