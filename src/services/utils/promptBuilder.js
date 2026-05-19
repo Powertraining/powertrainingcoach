@@ -98,9 +98,12 @@ ${phaseOverviewInstruction}
 - Use "substitutionOptions" for comparable replacements the UI can swap in directly. Use an empty array when no substitute is needed.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
 ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, include "endurancePrescription" with:
-  - "modality": one of "running", "sprinting", "circuit_training", "heavy_bag", "swimming", "assault_bike", "rowing_ergometer", "skiing_ergometer", "arm_crank_machine"
-  - "format": "steady_aerobic", "tempo_threshold", "intervals", "repeated_sprint", "recovery", or "circuit"
-  - "durationMinutes", "intensity", and optional "work", "rest", "rounds", "target", and "notes"` : ""}
+  - "modality": one of "running", "sprinting", "circuit_training", "heavy_bag", "swimming", "assault_bike", "rowing_ergometer", "skiing_ergometer", "arm_crank_machine", "bicycling", "versaclimber", "sport_specific"
+  - "format": "steady_aerobic", "continuous_aerobic", "aerobic_intervals", "tempo_threshold", "long_hiit", "repeated_sprint_training", "sprint_interval_training", "repeated_sprint", "recovery", "circuit", or "sport_specific_conditioning"
+  - "durationMinutes", "intensity", and optional "work", "rest", "rounds", "target", "sessionType", "workRestRatio", "totalWorkMinutes", "totalRestMinutes", and "notes"
+- For circuit endurance exercises, also include "circuitPrescription" with "primaryTarget", "secondaryTargets", "stationCount", "workSeconds", "restSeconds", "workRestRatio", "rounds", "targetAreaEmphasis", "progression", and "analytics".
+- For heavy bag endurance exercises, also include "heavyBagPrescription" with "target", "roundLength", "rest", "rounds" or "bouts", "sessionType", "technicalFocus", and "overloadConstraint" when fight-camp simulation is used.
+- For sprinting exercises, also include "sprintPrescription" with "target", "distanceMeters", "repsPerSet", "sets", "restBetweenReps", "restBetweenSets", and "stopRule".` : ""}
 ${includePercentageSchema ? `- On percentage-based primary lifts, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets".
 - Add "strengthAssessment" only when the lift includes a planned RPE-based 1RM estimation top set, 2-5RM test, or true 1RM event the app should log for future percentage updates.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".

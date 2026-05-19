@@ -29,6 +29,151 @@ export const DESIRED_TRAINING_OPTIONS = Object.freeze([
   },
 ]);
 
+export const ENDURANCE_MODALITY_OPTIONS = Object.freeze([
+  {
+    label: "Rowing Ergometer",
+    value: "rowing_ergometer",
+    description:
+      "Measurable total-body steady work, intervals, threshold efforts, and hard intervals without impact.",
+  },
+  {
+    label: "Skiing Ergometer",
+    value: "skiing_ergometer",
+    description:
+      "Upper-body and trunk-driven conditioning with low leg impact, especially useful when leg fatigue is high.",
+  },
+  {
+    label: "Assault Bike",
+    value: "assault_bike",
+    description:
+      "Low-impact aerobic intervals, threshold work, hard intervals, repeated bursts, and mixed upper/lower-body conditioning.",
+  },
+  {
+    label: "Running",
+    value: "running",
+    description:
+      "Accessible general aerobic work with strong off-camp value, but higher lower-body impact cost.",
+  },
+  {
+    label: "Sprinting",
+    value: "sprinting",
+    description:
+      "Max-speed, acceleration, and repeated high-power exposure when speed quality and tissue tolerance are high.",
+  },
+  {
+    label: "Bicycling",
+    value: "bicycling",
+    description:
+      "Lower-impact aerobic volume, tempo work, and longer conditioning sessions when running impact is not ideal.",
+  },
+  {
+    label: "Arm Crank Machine",
+    value: "arm_crank_machine",
+    description:
+      "Upper-body conditioning with minimal lower-body loading, especially useful for wrestlers or lower-body limitations.",
+  },
+  {
+    label: "VersaClimber",
+    value: "versaclimber",
+    description:
+      "Low-impact full-body climbing intervals that blend trunk, upper-body, and leg drive.",
+  },
+  {
+    label: "Swimming",
+    value: "swimming",
+    description:
+      "Low-impact aerobic or recovery-oriented conditioning when joints, legs, or combat load need relief.",
+  },
+  {
+    label: "Heavy Bag Endurance",
+    value: "heavy_bag",
+    description:
+      "Striker-specific aerobic bag work, sustained combinations, repeated flurries, and fight-camp simulation.",
+  },
+  {
+    label: "Circuit Training",
+    value: "circuit_training",
+    description:
+      "Local muscular endurance, repeated-effort capacity, grip/arm/trunk weak links, and blended work capacity.",
+  },
+  {
+    label: "Sport Specific",
+    value: "sport_specific",
+    description:
+      "Match-prep conditioning that stays closest to the athlete's sport demands when competition specificity matters.",
+  },
+]);
+
+export const ENDURANCE_SESSION_COUNT_OPTIONS = Object.freeze(
+  Array.from({ length: 7 }, (_, index) => ({
+    label: `${index + 1}`,
+    value: index + 1,
+  }))
+);
+
+export const ENDURANCE_FORMAT_OPTIONS = Object.freeze([
+  {
+    label: "Low-intensity aerobic work",
+    value: "low_intensity_aerobic",
+  },
+  {
+    label: "Aerobic intervals",
+    value: "aerobic_intervals",
+  },
+  {
+    label: "High-intensity intervals",
+    value: "high_intensity_intervals",
+  },
+  {
+    label: "Sport-specific conditioning",
+    value: "sport_specific_conditioning",
+  },
+]);
+
+export const CIRCUIT_PRIORITY_OPTIONS = Object.freeze([
+  { label: "Local muscular endurance", value: "local_muscular_endurance" },
+  { label: "Repeated high-effort capacity", value: "repeated_high_effort_capacity" },
+  { label: "Whole-body work capacity", value: "whole_body_work_capacity" },
+  { label: "Sport-specific fatigue resistance", value: "sport_specific_fatigue_resistance" },
+  { label: "Aerobic recovery between bursts", value: "aerobic_recovery_between_bursts" },
+  { label: "Grip endurance", value: "grip_endurance" },
+  { label: "Neck endurance", value: "neck_endurance" },
+  { label: "Trunk endurance", value: "trunk_endurance" },
+  { label: "Shoulder endurance", value: "shoulder_endurance" },
+  { label: "Leg endurance", value: "leg_endurance" },
+]);
+
+export const CIRCUIT_GOAL_EXAMPLES = Object.freeze([
+  "My legs fatigue first.",
+  "My shoulders and arms burn out late.",
+  "I lose posture and trunk control late in rounds.",
+  "I can go hard once, but not repeatedly.",
+  "My stance and legs fade when kicking a lot.",
+  "My whole body gasses.",
+  "My arms and forearms blow up in hand-fighting.",
+  "My neck and upper back fatigue too fast.",
+  "I fade after hard scrambles.",
+  "My legs die in tie-ups and shots.",
+  "My trunk and hips fatigue during longer rolls.",
+  "I lose power output between bursts.",
+  "I want better aerobic recovery, not a death circuit.",
+  "I want full-body conditioning without anything fancy.",
+]);
+
+export const HEAVY_BAG_ENDURANCE_TARGET_OPTIONS = Object.freeze([
+  { label: "Aerobic bag work", value: "aerobic_bag_work" },
+  { label: "Tempo / sustained conditioning", value: "tempo_sustained_conditioning" },
+  { label: "Repeated-burst bag work", value: "repeated_burst_bag_work" },
+  { label: "Local upper-body endurance", value: "local_upper_body_endurance" },
+  { label: "Fight-camp simulation", value: "sport_specific_fight_camp_simulation" },
+]);
+
+export const SPRINTING_TARGET_OPTIONS = Object.freeze([
+  { label: "Speed / explosiveness", value: "speed_explosiveness" },
+  { label: "Repeat bursts", value: "repeat_bursts" },
+  { label: "Hard conditioning", value: "hard_conditioning" },
+]);
+
 export const CAPABILITY_RATING_OPTIONS = Object.freeze([
   { label: "Yes", value: "yes" },
   { label: "Somewhat", value: "somewhat" },
@@ -130,6 +275,14 @@ export const TRAINING_PREFERENCES_DEFAULTS = Object.freeze({
   experience: "beginner",
   desiredTraining: "strength_power_endurance",
   trainingCapabilities: Object.freeze({}),
+  preferredEnduranceModalities: Object.freeze([]),
+  enduranceSessionsPerWeek: 1,
+  preferredEnduranceFormat: "low_intensity_aerobic",
+  circuitTrainingGoalInput: "",
+  circuitTrainingPrimaryPriority: "",
+  circuitTrainingSecondaryPriorities: Object.freeze([]),
+  heavyBagEnduranceTarget: "",
+  sprintingTarget: "",
   eventPreparation: "",
   sessionDuration: "60_min",
   equipment: "full_gym",
@@ -158,6 +311,248 @@ function getTrainingCapabilityKeys() {
 
 function normalizeCapabilityRating(value) {
   return isAllowedValue(value, CAPABILITY_RATING_OPTIONS) ? value : "somewhat";
+}
+
+function normalizeEnumOptionValue(value, options) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const normalizedValue = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return isAllowedValue(normalizedValue, options) ? normalizedValue : "";
+}
+
+function normalizeEnduranceModalityValue(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const normalizedValue = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  const aliases = {
+    bike: "bicycling",
+    cycling: "bicycling",
+    rowing: "rowing_ergometer",
+    rower: "rowing_ergometer",
+    ski_erg: "skiing_ergometer",
+    skierg: "skiing_ergometer",
+    skiing: "skiing_ergometer",
+    assaultbike: "assault_bike",
+    airdyne: "assault_bike",
+    arm_crank: "arm_crank_machine",
+    arm_bike: "arm_crank_machine",
+    heavy_bag_endurance: "heavy_bag",
+    bag_work: "heavy_bag",
+    sport_specific_match_prep: "sport_specific",
+    sport_specific_match_prep_alternative: "sport_specific",
+    match_prep: "sport_specific",
+    versa_climber: "versaclimber",
+  };
+  const resolvedValue = aliases[normalizedValue] ?? normalizedValue;
+
+  return isAllowedValue(resolvedValue, ENDURANCE_MODALITY_OPTIONS)
+    ? resolvedValue
+    : "";
+}
+
+function normalizeEnduranceModalities(source = {}) {
+  const nestedSettings =
+    source.enduranceTraining && typeof source.enduranceTraining === "object"
+      ? source.enduranceTraining
+      : source.endurancePreferences && typeof source.endurancePreferences === "object"
+        ? source.endurancePreferences
+        : {};
+  const rawModalities =
+    source.preferredEnduranceModalities ??
+    source.enduranceModalities ??
+    nestedSettings.preferredModalities ??
+    nestedSettings.modalities ??
+    source.preferredEnduranceModality ??
+    source.enduranceModality ??
+    nestedSettings.preferredModality ??
+    nestedSettings.modality ??
+    TRAINING_PREFERENCES_DEFAULTS.preferredEnduranceModalities;
+  const modalityList = Array.isArray(rawModalities)
+    ? rawModalities
+    : [rawModalities];
+
+  return Array.from(
+    new Set(
+      modalityList
+        .map(normalizeEnduranceModalityValue)
+        .filter(Boolean)
+    )
+  );
+}
+
+function normalizeEnduranceSessionCount(value) {
+  const parsedValue =
+    typeof value === "number" ? value : Number.parseInt(value, 10);
+
+  if (!Number.isFinite(parsedValue)) {
+    return TRAINING_PREFERENCES_DEFAULTS.enduranceSessionsPerWeek;
+  }
+
+  return Math.min(7, Math.max(1, parsedValue));
+}
+
+function classifyCircuitTrainingGoal(goalInput = "") {
+  const text = typeof goalInput === "string" ? goalInput.toLowerCase() : "";
+  const matches = [];
+  const add = (value, keywords = []) => {
+    if (keywords.some((keyword) => text.includes(keyword))) {
+      matches.push(value);
+    }
+  };
+
+  add("grip_endurance", ["grip", "forearm", "hand-fighting", "hand fighting", "towel"]);
+  add("neck_endurance", ["neck", "upper back"]);
+  add("trunk_endurance", ["trunk", "posture", "core", "hip", "hips"]);
+  add("shoulder_endurance", ["shoulder", "arms burn", "arm burn", "punch", "flurry"]);
+  add("leg_endurance", ["leg", "legs", "stance", "kick", "tie-up", "tie up", "shot"]);
+  add("repeated_high_effort_capacity", [
+    "go hard once",
+    "not repeatedly",
+    "repeat",
+    "scramble",
+    "burst",
+    "power output",
+  ]);
+  add("aerobic_recovery_between_bursts", ["aerobic recovery", "recover", "breath"]);
+  add("whole_body_work_capacity", ["whole body", "gasses", "gas overall", "everywhere"]);
+  add("sport_specific_fatigue_resistance", [
+    "round",
+    "boxing",
+    "wrestl",
+    "bjj",
+    "mma",
+    "kick",
+    "clinch",
+    "hand-fighting",
+    "hand fighting",
+  ]);
+
+  if (matches.length === 0 && text.trim()) {
+    matches.push("whole_body_work_capacity");
+  }
+
+  return Array.from(new Set(matches));
+}
+
+function normalizeCircuitPriorities(primaryPriority, secondaryPriorities, goalInput) {
+  const inferredPriorities = classifyCircuitTrainingGoal(goalInput);
+  const normalizedPrimaryPriority =
+    normalizeEnumOptionValue(primaryPriority, CIRCUIT_PRIORITY_OPTIONS) ||
+    inferredPriorities[0] ||
+    "";
+  const rawSecondaryPriorities = Array.isArray(secondaryPriorities)
+    ? secondaryPriorities
+    : [];
+  const normalizedSecondaryPriorities = Array.from(
+    new Set([
+      ...rawSecondaryPriorities
+        .map((priority) => normalizeEnumOptionValue(priority, CIRCUIT_PRIORITY_OPTIONS))
+        .filter(Boolean),
+      ...inferredPriorities.slice(1),
+    ])
+  ).filter((priority) => priority !== normalizedPrimaryPriority);
+
+  return {
+    primaryPriority: normalizedPrimaryPriority,
+    secondaryPriorities: normalizedSecondaryPriorities,
+  };
+}
+
+function getNestedEnduranceSettings(source = {}) {
+  return source.enduranceTraining && typeof source.enduranceTraining === "object"
+    ? source.enduranceTraining
+    : source.endurancePreferences && typeof source.endurancePreferences === "object"
+      ? source.endurancePreferences
+      : {};
+}
+
+function normalizeEnduranceTrainingSettings(source = {}, desiredTraining) {
+  const nestedSettings = getNestedEnduranceSettings(source);
+  const preferredEnduranceModalities = normalizeEnduranceModalities(source);
+  const circuitSettings =
+    nestedSettings.circuitTraining && typeof nestedSettings.circuitTraining === "object"
+      ? nestedSettings.circuitTraining
+      : {};
+  const heavyBagSettings =
+    nestedSettings.heavyBag && typeof nestedSettings.heavyBag === "object"
+      ? nestedSettings.heavyBag
+      : {};
+  const sprintingSettings =
+    nestedSettings.sprinting && typeof nestedSettings.sprinting === "object"
+      ? nestedSettings.sprinting
+      : {};
+  const circuitTrainingGoalInput =
+    typeof source.circuitTrainingGoalInput === "string"
+      ? source.circuitTrainingGoalInput.trim()
+      : typeof circuitSettings.goalInput === "string"
+        ? circuitSettings.goalInput.trim()
+        : "";
+  const circuitPriorities = normalizeCircuitPriorities(
+    source.circuitTrainingPrimaryPriority ?? circuitSettings.primaryPriority,
+    source.circuitTrainingSecondaryPriorities ?? circuitSettings.secondaryPriorities,
+    circuitTrainingGoalInput
+  );
+  const includeEndurance =
+    desiredTraining === "endurance" ||
+    desiredTraining === "strength_power_endurance" ||
+    preferredEnduranceModalities.length > 0;
+
+  return {
+    include: includeEndurance,
+    modalities: preferredEnduranceModalities,
+    sessionsPerWeek: normalizeEnduranceSessionCount(
+      source.enduranceSessionsPerWeek ??
+      source.enduranceSessionCount ??
+      nestedSettings.sessionsPerWeek ??
+      nestedSettings.sessionCount
+    ),
+    preferredFormat:
+      normalizeEnumOptionValue(
+        source.preferredEnduranceFormat ??
+          source.enduranceFormat ??
+          nestedSettings.preferredFormat ??
+          nestedSettings.format,
+        ENDURANCE_FORMAT_OPTIONS
+      ) || TRAINING_PREFERENCES_DEFAULTS.preferredEnduranceFormat,
+    circuitTraining: {
+      goalInput: circuitTrainingGoalInput,
+      primaryPriority:
+        circuitPriorities.primaryPriority ||
+        (preferredEnduranceModalities.includes("circuit_training")
+          ? "whole_body_work_capacity"
+          : ""),
+      secondaryPriorities: circuitPriorities.secondaryPriorities,
+    },
+    heavyBag: {
+      target:
+        normalizeEnumOptionValue(
+          source.heavyBagEnduranceTarget ??
+            heavyBagSettings.target,
+          HEAVY_BAG_ENDURANCE_TARGET_OPTIONS
+        ) || "",
+    },
+    sprinting: {
+      target:
+        normalizeEnumOptionValue(
+          source.sprintingTarget ??
+            sprintingSettings.target,
+          SPRINTING_TARGET_OPTIONS
+        ) || "",
+    },
+  };
 }
 
 function normalizeTrainingCapabilities(source = {}) {
@@ -348,6 +743,10 @@ export function getTrainingPreferencesFormState(source = {}) {
   const eventPreparation = normalizeEventPreparation(safeSource);
   const sessionDuration = normalizeSessionDuration(safeSource);
   const equipment = normalizeEquipment(safeSource);
+  const enduranceTraining = normalizeEnduranceTrainingSettings(
+    safeSource,
+    desiredTraining
+  );
 
   return {
     experience: isAllowedValue(
@@ -358,6 +757,15 @@ export function getTrainingPreferencesFormState(source = {}) {
       : TRAINING_PREFERENCES_DEFAULTS.experience,
     desiredTraining,
     trainingCapabilities: normalizeTrainingCapabilities(safeSource),
+    preferredEnduranceModalities: enduranceTraining.modalities,
+    enduranceSessionsPerWeek: enduranceTraining.sessionsPerWeek,
+    preferredEnduranceFormat: enduranceTraining.preferredFormat,
+    circuitTrainingGoalInput: enduranceTraining.circuitTraining.goalInput,
+    circuitTrainingPrimaryPriority: enduranceTraining.circuitTraining.primaryPriority,
+    circuitTrainingSecondaryPriorities:
+      enduranceTraining.circuitTraining.secondaryPriorities,
+    heavyBagEnduranceTarget: enduranceTraining.heavyBag.target,
+    sprintingTarget: enduranceTraining.sprinting.target,
     eventPreparation,
     sessionDuration,
     equipment,
@@ -380,6 +788,10 @@ export function normalizeTrainingPreferences(source = {}) {
   const desiredTraining = normalizeDesiredTraining(safeSource);
   const eventPreparation = normalizeEventPreparation(safeSource);
   const equipment = normalizeEquipment(safeSource);
+  const enduranceTraining = normalizeEnduranceTrainingSettings(
+    safeSource,
+    desiredTraining
+  );
   const appLogicSettings = normalizeAppLogicSettings({
     ...safeSource,
     competitionTimeline:
@@ -399,6 +811,16 @@ export function normalizeTrainingPreferences(source = {}) {
       ? safeSource.experience
       : TRAINING_PREFERENCES_DEFAULTS.experience,
     trainingCapabilities: normalizeTrainingCapabilities(safeSource),
+    preferredEnduranceModalities: enduranceTraining.modalities,
+    enduranceSessionsPerWeek: enduranceTraining.sessionsPerWeek,
+    preferredEnduranceFormat: enduranceTraining.preferredFormat,
+    circuitTrainingGoalInput: enduranceTraining.circuitTraining.goalInput,
+    circuitTrainingPrimaryPriority: enduranceTraining.circuitTraining.primaryPriority,
+    circuitTrainingSecondaryPriorities:
+      enduranceTraining.circuitTraining.secondaryPriorities,
+    heavyBagEnduranceTarget: enduranceTraining.heavyBag.target,
+    sprintingTarget: enduranceTraining.sprinting.target,
+    enduranceTraining,
     eventPreparation,
     sessionDuration,
     sessionDurationMinutes: SESSION_DURATION_MINUTES[sessionDuration],
@@ -448,6 +870,28 @@ export function areTrainingPreferencesEqual(left, right) {
         normalizedLeft.trainingCapabilities[key] ===
         normalizedRight.trainingCapabilities[key]
     ) &&
+    normalizedLeft.preferredEnduranceModalities.length ===
+      normalizedRight.preferredEnduranceModalities.length &&
+    normalizedLeft.preferredEnduranceModalities.every(
+      (value, index) => value === normalizedRight.preferredEnduranceModalities[index]
+    ) &&
+    normalizedLeft.enduranceSessionsPerWeek ===
+      normalizedRight.enduranceSessionsPerWeek &&
+    normalizedLeft.preferredEnduranceFormat ===
+      normalizedRight.preferredEnduranceFormat &&
+    normalizedLeft.circuitTrainingGoalInput ===
+      normalizedRight.circuitTrainingGoalInput &&
+    normalizedLeft.circuitTrainingPrimaryPriority ===
+      normalizedRight.circuitTrainingPrimaryPriority &&
+    normalizedLeft.circuitTrainingSecondaryPriorities.length ===
+      normalizedRight.circuitTrainingSecondaryPriorities.length &&
+    normalizedLeft.circuitTrainingSecondaryPriorities.every(
+      (value, index) =>
+        value === normalizedRight.circuitTrainingSecondaryPriorities[index]
+    ) &&
+    normalizedLeft.heavyBagEnduranceTarget ===
+      normalizedRight.heavyBagEnduranceTarget &&
+    normalizedLeft.sprintingTarget === normalizedRight.sprintingTarget &&
     normalizedLeft.eventPreparation === normalizedRight.eventPreparation &&
     normalizedLeft.sessionDuration === normalizedRight.sessionDuration &&
     normalizedLeft.equipment === normalizedRight.equipment &&

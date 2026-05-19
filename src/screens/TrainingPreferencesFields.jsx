@@ -9,6 +9,8 @@ import TrainingPreferencesExperienceView from "./trainingPreferences/TrainingPre
 import TrainingPreferencesExerciseEvaluationView from "./trainingPreferences/TrainingPreferencesExerciseEvaluationView.jsx";
 import TrainingCapabilityConfidenceView from "./trainingPreferences/TrainingCapabilityConfidenceView.jsx";
 import TrainingPreferencesDesiredTrainingView from "./trainingPreferences/TrainingPreferencesDesiredTrainingView.jsx";
+import TrainingPreferencesEnduranceMethodsView from "./trainingPreferences/TrainingPreferencesEnduranceMethodsView.jsx";
+import TrainingPreferencesEnduranceSetupView from "./trainingPreferences/TrainingPreferencesEnduranceSetupView.jsx";
 import TrainingPreferencesSessionDurationView from "./trainingPreferences/TrainingPreferencesSessionDurationView.jsx";
 import TrainingPreferencesEquipmentView from "./trainingPreferences/TrainingPreferencesEquipmentView.jsx";
 import TrainingPreferencesEventPreparationView from "./trainingPreferences/TrainingPreferencesEventPreparationView.jsx";
@@ -22,8 +24,24 @@ import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 19;
 const APP_LOGIC_SECTION_COUNT = 4;
 
+function shouldShowEnduranceMethods(values = {}) {
+  return (
+    values?.desiredTraining === "endurance" ||
+    values?.desiredTraining === "strength_power_endurance"
+  );
+}
+
 export function getTrainingPreferencesSectionCount(values = {}) {
-  return BASE_TRAINING_PREFERENCES_SECTION_COUNT + APP_LOGIC_SECTION_COUNT;
+  const resolvedValues = getTrainingPreferencesFormState(values);
+  const enduranceSectionCount = shouldShowEnduranceMethods(resolvedValues)
+    ? 2
+    : 0;
+
+  return (
+    BASE_TRAINING_PREFERENCES_SECTION_COUNT +
+    APP_LOGIC_SECTION_COUNT +
+    enduranceSectionCount
+  );
 }
 
 const CAPABILITY_CONFIDENCE_PAGES = [
@@ -198,9 +216,61 @@ export default function TrainingPreferencesFields({
     (
       <TrainingPreferencesDesiredTrainingView
         value={resolvedValues.desiredTraining}
-        onChange={(sectionValue) => updateField("desiredTraining", sectionValue)}
+        onChange={(sectionValue) =>
+          updateFields({
+            desiredTraining: sectionValue,
+            preferredEnduranceModalities:
+              sectionValue === "strength_power"
+                ? []
+                : resolvedValues.preferredEnduranceModalities,
+            enduranceSessionsPerWeek:
+              sectionValue === "strength_power"
+                ? 1
+                : resolvedValues.enduranceSessionsPerWeek,
+            preferredEnduranceFormat:
+              sectionValue === "strength_power"
+                ? "low_intensity_aerobic"
+                : resolvedValues.preferredEnduranceFormat,
+            circuitTrainingGoalInput:
+              sectionValue === "strength_power"
+                ? ""
+                : resolvedValues.circuitTrainingGoalInput,
+            circuitTrainingPrimaryPriority:
+              sectionValue === "strength_power"
+                ? ""
+                : resolvedValues.circuitTrainingPrimaryPriority,
+            circuitTrainingSecondaryPriorities:
+              sectionValue === "strength_power"
+                ? []
+                : resolvedValues.circuitTrainingSecondaryPriorities,
+            heavyBagEnduranceTarget:
+              sectionValue === "strength_power"
+                ? ""
+                : resolvedValues.heavyBagEnduranceTarget,
+            sprintingTarget:
+              sectionValue === "strength_power" ? "" : resolvedValues.sprintingTarget,
+          })
+        }
       />
     ),
+    ...(shouldShowEnduranceMethods(resolvedValues)
+      ? [
+          (
+            <TrainingPreferencesEnduranceMethodsView
+              value={resolvedValues.preferredEnduranceModalities}
+              onChange={(sectionValue) =>
+                updateField("preferredEnduranceModalities", sectionValue)
+              }
+            />
+          ),
+          (
+            <TrainingPreferencesEnduranceSetupView
+              values={resolvedValues}
+              onChange={updateFields}
+            />
+          ),
+        ]
+      : []),
     (
       <TrainingPreferencesSessionDurationView
         value={resolvedValues.sessionDuration}

@@ -64,6 +64,11 @@ test("training prompt embeds endurance rules and prescription schema", () => {
   assert.match(prompt, /Endurance training rules/i);
   assert.match(prompt, /endurancePrescription/i);
   assert.match(prompt, /rowing_ergometer/i);
+  assert.match(prompt, /versaclimber/i);
+  assert.match(prompt, /sport_specific/i);
+  assert.match(prompt, /circuitPrescription/i);
+  assert.match(prompt, /heavyBagPrescription/i);
+  assert.match(prompt, /sprintPrescription/i);
   assert.match(prompt, /Assault Bike Intervals/i);
 });
 
