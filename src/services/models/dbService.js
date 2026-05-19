@@ -29,6 +29,11 @@ import {
 } from "./forumModel.js";
 import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
 import { sanitizeFirestoreData } from "../utils/firestoreData.js";
+import {
+  assertSafeFirestoreDocumentId,
+  normalizeBoundedString,
+  normalizeInteger,
+} from "../utils/inputValidation.js";
 import { createDefaultTrainingPerformanceState } from "../utils/trainingPerformance.js";
 import { createDefaultStrengthAssessmentState } from "../utils/strengthAssessment.js";
 import { createDefaultTrainingCheckInState } from "../utils/trainingCheckIn.js";
@@ -41,11 +46,11 @@ const FORUM_COMMENT_REPLIES_SUBCOLLECTION = "replies";
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
 
 function getCombatModelDocPath(uid) {
-  return `${COLLECTION_NAME}/${uid}`;
+  return `${COLLECTION_NAME}/${assertSafeFirestoreDocumentId(uid, "uid")}`;
 }
 
 function getForumPostDocPath(postId) {
-  return `${FORUM_POSTS_COLLECTION}/${postId}`;
+  return `${FORUM_POSTS_COLLECTION}/${assertSafeFirestoreDocumentId(postId, "postId")}`;
 }
 
 function getForumCommentDocPath(postId, pathSegments = []) {
@@ -58,16 +63,26 @@ function getForumCommentDocPath(postId, pathSegments = []) {
 }
 
 function getForumRepliesCollection(postId, parentPathSegments = []) {
+  const safePostId = assertSafeFirestoreDocumentId(postId, "postId");
+
   if (!Array.isArray(parentPathSegments) || parentPathSegments.length === 0) {
     throw new Error("A valid parent comment path is required to create a reply.");
   }
 
+  const safeParentPathSegments = parentPathSegments.map((segment, index) => {
+    if (index % 2 === 1) {
+      return segment;
+    }
+
+    return assertSafeFirestoreDocumentId(segment, "commentId");
+  });
+
   return collection(
     db,
     FORUM_POSTS_COLLECTION,
-    postId,
+    safePostId,
     FORUM_COMMENTS_SUBCOLLECTION,
-    ...parentPathSegments,
+    ...safeParentPathSegments,
     FORUM_COMMENT_REPLIES_SUBCOLLECTION
   );
 }
@@ -337,21 +352,23 @@ function isStoragePermissionError(error) {
 
 // User Data Management
 export async function getUserData(uid) {
+  const safeUid = assertSafeFirestoreDocumentId(uid, "uid");
+
   if (shouldUseFirestoreRestFallback()) {
-    return getUserDataViaRest(uid);
+    return getUserDataViaRest(safeUid);
   }
 
   try {
-    const docReference = doc(db, COLLECTION_NAME, uid);
+    const docReference = doc(db, COLLECTION_NAME, safeUid);
     console.log(
-      `[dbService.getUserData] Reading ${getCombatModelDocPath(uid)} from Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
+      `[dbService.getUserData] Reading ${getCombatModelDocPath(safeUid)} from Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
     );
     const cloudDataSnapshot = await getDoc(docReference);
     const fromCache = cloudDataSnapshot.metadata?.fromCache ?? false;
     const hasPendingWrites = cloudDataSnapshot.metadata?.hasPendingWrites ?? false;
 
     console.log(
-      `[dbService.getUserData] Snapshot metadata for ${getCombatModelDocPath(uid)}:`,
+      `[dbService.getUserData] Snapshot metadata for ${getCombatModelDocPath(safeUid)}:`,
       { fromCache, hasPendingWrites }
     );
 
@@ -386,15 +403,17 @@ export async function getUserData(uid) {
 }
 
 export async function saveUserData(uid, dataToSave) {
+  const safeUid = assertSafeFirestoreDocumentId(uid, "uid");
+
   if (shouldUseFirestoreRestFallback()) {
-    return saveUserDataViaRest(uid, dataToSave);
+    return saveUserDataViaRest(safeUid, dataToSave);
   }
 
   try {
-    const docReference = doc(db, COLLECTION_NAME, uid);
+    const docReference = doc(db, COLLECTION_NAME, safeUid);
     const sanitizedDataToSave = sanitizeFirestoreData(dataToSave);
     console.log(
-      `[dbService.saveUserData] Writing ${getCombatModelDocPath(uid)} in Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
+      `[dbService.saveUserData] Writing ${getCombatModelDocPath(safeUid)} in Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
     );
     await setDoc(
       docReference,
@@ -405,7 +424,7 @@ export async function saveUserData(uid, dataToSave) {
       { merge: true }
     );
     console.log(
-      `[dbService.saveUserData] Saved ${getCombatModelDocPath(uid)} in Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
+      `[dbService.saveUserData] Saved ${getCombatModelDocPath(safeUid)} in Firebase project ${getFirebaseProjectId()} / database ${getFirestoreDatabaseId()}`
     );
     return { success: true, error: null };
   } catch (error) {
@@ -417,7 +436,28 @@ export async function saveUserData(uid, dataToSave) {
 // Feedback Management
 export async function saveFeedback(feedbackData) {
   try {
-    await addDoc(collection(db, FEEDBACK_COLLECTION), feedbackData);
+    const rating = normalizeInteger(feedbackData?.rating, {
+      fallback: 0,
+      min: 1,
+      max: 10,
+    });
+
+    if (rating < 1) {
+      throw new Error("Feedback needs a rating from 1 to 10.");
+    }
+
+    const sanitizedFeedbackData = {
+      rating,
+      comment: normalizeBoundedString(feedbackData?.comment, 2000),
+      userId: assertSafeFirestoreDocumentId(feedbackData?.userId, "userId"),
+      userEmail: normalizeBoundedString(feedbackData?.userEmail, 254),
+      timestamp:
+        typeof feedbackData?.timestamp === "string" ?
+          normalizeBoundedString(feedbackData.timestamp, 40) :
+          new Date().toISOString(),
+    };
+
+    await addDoc(collection(db, FEEDBACK_COLLECTION), sanitizedFeedbackData);
     return { success: true };
   } catch (error) {
     console.error("DB feedback error:", error);
@@ -441,7 +481,11 @@ export async function getForumPosts({
     const postsQuery = query(
       collection(db, FORUM_POSTS_COLLECTION),
       orderBy("updatedAt", "desc"),
-      limit(limitCount)
+      limit(normalizeInteger(limitCount, {
+        fallback: DEFAULT_FORUM_FEED_LIMIT,
+        min: 1,
+        max: 100,
+      }))
     );
     const forumPostsSnapshot = await getDocs(postsQuery);
 
@@ -463,7 +507,8 @@ export async function getForumPost(postId) {
   try {
     assertAuthenticatedForumAccess();
 
-    const postReference = doc(db, FORUM_POSTS_COLLECTION, postId);
+    const safePostId = assertSafeFirestoreDocumentId(postId, "postId");
+    const postReference = doc(db, FORUM_POSTS_COLLECTION, safePostId);
     const forumPostSnapshot = await getDoc(postReference);
 
     if (!forumPostSnapshot.exists()) {
@@ -490,10 +535,11 @@ export async function createForumPost(postData) {
 
     const postReference = doc(collection(db, FORUM_POSTS_COLLECTION));
     const timestamp = serverTimestamp();
+    const sanitizedPostData = sanitizeFirestoreData(postData);
     await setDoc(
       postReference,
       {
-        ...postData,
+        ...sanitizedPostData,
         createdAt: timestamp,
         updatedAt: timestamp,
       },
@@ -506,7 +552,7 @@ export async function createForumPost(postData) {
       success: true,
       data: {
         id: postReference.id,
-        ...postData,
+        ...sanitizedPostData,
         createdAt: now,
         updatedAt: now,
       },
@@ -524,16 +570,21 @@ export async function getForumComments(
 ) {
   try {
     assertAuthenticatedForumAccess();
+    const safePostId = assertSafeFirestoreDocumentId(postId, "postId");
 
     const commentsQuery = query(
       collection(
         db,
         FORUM_POSTS_COLLECTION,
-        postId,
+        safePostId,
         FORUM_COMMENTS_SUBCOLLECTION
       ),
       orderBy("createdAt", "asc"),
-      limit(limitCount)
+      limit(normalizeInteger(limitCount, {
+        fallback: DEFAULT_FORUM_COMMENT_LIMIT,
+        min: 1,
+        max: 100,
+      }))
     );
     const forumCommentsSnapshot = await getDocs(commentsQuery);
 
@@ -553,7 +604,7 @@ export async function getForumComments(
           collection(
             db,
             FORUM_POSTS_COLLECTION,
-            postId,
+            safePostId,
             FORUM_COMMENTS_SUBCOLLECTION,
             ...currentDocPathSegments,
             FORUM_COMMENT_REPLIES_SUBCOLLECTION
@@ -580,7 +631,7 @@ export async function getForumComments(
 
       return {
         id: snapshot.id,
-        postId,
+        postId: safePostId,
         ...snapshot.data(),
         parentCommentId,
         rootCommentId,
@@ -608,12 +659,14 @@ export async function getForumComments(
 export async function createForumComment(postId, commentData) {
   try {
     assertAuthenticatedForumAccess();
+    const safePostId = assertSafeFirestoreDocumentId(postId, "postId");
+    const sanitizedCommentData = sanitizeFirestoreData(commentData);
 
     const commentReference = doc(
       collection(
         db,
         FORUM_POSTS_COLLECTION,
-        postId,
+        safePostId,
         FORUM_COMMENTS_SUBCOLLECTION
       )
     );
@@ -622,8 +675,8 @@ export async function createForumComment(postId, commentData) {
     await setDoc(
       commentReference,
       {
-        ...commentData,
-        postId,
+        ...sanitizedCommentData,
+        postId: safePostId,
         parentCommentId: "",
         rootCommentId: commentReference.id,
         depth: 0,
@@ -634,11 +687,11 @@ export async function createForumComment(postId, commentData) {
     );
 
     await setDoc(
-      doc(db, FORUM_POSTS_COLLECTION, postId),
+      doc(db, FORUM_POSTS_COLLECTION, safePostId),
       {
         commentsCount: increment(1),
         updatedAt: serverTimestamp(),
-        ...(commentData.isCoachVerified ?
+        ...(sanitizedCommentData.isCoachVerified ?
           { coachResponseStatus: "responded" } :
           {}),
       },
@@ -651,8 +704,8 @@ export async function createForumComment(postId, commentData) {
       success: true,
       data: {
         id: commentReference.id,
-        postId,
-        ...commentData,
+        postId: safePostId,
+        ...sanitizedCommentData,
         parentCommentId: "",
         rootCommentId: commentReference.id,
         depth: 0,
@@ -679,10 +732,15 @@ export async function createForumReply(
 ) {
   try {
     assertAuthenticatedForumAccess();
-
-    if (!parentCommentId) {
-      throw new Error("A parent comment is required to create a reply.");
-    }
+    const safePostId = assertSafeFirestoreDocumentId(postId, "postId");
+    const safeParentCommentId = assertSafeFirestoreDocumentId(
+      parentCommentId,
+      "parentCommentId"
+    );
+    const safeRootCommentId = rootCommentId ?
+      assertSafeFirestoreDocumentId(rootCommentId, "rootCommentId") :
+      safeParentCommentId;
+    const sanitizedReplyData = sanitizeFirestoreData(replyData);
 
     if (
       !Number.isInteger(depth) ||
@@ -694,16 +752,18 @@ export async function createForumReply(
       );
     }
 
-    const replyReference = doc(getForumRepliesCollection(postId, parentPathSegments));
+    const replyReference = doc(
+      getForumRepliesCollection(safePostId, parentPathSegments)
+    );
     const timestamp = serverTimestamp();
 
     await setDoc(
       replyReference,
       {
-        ...replyData,
-        postId,
-        parentCommentId,
-        rootCommentId: rootCommentId || parentCommentId,
+        ...sanitizedReplyData,
+        postId: safePostId,
+        parentCommentId: safeParentCommentId,
+        rootCommentId: safeRootCommentId,
         depth,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -712,11 +772,11 @@ export async function createForumReply(
     );
 
     await setDoc(
-      doc(db, FORUM_POSTS_COLLECTION, postId),
+      doc(db, FORUM_POSTS_COLLECTION, safePostId),
       {
         commentsCount: increment(1),
         updatedAt: serverTimestamp(),
-        ...(replyData.isCoachVerified ?
+        ...(sanitizedReplyData.isCoachVerified ?
           { coachResponseStatus: "responded" } :
           {}),
       },
@@ -729,10 +789,10 @@ export async function createForumReply(
       success: true,
       data: {
         id: replyReference.id,
-        postId,
-        ...replyData,
-        parentCommentId,
-        rootCommentId: rootCommentId || parentCommentId,
+        postId: safePostId,
+        ...sanitizedReplyData,
+        parentCommentId: safeParentCommentId,
+        rootCommentId: safeRootCommentId,
         depth,
         createdAt: now,
         updatedAt: now,
@@ -749,8 +809,10 @@ export async function createForumReply(
 }
 
 async function updateForumPostCounters(postId, patch) {
+  const safePostId = assertSafeFirestoreDocumentId(postId, "postId");
+
   await setDoc(
-    doc(db, FORUM_POSTS_COLLECTION, postId),
+    doc(db, FORUM_POSTS_COLLECTION, safePostId),
     {
       ...patch,
       updatedAt: serverTimestamp(),
@@ -762,9 +824,10 @@ async function updateForumPostCounters(postId, patch) {
 export async function incrementForumPostLikes(postId, delta) {
   try {
     assertAuthenticatedForumAccess();
+    const safeDelta = delta > 0 ? 1 : -1;
 
     await updateForumPostCounters(postId, {
-      likesCount: increment(delta),
+      likesCount: increment(safeDelta),
     });
     return { success: true, error: null };
   } catch (error) {
@@ -779,9 +842,10 @@ export async function incrementForumPostLikes(postId, delta) {
 export async function incrementForumPostSaves(postId, delta) {
   try {
     assertAuthenticatedForumAccess();
+    const safeDelta = delta > 0 ? 1 : -1;
 
     await updateForumPostCounters(postId, {
-      savesCount: increment(delta),
+      savesCount: increment(safeDelta),
     });
     return { success: true, error: null };
   } catch (error) {

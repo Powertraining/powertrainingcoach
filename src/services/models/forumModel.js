@@ -1,3 +1,8 @@
+import {
+  normalizeBoundedString,
+  normalizeHttpUrl,
+} from "../utils/inputValidation.js";
+
 export const DEFAULT_FORUM_TOPIC = "general";
 export const DEFAULT_FORUM_SORT_BY = "recent";
 export const DEFAULT_FORUM_FEED_LIMIT = 25;
@@ -21,7 +26,10 @@ export const FORUM_TOPIC_SUGGESTIONS = Object.freeze([
 ]);
 
 function normalizeString(value, maxLength = Number.POSITIVE_INFINITY) {
-  const normalizedValue = String(value ?? "").trim();
+  const normalizedValue = normalizeBoundedString(
+    String(value ?? ""),
+    maxLength
+  );
 
   if (!normalizedValue) {
     return "";
@@ -187,7 +195,7 @@ export function normalizeForumPost(record = {}, viewerProfile = {}) {
   const id = normalizeString(record.id);
   const title = normalizeString(record.title, 140);
   const body = normalizeString(record.body, 5000);
-  const mediaUrl = normalizeString(record.mediaUrl);
+  const mediaUrl = normalizeHttpUrl(record.mediaUrl);
   const createdAt = normalizeDateValue(record.createdAt);
   const updatedAt = normalizeDateValue(record.updatedAt) || createdAt;
 
@@ -196,7 +204,7 @@ export function normalizeForumPost(record = {}, viewerProfile = {}) {
     authorId: normalizeString(record.authorId),
     authorDisplayName:
       normalizeString(record.authorDisplayName, 60) || "Anonymous",
-    authorAvatarUrl: normalizeString(record.authorAvatarUrl),
+    authorAvatarUrl: normalizeHttpUrl(record.authorAvatarUrl),
     authorRole: normalizeString(record.authorRole) || "user",
     isCoachVerified: Boolean(record.isCoachVerified),
     title,
@@ -267,7 +275,7 @@ export function normalizeForumComment(record = {}, depth = 0) {
     authorId: normalizeString(record.authorId),
     authorDisplayName:
       normalizeString(record.authorDisplayName, 60) || "Anonymous",
-    authorAvatarUrl: normalizeString(record.authorAvatarUrl),
+    authorAvatarUrl: normalizeHttpUrl(record.authorAvatarUrl),
     authorRole: normalizeString(record.authorRole) || "user",
     isCoachVerified: Boolean(record.isCoachVerified),
     body: normalizeString(record.body, 2000),
@@ -470,7 +478,7 @@ export function buildForumPostPayload({
 
   const title = normalizeString(draft.title, 140);
   const body = normalizeString(draft.body, 5000);
-  const mediaUrl = normalizeString(draft.mediaUrl);
+  const mediaUrl = normalizeHttpUrl(draft.mediaUrl);
 
   if (!title) {
     throw new Error("Forum posts need a title.");
@@ -491,7 +499,7 @@ export function buildForumPostPayload({
   return {
     authorId: author.uid,
     authorDisplayName,
-    authorAvatarUrl: normalizeString(author.photoURL),
+    authorAvatarUrl: normalizeHttpUrl(author.photoURL),
     authorRole: normalizeString(authorRole) || "user",
     isCoachVerified: Boolean(isCoachVerified),
     title,
@@ -544,7 +552,7 @@ export function buildForumCommentPayload({
       normalizeString(author.displayName, 60) ||
       normalizeString(author.email?.split("@")[0], 60) ||
       "Anonymous",
-    authorAvatarUrl: normalizeString(author.photoURL),
+    authorAvatarUrl: normalizeHttpUrl(author.photoURL),
     authorRole: normalizeString(authorRole) || "user",
     isCoachVerified: Boolean(isCoachVerified),
     body: normalizedBody,

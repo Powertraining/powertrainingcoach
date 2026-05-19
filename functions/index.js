@@ -27,6 +27,16 @@ const {
   parsePositiveInteger,
   timeValueToMs,
 } = require("./consultationBooking");
+const {
+  normalizeBoundedString,
+  normalizeEnumValue,
+  normalizeFirestoreDocumentId,
+  normalizeInteger,
+  normalizeSafeReturnToPath,
+  normalizeStripeCheckoutSessionId,
+  normalizeStripeCustomerId,
+  requirePlainObject,
+} = require("./inputValidation");
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -357,15 +367,58 @@ function getClientSafeErrorMessage(error) {
  * @return {string}
  */
 function getSafeReturnToPath(returnTo) {
-  if (
-    typeof returnTo !== "string" ||
-    !returnTo.startsWith("/") ||
-    returnTo.startsWith("//")
-  ) {
-    return "";
+  return normalizeSafeReturnToPath(returnTo);
+}
+
+/**
+ * @param {object} req
+ * @return {object}
+ */
+function getValidatedRequestBody(req) {
+  return requirePlainObject(req.body || {}, "request body");
+}
+
+/**
+ * @return {Set<string>}
+ */
+function getAllowedSubscriptionLookupKeys() {
+  return new Set(SUBSCRIPTION_PLAN_CONFIGS.map((config) => config.lookupKey));
+}
+
+/**
+ * @param {*} value
+ * @return {string}
+ */
+function normalizeSubscriptionLookupKey(value) {
+  return normalizeEnumValue(
+      value,
+      getAllowedSubscriptionLookupKeys(),
+      "lookupKey",
+  );
+}
+
+/**
+ * @param {*} value
+ * @return {boolean}
+ */
+function normalizeBooleanFlag(value) {
+  if (typeof value === "boolean") {
+    return value;
   }
 
-  return returnTo;
+  if (typeof value === "string") {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (normalizedValue === "true") {
+      return true;
+    }
+
+    if (normalizedValue === "false") {
+      return false;
+    }
+  }
+
+  return Boolean(value);
 }
 
 /**
@@ -556,7 +609,7 @@ async function syncStripeSubscriptionToFirestore({
   const customerId = typeof resolvedSubscription.customer === "string" ?
     resolvedSubscription.customer :
     (resolvedSubscription.customer ? resolvedSubscription.customer.id : null);
-  const firebaseUID = getObjectMetadataValue(
+  const resolvedFirebaseUID = getObjectMetadataValue(
       resolvedSubscription,
       "firebaseUID",
   ) ||
@@ -566,9 +619,14 @@ async function syncStripeSubscriptionToFirestore({
       customerId,
     });
 
-  if (!firebaseUID) {
+  if (!resolvedFirebaseUID) {
     throw new Error("Could not resolve Firebase user for subscription");
   }
+
+  const firebaseUID = normalizeFirestoreDocumentId(
+      resolvedFirebaseUID,
+      "firebaseUID",
+  );
 
   const firstSubscriptionItem = resolvedSubscription.items &&
     resolvedSubscription.items.data &&
@@ -580,9 +638,12 @@ async function syncStripeSubscriptionToFirestore({
       firstSubscriptionItem.price.lookup_key :
       null) ||
     null;
-  const subscriptionType =
-    SUBSCRIPTION_PLAN_CONFIGS.find((config) => config.lookupKey === lookupKey)
-        ?.subscriptionType || null;
+  const subscriptionConfig = SUBSCRIPTION_PLAN_CONFIGS.find(
+      (config) => config.lookupKey === lookupKey,
+  );
+  const subscriptionType = subscriptionConfig ?
+    subscriptionConfig.subscriptionType :
+    null;
   const subscriptionPeriodEnd = getSubscriptionPeriodEndUnixTimestamp(
       resolvedSubscription,
   );
@@ -737,7 +798,8 @@ async function getAuthenticatedUser(req) {
  * @return {Promise<object>}
  */
 async function getOrCreateStripeCustomer({stripeClient, authUser}) {
-  const userRef = getUsersCollection().doc(authUser.uid);
+  const firebaseUID = normalizeFirestoreDocumentId(authUser.uid, "firebaseUID");
+  const userRef = getUsersCollection().doc(firebaseUID);
   const userSnap = await userRef.get();
   const storedCustomerId = userSnap.exists ?
     userSnap.data().stripeCustomerId :
@@ -766,14 +828,14 @@ async function getOrCreateStripeCustomer({stripeClient, authUser}) {
       let matchedCustomer = matchingCustomers.data[0];
 
       if (
-        getObjectMetadataValue(matchedCustomer, "firebaseUID") !== authUser.uid
+        getObjectMetadataValue(matchedCustomer, "firebaseUID") !== firebaseUID
       ) {
         matchedCustomer = await stripeClient.customers.update(
             matchedCustomer.id,
             {
               metadata: {
                 ...matchedCustomer.metadata,
-                firebaseUID: authUser.uid,
+                firebaseUID,
               },
             },
         );
@@ -791,7 +853,7 @@ async function getOrCreateStripeCustomer({stripeClient, authUser}) {
     email: authUser.email,
     name: authUser.name,
     metadata: {
-      firebaseUID: authUser.uid,
+      firebaseUID,
     },
   });
 
@@ -807,7 +869,8 @@ async function getOrCreateStripeCustomer({stripeClient, authUser}) {
  * @return {Promise<void>}
  */
 async function assertAdminUser(authUser) {
-  const userSnap = await getUsersCollection().doc(authUser.uid).get();
+  const firebaseUID = normalizeFirestoreDocumentId(authUser.uid, "firebaseUID");
+  const userSnap = await getUsersCollection().doc(firebaseUID).get();
   const role = userSnap.exists ? userSnap.data().role : null;
 
   if (role !== "admin") {
@@ -1035,8 +1098,14 @@ async function writeConsultationBookingAndSlot({
   bookingPatch,
   slotPatch,
 }) {
-  const bookingRef = getConsultationBookingCollection().doc(bookingId);
-  const slotRef = slotId ? getConsultationSlotCollection().doc(slotId) : null;
+  const safeBookingId = normalizeFirestoreDocumentId(bookingId, "bookingId");
+  const safeSlotId = slotId ?
+    normalizeFirestoreDocumentId(slotId, "slotId") :
+    null;
+  const bookingRef = getConsultationBookingCollection().doc(safeBookingId);
+  const slotRef = safeSlotId ?
+    getConsultationSlotCollection().doc(safeSlotId) :
+    null;
 
   await getFirestoreDb().runTransaction(async (transaction) => {
     const bookingSnap = await transaction.get(bookingRef);
@@ -1233,14 +1302,16 @@ async function finalizeConsultationCheckoutSession({
     throw createHttpError("Checkout session payment is not complete yet", 409);
   }
 
-  const bookingId = getObjectMetadataValue(resolvedSession, "bookingId");
+  const rawBookingId = getObjectMetadataValue(resolvedSession, "bookingId");
 
-  if (!bookingId) {
+  if (!rawBookingId) {
     throw createHttpError(
         "Checkout session is missing consultation booking metadata",
         400,
     );
   }
+
+  const bookingId = normalizeFirestoreDocumentId(rawBookingId, "bookingId");
 
   const bookingRef = getConsultationBookingCollection().doc(bookingId);
   const bookingSnap = await bookingRef.get();
@@ -1568,14 +1639,14 @@ exports.upsertConsultationAvailability = functions.https.onRequest(
         const authUser = await getAuthenticatedUser(req);
         await assertAdminUser(authUser);
 
-        const requestBody = req.body || {};
+        const requestBody = getValidatedRequestBody(req);
         const requestedSlots = Array.isArray(requestBody.slots) ?
           requestBody.slots :
           [requestBody];
 
-        if (requestedSlots.length === 0) {
+        if (requestedSlots.length === 0 || requestedSlots.length > 50) {
           throw createHttpError(
-              "At least one consultation slot is required",
+              "Between 1 and 50 consultation slots are required",
               400,
           );
         }
@@ -1583,27 +1654,25 @@ exports.upsertConsultationAvailability = functions.https.onRequest(
         const nowMs = Date.now();
         const savedSlots = [];
 
-        for (const slotInput of requestedSlots) {
+        for (const rawSlotInput of requestedSlots) {
+          const slotInput = requirePlainObject(rawSlotInput, "slot");
           const startsAt = parseIsoDate(slotInput.startsAt, "startsAt");
           const endsAt = parseIsoDate(slotInput.endsAt, "endsAt");
           assertValidSlotWindow(startsAt, endsAt);
 
-          const amount = Number.parseInt(slotInput.amount, 10);
-
-          if (!Number.isFinite(amount) || amount <= 0) {
-            throw createHttpError(
-                "Consultation slot amount must be a positive integer",
-                400,
-            );
-          }
+          const amount = normalizeInteger(slotInput.amount, {
+            fieldName: "amount",
+            min: 1,
+            max: 100000000,
+          });
 
           const slotId = typeof slotInput.slotId === "string" &&
             slotInput.slotId.trim() ?
-            slotInput.slotId.trim() :
+            normalizeFirestoreDocumentId(slotInput.slotId, "slotId") :
             getConsultationSlotCollection().doc().id;
           const coachUid = typeof slotInput.coachUid === "string" &&
             slotInput.coachUid.trim() ?
-            slotInput.coachUid.trim() :
+            normalizeFirestoreDocumentId(slotInput.coachUid, "coachUid") :
             authUser.uid;
           const slotRef = getConsultationSlotCollection().doc(slotId);
           const existingSlotSnap = await slotRef.get();
@@ -1634,34 +1703,34 @@ exports.upsertConsultationAvailability = functions.https.onRequest(
           });
 
           const slotData = {
-            title:
-              typeof slotInput.title === "string" &&
-              slotInput.title.trim() ?
-              slotInput.title.trim() :
-              "Consultation",
-            description:
-              typeof slotInput.description === "string" ?
-                slotInput.description.trim() :
-                "",
+            title: normalizeBoundedString(slotInput.title, {
+              maxLength: 120,
+              fieldName: "title",
+            }) || "Consultation",
+            description: normalizeBoundedString(slotInput.description, {
+              maxLength: 1000,
+              fieldName: "description",
+            }),
             coachUid,
             startsAt: admin.firestore.Timestamp.fromDate(startsAt),
             endsAt: admin.firestore.Timestamp.fromDate(endsAt),
-            timezone: typeof slotInput.timezone === "string" &&
-              slotInput.timezone.trim() ?
-              slotInput.timezone.trim() :
-              "UTC",
+            timezone: normalizeBoundedString(slotInput.timezone, {
+              maxLength: 80,
+              fieldName: "timezone",
+            }) || "UTC",
             amount,
             currency: normalizeCurrency(
                 slotInput.currency,
                 CONSULTATION_DEFAULT_CURRENCY,
             ),
-            meetingType: typeof slotInput.meetingType === "string" &&
-              slotInput.meetingType.trim() ?
-              slotInput.meetingType.trim() :
-              "video",
-            location: typeof slotInput.location === "string" ?
-              slotInput.location.trim() :
-              "",
+            meetingType: normalizeBoundedString(slotInput.meetingType, {
+              maxLength: 40,
+              fieldName: "meetingType",
+            }) || "video",
+            location: normalizeBoundedString(slotInput.location, {
+              maxLength: 500,
+              fieldName: "location",
+            }),
             status: slotInput.status === SLOT_STATUS.UNAVAILABLE ?
               SLOT_STATUS.UNAVAILABLE :
               SLOT_STATUS.AVAILABLE,
@@ -1721,7 +1790,9 @@ exports.listConsultationAvailability = functions.https.onRequest(
       }
 
       try {
-        const requestData = req.method === "GET" ? req.query : (req.body || {});
+        const requestData = req.method === "GET" ?
+          req.query :
+          getValidatedRequestBody(req);
         const startsAfter = requestData.startsAfter ?
           parseIsoDate(requestData.startsAfter, "startsAfter") :
           new Date();
@@ -1730,10 +1801,15 @@ exports.listConsultationAvailability = functions.https.onRequest(
           null;
         const coachUid = typeof requestData.coachUid === "string" &&
           requestData.coachUid.trim() ?
-          requestData.coachUid.trim() :
+          normalizeFirestoreDocumentId(requestData.coachUid, "coachUid") :
           null;
         const limit = Math.min(
-            parsePositiveInteger(requestData.limit, 50),
+            normalizeInteger(requestData.limit, {
+              fieldName: "limit",
+              fallback: 50,
+              min: 1,
+              max: 200,
+            }),
             200,
         );
         const nowMs = Date.now();
@@ -1829,14 +1905,12 @@ exports.createConsultationCheckoutSession = functions.https.onRequest(
             "STRIPE_SECRET_KEY",
         );
         const stripeClient = stripe(secretKey);
-        const requestBody = req.body || {};
+        const requestBody = getValidatedRequestBody(req);
         const slotId = typeof requestBody.slotId === "string" &&
           requestBody.slotId.trim() ?
-          requestBody.slotId.trim() :
+          normalizeFirestoreDocumentId(requestBody.slotId, "slotId") :
           null;
-        const returnTo = typeof requestBody.returnTo === "string" ?
-          requestBody.returnTo :
-          "";
+        const returnTo = normalizeSafeReturnToPath(requestBody.returnTo);
 
         if (!slotId) {
           throw createHttpError("slotId is required", 400);
@@ -2087,10 +2161,10 @@ exports.verifyConsultationCheckoutSession = functions.https.onRequest(
             "STRIPE_SECRET_KEY",
         );
         const stripeClient = stripe(secretKey);
-        const requestBody = req.body || {};
+        const requestBody = getValidatedRequestBody(req);
         const sessionId = typeof requestBody.sessionId === "string" &&
           requestBody.sessionId.trim() ?
-          requestBody.sessionId.trim() :
+          normalizeStripeCheckoutSessionId(requestBody.sessionId) :
           null;
 
         if (!sessionId) {
@@ -2160,10 +2234,10 @@ exports.cancelConsultationBooking = functions.https.onRequest(
             "STRIPE_SECRET_KEY",
         );
         const stripeClient = stripe(secretKey);
-        const requestBody = req.body || {};
+        const requestBody = getValidatedRequestBody(req);
         const bookingId = typeof requestBody.bookingId === "string" &&
           requestBody.bookingId.trim() ?
-          requestBody.bookingId.trim() :
+          normalizeFirestoreDocumentId(requestBody.bookingId, "bookingId") :
           null;
 
         if (!bookingId) {
@@ -2303,13 +2377,19 @@ exports.listMyConsultationBookings = functions.https.onRequest(
 
       try {
         const authUser = await getAuthenticatedUser(req);
-        const requestData = req.method === "GET" ? req.query : (req.body || {});
+        const requestData = req.method === "GET" ?
+          req.query :
+          getValidatedRequestBody(req);
         const upcomingOnly = requestData.upcomingOnly === undefined ?
           true :
-          requestData.upcomingOnly !== false &&
-          requestData.upcomingOnly !== "false";
+          normalizeBooleanFlag(requestData.upcomingOnly);
         const limit = Math.min(
-            parsePositiveInteger(requestData.limit, 50),
+            normalizeInteger(requestData.limit, {
+              fieldName: "limit",
+              fallback: 50,
+              min: 1,
+              max: 200,
+            }),
             200,
         );
         const nowMs = Date.now();
@@ -2559,12 +2639,9 @@ exports.createCheckoutSession = functions.https.onRequest(
         );
         const stripeClient = stripe(secretKey);
 
-        const {lookupKey, returnTo} = req.body;
-        const safeReturnTo = getSafeReturnToPath(returnTo);
-
-        if (!lookupKey) {
-          return res.status(400).json({error: "Missing lookupKey"});
-        }
+        const requestBody = getValidatedRequestBody(req);
+        const lookupKey = normalizeSubscriptionLookupKey(requestBody.lookupKey);
+        const safeReturnTo = getSafeReturnToPath(requestBody.returnTo);
 
         // Fetch the price based on lookupKey
         const prices = await stripeClient.prices.list({
@@ -2677,11 +2754,10 @@ exports.verifyCheckoutSession = functions.https.onRequest(
             "STRIPE_SECRET_KEY",
         );
         const stripeClient = stripe(secretKey);
-        const {sessionId} = req.body;
-
-        if (!sessionId) {
-          return res.status(400).json({error: "Missing sessionId"});
-        }
+        const requestBody = getValidatedRequestBody(req);
+        const sessionId = normalizeStripeCheckoutSessionId(
+            requestBody.sessionId,
+        );
 
         const checkoutSession = await stripeClient.checkout.sessions.retrieve(
             sessionId,
@@ -2782,11 +2858,15 @@ exports.refreshSubscriptionStatus = functions.https.onRequest(
             "STRIPE_SECRET_KEY",
         );
         const stripeClient = stripe(secretKey);
+        const firebaseUID = normalizeFirestoreDocumentId(
+            authUser.uid,
+            "firebaseUID",
+        );
 
         const combatModelSnap = await getCombatModelCollection()
-            .doc(authUser.uid)
+            .doc(firebaseUID)
             .get();
-        const userSnap = await getUsersCollection().doc(authUser.uid).get();
+        const userSnap = await getUsersCollection().doc(firebaseUID).get();
         const combatModelData = combatModelSnap.exists ?
           combatModelSnap.data() :
           {};
@@ -2815,7 +2895,7 @@ exports.refreshSubscriptionStatus = functions.https.onRequest(
         const syncResult = await syncStripeSubscriptionToFirestore({
           stripeClient,
           subscription: subscriptionId,
-          fallbackFirebaseUID: authUser.uid,
+          fallbackFirebaseUID: firebaseUID,
         });
 
         return res.json({
@@ -2867,8 +2947,18 @@ exports.createPortalSession = functions.https.onRequest(
         );
         const stripeClient = stripe(secretKey);
 
-        const {sessionId, customerId} = req.body;
-        const userRef = getUsersCollection().doc(authUser.uid);
+        const requestBody = getValidatedRequestBody(req);
+        const sessionId = requestBody.sessionId ?
+          normalizeStripeCheckoutSessionId(requestBody.sessionId) :
+          "";
+        const customerId = requestBody.customerId ?
+          normalizeStripeCustomerId(requestBody.customerId) :
+          "";
+        const firebaseUID = normalizeFirestoreDocumentId(
+            authUser.uid,
+            "firebaseUID",
+        );
+        const userRef = getUsersCollection().doc(firebaseUID);
         const userSnap = await userRef.get();
         const storedCustomerId = userSnap.exists ?
           userSnap.data().stripeCustomerId :
@@ -2991,10 +3081,13 @@ exports.stripeWebhook = functions.https.onRequest(
               getObjectMetadataValue(event.data.object, "bookingKind") ===
               "consultation"
             ) {
-              const bookingId = getObjectMetadataValue(
+              const rawBookingId = getObjectMetadataValue(
                   event.data.object,
                   "bookingId",
               );
+              const bookingId = rawBookingId ?
+                normalizeFirestoreDocumentId(rawBookingId, "bookingId") :
+                "";
 
               if (bookingId) {
                 const bookingSnap = await getConsultationBookingCollection()
@@ -3105,6 +3198,14 @@ const ENDURANCE_FORMATS = Object.freeze([
   "circuit",
 ]);
 
+const ALLOWED_OPENAI_MODELS = new Set([
+  "gpt-5.4",
+  "gpt-5.4-mini",
+]);
+const ALLOWED_OPENAI_MESSAGE_ROLES = new Set(["system", "user"]);
+const MAX_OPENAI_MESSAGES = 4;
+const MAX_OPENAI_MESSAGE_CONTENT_LENGTH = 32000;
+
 function isPlainObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -3115,6 +3216,72 @@ function hasOwnProperty(value, key) {
 
 function normalizeStringValue(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * @param {*} value
+ * @return {Array<object>}
+ */
+function normalizeOpenAiMessages(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    return [];
+  }
+
+  if (value.length > MAX_OPENAI_MESSAGES) {
+    throw new Error("Too many training plan prompt messages were provided.");
+  }
+
+  return value.map((message, messageIndex) => {
+    if (!isPlainObject(message)) {
+      throw new Error(
+          `Training plan message ${messageIndex + 1} must be an object.`,
+      );
+    }
+
+    const role = normalizeEnumValue(
+        message.role,
+        ALLOWED_OPENAI_MESSAGE_ROLES,
+        `message ${messageIndex + 1} role`,
+    );
+    const content = normalizeBoundedString(message.content, {
+      required: true,
+      maxLength: MAX_OPENAI_MESSAGE_CONTENT_LENGTH,
+      fieldName: `message ${messageIndex + 1} content`,
+    });
+
+    return {role, content};
+  });
+}
+
+/**
+ * @param {*} value
+ * @return {string}
+ */
+function normalizeOpenAiModel(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return "gpt-5.4";
+  }
+
+  return normalizeEnumValue(value, ALLOWED_OPENAI_MODELS, "model");
+}
+
+/**
+ * @param {*} value
+ * @return {number}
+ */
+function normalizeOpenAiTemperature(value) {
+  const parsedValue =
+    typeof value === "number" ? value : Number.parseFloat(value);
+
+  if (!Number.isFinite(parsedValue)) {
+    return 0.7;
+  }
+
+  if (parsedValue < 0 || parsedValue > 2) {
+    throw new Error("temperature is outside the allowed range");
+  }
+
+  return parsedValue;
 }
 
 /**
@@ -3662,18 +3829,14 @@ exports.generateTrainingPlan = functions.https.onCall(
             "OPENAI_API_KEY",
         );
         const fetch = require("node-fetch");
-        const data = request.data || {};
-        const hasCustomMessages =
-          Array.isArray(data.messages) && data.messages.length > 0;
+        const data = requirePlainObject(request.data || {}, "request data");
+        const customMessages = normalizeOpenAiMessages(data.messages);
+        const hasCustomMessages = customMessages.length > 0;
         const messages = hasCustomMessages ?
-          data.messages :
+          customMessages :
           buildOpenAiMessagesFromData(data);
-        const model = typeof data.model === "string" && data.model ?
-          data.model :
-          "gpt-5.4";
-        const temperature = typeof data.temperature === "number" ?
-          data.temperature :
-          0.7;
+        const model = normalizeOpenAiModel(data.model);
+        const temperature = normalizeOpenAiTemperature(data.temperature);
 
         // Call OpenAI API
         const response = await fetch("https://api.openai.com/v1/chat/completions", {

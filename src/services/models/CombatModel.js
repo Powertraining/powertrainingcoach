@@ -86,6 +86,7 @@ import {
   DEFAULT_TRAINING_CYCLE_WEEKS,
   resolveTrainingCycleWeeks,
 } from "../utils/trainingCycle.js";
+import { normalizeBoundedString } from "../utils/inputValidation.js";
 import {
   applyTrainingCheckInAction,
   applyMissedRepPlanAdjustment,
@@ -277,9 +278,11 @@ export const model = {
   async updateProfile({ displayName, password, isGoogleUser }) {
     try {
       // 1 Update display name
-      if (displayName && displayName !== this.user.displayName) {
+      const safeDisplayName = normalizeBoundedString(displayName, 60);
+
+      if (safeDisplayName && safeDisplayName !== this.user.displayName) {
         await fbUpdateProfile(this.user, {
-          displayName: displayName,
+          displayName: safeDisplayName,
         });
       }
 

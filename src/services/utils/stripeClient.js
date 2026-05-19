@@ -12,6 +12,10 @@ import {
   STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT,
   STRIPE_VERIFY_CHECKOUT_ENDPOINT,
 } from "../config/apiConfig.js";
+import {
+  normalizeBoundedString,
+  normalizeSafeReturnToPath,
+} from "./inputValidation.js";
 
 const AUTH_WAIT_TIMEOUT_MS = 4000;
 
@@ -137,8 +141,8 @@ async function postStripeJson(url, body) {
 export async function createCheckoutSession(lookupKey, returnTo = "") {
   try {
     return await postStripeJson(STRIPE_CHECKOUT_ENDPOINT, {
-      lookupKey,
-      returnTo,
+      lookupKey: normalizeBoundedString(lookupKey, 80),
+      returnTo: normalizeSafeReturnToPath(returnTo),
     });
   } catch (error) {
     console.error("Checkout error:", error);
@@ -167,7 +171,9 @@ export async function listSubscriptionPlans() {
  */
 export async function verifyCheckoutSession(sessionId) {
   try {
-    return await postStripeJson(STRIPE_VERIFY_CHECKOUT_ENDPOINT, { sessionId });
+    return await postStripeJson(STRIPE_VERIFY_CHECKOUT_ENDPOINT, {
+      sessionId: normalizeBoundedString(sessionId, 255),
+    });
   } catch (error) {
     console.error("Checkout verification error:", error);
     throw error;
@@ -195,10 +201,14 @@ export async function refreshSubscriptionStatus() {
 export async function createPortalSession(sessionOrOptions) {
   try {
     const payload = typeof sessionOrOptions === "string" ?
-      { sessionId: sessionOrOptions } :
+      { sessionId: normalizeBoundedString(sessionOrOptions, 255) } :
       (sessionOrOptions || {});
+    const sanitizedPayload = {
+      sessionId: normalizeBoundedString(payload.sessionId, 255),
+      customerId: normalizeBoundedString(payload.customerId, 80),
+    };
 
-    const data = await postStripeJson(STRIPE_PORTAL_ENDPOINT, payload);
+    const data = await postStripeJson(STRIPE_PORTAL_ENDPOINT, sanitizedPayload);
 
     if (!data.url) {
       throw new Error("No portal URL returned from server");

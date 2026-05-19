@@ -54,6 +54,7 @@ test("default booking window supports 30-day advance bookings", () => {
 
 test("normalizeCurrency lowercases currency codes", () => {
   assert.equal(normalizeCurrency(" EUR "), "eur");
+  assert.equal(normalizeCurrency("usd;drop", "sek"), "sek");
 });
 
 test("parsePositiveInteger falls back for invalid values", () => {

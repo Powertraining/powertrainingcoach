@@ -15,6 +15,10 @@ import {
 } from "../config/firebaseSdk.js";
 import { clearGoogleCredentialState } from "../auth/googleIdentity";
 import { createDefaultUserData, saveUserData } from "./dbService.js";
+import {
+  assertSafeFirestoreDocumentId,
+  normalizeBoundedString,
+} from "../utils/inputValidation.js";
 
 // Role types
 export const USER_ROLES = {
@@ -29,24 +33,28 @@ async function ensureAuthPersistenceReady() {
 }
 
 function persistUserBootstrapData(user, role = USER_ROLES.USER) {
+  const safeUid = assertSafeFirestoreDocumentId(user.uid, "uid");
+  const safeRole = Object.values(USER_ROLES).includes(role) ?
+    role :
+    USER_ROLES.USER;
   const createdAt = user.metadata?.creationTime
     ? new Date(user.metadata.creationTime)
     : new Date();
 
   const profilePromise = setDoc(
-    doc(db, "users", user.uid),
+    doc(db, "users", safeUid),
     {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      role,
+      uid: safeUid,
+      email: normalizeBoundedString(user.email, 254),
+      displayName: normalizeBoundedString(user.displayName, 60),
+      role: safeRole,
       createdAt,
     },
     { merge: true },
   );
 
   const combatModelPromise = saveUserData(
-    user.uid,
+    safeUid,
     createDefaultUserData()
   ).then((result) => {
     if (!result.success) {
@@ -116,7 +124,9 @@ export async function registerWithEmailPassword(
     );
 
     // Update the user's displayName with the provided username
-    await updateProfile(userCredential.user, { displayName: username });
+    await updateProfile(userCredential.user, {
+      displayName: normalizeBoundedString(username, 60),
+    });
 
     await ensureBootstrapDataEventually(
       {
@@ -234,7 +244,8 @@ export function subscribeToAuthChanges(functionACB) {
 // Get user role from Firestore
 export async function getUserRole(uid) {
   try {
-    const userDoc = await getDoc(doc(db, "users", uid));
+    const safeUid = assertSafeFirestoreDocumentId(uid, "uid");
+    const userDoc = await getDoc(doc(db, "users", safeUid));
     if (userDoc.exists()) {
       return userDoc.data().role;
     }
@@ -254,7 +265,11 @@ export async function isUserAdmin(uid) {
 // Update user role (admin only)
 export async function updateUserRole(uid, newRole) {
   try {
-    await setDoc(doc(db, "users", uid), { role: newRole }, { merge: true });
+    const safeUid = assertSafeFirestoreDocumentId(uid, "uid");
+    const safeRole = Object.values(USER_ROLES).includes(newRole) ?
+      newRole :
+      USER_ROLES.USER;
+    await setDoc(doc(db, "users", safeUid), { role: safeRole }, { merge: true });
     return { success: true };
   } catch (error) {
     return { success: false, error: error.code };

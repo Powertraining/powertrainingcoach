@@ -9,6 +9,93 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isString(value, maxLength) {
+      return value is string && value.size() <= maxLength;
+    }
+
+    function isNonEmptyString(value, maxLength) {
+      return isString(value, maxLength) && value.size() > 0;
+    }
+
+    function isNonNegativeInt(value) {
+      return value is int && value >= 0;
+    }
+
+    function isValidFeedbackCreate() {
+      return isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          "rating",
+          "comment",
+          "userId",
+          "userEmail",
+          "timestamp",
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 10
+        && isString(request.resource.data.comment, 2000)
+        && isString(request.resource.data.userEmail, 254)
+        && isString(request.resource.data.timestamp, 40);
+    }
+
+    function isValidUserCreate(userId) {
+      return isOwner(userId)
+        && request.resource.data.keys().hasOnly([
+          "uid",
+          "email",
+          "displayName",
+          "role",
+          "createdAt",
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == "user"
+        && isString(request.resource.data.email, 254)
+        && isString(request.resource.data.displayName, 60);
+    }
+
+    function isValidUserUpdate(userId) {
+      return isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "displayName",
+        ])
+        && isString(request.resource.data.displayName, 60);
+    }
+
+    function protectedCombatModelFields() {
+      return [
+        "subscription",
+        "subscriptionEndDate",
+        "subscriptionStartDate",
+        "subscriptionType",
+        "stripePriceLookupKey",
+        "stripeSubscriptionId",
+        "stripeCustomerId",
+        "subscriptionStatus",
+        "billingProvider",
+      ];
+    }
+
+    function isValidCombatModelCreate(userId) {
+      return isOwner(userId)
+        && (!request.resource.data.keys().hasAny(["subscription"]) ||
+          request.resource.data.subscription == false)
+        && !request.resource.data.keys().hasAny([
+          "stripePriceLookupKey",
+          "stripeSubscriptionId",
+          "stripeCustomerId",
+          "subscriptionStatus",
+          "billingProvider",
+        ]);
+    }
+
+    function isValidCombatModelUpdate(userId) {
+      return isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+          protectedCombatModelFields()
+        );
+    }
+
     function onlyCounterFieldsChanged() {
       return request.resource.data.diff(resource.data).changedKeys().hasOnly([
         "likesCount",
@@ -19,6 +106,23 @@ service cloud.firestore {
       ]);
     }
 
+    function isValidCounterUpdate() {
+      return request.resource.data.authorId == resource.data.authorId
+        && onlyCounterFieldsChanged()
+        && (!request.resource.data.keys().hasAny(["likesCount"]) ||
+          isNonNegativeInt(request.resource.data.likesCount))
+        && (!request.resource.data.keys().hasAny(["savesCount"]) ||
+          isNonNegativeInt(request.resource.data.savesCount))
+        && (!request.resource.data.keys().hasAny(["commentsCount"]) ||
+          isNonNegativeInt(request.resource.data.commentsCount))
+        && (!request.resource.data.keys().hasAny(["coachResponseStatus"]) ||
+          request.resource.data.coachResponseStatus in [
+            "none",
+            "requested",
+            "responded",
+          ]);
+    }
+
     function hasValidForumCommentDepth() {
       return !request.resource.data.keys().hasAny(["depth"]) || (
         request.resource.data.depth is int &&
@@ -27,54 +131,188 @@ service cloud.firestore {
       );
     }
 
+    function isValidForumPostCreate() {
+      return isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          "authorId",
+          "authorDisplayName",
+          "authorAvatarUrl",
+          "authorRole",
+          "isCoachVerified",
+          "title",
+          "body",
+          "topic",
+          "exerciseId",
+          "exerciseName",
+          "mediaUrl",
+          "mediaType",
+          "tags",
+          "coachResponseRequested",
+          "coachResponseStatus",
+          "featured",
+          "priorityScore",
+          "likesCount",
+          "savesCount",
+          "commentsCount",
+          "searchIndex",
+          "createdAt",
+          "updatedAt",
+        ])
+        && request.resource.data.authorId == request.auth.uid
+        && isString(request.resource.data.authorDisplayName, 60)
+        && isString(request.resource.data.authorAvatarUrl, 2048)
+        && isString(request.resource.data.authorRole, 40)
+        && request.resource.data.isCoachVerified is bool
+        && isNonEmptyString(request.resource.data.title, 140)
+        && isString(request.resource.data.body, 5000)
+        && isString(request.resource.data.topic, 40)
+        && isString(request.resource.data.exerciseId, 128)
+        && isString(request.resource.data.exerciseName, 80)
+        && isString(request.resource.data.mediaUrl, 2048)
+        && request.resource.data.mediaType in ["none", "image", "video"]
+        && request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 5
+        && request.resource.data.coachResponseRequested is bool
+        && request.resource.data.coachResponseStatus in [
+          "none",
+          "requested",
+          "responded",
+        ]
+        && request.resource.data.featured is bool
+        && isNonNegativeInt(request.resource.data.priorityScore)
+        && request.resource.data.priorityScore <= 100
+        && request.resource.data.likesCount == 0
+        && request.resource.data.savesCount == 0
+        && request.resource.data.commentsCount == 0
+        && request.resource.data.searchIndex is list
+        && request.resource.data.searchIndex.size() <= 30;
+    }
+
+    function isValidForumPostOwnerUpdate() {
+      return request.auth.uid == resource.data.authorId
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "title",
+          "body",
+          "topic",
+          "exerciseId",
+          "exerciseName",
+          "mediaUrl",
+          "mediaType",
+          "tags",
+          "coachResponseRequested",
+          "coachResponseStatus",
+          "searchIndex",
+          "updatedAt",
+        ])
+        && (!request.resource.data.keys().hasAny(["title"]) ||
+          isNonEmptyString(request.resource.data.title, 140))
+        && (!request.resource.data.keys().hasAny(["body"]) ||
+          isString(request.resource.data.body, 5000))
+        && (!request.resource.data.keys().hasAny(["topic"]) ||
+          isString(request.resource.data.topic, 40))
+        && (!request.resource.data.keys().hasAny(["exerciseId"]) ||
+          isString(request.resource.data.exerciseId, 128))
+        && (!request.resource.data.keys().hasAny(["exerciseName"]) ||
+          isString(request.resource.data.exerciseName, 80))
+        && (!request.resource.data.keys().hasAny(["mediaUrl"]) ||
+          isString(request.resource.data.mediaUrl, 2048))
+        && (!request.resource.data.keys().hasAny(["mediaType"]) ||
+          request.resource.data.mediaType in ["none", "image", "video"])
+        && (!request.resource.data.keys().hasAny(["tags"]) ||
+          (request.resource.data.tags is list &&
+            request.resource.data.tags.size() <= 5))
+        && (!request.resource.data.keys().hasAny(["coachResponseRequested"]) ||
+          request.resource.data.coachResponseRequested is bool)
+        && (!request.resource.data.keys().hasAny(["coachResponseStatus"]) ||
+          request.resource.data.coachResponseStatus in [
+            "none",
+            "requested",
+            "responded",
+          ])
+        && (!request.resource.data.keys().hasAny(["searchIndex"]) ||
+          (request.resource.data.searchIndex is list &&
+            request.resource.data.searchIndex.size() <= 30));
+    }
+
     function isForumCommentCreate(postId) {
       return isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          "authorId",
+          "authorDisplayName",
+          "authorAvatarUrl",
+          "authorRole",
+          "isCoachVerified",
+          "body",
+          "postId",
+          "parentCommentId",
+          "rootCommentId",
+          "depth",
+          "createdAt",
+          "updatedAt",
+        ])
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.postId == postId
+        && isString(request.resource.data.authorDisplayName, 60)
+        && isString(request.resource.data.authorAvatarUrl, 2048)
+        && isString(request.resource.data.authorRole, 40)
+        && request.resource.data.isCoachVerified is bool
+        && isNonEmptyString(request.resource.data.body, 2000)
+        && isString(request.resource.data.parentCommentId, 128)
+        && isString(request.resource.data.rootCommentId, 128)
         && hasValidForumCommentDepth();
     }
 
+    function isValidForumCommentUpdate() {
+      return isSignedIn()
+        && request.auth.uid == resource.data.authorId
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "body",
+          "updatedAt",
+        ])
+        && isNonEmptyString(request.resource.data.body, 2000);
+    }
+
     match /combatModel/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow create: if isValidCombatModelCreate(userId);
+      allow update: if isValidCombatModelUpdate(userId);
+      allow delete: if false;
     }
 
     match /users/{userId} {
-      allow create: if isOwner(userId)
-        && request.resource.data.uid == request.auth.uid;
-      allow read, update: if isOwner(userId);
+      allow create: if isValidUserCreate(userId);
+      allow read: if isOwner(userId);
+      allow update: if isValidUserUpdate(userId);
       allow delete: if false;
     }
 
     match /feedbacks/{feedbackId} {
-      allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid;
+      allow create: if isValidFeedbackCreate();
       allow read, update, delete: if false;
     }
 
     match /forumPosts/{postId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.authorId == request.auth.uid;
+      allow create: if isValidForumPostCreate();
       allow update: if isSignedIn() && (
-        request.auth.uid == resource.data.authorId ||
-        (
-          request.resource.data.authorId == resource.data.authorId &&
-          onlyCounterFieldsChanged()
-        )
+        isValidForumPostOwnerUpdate() ||
+        isValidCounterUpdate()
       );
       allow delete: if isSignedIn() && request.auth.uid == resource.data.authorId;
 
       match /comments/{commentId} {
         allow read: if isSignedIn();
         allow create: if isForumCommentCreate(postId);
-        allow update, delete: if isSignedIn()
-          && request.auth.uid == resource.data.authorId;
+        allow update: if isValidForumCommentUpdate();
+        allow delete: if isSignedIn() && request.auth.uid == resource.data.authorId;
 
         match /{replyPath=**} {
           allow read: if isSignedIn();
           allow create: if isForumCommentCreate(postId);
-          allow update, delete: if isSignedIn()
-            && request.auth.uid == resource.data.authorId;
+          allow update: if isValidForumCommentUpdate();
+          allow delete: if isSignedIn() && request.auth.uid == resource.data.authorId;
         }
       }
     }
