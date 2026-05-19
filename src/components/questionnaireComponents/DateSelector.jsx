@@ -8,12 +8,12 @@ import {
   getDaysInMonth,
   parseDateParts,
   startOfLocalDay,
+  MONTHS,
 } from "../../services/utils/dateUtils.js";
 
 const ITEM_HEIGHT = 70;
 const VISIBLE_ROWS = 3;
 const CENTER_ROW = Math.floor(VISIBLE_ROWS / 2);
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);

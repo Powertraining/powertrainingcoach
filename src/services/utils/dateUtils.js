@@ -1,4 +1,6 @@
 export const DAY_IN_MS = 24 * 60 * 60 * 1000;
+export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 
 export function startOfLocalDay(value = new Date()) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
