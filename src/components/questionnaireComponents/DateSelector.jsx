@@ -19,6 +19,10 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function padNumber(value) {
+  return String(value).padStart(2, "0");
+}
+
 function WheelColumn({
   values,
   selectedIndex = 0,
