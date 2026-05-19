@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter } from "expo-router";
+import { Redirect, useLocalSearchParams, usePathname } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import CoachResponseView from "../../src/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/forum/commentsView.jsx";
@@ -12,9 +11,36 @@ import ForumView from "../../src/screens/forum/ForumView.jsx";
 import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
 
+function buildForumReturnTo(pathname, params) {
+  if (typeof pathname !== "string" || !pathname.startsWith("/")) {
+    return "/(tabs)/forum";
+  }
+
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((entry) => {
+        if (typeof entry === "string") {
+          searchParams.append(key, entry);
+        }
+      });
+      return;
+    }
+
+    if (typeof value === "string") {
+      searchParams.set(key, value);
+    }
+  });
+
+  const query = searchParams.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
 const ForumScreen = observer(function ForumScreen() {
   const model = reactiveModel;
-  const router = useRouter();
+  const pathname = usePathname();
+  const params = useLocalSearchParams();
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [currentView, setCurrentView] = useState("feed");
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
@@ -336,9 +362,11 @@ const ForumScreen = observer(function ForumScreen() {
 
   if (!model.user) {
     return (
-      <AuthGateView
-        onLogin={() => router.push("/(auth)/login")}
-        onSignup={() => router.push("/(auth)/signup")}
+      <Redirect
+        href={{
+          pathname: "/(auth)/login",
+          params: { returnTo: buildForumReturnTo(pathname, params) },
+        }}
       />
     );
   }

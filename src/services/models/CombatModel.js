@@ -319,6 +319,12 @@ export const model = {
     this.forumCommentsPromiseState = {};
   },
 
+  assertForumAuthenticated() {
+    if (!this.user?.uid) {
+      throw new Error("You need to be logged in to use the forum.");
+    }
+  },
+
   setForumOverlayVisible(value) {
     this.forumOverlayVisible = Boolean(value);
   },
@@ -415,6 +421,8 @@ export const model = {
   },
 
   toggleFollowedForumUser(userId) {
+    this.assertForumAuthenticated();
+
     if (!userId || userId === this.user?.uid) {
       return false;
     }
@@ -436,9 +444,7 @@ export const model = {
   },
 
   async getForumAuthorMeta() {
-    if (!this.user?.uid) {
-      throw new Error("You need to be logged in to use the forum.");
-    }
+    this.assertForumAuthenticated();
 
     const role = (await getUserRole(this.user.uid)) || USER_ROLES.USER;
 
@@ -449,6 +455,8 @@ export const model = {
   },
 
   async loadForumFeed(filterOverrides = {}) {
+    this.assertForumAuthenticated();
+
     const nextFilters = {
       ...this.forumFilters,
       ...(filterOverrides || {}),
@@ -477,6 +485,8 @@ export const model = {
   },
 
   async loadSavedForumPosts(filterOverrides = {}) {
+    this.assertForumAuthenticated();
+
     const nextFilters = {
       ...this.forumFilters,
       ...(filterOverrides || {}),
@@ -505,9 +515,7 @@ export const model = {
   },
 
   async loadMyForumPosts(filterOverrides = {}) {
-    if (!this.user?.uid) {
-      throw new Error("You need to be logged in to load your forum posts.");
-    }
+    this.assertForumAuthenticated();
 
     const nextFilters = {
       ...this.forumFilters,
@@ -540,6 +548,8 @@ export const model = {
   },
 
   async loadForumPost(postId) {
+    this.assertForumAuthenticated();
+
     const prms = getForumPost(postId).then((result) => {
       if (!result.success || !result.data) {
         throw result.error || new Error("Could not load the selected post.");
@@ -561,6 +571,8 @@ export const model = {
     postId,
     { limitCount = 50 } = {}
   ) {
+    this.assertForumAuthenticated();
+
     const prms = getForumComments(postId, { limitCount }).then((result) => {
       if (!result.success) {
         throw result.error || new Error("Could not load forum comments.");
@@ -597,6 +609,8 @@ export const model = {
   },
 
   async createForumPost(draftOverrides = {}) {
+    this.assertForumAuthenticated();
+
     const authorMeta = await this.getForumAuthorMeta();
     const payload = buildForumPostPayload({
       draft: {
@@ -634,6 +648,8 @@ export const model = {
   },
 
   async addForumComment(postId, body) {
+    this.assertForumAuthenticated();
+
     const authorMeta = await this.getForumAuthorMeta();
     const payload = buildForumCommentPayload({
       body,
@@ -659,6 +675,8 @@ export const model = {
   },
 
   async addForumReply(postId, parentCommentId, body) {
+    this.assertForumAuthenticated();
+
     const parentNode = this.getForumCommentNode(parentCommentId);
 
     if (!parentNode?.comment) {
@@ -711,6 +729,8 @@ export const model = {
   },
 
   async toggleForumPostLike(postId) {
+    this.assertForumAuthenticated();
+
     const forumProfile = this.getNormalizedForumProfile();
     const likedPostIds = new Set(forumProfile.likedPostIds);
     const isLiked = likedPostIds.has(postId);
@@ -745,6 +765,8 @@ export const model = {
   },
 
   async toggleForumPostSave(postId) {
+    this.assertForumAuthenticated();
+
     const forumProfile = this.getNormalizedForumProfile();
     const savedPostIds = new Set(forumProfile.savedPostIds);
     const isSaved = savedPostIds.has(postId);

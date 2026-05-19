@@ -426,10 +426,18 @@ export async function saveFeedback(feedbackData) {
 }
 
 // Forum Management
+function assertAuthenticatedForumAccess() {
+  if (!auth.currentUser?.uid) {
+    throw new Error("You need to be logged in to use the forum.");
+  }
+}
+
 export async function getForumPosts({
   limitCount = DEFAULT_FORUM_FEED_LIMIT,
 } = {}) {
   try {
+    assertAuthenticatedForumAccess();
+
     const postsQuery = query(
       collection(db, FORUM_POSTS_COLLECTION),
       orderBy("updatedAt", "desc"),
@@ -453,6 +461,8 @@ export async function getForumPosts({
 
 export async function getForumPost(postId) {
   try {
+    assertAuthenticatedForumAccess();
+
     const postReference = doc(db, FORUM_POSTS_COLLECTION, postId);
     const forumPostSnapshot = await getDoc(postReference);
 
@@ -476,6 +486,8 @@ export async function getForumPost(postId) {
 
 export async function createForumPost(postData) {
   try {
+    assertAuthenticatedForumAccess();
+
     const postReference = doc(collection(db, FORUM_POSTS_COLLECTION));
     const timestamp = serverTimestamp();
     await setDoc(
@@ -511,6 +523,8 @@ export async function getForumComments(
   { limitCount = DEFAULT_FORUM_COMMENT_LIMIT } = {}
 ) {
   try {
+    assertAuthenticatedForumAccess();
+
     const commentsQuery = query(
       collection(
         db,
@@ -593,6 +607,8 @@ export async function getForumComments(
 
 export async function createForumComment(postId, commentData) {
   try {
+    assertAuthenticatedForumAccess();
+
     const commentReference = doc(
       collection(
         db,
@@ -662,6 +678,8 @@ export async function createForumReply(
   } = {}
 ) {
   try {
+    assertAuthenticatedForumAccess();
+
     if (!parentCommentId) {
       throw new Error("A parent comment is required to create a reply.");
     }
@@ -743,6 +761,8 @@ async function updateForumPostCounters(postId, patch) {
 
 export async function incrementForumPostLikes(postId, delta) {
   try {
+    assertAuthenticatedForumAccess();
+
     await updateForumPostCounters(postId, {
       likesCount: increment(delta),
     });
@@ -758,6 +778,8 @@ export async function incrementForumPostLikes(postId, delta) {
 
 export async function incrementForumPostSaves(postId, delta) {
   try {
+    assertAuthenticatedForumAccess();
+
     await updateForumPostCounters(postId, {
       savesCount: increment(delta),
     });
