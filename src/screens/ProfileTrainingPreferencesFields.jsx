@@ -100,8 +100,8 @@ const LIFT_INTENSITY_PROFILE_OPTIONS = Object.freeze([
         ? "True 1RM tests"
         : option.value === "multi_rm"
           ? "2-5RM + Epley"
-          : option.value === "heavy_single"
-            ? "Heavy single"
+          : option.value === "rpe_based_1rm"
+            ? "RPE-based 1RM"
             : option.label,
     liftIntensityMethod: "percentage",
     percentageReferenceMethod: option.value,

@@ -1151,6 +1151,8 @@ function isTestingTrainingDay(day = {}) {
     sessionText.includes(" 3rm ") ||
     sessionText.includes(" 4rm ") ||
     sessionText.includes(" 5rm ") ||
+    sessionText.includes(" rpe based 1rm ") ||
+    sessionText.includes(" 1rm estimation ") ||
     sessionText.includes(" heavy single ") ||
     sessionText.includes(" max single ")
   );

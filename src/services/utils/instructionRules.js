@@ -50,15 +50,17 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Accessories, most rows, RDL-style secondary work, isolation lifts, and stability drills stay on RPE, RIR, feel, time, or quality-based notes even if the athlete selected percentage loading.`,
   rm_attempts: `# Strength-reference rules
 - Percentage-based plans must respect percentageReferenceMethod.
-- heavy_single is the default and lowest-fatigue option: embed a single @RPE 8-9 as a normal-session top set, usually once per loading block, never in deload weeks, and soften or remove it near competition.
+- rpe_based_1rm is the default and lowest-fatigue option: prescribe "work up to 3 reps @RPE 8" as the normal-session top set, usually once per loading block, never in deload weeks, and soften or remove it near competition.
+- For rpe_based_1rm, estimate 1RM from logged load, completed reps, and RPE by adding reps in reserve to completed reps, then using Epley. Interpret RPE 10 as 0 RIR, RPE 9 as 1 RIR, RPE 8 as 2 RIR, and RPE 7 as 3 RIR.
+- Keep rpe_based_1rm calibration attempts to 1-3 reps at RPE 8-9 only. The athlete may change the default to 1 @RPE 8, 1 @RPE 9, 2 @RPE 8, 2 @RPE 9, or 3 @RPE 9, but do not prescribe RPE 10 or more than 3 reps for this feature.
 - multi_rm uses a hard top set of 2-5 reps, updates 1RM with Epley, and should usually appear every 4-6 weeks in off-season or early camp, not in the final 3-4 weeks before competition.
 - true_1rm is rare, only for experienced athletes in off-camp general-strength phases, never close to competition, and never more than one true 1RM test in a week.
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,
   rpe_rationale: `# RPE adjustment rules
-- In low-rep strength work, 1 RPE point is roughly a 2.5% load change.
-- Use that rule for 1-5 rep top sets and small RPE-based load adjustments on monitored lifts.
-- Do not turn RPE-based plans into RM tests or heavy-single strength assessments unless the athlete explicitly chose the percentage system.
-- A reference set at the same rep target can move about plus or minus 2.5% per RPE point while staying in the same strength zone.`,
+- For ordinary low-rep load adjustments, 1 RPE point is roughly a 2.5% load change.
+- Use that rule for small same-rep-target load adjustments on monitored lifts, not for rpe_based_1rm strength-reference estimates.
+- Do not turn RPE-based plans into RM tests or strength-reference assessments unless the athlete explicitly chose the percentage system.
+- A reference set at the same rep target can move about plus or minus 2.5% for each RPE step while staying in the same strength zone.`,
   missed_rep: `# Missed-rep rules
 - When a monitored lift has a missed rep, ask why: too heavy, pain/irritation, or technical error.
 - In RPE-based plans, treat a missed rep as an overshoot: lower load about 2.5-5%, keep the rep target, and avoid automatic scheme changes.

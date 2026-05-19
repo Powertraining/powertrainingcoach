@@ -114,7 +114,7 @@ test("training prompt instructs percentage users to emit structured percentage p
     goal: "strength",
     experience: "intermediate",
     liftIntensityMethod: "percentage",
-    percentageReferenceMethod: "heavy_single",
+    percentageReferenceMethod: "rpe_based_1rm",
     loadingStrategy: "ascending_pyramid",
   });
 
@@ -153,9 +153,9 @@ test("RPE questionnaires strip percentage prescriptions and strength assessments
                   ],
                 },
                 strengthAssessment: {
-                  method: "heavy_single",
+                  method: "rpe_based_1rm",
                   liftName: "Back Squat",
-                  prompt: "Log the top single.",
+                  prompt: "Log the top set.",
                 },
                 substitutionOptions: [],
               },
@@ -203,9 +203,9 @@ test("pull-ups stay RPE-based even in percentage plans", () => {
                   ],
                 },
                 strengthAssessment: {
-                  method: "heavy_single",
+                  method: "rpe_based_1rm",
                   liftName: "Weighted Pull-up",
-                  prompt: "Log the top single.",
+                  prompt: "Log the top set.",
                 },
                 substitutionOptions: [],
               },

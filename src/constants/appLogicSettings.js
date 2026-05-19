@@ -75,10 +75,10 @@ export const PERCENTAGE_REFERENCE_METHOD_OPTIONS = Object.freeze([
       "Use a hard set of 2-5 reps, then estimate 1RM with Epley's formula for future percentage work.",
   },
   {
-    label: "3. Heavy single @RPE 8-9",
-    value: "heavy_single",
+    label: "3. RPE-based 1RM estimation",
+    value: "rpe_based_1rm",
     description:
-      "Default option. Estimate 1RM from a heavy single using roughly 2.5% per RPE point with much less fatigue.",
+      "Default option. Estimate 1RM from a clean 1-3 rep top set by adding reps in reserve, then using Epley's formula.",
   },
 ]);
 
@@ -127,13 +127,23 @@ export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   combatTrainingIntensity: "moderate",
   sportLoadLevel: 2,
   liftIntensityMethod: "percentage",
-  percentageReferenceMethod: "heavy_single",
+  percentageReferenceMethod: "rpe_based_1rm",
   deloadStrategy: "maintain_intensity_reduce_volume",
   loadingStrategy: "flat_loading",
 });
 
 function isAllowedValue(value, options) {
   return options.some((option) => option.value === value);
+}
+
+function normalizePercentageReferenceMethod(value) {
+  if (value === "heavy_single") {
+    return "rpe_based_1rm";
+  }
+
+  return isAllowedValue(value, PERCENTAGE_REFERENCE_METHOD_OPTIONS)
+    ? value
+    : APP_LOGIC_SETTINGS_DEFAULTS.percentageReferenceMethod;
 }
 
 export function normalizeSportLoadLevel(value) {
@@ -201,12 +211,9 @@ function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = fal
     )
       ? safeSource.liftIntensityMethod
       : APP_LOGIC_SETTINGS_DEFAULTS.liftIntensityMethod,
-    percentageReferenceMethod: isAllowedValue(
-      safeSource.percentageReferenceMethod,
-      PERCENTAGE_REFERENCE_METHOD_OPTIONS
-    )
-      ? safeSource.percentageReferenceMethod
-      : APP_LOGIC_SETTINGS_DEFAULTS.percentageReferenceMethod,
+    percentageReferenceMethod: normalizePercentageReferenceMethod(
+      safeSource.percentageReferenceMethod
+    ),
     deloadStrategy: isAllowedValue(
       safeSource.deloadStrategy,
       DELOAD_STRATEGY_OPTIONS

@@ -21,9 +21,9 @@ const PERCENTAGE_REFERENCE_BUTTONS = Object.freeze({
     label: "2-5RM + Epley",
     mediaText: "2-5RM",
   },
-  heavy_single: {
-    label: "Heavy single",
-    mediaText: "RPE 8-9",
+  rpe_based_1rm: {
+    label: "RPE-based 1RM",
+    mediaText: "3 @8",
   },
 });
 

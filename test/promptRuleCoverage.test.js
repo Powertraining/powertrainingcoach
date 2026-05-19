@@ -13,7 +13,7 @@ test("training prompt embeds the key striking and percentage instruction rules",
     goal: "power",
     experience: "intermediate",
     liftIntensityMethod: "percentage",
-    percentageReferenceMethod: "heavy_single",
+    percentageReferenceMethod: "rpe_based_1rm",
     loadingStrategy: "ascending_pyramid",
   });
 
@@ -81,7 +81,7 @@ test("RPE prompt explicitly blocks percentage prescriptions and strength assessm
     prompt,
     /do not add "percentagePrescription" or "strengthAssessment"/i
   );
-  assert.doesNotMatch(prompt, /heavy_single is the default/i);
+  assert.doesNotMatch(prompt, /rpe_based_1rm is the default/i);
 });
 
 test("RPE missed-session prompt blocks preserving strength assessments", () => {
