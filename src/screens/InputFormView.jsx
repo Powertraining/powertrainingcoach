@@ -8,6 +8,7 @@ import TrainingPreferencesFields, {
     CONFIDENCE_STEP_KEYS,
     DESIRED_TRAINING_STEP_INDEX,
     getTrainingPreferencesSectionCount,
+    TRAINING_PHASE_STEP_INDEX,
 } from "./TrainingPreferencesFields.jsx";
 
 import {
@@ -55,10 +56,14 @@ export default function InputFormView({
     );
     const isDesiredTrainingStep = activeStep === DESIRED_TRAINING_STEP_INDEX;
     const desiredTrainingStepSelected = Boolean(trainingPreferences.desiredTraining);
-    const requiresSelection = Boolean(activeConfidenceKey) || isDesiredTrainingStep;
+    const isTrainingPhaseStep = activeStep === TRAINING_PHASE_STEP_INDEX;
+    const trainingPhaseStepSelected = Boolean(trainingPreferences.trainingPhase);
+    const requiresSelection =
+        Boolean(activeConfidenceKey) || isDesiredTrainingStep || isTrainingPhaseStep;
     const canContinue =
         activeConfidenceKey ? confidenceStepSelected :
             isDesiredTrainingStep ? desiredTrainingStepSelected :
+                isTrainingPhaseStep ? trainingPhaseStepSelected :
                 undefined;
 
     function handleSubmit() {

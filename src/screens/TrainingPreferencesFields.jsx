@@ -22,6 +22,7 @@ import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 21;
 const APP_LOGIC_SECTION_COUNT = 4;
 export const DESIRED_TRAINING_STEP_INDEX = 14;
+export const TRAINING_PHASE_STEP_INDEX = 17;
 
 export function getTrainingPreferencesSectionCount(values = {}) {
   return BASE_TRAINING_PREFERENCES_SECTION_COUNT + APP_LOGIC_SECTION_COUNT;
@@ -253,7 +254,7 @@ export default function TrainingPreferencesFields({
     ),
     (
       <QuestionnaireTrainingPhaseView
-        value={resolvedValues.trainingPhase}
+        value={values?.trainingPhase ?? null}
         onChange={(sectionValue) => updateField("trainingPhase", sectionValue)}
       />
     ),

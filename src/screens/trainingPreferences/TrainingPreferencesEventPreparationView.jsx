@@ -47,15 +47,20 @@ export default function TrainingPreferencesEventPreparationView({
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
       <TitleText height={130}>What and when is your next event?</TitleText>
+      <StandardText style={styles.helperText} center>
+        Set the date first so the plan can time training around your event.
+      </StandardText>
       <View style={styles.contentSlot}>
         {step === "date" ? (
           <>
-            <DateSelector
-              value={eventDate}
-              onChange={updateDate}
-              placeholder="Competition date"
-              showInput={false}
-            />
+            <View style={styles.dateSelectorWrap}>
+              <DateSelector
+                value={eventDate}
+                onChange={updateDate}
+                placeholder="Competition date"
+                showInput={false}
+              />
+            </View>
             <TouchableOpacity
               onPress={() => setStep("details")}
               style={styles.nextButton}
@@ -85,11 +90,21 @@ export default function TrainingPreferencesEventPreparationView({
 const styles = StyleSheet.create({
   section: {
     justifyContent: "center",
-    paddingBottom: 120,
+    transform: [{ translateY: 36 }],
+  },
+  helperText: {
+    width: "82%",
+    alignSelf: "center",
+    color: "#9ca3af",
+    fontSize: 16,
+    lineHeight: 20,
+    textAlign: "center",
   },
   contentSlot: {
-    height: 300,
-    justifyContent: "center",
+    marginTop: 56,
+  },
+  dateSelectorWrap: {
+    marginBottom: 28,
   },
   nextButton: {
     alignSelf: "center",

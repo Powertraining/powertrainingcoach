@@ -9,6 +9,7 @@ export default function PreferenceOptionButton({
   imageSource,
   imageStyle,
   mediaText,
+  selectedButtonStyle,
 }) {
   return (
     <TouchableOpacity
@@ -16,6 +17,7 @@ export default function PreferenceOptionButton({
       style={[
         styles.button,
         isSelected ? styles.buttonSelected : null,
+        isSelected ? selectedButtonStyle : null,
       ]}
     >
       {imageSource ? (

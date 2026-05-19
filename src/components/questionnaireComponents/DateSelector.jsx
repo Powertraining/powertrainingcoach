@@ -86,51 +86,66 @@ function WheelColumn({
   onSelect,
   columnStyle,
   variant = "dark",
+  useMomentumSnap = false,
 }) {
   const scrollRef = useRef(null);
-  const isDraggingRef = useRef(false);
+  const isInteractingRef = useRef(false);
   const safeSelectedIndex = clamp(
     selectedIndex,
     0,
     Math.max(values.length - 1, 0)
   );
+  const lastOffsetYRef = useRef(safeSelectedIndex * ITEM_HEIGHT);
+  const [displayedIndex, setDisplayedIndex] = useState(safeSelectedIndex);
 
   useEffect(() => {
-    if (isDraggingRef.current || !values.length) {
+    if (isInteractingRef.current || !values.length) {
       return;
     }
 
+    setDisplayedIndex(safeSelectedIndex);
+    lastOffsetYRef.current = safeSelectedIndex * ITEM_HEIGHT;
     scrollRef.current?.scrollTo({
       y: safeSelectedIndex * ITEM_HEIGHT,
       animated: false,
     });
   }, [safeSelectedIndex, values.length]);
 
-  function finalizeSelection(offsetY) {
-    if (!values.length) {
-      return;
-    }
-
-    const nextIndex = clamp(
+  function getIndexFromOffset(offsetY) {
+    return clamp(
       Math.round(offsetY / ITEM_HEIGHT),
       0,
       values.length - 1
     );
+  }
 
+  function snapToSelection(offsetY) {
+    if (!values.length) {
+      return;
+    }
+
+    const nextIndex = getIndexFromOffset(offsetY);
+    const nextOffsetY = nextIndex * ITEM_HEIGHT;
+
+    lastOffsetYRef.current = nextOffsetY;
+    setDisplayedIndex(nextIndex);
     scrollRef.current?.scrollTo({
-      y: nextIndex * ITEM_HEIGHT,
+      y: nextOffsetY,
       animated: true,
     });
     onSelect?.(values[nextIndex], nextIndex);
+    isInteractingRef.current = false;
+  }
+
+  function handleScroll(event) {
+    lastOffsetYRef.current = event.nativeEvent.contentOffset.y;
+    setDisplayedIndex(getIndexFromOffset(lastOffsetYRef.current));
   }
 
   return (
     <View style={[styles.column, columnStyle]}>
       <ScrollView
         ref={scrollRef}
-        contentOffset={{ x: 0, y: safeSelectedIndex * ITEM_HEIGHT }}
-        snapToInterval={ITEM_HEIGHT}
-        snapToAlignment="center"
         decelerationRate="fast"
         disableIntervalMomentum
         showsVerticalScrollIndicator={false}
@@ -138,20 +153,22 @@ function WheelColumn({
         nestedScrollEnabled
         scrollEventThrottle={16}
         contentContainerStyle={styles.columnContent}
+        onScroll={handleScroll}
         onScrollBeginDrag={() => {
-          isDraggingRef.current = true;
+          isInteractingRef.current = true;
         }}
         onMomentumScrollEnd={(event) => {
-          isDraggingRef.current = false;
-          finalizeSelection(event.nativeEvent.contentOffset.y);
+          lastOffsetYRef.current = event.nativeEvent.contentOffset.y;
+          snapToSelection(lastOffsetYRef.current);
         }}
         onScrollEndDrag={(event) => {
+          lastOffsetYRef.current = event.nativeEvent.contentOffset.y;
           const velocityY = Math.abs(event.nativeEvent.velocity?.y || 0);
-          if (velocityY > 0.05) {
+          if (useMomentumSnap && velocityY > 0.05) {
             return;
           }
-          isDraggingRef.current = false;
-          finalizeSelection(event.nativeEvent.contentOffset.y);
+
+          snapToSelection(lastOffsetYRef.current);
         }}
       >
         {values.map((value, index) => (
@@ -160,8 +177,8 @@ function WheelColumn({
               style={[
                 styles.itemText,
                 variant === "light" ? styles.itemTextLight : null,
-                index === safeSelectedIndex && styles.itemTextSelected,
-                variant === "light" && index === safeSelectedIndex
+                index === displayedIndex && styles.itemTextSelected,
+                variant === "light" && index === displayedIndex
                   ? styles.itemTextSelectedLight
                   : null,
               ]}
@@ -340,6 +357,7 @@ export default function DateSelector({
           values={years.map(String)}
           selectedIndex={years.findIndex((year) => year === selectedYear)}
           variant={variant}
+          useMomentumSnap
           onSelect={(_, index) => {
             commitDate(years[index], selectedMonth, selectedDay);
           }}
