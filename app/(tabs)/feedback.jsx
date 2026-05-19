@@ -60,7 +60,6 @@ const FeedbackScreen = observer(function FeedbackScreen() {
       await model.submitFeedback?.({
         rating,
         comment,
-        timestamp: new Date().toISOString(),
       });
 
       // Reset finished workout state

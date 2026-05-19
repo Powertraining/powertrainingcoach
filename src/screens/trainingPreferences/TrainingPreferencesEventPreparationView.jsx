@@ -10,20 +10,10 @@ import {
 import DateSelector from "../../components/questionnaireComponents/DateSelector.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
-
-function getInitialDate(value = "") {
-  const match = /\d{4}-\d{2}-\d{2}/.exec(String(value));
-  return match ? match[0] : value;
-}
-
-function formatEventPreparation(date, description) {
-  return [
-    date ? `Date: ${date}` : "",
-    description ? `Description: ${description}` : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
-}
+import {
+  formatEventPreparation,
+  getEventPreparationDate,
+} from "../../services/utils/profileFields.js";
 
 export default function TrainingPreferencesEventPreparationView({
   value,
@@ -31,7 +21,7 @@ export default function TrainingPreferencesEventPreparationView({
 }) {
   const { height: screenHeight } = useWindowDimensions();
   const [step, setStep] = useState("date");
-  const [eventDate, setEventDate] = useState(() => getInitialDate(value));
+  const [eventDate, setEventDate] = useState(() => getEventPreparationDate(value));
   const [eventDescription, setEventDescription] = useState("");
 
   function updateDate(nextDate) {

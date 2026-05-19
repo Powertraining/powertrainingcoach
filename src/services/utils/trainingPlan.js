@@ -5,6 +5,7 @@ import {
 import { normalizePerformanceTarget } from "./trainingPerformance.js";
 import { normalizePercentagePrescription } from "./percentagePrescription.js";
 import { normalizeStrengthAssessmentConfig } from "./strengthAssessment.js";
+import { DAY_IN_MS, startOfLocalDay } from "./dateUtils.js";
 
 const SESSION_REGION_DEFINITIONS = Object.freeze([
   {
@@ -975,13 +976,14 @@ export function getDaysUntilCompetition(value = "", fromDate = new Date()) {
     return null;
   }
 
-  const startOfToday = new Date(fromDate);
-  startOfToday.setHours(0, 0, 0, 0);
-  competitionDate.setHours(0, 0, 0, 0);
+  const startOfToday = startOfLocalDay(fromDate);
+  const competitionStart = startOfLocalDay(competitionDate);
 
-  return Math.ceil(
-    (competitionDate - startOfToday) / (1000 * 60 * 60 * 24)
-  );
+  if (!startOfToday || !competitionStart) {
+    return null;
+  }
+
+  return Math.ceil((competitionStart - startOfToday) / DAY_IN_MS);
 }
 
 function isDeloadWeek(week = {}) {

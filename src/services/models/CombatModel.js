@@ -270,6 +270,10 @@ export const model = {
     }
   },
 
+  async submitFeedback({ rating, comment } = {}) {
+    return this.submitFeedBack(rating, comment);
+  },
+
   async updateProfile({ displayName, password, isGoogleUser }) {
     try {
       // 1 Update display name

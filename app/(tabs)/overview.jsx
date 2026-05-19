@@ -12,6 +12,7 @@ import {
   getCurrentTrainingWeek,
   getTrainingDayPreferredWeekday,
 } from "../../src/services/utils/trainingPlan.js";
+import { getProgramOverviewToday } from "../../src/services/utils/programOverview.js";
 
 const OverviewScreen = observer(function OverviewScreen() {
   const model = reactiveModel;
@@ -80,7 +81,7 @@ const OverviewScreen = observer(function OverviewScreen() {
       ? Array.from(completedDays)
       : [];
     const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
-    const today = new Date();
+    const today = getProgramOverviewToday();
     const todayDateKey = today.toDateString();
     const todayWeekday = getWeekdayNameFromIndex(today.getDay());
     const todayTrainingDay =

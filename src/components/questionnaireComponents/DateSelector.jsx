@@ -2,82 +2,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { TextInput, StyleSheet, ScrollView, View } from "react-native";
 
 import StandardText from "../textComponents/StandardText.jsx";
+import {
+  clampDatePartsToRange,
+  formatDateParts,
+  getDaysInMonth,
+  parseDateParts,
+  startOfLocalDay,
+} from "../../services/utils/dateUtils.js";
 
 const ITEM_HEIGHT = 70;
 const VISIBLE_ROWS = 3;
 const CENTER_ROW = Math.floor(VISIBLE_ROWS / 2);
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-function daysInMonth(month, year) {
-  return new Date(year, month, 0).getDate();
-}
-
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
-}
-
-function padNumber(value) {
-  return String(value).padStart(2, "0");
-}
-
-function formatDate(year, month, day) {
-  return `${year}-${padNumber(month)}-${padNumber(day)}`;
-}
-
-function startOfDay(date) {
-  const nextDate = new Date(date);
-  nextDate.setHours(0, 0, 0, 0);
-  return nextDate;
-}
-
-function isBeforeMinDate(year, month, day, minDate) {
-  return new Date(year, month - 1, day) < minDate;
-}
-
-function isAfterMaxDate(year, month, day, maxDate) {
-  return new Date(year, month - 1, day) > maxDate;
-}
-
-function clampDateToRange(year, month, day, minDate, maxDate) {
-  if (isBeforeMinDate(year, month, day, minDate)) {
-    return {
-      year: minDate.getFullYear(),
-      month: minDate.getMonth() + 1,
-      day: minDate.getDate(),
-    };
-  }
-
-  if (isAfterMaxDate(year, month, day, maxDate)) {
-    return {
-      year: maxDate.getFullYear(),
-      month: maxDate.getMonth() + 1,
-      day: maxDate.getDate(),
-    };
-  }
-
-  return { year, month, day };
-}
-
-function parseDateString(value = "") {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).trim());
-  if (!match) {
-    return null;
-  }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-
-  if (month < 1 || month > 12) {
-    return null;
-  }
-
-  const maxDay = daysInMonth(month, year);
-  if (day < 1 || day > maxDay) {
-    return null;
-  }
-
-  return { year, month, day };
 }
 
 function WheelColumn({
@@ -182,16 +121,16 @@ export default function DateSelector({
   showInput = true,
   variant = "dark",
 }) {
-  const today = useMemo(() => startOfDay(new Date()), []);
+  const today = useMemo(() => startOfLocalDay(new Date()), []);
   const maxDate = useMemo(
     () => new Date(today.getFullYear() + 10, 11, 31),
     [today]
   );
-  const parsedValue = useMemo(() => parseDateString(value), [value]);
+  const parsedValue = useMemo(() => parseDateParts(value), [value]);
   const initialDate = useMemo(
     () =>
       parsedValue ?
-        clampDateToRange(
+        clampDatePartsToRange(
           parsedValue.year,
           parsedValue.month,
           parsedValue.day,
@@ -221,7 +160,7 @@ export default function DateSelector({
       return;
     }
 
-    const nextDate = clampDateToRange(
+    const nextDate = clampDatePartsToRange(
       parsedValue.year,
       parsedValue.month,
       parsedValue.day,
@@ -235,7 +174,7 @@ export default function DateSelector({
   }, [maxDate, parsedValue, today]);
 
   useEffect(() => {
-    const nextDate = clampDateToRange(
+    const nextDate = clampDatePartsToRange(
       selectedYear,
       selectedMonth,
       selectedDay,
@@ -254,7 +193,7 @@ export default function DateSelector({
     setSelectedYear(nextDate.year);
     setSelectedMonth(nextDate.month);
     setSelectedDay(nextDate.day);
-    onChange?.(formatDate(nextDate.year, nextDate.month, nextDate.day));
+    onChange?.(formatDateParts(nextDate.year, nextDate.month, nextDate.day));
   }, [maxDate, selectedDay, selectedMonth, selectedYear, today, onChange]);
 
   const years = useMemo(() => {
@@ -279,7 +218,7 @@ export default function DateSelector({
       Array.from(
         {
           length:
-            daysInMonth(selectedMonth, selectedYear) -
+            getDaysInMonth(selectedMonth, selectedYear) -
             (
               selectedYear === today.getFullYear() &&
               selectedMonth === today.getMonth() + 1 ?
@@ -301,8 +240,8 @@ export default function DateSelector({
   const dayWheelKey = `${selectedYear}-${selectedMonth}-${days[0] ?? 0}-${days.length}`;
 
   function commitDate(nextYear, nextMonth, nextDay) {
-    const safeDay = clamp(nextDay, 1, daysInMonth(nextMonth, nextYear));
-    const safeDate = clampDateToRange(
+    const safeDay = clamp(nextDay, 1, getDaysInMonth(nextMonth, nextYear));
+    const safeDate = clampDatePartsToRange(
       nextYear,
       nextMonth,
       safeDay,
@@ -313,7 +252,7 @@ export default function DateSelector({
     setSelectedYear(safeDate.year);
     setSelectedMonth(safeDate.month);
     setSelectedDay(safeDate.day);
-    onChange?.(formatDate(safeDate.year, safeDate.month, safeDate.day));
+    onChange?.(formatDateParts(safeDate.year, safeDate.month, safeDate.day));
   }
 
   return (

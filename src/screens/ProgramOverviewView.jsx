@@ -9,31 +9,22 @@ import checkIcon from "../assets/icons/check.png";
 import {
   getCurrentTrainingPhase,
   getCurrentTrainingWeek,
-  getTrainingDayPreferredWeekday,
   getTrainingPlanPhaseOverview,
 } from "../services/utils/trainingPlan.js";
+import {
+  PROGRAM_OVERVIEW_LOOKBACK_DAYS,
+  buildCurrentWeekSchedule,
+  formatCurrentDateLabel,
+  getNextTrainingSlotLabel,
+  getPhaseRangeLabel,
+  getProgramOverviewToday,
+  getRestSlotDateLabel,
+  isSameCalendarDay,
+} from "../services/utils/programOverview.js";
 
-const WEEKDAY_NAMES = Object.freeze([
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-]);
-const LOOKBACK_DAYS = 14;
-const UPCOMING_DAYS_INCLUDING_TODAY = 7;
 const WEEK_SCHEDULE_ITEM_WIDTH = 56;
-const WEEK_SCHEDULE_TODAY_OFFSET = LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
-
-function isSameCalendarDay(leftDate, rightDate) {
-  return (
-    leftDate.getFullYear() === rightDate.getFullYear() &&
-    leftDate.getMonth() === rightDate.getMonth() &&
-    leftDate.getDate() === rightDate.getDate()
-  );
-}
+const WEEK_SCHEDULE_TODAY_OFFSET =
+  PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
 
 export default function ProgramOverviewView({
   plan,
@@ -86,49 +77,13 @@ export default function ProgramOverviewView({
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getProgramOverviewToday();
   const todayDateKey = today.toDateString();
-  const currentDateLabel = new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-  }).format(today);
+  const currentDateLabel = formatCurrentDateLabel(today);
   const currentPhaseLabel = currentPhase?.label
     ? `${currentPhase.label} week ${currentWeek?.week || 1}`
     : `Week ${currentWeek?.week || 1}`;
-  const rollingDates = Array.from(
-    { length: LOOKBACK_DAYS + UPCOMING_DAYS_INCLUDING_TODAY },
-    (_, index) => {
-      const dayOffset = index - LOOKBACK_DAYS;
-      const date = new Date(today);
-      date.setDate(date.getDate() + dayOffset);
-
-      return date;
-    }
-  );
-  const fallbackTrainingDays = currentWeek?.days?.filter(
-    (day) => !getTrainingDayPreferredWeekday(day)
-  ) || [];
-  const assignedFallbackTrainingDays = new Set();
-  const currentWeekSchedule = rollingDates.map((date, index) => {
-    const weekday = WEEKDAY_NAMES[date.getDay()];
-    let trainingDay = currentWeek?.days?.find(
-      (day) => getTrainingDayPreferredWeekday(day) === weekday
-    );
-
-    if (!trainingDay && index >= LOOKBACK_DAYS) {
-      trainingDay = fallbackTrainingDays.find((day) => {
-        if (assignedFallbackTrainingDays.has(day)) {
-          return false;
-        }
-
-        assignedFallbackTrainingDays.add(day);
-        return true;
-      });
-    }
-
-    return { date, dateKey: date.toDateString(), weekday, trainingDay };
-  });
+  const currentWeekSchedule = buildCurrentWeekSchedule(currentWeek, { today });
   const selectedRestSlot = selectedRestSlotKey
     ? currentWeekSchedule.find((slot) => slot.dateKey === selectedRestSlotKey)
     : null;
@@ -194,30 +149,6 @@ export default function ProgramOverviewView({
     lastWeekScheduleScrollDateRef.current = todayDateKey;
   }
 
-  function getPhaseRangeLabel(phase = {}) {
-    if (phase.weekStart === phase.weekEnd) {
-      return `Week ${phase.weekStart}`;
-    }
-
-    return `Weeks ${phase.weekStart}-${phase.weekEnd}`;
-  }
-
-  function getRestSlotDateLabel(date) {
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    }).format(date);
-  }
-
-  function getNextTrainingSlotLabel(slot) {
-    if (!slot?.trainingDay) {
-      return "";
-    }
-
-    return `Day ${slot.trainingDay.day} on ${getRestSlotDateLabel(slot.date)}`;
-  }
-
   function handleSelectTrainingDay(weekNumber, dayNumber, dateKey) {
     setSelectedRestSlotKey("");
     setSelectedTrainingSlotKey(dateKey);
@@ -248,7 +179,8 @@ export default function ProgramOverviewView({
     const nextTrainingDay =
       selectedDay?.dayData ||
       currentWeekSchedule.find(
-        (slot, index) => index >= LOOKBACK_DAYS && slot.trainingDay
+        (slot, index) =>
+          index >= PROGRAM_OVERVIEW_LOOKBACK_DAYS && slot.trainingDay
       )?.trainingDay;
     const nextWeekNumber = selectedDay?.week || currentWeek?.week;
 
