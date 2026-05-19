@@ -749,6 +749,47 @@ function dedupeExerciseOptions(options = []) {
   });
 }
 
+function isPullUpChinUpExerciseName(name = "") {
+  const normalizedName = normalizeString(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ");
+
+  return /\b(pull ups?|chin ups?|lat pull downs?|lat pulldowns?)\b/.test(
+    normalizedName
+  );
+}
+
+function includesRpeOrRirGuidance(value = "") {
+  return /\b(rpe|rir|reps? in reserve|rep reserve|reserve)\b/i.test(
+    normalizeString(value)
+  );
+}
+
+function applyPullUpChinUpRules(exercise = {}) {
+  if (!isPullUpChinUpExerciseName(exercise.name)) {
+    return exercise;
+  }
+
+  const {
+    percentagePrescription: _percentagePrescription,
+    strengthAssessment: _strengthAssessment,
+    notes,
+    ...exerciseWithoutPercentageFields
+  } = exercise;
+  const resolvedNotes = includesRpeOrRirGuidance(notes)
+    ? notes
+    : [notes, "Use RPE/RIR loading; log bodyweight, added weight, reps, and RPE/RIR."]
+        .filter(Boolean)
+        .join(" ");
+
+  return {
+    ...exerciseWithoutPercentageFields,
+    percentagePrescription: null,
+    strengthAssessment: null,
+    notes: resolvedNotes,
+  };
+}
+
 export function normalizeExercise(exercise = {}) {
   const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
   const { videoUrl: _videoUrl, ...exerciseWithoutVideo } = safeExercise;
@@ -778,7 +819,7 @@ export function normalizeExercise(exercise = {}) {
     normalizedOptions[0] ||
     normalizeExerciseOption(currentExercise);
 
-  return omitUndefinedObjectFields({
+  return applyPullUpChinUpRules(omitUndefinedObjectFields({
     ...exerciseWithoutVideo,
     name: selectedOption.name,
     sets: selectedOption.sets,
@@ -802,7 +843,7 @@ export function normalizeExercise(exercise = {}) {
     ),
     selectedSubstitutionId: selectedOption.id,
     substitutionOptions: normalizedOptions,
-  });
+  }));
 }
 
 function shouldKeepPercentageOnlyFields(questionnaire = {}) {
@@ -1743,17 +1784,19 @@ export function parseGeneratedTrainingPlan(plan = {}) {
     Array.isArray(plan.phases) ?
       plan.phases :
       [];
-  const normalizedPlan = normalizeTrainingPlan({
-    createdAt: plan.createdAt,
-    generatedAt: plan.generatedAt,
-    summary: plan.summary,
-    phaseOverview: phaseSource.map((phase, phaseIndex) =>
-      normalizeGeneratedPhase(phase, phaseIndex)
-    ),
-    weeks: plan.weeks.map((week, weekIndex) =>
-      normalizeGeneratedTrainingWeek(week, weekIndex)
-    ),
-  });
+  const normalizedPlan = normalizeTrainingPlan(
+    omitUndefinedObjectFields({
+      createdAt: plan.createdAt,
+      generatedAt: plan.generatedAt,
+      summary: plan.summary,
+      phaseOverview: phaseSource.map((phase, phaseIndex) =>
+        normalizeGeneratedPhase(phase, phaseIndex)
+      ),
+      weeks: plan.weeks.map((week, weekIndex) =>
+        normalizeGeneratedTrainingWeek(week, weekIndex)
+      ),
+    })
+  );
 
   if (!normalizedPlan.weeks.some((week) => Array.isArray(week.days) && week.days.length > 0)) {
     throw new Error(

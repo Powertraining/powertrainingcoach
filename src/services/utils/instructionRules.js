@@ -83,6 +83,16 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Low-load motor-control drills such as dead bugs or bird dogs belong in warm-ups, rehab, or deload maintenance, not as the only real core work in a normal week.
 - Keep accessories practical: heavier secondary lifts use RPE, small isolation work uses RPE or feel, and rehab or activation drills use quality-based notes rather than fake percentage precision.
 - Use concrete exercise names for neck work rather than vague movement-pattern labels.`,
+  pull_ups_chin_ups: `# Pull-up and chin-up rules
+- Pull-ups and chin-ups are always prescribed with RPE or RIR, even when the athlete chose percentage loading, because bodyweight already contributes heavily to the true load.
+- Do not add percentagePrescription or strengthAssessment objects to pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, or lat pulldowns.
+- If the athlete cannot perform clean bodyweight pull-ups, use assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, or lat pulldowns for 3-4 x 5-8 @ RPE 7-8.
+- If the athlete can perform 1-9 clean pull-ups, use bodyweight pull-ups and progress reps while stopping with 1-2 reps in reserve.
+- If the athlete can perform 10+ clean pull-ups, weighted pull-ups become available. Use 3-5 x 3-6 @ RPE 7-9 and progress load only when all sets hit the top of the rep range at the target RPE.
+- If max clean pull-up reps are not provided, do not assume the athlete qualifies for weighted pull-ups. Use trainingCapabilities.pullingWork conservatively: "no" means assisted pull-ups or lat pulldowns, "somewhat" means assisted or bodyweight work with reps in reserve, and "yes" means bodyweight progression unless the input shows 10+ clean reps.
+- In camp or under high combat-sport load, reduce pull-up/chin-up work to 1-3 sets @ RPE 7-8.
+- Key cues: clean reps only, no kicking, control the bottom, pull chest toward the bar, and stop the set before form breaks.
+- Log bodyweight, added weight if used, reps per set, RPE/RIR, and grip variation.`,
   substitutes: `# Substitution rules
 - Every exercise needs a substitutionOptions array so the app can swap in comparable variations.
 - Add pragmatic substitutes for exercises that are technical, inconvenient, crowded, or equipment-sensitive.
@@ -176,6 +186,7 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "close_grip_bench_press",
   "compound_lifts",
   "accessory_exercises",
+  "pull_ups_chin_ups",
   "substitutes",
   "plyometrics_loading_jumps",
   "bilateral",
@@ -377,6 +388,7 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
     "missed_rep",
     "compound_lifts",
     "accessory_exercises",
+    "pull_ups_chin_ups",
     "substitutes",
     "plyometrics_loading_jumps",
     "bilateral",

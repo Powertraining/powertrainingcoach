@@ -104,6 +104,7 @@ ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, incl
 ${includePercentageSchema ? `- On percentage-based primary lifts, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets".
 - Add "strengthAssessment" only when the lift includes a planned heavy single, 2-5RM test, or true 1RM event the app should log for future percentage updates.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
+- Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based; never add "percentagePrescription" or "strengthAssessment" to those exercises.
 - When a field is not needed, omit it instead of filling it with placeholders.
 `;
 }

@@ -141,3 +141,22 @@ test("training prompt includes newly added striking periodization instructions",
   assert.match(prompt, /move violently fast with maximal concentric intent/i);
   assert.match(prompt, /scissor jumps, split-squat jumps, single-leg bounds/i);
 });
+
+test("training prompt includes pull-up and chin-up prescription rules", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    goal: "strength",
+    experience: "intermediate",
+    liftIntensityMethod: "percentage",
+  });
+
+  assert.match(prompt, /Pull-up and chin-up rules/i);
+  assert.match(prompt, /always prescribed with RPE or RIR/i);
+  assert.match(prompt, /weighted pull-ups become available/i);
+  assert.match(prompt, /do not assume the athlete qualifies for weighted pull-ups/i);
+  assert.match(
+    prompt,
+    /never add "percentagePrescription" or "strengthAssessment"/i
+  );
+});

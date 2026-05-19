@@ -3618,6 +3618,40 @@ function sanitizePercentagePrescription(
   };
 }
 
+function isPullUpChinUpExerciseName(name = "") {
+  const normalizedName = normalizeStringValue(name)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ");
+
+  return /\b(pull ups?|chin ups?|lat pull downs?|lat pulldowns?)\b/.test(
+      normalizedName,
+  );
+}
+
+function includesRpeOrRirGuidance(value = "") {
+  return /\b(rpe|rir|reps? in reserve|rep reserve|reserve)\b/i.test(
+      normalizeStringValue(value),
+  );
+}
+
+function applyPullUpChinUpRules(exercise) {
+  if (!isPullUpChinUpExerciseName(exercise.name)) {
+    return exercise;
+  }
+
+  return {
+    ...exercise,
+    notes: includesRpeOrRirGuidance(exercise.notes) ?
+      exercise.notes :
+      [
+        exercise.notes,
+        "Use RPE/RIR loading; log bodyweight, added weight, reps, and RPE/RIR.",
+      ].filter(Boolean).join(" "),
+    percentagePrescription: null,
+    strengthAssessment: null,
+  };
+}
+
 function sanitizeExercise(exercise, exerciseIndex) {
   if (!isPlainObject(exercise)) {
     throw new Error(
@@ -3632,7 +3666,7 @@ function sanitizeExercise(exercise, exerciseIndex) {
     notes: normalizeStringValue(exercise.notes),
   };
 
-  return {
+  return applyPullUpChinUpRules({
     ...fallbackExercise,
     endurancePrescription: sanitizeEndurancePrescription(
         exercise.endurancePrescription,
@@ -3654,7 +3688,7 @@ function sanitizeExercise(exercise, exerciseIndex) {
           sanitizeExerciseOption(option, optionIndex, fallbackExercise),
     ),
     selectedSubstitutionId: normalizeStringValue(exercise.selectedSubstitutionId),
-  };
+  });
 }
 
 function sanitizeTrainingDay(day, dayIndex) {
@@ -4047,6 +4081,15 @@ Follow these domain rules:
   - High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat
   - Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips
   - Power Clean -> Power Snatch
+- Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric
+  pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based even
+  when percentage loading is selected. Never add percentagePrescription or
+  strengthAssessment to those exercises.
+- If max clean pull-up reps are not provided, do not assume the athlete
+  qualifies for weighted pull-ups. Use trainingCapabilities.pullingWork
+  conservatively: "no" means assisted pull-ups or lat pulldowns, "somewhat"
+  means assisted or bodyweight work with reps in reserve, and "yes" means
+  bodyweight progression unless the input shows 10+ clean reps.
 
 Adapt the plan to:
 - primary combat sport
