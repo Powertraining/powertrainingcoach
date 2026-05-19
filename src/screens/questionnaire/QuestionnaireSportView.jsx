@@ -29,7 +29,12 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
                 </View>
             </ScrollView>
             </View>
-            <QuestionnaireBottomActionButton canContinue={canContinue} onContinue={onContinue} onBack={onBack} />
+            <QuestionnaireBottomActionButton
+                canContinue={canContinue}
+                onContinue={onContinue}
+                onBack={onBack}
+                hideWhenDisabled
+            />
         </QuestionnaireShell>
     );
 }

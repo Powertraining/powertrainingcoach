@@ -116,7 +116,13 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                      
                 </View>
 
-                <QuestionnaireBottomActionButton layout="stacked" text="Confirm" onContinue={onContinue} onBack={onBack} />
+                <QuestionnaireBottomActionButton
+                    layout="stacked"
+                    text="Confirm"
+                    onContinue={onContinue}
+                    onBack={onBack}
+                    hideBack
+                />
             </View>
         </QuestionnaireShell>
     );
