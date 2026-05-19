@@ -4,6 +4,7 @@ export default function QuestionnaireSportOptionButton({ option, isSelected, onP
     return (
         <TouchableOpacity
             onPress={onPress}
+            activeOpacity={0.82}
             style={[styles.optionBorder, isSelected && styles.optionBorderSelected]}
         >
             <View style={styles.option}>
@@ -46,7 +47,11 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         tintColor: "#fff"
     },
-    optionBorderSelected: {},
+    optionBorderSelected: {
+        height: 127.4,
+        paddingBottom: 1.2,
+        transform: [{ translateY: 10.8 }],
+    },
     optionText: {
         color: "#ffffff",
         fontFamily: "BebasNeue",

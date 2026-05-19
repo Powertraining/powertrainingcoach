@@ -1,17 +1,21 @@
-import { View, StyleSheet, useWindowDimensions } from "react-native";
-import TitleText from "../../components/textComponents/TitleText";
+import { Text, View, StyleSheet } from "react-native";
 import StandardText from "../../components/textComponents/StandardText";
 
-export default function TrainingPreferencesExerciseEvaluationView() {
-  const { height: screenHeight } = useWindowDimensions();
-
+export default function TrainingPreferencesExerciseEvaluationView({
+  category = "Strength Training",
+}) {
   return (
-    <View style={[styles.container, { minHeight: screenHeight }]}>
-      <TitleText height={86}>Exercise Evaluation</TitleText>
-      <StandardText style={styles.categoryText}>Strength Training</StandardText>
-      <StandardText style={styles.descriptionText}>
-        Answer how confidently and safely you can perform the following exercises
-      </StandardText>
+    <View style={styles.container}>
+      <View style={styles.titleWrap}>
+        <Text style={styles.titleText}>{category}</Text>
+        <StandardText style={styles.kickerText}>Exercise Evaluation</StandardText>
+      </View>
+
+      <View style={styles.descriptionWrap}>
+        <StandardText style={styles.descriptionText}>
+          Answer how confidently and safely you can perform the following exercises
+        </StandardText>
+      </View>
     </View>
   );
 }
@@ -19,18 +23,37 @@ export default function TrainingPreferencesExerciseEvaluationView() {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: 120,
+    paddingTop: 18,
   },
-  categoryText: {
+  titleWrap: {
+    width: 225,
+    height: 230,
+    justifyContent: "flex-start",
+    paddingTop: 35,
+    alignItems: "center",
+  },
+  titleText: {
+    color: "#ffffff",
+    fontFamily: "BebasNeue",
+    fontSize: 35,
+    lineHeight: 39,
+    textAlign: "center",
+  },
+  kickerText: {
     color: "#C9B259",
-    fontSize: 14,
-    marginTop: 6,
+    fontSize: 16,
+    lineHeight: 19,
+    marginTop: 8,
+  },
+  descriptionWrap: {
+    width: "75%",
+    minHeight: 120,
+    justifyContent: "center",
   },
   descriptionText: {
-    width: "75%",
+    color: "#9A9A9A",
     fontSize: 22,
-    marginTop: 150,
+    lineHeight: 27,
     textAlign: "center",
   },
 });

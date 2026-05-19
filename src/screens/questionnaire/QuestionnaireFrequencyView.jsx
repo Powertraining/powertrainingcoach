@@ -8,7 +8,6 @@ import QuestionnaireBottomActionButton from "../../components/questionnaireCompo
 const MIN_SESSIONS = 1;
 const MAX_SESSIONS = 5;
 const THUMB_SIZE = 24;
-const SLIDER_TOUCH_HEIGHT = 90;
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick, onClose }) {
     const [sliderWidth, setSliderWidth] = useState(0);
@@ -77,15 +76,15 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     return (
         <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View style={styles.container}>
-                <TitleText>How many strength sessions per week do you do?</TitleText>
-                
-                <View style={styles.numbers}>
-                    {markers}
-                </View>
-
+                <TitleText height={230} style={styles.title}>
+                    How many days per week do you exercise?
+                </TitleText>
                 <View style={styles.content}>
-
                     <View style={styles.sliderSection}>
+                        <View style={styles.numbers}>
+                            {markers}
+                        </View>
+
                         <View
                             style={styles.sliderShell}
                             onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
@@ -109,11 +108,10 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                         </View>
 
                         <View style={styles.sliderLabels}>
-                            <StandardText style={styles.leftLable}>Full body</StandardText>
-                            <StandardText style={styles.rightLable}>Precise</StandardText>
+                            <StandardText style={styles.leftLabel}>Full body</StandardText>
+                            <StandardText style={styles.rightLabel}>Precise</StandardText>
                         </View>
                     </View>
-                     
                 </View>
 
                 <QuestionnaireBottomActionButton
@@ -131,19 +129,26 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 20,
+        paddingTop: 18,
+    },
+    title: {
+        fontSize: 35,
+        lineHeight: 39,
     },
     content: {
+        flex: 1,
         paddingBottom: 100,
+        justifyContent: "center",
     },
     sliderSection: {
-        width: "80%",
+        width: "82%",
+        maxWidth: 330,
         alignSelf: "center",
-        marginTop: 8,
+        marginTop: 12,
     },
     sliderShell: {
         width: "100%",
-        height: SLIDER_TOUCH_HEIGHT,
+        height: 64,
         position: "relative",
     },
     sliderTouchArea: {
@@ -154,8 +159,8 @@ const styles = StyleSheet.create({
         position: "absolute",
         left: THUMB_SIZE / 2,
         right: THUMB_SIZE / 2,
-        height: 15,
-        top: 12,
+        height: 12,
+        top: 24,
         borderRadius: 999,
         backgroundColor: "#2A2A2A",
         overflow: "hidden",
@@ -169,7 +174,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         width: THUMB_SIZE,
         height: THUMB_SIZE,
-        top: 8,
+        top: 18,
         borderRadius: 999,
         backgroundColor: "#fff",
         zIndex: 1,
@@ -177,26 +182,30 @@ const styles = StyleSheet.create({
     sliderLabels: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginTop: -4,
+        paddingHorizontal: THUMB_SIZE / 2,
+        marginTop: 2,
     },
-    leftLable: {
+    leftLabel: {
         textAlign: "left",
-        marginLeft: 20,
-        bottom: 40,
+        color: "#7A7A7A",
+        fontSize: 16,
+        lineHeight: 18,
     },
-    rightLable: {
+    rightLabel: {
         textAlign: "right",
-        marginRight: 20,
-        bottom: 40,
+        color: "#7A7A7A",
+        fontSize: 16,
+        lineHeight: 18,
     },
     numbers: {
-        width: "80%",
-        height: 34,
+        width: "100%",
+        height: 42,
         alignSelf: "center",
         paddingHorizontal: THUMB_SIZE / 2,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-end",
+        marginBottom: 6,
     },
     numberSlot: {
         width: THUMB_SIZE,
@@ -206,10 +215,10 @@ const styles = StyleSheet.create({
     },
     number: {
         textAlign: "center",
-        lineHeight: 16,
+        lineHeight: 18,
         includeFontPadding: false,
     },
     numberActive: {
-        lineHeight: 24,
+        lineHeight: 28,
     },
 });

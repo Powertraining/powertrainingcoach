@@ -1,7 +1,5 @@
-import { Image, Pressable, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
 
 const ARROW_IMAGE = require("../../assets/icons/arrow.png");
 
@@ -76,7 +74,13 @@ function OptionCard({ children, position, isSelected }) {
           isSelected ? styles.optionShadowSelected : null,
         ]}
       />
-      <View style={[styles.optionFace, optionFacePositionStyle]}>
+      <View
+        style={[
+          styles.optionFace,
+          optionFacePositionStyle,
+          isSelected ? styles.optionFaceSelected : null,
+        ]}
+      >
         <StandardText
           style={[styles.optionText, optionTextPositionStyle]}
           textColor="#000000"
@@ -92,7 +96,6 @@ export default function TrainingPreferencesExperienceView({
   value,
   onChange,
 }) {
-  const insets = useSafeAreaInsets();
   const activeIndex = getActiveIndex(value);
   const activeVisualIndex = getVisualIndex(value);
   const activeOption = EXPERIENCE_ORDER[activeIndex];
@@ -106,10 +109,12 @@ export default function TrainingPreferencesExperienceView({
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 24 }]}>
-      <TitleText style={styles.titleText} height={160}>
-        Rate your strength & conditioning level
-      </TitleText>
+    <View style={styles.container}>
+      <View style={styles.titleWrap}>
+        <Text style={styles.titleText}>
+          Rate your strength & conditioning level
+        </Text>
+      </View>
 
       <View style={styles.optionsRow}>
         <OptionCard position="left" isSelected={activeIndex === 1}>
@@ -164,11 +169,21 @@ export default function TrainingPreferencesExperienceView({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 0,
+    paddingTop: 18,
+  },
+  titleWrap: {
+    width: 225,
+    alignSelf: "center",
+    height: 230,
+    justifyContent: "flex-start",
+    paddingTop: 35,
   },
   titleText: {
     color: "#ffffff",
-    marginBottom: 84,
+    fontFamily: "BebasNeue",
+    fontSize: 35,
+    lineHeight: 39,
+    textAlign: "center",
   },
   optionsRow: {
     flexDirection: "row",
@@ -197,7 +212,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   optionShadowSelected: {
-    backgroundColor: "#C9B259",
+    backgroundColor: "#8B7B3E",
   },
   optionShadowLeft: {
     borderTopLeftRadius: 12,
@@ -229,6 +244,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 8,
     zIndex: 1,
+  },
+  optionFaceSelected: {
+    backgroundColor: "#C9B259",
   },
   optionFaceLeft: {
     borderTopLeftRadius: 12,

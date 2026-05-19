@@ -1,10 +1,9 @@
-import { Image, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
 
 const CONFIDENCE_OPTIONS = [
   { label: "Not Very", value: "no" },
-  { label: "Somewhat", value: "somewhat" },
+  { label: "Fairly", value: "somewhat" },
   { label: "Very", value: "yes" },
 ];
 const OPTION_BUTTON_HEIGHT = 48;
@@ -54,14 +53,15 @@ export default function TrainingCapabilityConfidenceView({
   onChange,
   exerciseImages = {},
 }) {
-  const { height: screenHeight } = useWindowDimensions();
   const exerciseExamples = getExerciseExamples(item?.description);
   const exerciseRows = getExerciseRows(exerciseExamples);
 
   return (
-    <View style={[styles.container, { minHeight: screenHeight }]}>
-      <TitleText height={86}>{item.label}</TitleText>
-      <StandardText style={styles.categoryText}>{item.description}</StandardText>
+    <View style={styles.container}>
+      <View style={styles.titleWrap}>
+        <Text style={styles.titleText}>{item.label}</Text>
+        <StandardText style={styles.categoryText}>{item.description}</StandardText>
+      </View>
 
       <View style={styles.exerciseGrid}>
         {exerciseRows.map((row, rowIndex) => (
@@ -93,14 +93,20 @@ export default function TrainingCapabilityConfidenceView({
                 }}
                 style={styles.optionButton}
               >
-                <View pointerEvents="none" style={styles.optionShadow} />
+                <View
+                  pointerEvents="none"
+                  style={[
+                    styles.optionShadow,
+                    isSelected ? styles.optionShadowSelected : null,
+                  ]}
+                />
                 <View style={[styles.optionFace, isSelected ? styles.optionFaceSelected : null]}>
                   <StandardText
                     lines={1}
-                    style={styles.optionButtonText}
-                    textColor="#000000"
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}
+                    style={[
+                      styles.optionButtonText,
+                      isSelected ? styles.optionButtonTextSelected : null,
+                    ]}
                   >
                     {option.label}
                   </StandardText>
@@ -118,18 +124,34 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "flex-start",
-    paddingTop: 120,
+    minHeight: 560,
+    paddingTop: 18,
+    paddingBottom: 170,
+  },
+  titleWrap: {
+    width: "75%",
+    height: 132,
+    justifyContent: "flex-start",
+    alignItems: "center",
+    paddingTop: 35,
+  },
+  titleText: {
+    color: "#ffffff",
+    fontFamily: "BebasNeue",
+    fontSize: 35,
+    lineHeight: 39,
+    textAlign: "center",
   },
   categoryText: {
     color: "#C9B259",
-    fontSize: 14,
-    marginTop: 6,
-    width: "75%",
+    fontSize: 16,
+    lineHeight: 19,
+    marginTop: 8,
     textAlign: "center",
   },
   exerciseGrid: {
     width: "78%",
-    marginTop: 36,
+    marginTop: 20,
     gap: 12,
   },
   exerciseRow: {
@@ -141,11 +163,10 @@ const styles = StyleSheet.create({
     width: 76,
     height: 76,
     aspectRatio: 1,
-    borderRadius: 14,
-    borderWidth: 1.2,
-    borderColor: "#585858",
-    borderStyle: "dashed",
-    backgroundColor: "#0F0F0F",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#1E1E1E",
+    backgroundColor: "#141414",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 10,
@@ -163,13 +184,15 @@ const styles = StyleSheet.create({
   options: {
     width: "78%",
     position: "absolute",
-    bottom: 50,
+    bottom: -42,
     gap: 12,
   },
   confidenceQuestion: {
+    color: "#9A9A9A",
     fontSize: 20,
+    lineHeight: 24,
     textAlign: "center",
-    marginVertical: 18,
+    marginBottom: 18,
   },
   optionRow: {
     flexDirection: "row",
@@ -188,13 +211,18 @@ const styles = StyleSheet.create({
     left: -OPTION_SHADOW_OFFSET,
     right: OPTION_SHADOW_OFFSET,
     bottom: OPTION_SHADOW_OFFSET,
-    borderRadius: 8,
+    borderRadius: 14,
     backgroundColor: "#E1E1E1",
     zIndex: 0,
   },
+  optionShadowSelected: {
+    backgroundColor: "#8B7B3E",
+  },
   optionFace: {
     height: OPTION_BUTTON_HEIGHT,
-    borderRadius: 8,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -203,12 +231,18 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   optionFaceSelected: {
+    backgroundColor: "#C9B259",
+    borderColor: "#C9B259",
     transform: [{ translateX: -OPTION_SHADOW_OFFSET }, { translateY: -OPTION_SHADOW_OFFSET }],
   },
   optionButtonText: {
-    fontSize: 16,
+    color: "#000000",
+    fontSize: 17,
     textAlign: "center",
     includeFontPadding: false,
     width: "100%",
+  },
+  optionButtonTextSelected: {
+    color: "#000000",
   },
 });

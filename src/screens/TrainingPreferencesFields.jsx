@@ -19,116 +19,144 @@ import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 
-const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 19;
+const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 21;
 const APP_LOGIC_SECTION_COUNT = 4;
 
 export function getTrainingPreferencesSectionCount(values = {}) {
   return BASE_TRAINING_PREFERENCES_SECTION_COUNT + APP_LOGIC_SECTION_COUNT;
 }
 
-const CAPABILITY_CONFIDENCE_PAGES = [
+const CAPABILITY_CONFIDENCE_GROUPS = [
   {
-    key: "compoundLifts",
-    item: TRAINING_CAPABILITY_GROUPS[0].items[0],
-    exerciseImages: {
-      squat: require("../assets/icons/sports/squat.png"),
-      deadlift: require("../assets/icons/sports/deadLift.png"),
-      bench: require("../assets/icons/sports/benchPress.png"),
-      row: require("../assets/icons/sports/row.png"),
-      "overhead press": require("../assets/icons/sports/overheadPress.png"),
-    },
+    category: TRAINING_CAPABILITY_GROUPS[0].title,
+    pages: [
+      {
+        key: "compoundLifts",
+        item: TRAINING_CAPABILITY_GROUPS[0].items[0],
+        exerciseImages: {
+          squat: require("../assets/icons/sports/squat.png"),
+          deadlift: require("../assets/icons/sports/deadLift.png"),
+          bench: require("../assets/icons/sports/benchPress.png"),
+          row: require("../assets/icons/sports/row.png"),
+          "overhead press": require("../assets/icons/sports/overheadPress.png"),
+        },
+      },
+      {
+        key: "singleLegLifts",
+        item: TRAINING_CAPABILITY_GROUPS[0].items[1],
+        exerciseImages: {
+          "split squat": require("../assets/icons/sports/splitSquat.png"),
+          lunge: require("../assets/icons/sports/lunge.png"),
+          "step-up": require("../assets/icons/sports/stepUp.png"),
+        },
+      },
+      {
+        key: "pullingWork",
+        item: TRAINING_CAPABILITY_GROUPS[0].items[2],
+        exerciseImages: {
+          "pull-ups": require("../assets/icons/sports/pullUp.png"),
+          "chin-ups": require("../assets/icons/sports/chinUp.png"),
+          rows: require("../assets/icons/sports/row.png"),
+        },
+      },
+    ],
   },
   {
-    key: "singleLegLifts",
-    item: TRAINING_CAPABILITY_GROUPS[0].items[1],
-    exerciseImages: {
-      "split squat": require("../assets/icons/sports/splitSquat.png"),
-      lunge: require("../assets/icons/sports/lunge.png"),
-      "step-up": require("../assets/icons/sports/stepUp.png"),
-    },
+    category: TRAINING_CAPABILITY_GROUPS[1].title,
+    pages: [
+      {
+        key: "olympicLiftVariations",
+        item: TRAINING_CAPABILITY_GROUPS[1].items[0],
+        exerciseImages: {
+          "power clean": require("../assets/icons/sports/powerClean.png"),
+          "hang clean": require("../assets/icons/sports/hangClean.png"),
+          "push press": require("../assets/icons/sports/pushPress.png"),
+          "split jerk": require("../assets/icons/sports/splitJerk.png"),
+        },
+      },
+      {
+        key: "plyometrics",
+        item: TRAINING_CAPABILITY_GROUPS[1].items[1],
+        exerciseImages: {
+          jumps: require("../assets/icons/sports/jumps.png"),
+          bounds: require("../assets/icons/sports/bounds.png"),
+          hops: require("../assets/icons/sports/hops.png"),
+          "landing drills": require("../assets/icons/sports/landingDrills.png"),
+        },
+      },
+      {
+        key: "ballisticTraining",
+        item: TRAINING_CAPABILITY_GROUPS[1].items[2],
+        exerciseImages: {
+          "medicine-ball throws": require("../assets/icons/sports/medicineBallThrow.png"),
+          "jump squats": require("../assets/icons/sports/jumpSquat.png"),
+          "landmine punches": require("../assets/icons/sports/landminePunches.png"),
+        },
+      },
+    ],
   },
   {
-    key: "pullingWork",
-    item: TRAINING_CAPABILITY_GROUPS[0].items[2],
-    exerciseImages: {
-      "pull-ups": require("../assets/icons/sports/pullUp.png"),
-      "chin-ups": require("../assets/icons/sports/chinUp.png"),
-      rows: require("../assets/icons/sports/row.png"),
-    },
-  },
-  {
-    key: "olympicLiftVariations",
-    item: TRAINING_CAPABILITY_GROUPS[1].items[0],
-    exerciseImages: {
-      "power clean": require("../assets/icons/sports/powerClean.png"),
-      "hang clean": require("../assets/icons/sports/hangClean.png"),
-      "push press": require("../assets/icons/sports/pushPress.png"),
-      "split jerk": require("../assets/icons/sports/splitJerk.png"),
-    },
-  },
-  {
-    key: "plyometrics",
-    item: TRAINING_CAPABILITY_GROUPS[1].items[1],
-    exerciseImages: {
-      jumps: require("../assets/icons/sports/jumps.png"),
-      bounds: require("../assets/icons/sports/bounds.png"),
-      hops: require("../assets/icons/sports/hops.png"),
-      "landing drills": require("../assets/icons/sports/landingDrills.png"),
-    },
-  },
-  {
-    key: "ballisticTraining",
-    item: TRAINING_CAPABILITY_GROUPS[1].items[2],
-    exerciseImages: {
-      "medicine-ball throws": require("../assets/icons/sports/medicineBallThrow.png"),
-      "jump squats": require("../assets/icons/sports/jumpSquat.png"),
-      "landmine punches": require("../assets/icons/sports/landminePunches.png"),
-    },
-  },
-  {
-    key: "runningSprinting",
-    item: {
-      ...TRAINING_CAPABILITY_GROUPS[2].items[0],
-      label: "Conditioning",
-      description: "Running",
-    },
-    exerciseImages: {
-      running: require("../assets/icons/sports/running.png"),
-    },
-  },
-  {
-    key: "bikeRowerAssaultBike",
-    item: {
-      ...TRAINING_CAPABILITY_GROUPS[2].items[1],
-      description: "Bike, rower, assault bike",
-    },
-    exerciseImages: {
-      bike: require("../assets/icons/sports/bike.png"),
-      rower: require("../assets/icons/sports/rower.png"),
-      "assault bike": require("../assets/icons/sports/assult Bike.png"),
-    },
-  },
-  {
-    key: "circuitTraining",
-    item: {
-      ...TRAINING_CAPABILITY_GROUPS[2].items[2],
-      description: "Circuit training",
-    },
-    exerciseImages: {
-      "circuit training": require("../assets/icons/sports/curcuitTraining.png"),
-    },
-  },
-  {
-    key: "heavyBag",
-    item: {
-      ...TRAINING_CAPABILITY_GROUPS[2].items[3],
-      description: "Heavy bag",
-    },
-    exerciseImages: {
-      "heavy bag": require("../assets/icons/sports/heavyBag.png"),
-    },
+    category: TRAINING_CAPABILITY_GROUPS[2].title,
+    pages: [
+      {
+        key: "runningSprinting",
+        item: {
+          ...TRAINING_CAPABILITY_GROUPS[2].items[0],
+          label: "Conditioning",
+          description: "Running",
+        },
+        exerciseImages: {
+          running: require("../assets/icons/sports/running.png"),
+        },
+      },
+      {
+        key: "bikeRowerAssaultBike",
+        item: {
+          ...TRAINING_CAPABILITY_GROUPS[2].items[1],
+          description: "Bike, rower, assault bike",
+        },
+        exerciseImages: {
+          bike: require("../assets/icons/sports/bike.png"),
+          rower: require("../assets/icons/sports/rower.png"),
+          "assault bike": require("../assets/icons/sports/assult Bike.png"),
+        },
+      },
+      {
+        key: "circuitTraining",
+        item: {
+          ...TRAINING_CAPABILITY_GROUPS[2].items[2],
+          description: "Circuit training",
+        },
+        exerciseImages: {
+          "circuit training": require("../assets/icons/sports/curcuitTraining.png"),
+        },
+      },
+      {
+        key: "heavyBag",
+        item: {
+          ...TRAINING_CAPABILITY_GROUPS[2].items[3],
+          description: "Heavy bag",
+        },
+        exerciseImages: {
+          "heavy bag": require("../assets/icons/sports/heavyBag.png"),
+        },
+      },
+    ],
   },
 ];
+
+export const CONFIDENCE_STEP_KEYS = Object.freeze({
+  2: "compoundLifts",
+  3: "singleLegLifts",
+  4: "pullingWork",
+  6: "olympicLiftVariations",
+  7: "plyometrics",
+  8: "ballisticTraining",
+  10: "runningSprinting",
+  11: "bikeRowerAssaultBike",
+  12: "circuitTraining",
+  13: "heavyBag",
+});
 
 export default function TrainingPreferencesFields({
   title,
@@ -184,6 +212,18 @@ export default function TrainingPreferencesFields({
     );
   }
 
+  function renderCapabilityConfidenceGroup(group) {
+    return [
+      (
+        <TrainingPreferencesExerciseEvaluationView
+          key={`exercise-evaluation-${group.category}`}
+          category={group.category}
+        />
+      ),
+      ...group.pages.map(renderCapabilityConfidencePage),
+    ];
+  }
+
   const sections = [
     (
       <TrainingPreferencesExperienceView
@@ -191,10 +231,7 @@ export default function TrainingPreferencesFields({
         onChange={(sectionValue) => updateField("experience", sectionValue)}
       />
     ),
-    (
-      <TrainingPreferencesExerciseEvaluationView />
-    ),
-    ...CAPABILITY_CONFIDENCE_PAGES.map(renderCapabilityConfidencePage),
+    ...CAPABILITY_CONFIDENCE_GROUPS.flatMap(renderCapabilityConfidenceGroup),
     (
       <TrainingPreferencesDesiredTrainingView
         value={resolvedValues.desiredTraining}

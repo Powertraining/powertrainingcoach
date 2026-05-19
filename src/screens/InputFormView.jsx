@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
+    CONFIDENCE_STEP_KEYS,
     getTrainingPreferencesSectionCount,
 } from "./TrainingPreferencesFields.jsx";
 
@@ -12,19 +13,6 @@ import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
-
-const CONFIDENCE_STEP_KEYS = {
-    2: "compoundLifts",
-    3: "singleLegLifts",
-    4: "pullingWork",
-    5: "olympicLiftVariations",
-    6: "plyometrics",
-    7: "ballisticTraining",
-    8: "runningSprinting",
-    9: "bikeRowerAssaultBike",
-    10: "circuitTraining",
-    11: "heavyBag",
-};
 
 export default function InputFormView({
     onSubmit,
