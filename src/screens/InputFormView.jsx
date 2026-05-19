@@ -6,6 +6,7 @@ import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
     CONFIDENCE_STEP_KEYS,
+    DESIRED_TRAINING_STEP_INDEX,
     getTrainingPreferencesSectionCount,
 } from "./TrainingPreferencesFields.jsx";
 
@@ -52,6 +53,13 @@ export default function InputFormView({
         activeConfidenceKey &&
         trainingPreferences.trainingCapabilities?.[activeConfidenceKey]
     );
+    const isDesiredTrainingStep = activeStep === DESIRED_TRAINING_STEP_INDEX;
+    const desiredTrainingStepSelected = Boolean(trainingPreferences.desiredTraining);
+    const requiresSelection = Boolean(activeConfidenceKey) || isDesiredTrainingStep;
+    const canContinue =
+        activeConfidenceKey ? confidenceStepSelected :
+            isDesiredTrainingStep ? desiredTrainingStepSelected :
+                undefined;
 
     function handleSubmit() {
         onSubmit(normalizeTrainingPreferences(trainingPreferences));
@@ -107,8 +115,8 @@ export default function InputFormView({
                 </View>
             </View>
             <QuestionnaireBottomActionButton
-                layout={activeConfidenceKey ? "single" : "stacked"}
-                canContinue={activeConfidenceKey ? confidenceStepSelected : undefined}
+                layout={requiresSelection ? "single" : "stacked"}
+                canContinue={canContinue}
                 hideBack
                 text={activeStep >= sectionCount - 1
                     ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")

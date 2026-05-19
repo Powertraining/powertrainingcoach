@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import StandardText from "../textComponents/StandardText.jsx";
@@ -22,48 +22,66 @@ export default function SessionDurationSelector({
   onChange,
 }) {
   const scrollRef = useRef(null);
-  const isDraggingRef = useRef(false);
+  const isInteractingRef = useRef(false);
   const selectedIndex = Math.max(
     options.findIndex((option) => option.value === value),
     0
   );
+  const lastOffsetYRef = useRef(selectedIndex * ITEM_HEIGHT);
+  const [displayedIndex, setDisplayedIndex] = useState(selectedIndex);
 
   useEffect(() => {
-    if (isDraggingRef.current || !options.length) {
+    if (isInteractingRef.current || !options.length) {
       return;
     }
 
+    setDisplayedIndex(selectedIndex);
+    lastOffsetYRef.current = selectedIndex * ITEM_HEIGHT;
     scrollRef.current?.scrollTo({
       y: selectedIndex * ITEM_HEIGHT,
       animated: false,
     });
   }, [options.length, selectedIndex]);
 
-  function finalizeSelection(offsetY) {
-    if (!options.length) {
-      return;
-    }
-
-    const nextIndex = clamp(
+  function getIndexFromOffset(offsetY) {
+    return clamp(
       Math.round(offsetY / ITEM_HEIGHT),
       0,
       options.length - 1
     );
+  }
 
+  function snapToSelection(offsetY) {
+    if (!options.length) {
+      return;
+    }
+
+    const nextIndex = getIndexFromOffset(offsetY);
+    const nextOffsetY = nextIndex * ITEM_HEIGHT;
+
+    lastOffsetYRef.current = nextOffsetY;
+    setDisplayedIndex(nextIndex);
     scrollRef.current?.scrollTo({
-      y: nextIndex * ITEM_HEIGHT,
+      y: nextOffsetY,
       animated: true,
     });
     onChange?.(options[nextIndex].value);
+    isInteractingRef.current = false;
+  }
+
+  function handleScroll(event) {
+    if (!options.length) {
+      return;
+    }
+
+    lastOffsetYRef.current = event.nativeEvent.contentOffset.y;
+    setDisplayedIndex(getIndexFromOffset(lastOffsetYRef.current));
   }
 
   return (
     <View style={styles.wheel}>
       <ScrollView
         ref={scrollRef}
-        contentOffset={{ x: 0, y: selectedIndex * ITEM_HEIGHT }}
-        snapToInterval={ITEM_HEIGHT}
-        snapToAlignment="center"
         decelerationRate="fast"
         disableIntervalMomentum
         showsVerticalScrollIndicator={false}
@@ -71,24 +89,26 @@ export default function SessionDurationSelector({
         nestedScrollEnabled
         scrollEventThrottle={16}
         contentContainerStyle={styles.content}
+        onScroll={handleScroll}
         onScrollBeginDrag={() => {
-          isDraggingRef.current = true;
+          isInteractingRef.current = true;
         }}
         onMomentumScrollEnd={(event) => {
-          isDraggingRef.current = false;
-          finalizeSelection(event.nativeEvent.contentOffset.y);
+          lastOffsetYRef.current = event.nativeEvent.contentOffset.y;
+          snapToSelection(lastOffsetYRef.current);
         }}
         onScrollEndDrag={(event) => {
+          lastOffsetYRef.current = event.nativeEvent.contentOffset.y;
           const velocityY = Math.abs(event.nativeEvent.velocity?.y || 0);
           if (velocityY > 0.05) {
             return;
           }
-          isDraggingRef.current = false;
-          finalizeSelection(event.nativeEvent.contentOffset.y);
+
+          snapToSelection(lastOffsetYRef.current);
         }}
       >
         {options.map((option, index) => {
-          const isSelected = index === selectedIndex;
+          const isSelected = index === displayedIndex;
           const minuteLabelParts = getMinuteLabelParts(option.label);
 
           return (

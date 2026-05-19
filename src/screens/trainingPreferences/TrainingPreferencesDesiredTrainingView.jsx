@@ -18,6 +18,10 @@ const DESIRED_TRAINING_IMAGES = Object.freeze({
 
 const OPTION_FACE_HEIGHT = 288;
 const OPTION_IMAGE_SIZE = OPTION_FACE_HEIGHT * 0.85;
+const OPTION_IMAGE_OFFSET_STYLES = Object.freeze({
+  endurance: { transform: [{ translateX: -40 }] },
+  strength_power_endurance: { transform: [{ translateX: 28 }] },
+});
 
 export default function TrainingPreferencesDesiredTrainingView({
   value,
@@ -33,6 +37,9 @@ export default function TrainingPreferencesDesiredTrainingView({
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
       <TitleText height={110}>What would you like to focus on?</TitleText>
+      <StandardText style={styles.helperText} center>
+        Choose what your plan should prioritize so training matches your goals.
+      </StandardText>
 
       <View style={styles.options}>
         {DESIRED_TRAINING_OPTIONS.map((option, index) => {
@@ -85,6 +92,7 @@ export default function TrainingPreferencesDesiredTrainingView({
                         option.value === "strength_power"
                           ? styles.optionImageStrength
                           : null,
+                        OPTION_IMAGE_OFFSET_STYLES[option.value] ?? null,
                       ]}
                       resizeMode="cover"
                     />
@@ -92,8 +100,10 @@ export default function TrainingPreferencesDesiredTrainingView({
                 </View>
               </View>
               <StandardText
-                style={styles.optionText}
-                textColor="#ffffff"
+                style={[
+                  styles.optionText,
+                  isSelected ? styles.optionTextSelected : null,
+                ]}
                 center
               >
                 {DESIRED_TRAINING_LABELS[option.value] ?? option.label}
@@ -116,7 +126,15 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     gap: 2,
-    marginTop: 36,
+    marginTop: 56,
+  },
+  helperText: {
+    width: "82%",
+    alignSelf: "center",
+    color: "#9ca3af",
+    fontSize: 16,
+    lineHeight: 20,
+    textAlign: "center",
   },
   optionButton: {
     flex: 1,
@@ -183,7 +201,11 @@ const styles = StyleSheet.create({
   optionText: {
     width: "100%",
     marginTop: 12,
+    color: "#ffffff",
     fontSize: 17,
     textAlign: "center",
+  },
+  optionTextSelected: {
+    color: "#ffffff",
   },
 });
