@@ -7,6 +7,8 @@ const CONFIDENCE_OPTIONS = [
   { label: "Somewhat", value: "somewhat" },
   { label: "Very", value: "yes" },
 ];
+const OPTION_BUTTON_HEIGHT = 48;
+const OPTION_SHADOW_OFFSET = 6;
 
 function getExerciseExamples(description = "") {
   return description
@@ -94,8 +96,11 @@ export default function TrainingCapabilityConfidenceView({
                 <View pointerEvents="none" style={styles.optionShadow} />
                 <View style={[styles.optionFace, isSelected ? styles.optionFaceSelected : null]}>
                   <StandardText
+                    lines={1}
                     style={styles.optionButtonText}
                     textColor="#000000"
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
                   >
                     {option.label}
                   </StandardText>
@@ -164,27 +169,31 @@ const styles = StyleSheet.create({
   confidenceQuestion: {
     fontSize: 20,
     textAlign: "center",
-    marginBlock: 18,
+    marginVertical: 18,
   },
   optionRow: {
     flexDirection: "row",
     gap: 12,
+    alignItems: "center",
   },
   optionButton: {
     flex: 1,
-    minHeight: 48,
+    height: OPTION_BUTTON_HEIGHT,
     position: "relative",
     overflow: "visible",
   },
   optionShadow: {
-    ...StyleSheet.absoluteFillObject,
+    position: "absolute",
+    top: -OPTION_SHADOW_OFFSET,
+    left: -OPTION_SHADOW_OFFSET,
+    right: OPTION_SHADOW_OFFSET,
+    bottom: OPTION_SHADOW_OFFSET,
     borderRadius: 8,
     backgroundColor: "#E1E1E1",
-    transform: [{ translateX: -6 }, { translateY: -6 }],
     zIndex: 0,
   },
   optionFace: {
-    minHeight: 48,
+    height: OPTION_BUTTON_HEIGHT,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
@@ -194,9 +203,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   optionFaceSelected: {
-    transform: [{ translateX: -6 }, { translateY: -6 }],
+    transform: [{ translateX: -OPTION_SHADOW_OFFSET }, { translateY: -OPTION_SHADOW_OFFSET }],
   },
   optionButtonText: {
     fontSize: 16,
+    textAlign: "center",
+    includeFontPadding: false,
+    width: "100%",
   },
 });
