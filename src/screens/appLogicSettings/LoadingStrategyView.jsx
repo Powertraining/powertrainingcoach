@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 120,
+    paddingBottom: 24,
   },
   titleText: {
     color: "#ffffff",

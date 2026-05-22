@@ -24,6 +24,9 @@ const APP_LOGIC_SECTION_COUNT = 4;
 export const DESIRED_TRAINING_STEP_INDEX = 14;
 export const TRAINING_PHASE_STEP_INDEX = 17;
 export const EVENT_DESCRIPTION_STEP_INDEX = 18;
+export const INJURIES_STEP_INDEX = 20;
+export const LIFT_INTENSITY_METHOD_STEP_INDEX = 22;
+export const DELOAD_STRATEGY_STEP_INDEX = 23;
 
 export function getTrainingPreferencesSectionCount(values = {}) {
   return BASE_TRAINING_PREFERENCES_SECTION_COUNT + APP_LOGIC_SECTION_COUNT;
@@ -171,8 +174,31 @@ export default function TrainingPreferencesFields({
   activeStep,
   onEventDescriptionSkip,
   onEventDescriptionEditorChange,
+  onInjuriesContinue,
+  onInjuriesSkip,
 }) {
   const resolvedValues = getTrainingPreferencesFormState(values);
+  const hasLiftIntensityMethod = Object.prototype.hasOwnProperty.call(
+    values ?? {},
+    "liftIntensityMethod"
+  );
+  const hasPercentageReferenceMethod = Object.prototype.hasOwnProperty.call(
+    values ?? {},
+    "percentageReferenceMethod"
+  );
+  const liftIntensityMethodValue = hasLiftIntensityMethod
+    ? values.liftIntensityMethod
+    : resolvedValues.liftIntensityMethod;
+  const percentageReferenceMethodValue = hasPercentageReferenceMethod
+    ? values.percentageReferenceMethod
+    : resolvedValues.percentageReferenceMethod;
+  const hasDeloadStrategy = Object.prototype.hasOwnProperty.call(
+    values ?? {},
+    "deloadStrategy"
+  );
+  const deloadStrategyValue = hasDeloadStrategy
+    ? values.deloadStrategy
+    : resolvedValues.deloadStrategy;
 
   function updateFields(patch) {
     onChange?.({
@@ -279,6 +305,8 @@ export default function TrainingPreferencesFields({
       <TrainingPreferencesInjuriesView
         value={resolvedValues.injuriesInput}
         onChange={(sectionValue) => updateField("injuriesInput", sectionValue)}
+        onContinue={onInjuriesContinue}
+        onSkip={onInjuriesSkip}
       />
     ),
     () => (
@@ -291,18 +319,18 @@ export default function TrainingPreferencesFields({
     ),
     () => (
       <LiftIntensityMethodView
-        value={resolvedValues.liftIntensityMethod}
+        value={liftIntensityMethodValue}
         onChange={(sectionValue) =>
           updateFields({
             liftIntensityMethod: sectionValue,
             percentageReferenceMethod: null,
           })
         }
-        percentageReferenceValue={resolvedValues.percentageReferenceMethod}
+        percentageReferenceValue={percentageReferenceMethodValue}
         onPercentageReferenceChange={(sectionValue) => {
           const isSelected =
-            resolvedValues.liftIntensityMethod === "percentage" &&
-            resolvedValues.percentageReferenceMethod === sectionValue;
+            liftIntensityMethodValue === "percentage" &&
+            percentageReferenceMethodValue === sectionValue;
 
           updateFields({
             liftIntensityMethod: isSelected ? null : "percentage",
@@ -313,7 +341,7 @@ export default function TrainingPreferencesFields({
     ),
     () => (
       <DeloadStrategyView
-        value={resolvedValues.deloadStrategy}
+        value={deloadStrategyValue}
         onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}
       />
     ),

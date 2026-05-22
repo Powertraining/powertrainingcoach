@@ -17,6 +17,27 @@ export default function AppLogicSettingsFields({
     ...safeValues,
     ...getAppLogicSettingsFormState(values),
   };
+  const hasLiftIntensityMethod = Object.prototype.hasOwnProperty.call(
+    safeValues,
+    "liftIntensityMethod"
+  );
+  const hasPercentageReferenceMethod = Object.prototype.hasOwnProperty.call(
+    safeValues,
+    "percentageReferenceMethod"
+  );
+  const liftIntensityMethodValue = hasLiftIntensityMethod
+    ? safeValues.liftIntensityMethod
+    : resolvedValues.liftIntensityMethod;
+  const percentageReferenceMethodValue = hasPercentageReferenceMethod
+    ? safeValues.percentageReferenceMethod
+    : resolvedValues.percentageReferenceMethod;
+  const hasDeloadStrategy = Object.prototype.hasOwnProperty.call(
+    safeValues,
+    "deloadStrategy"
+  );
+  const deloadStrategyValue = hasDeloadStrategy
+    ? safeValues.deloadStrategy
+    : resolvedValues.deloadStrategy;
 
   function updateFields(patch) {
     onChange?.({
@@ -46,18 +67,18 @@ export default function AppLogicSettingsFields({
         }
       />
       <LiftIntensityMethodView
-        value={resolvedValues.liftIntensityMethod}
+        value={liftIntensityMethodValue}
         onChange={(sectionValue) =>
           updateFields({
             liftIntensityMethod: sectionValue,
             percentageReferenceMethod: null,
           })
         }
-        percentageReferenceValue={resolvedValues.percentageReferenceMethod}
+        percentageReferenceValue={percentageReferenceMethodValue}
         onPercentageReferenceChange={(sectionValue) => {
           const isSelected =
-            resolvedValues.liftIntensityMethod === "percentage" &&
-            resolvedValues.percentageReferenceMethod === sectionValue;
+            liftIntensityMethodValue === "percentage" &&
+            percentageReferenceMethodValue === sectionValue;
 
           updateFields({
             liftIntensityMethod: isSelected ? null : "percentage",
@@ -66,7 +87,7 @@ export default function AppLogicSettingsFields({
         }}
       />
       <DeloadStrategyView
-        value={resolvedValues.deloadStrategy}
+        value={deloadStrategyValue}
         onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}
       />
       <LoadingStrategyView

@@ -1,4 +1,10 @@
-import { StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 import { DELOAD_STRATEGY_OPTIONS } from "../../constants/appLogicSettings.js";
 import StandardText from "../../components/textComponents/StandardText.jsx";
@@ -6,15 +12,15 @@ import TitleText from "../../components/textComponents/TitleText.jsx";
 
 const DELOAD_OPTION_TEXT = Object.freeze({
   maintain_intensity_reduce_volume: {
-    mediaText: "Maintain intensity",
-    description: "Reduce volume 30-50%",
-    afterReps: "5reps",
+    mediaText: "Keep load heavy",
+    description: "Do fewer total reps",
+    afterReps: "5r",
     afterWeight: "10kg",
   },
   maintain_volume_reduce_intensity: {
-    mediaText: "Maintain volume",
-    description: "Reduce intensity",
-    afterReps: "10reps",
+    mediaText: "Keep reps similar",
+    description: "Use lighter weight",
+    afterReps: "10r",
     afterWeight: "5kg",
   },
 });
@@ -33,8 +39,13 @@ export default function DeloadStrategyView({ value, onChange }) {
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={130}>Deload strategy</TitleText>
-      <View style={styles.contentSlot}>
+      <TitleText height={230}>Deload strategy</TitleText>
+      <ScrollView
+        style={styles.optionsScroll}
+        contentContainerStyle={styles.contentSlot}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         {DELOAD_STRATEGY_OPTIONS.map((option) => {
           const content = DELOAD_OPTION_TEXT[option.value];
           const isSelected = value === option.value;
@@ -49,8 +60,11 @@ export default function DeloadStrategyView({ value, onChange }) {
               : textColor;
 
           return (
-            <View
+            <TouchableOpacity
+              accessibilityLabel={`${isSelected ? "Selected" : "Select"} ${option.label}`}
+              accessibilityRole="button"
               key={option.value}
+              onPress={() => onChange?.(isSelected ? null : option.value)}
               style={[
                 styles.optionButton,
                 isSelected ? styles.optionButtonSelected : null,
@@ -65,10 +79,10 @@ export default function DeloadStrategyView({ value, onChange }) {
                 {content?.mediaText ?? option.label}
               </StandardText>
               <StandardText
-                fontSize={14}
+                fontSize={13}
                 lines={2}
                 style={styles.optionLabel}
-                textColor={textColor}
+                textColor={isSelected ? "#ffffff" : "#A6A6A6"}
                 center
               >
                 {content?.description ?? option.description}
@@ -79,14 +93,24 @@ export default function DeloadStrategyView({ value, onChange }) {
                   <StandardText
                     fontSize={14}
                     textColor={repsTextColor}
-                    style={styles.exampleTextLeft}
+                    style={[
+                      styles.exampleTextLeft,
+                      option.value === "maintain_intensity_reduce_volume"
+                        ? styles.exampleTextChanged
+                        : null,
+                    ]}
                   >
-                    10reps
+                    10r
                   </StandardText>
                   <StandardText
                     fontSize={14}
                     textColor={weightTextColor}
-                    style={styles.exampleTextLeft}
+                    style={[
+                      styles.exampleTextLeft,
+                      option.value === "maintain_volume_reduce_intensity"
+                        ? styles.exampleTextChanged
+                        : null,
+                    ]}
                   >
                     10kg
                   </StandardText>
@@ -96,73 +120,70 @@ export default function DeloadStrategyView({ value, onChange }) {
                   <StandardText
                     fontSize={14}
                     textColor={repsTextColor}
-                    style={styles.exampleTextRight}
+                    style={[
+                      styles.exampleTextRight,
+                      option.value === "maintain_intensity_reduce_volume"
+                        ? styles.exampleTextChanged
+                        : null,
+                    ]}
                   >
                     {content?.afterReps ?? "5reps"}
                   </StandardText>
                   <StandardText
                     fontSize={14}
                     textColor={weightTextColor}
-                    style={styles.exampleTextRight}
+                    style={[
+                      styles.exampleTextRight,
+                      option.value === "maintain_volume_reduce_intensity"
+                        ? styles.exampleTextChanged
+                        : null,
+                    ]}
                   >
                     {content?.afterWeight ?? "10kg"}
                   </StandardText>
                 </View>
               </View>
-
-              <TouchableOpacity
-                accessibilityLabel={`${isSelected ? "Selected" : "Select"} ${option.label}`}
-                accessibilityRole="button"
-                style={[
-                  styles.selectButton,
-                  isSelected ? styles.selectButtonSelected : null,
-                ]}
-                onPress={() => onChange?.(option.value)}
-              >
-                <StandardText
-                  fontSize={16}
-                  textColor={isSelected ? "#ffffff" : "#000000"}
-                  center
-                >
-                  {isSelected ? "Selected" : "Select"}
-                </StandardText>
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   section: {
-    justifyContent: "center",
-    paddingBottom: 120,
+    justifyContent: "flex-start",
+    paddingTop: 78,
+  },
+  optionsScroll: {
+    alignSelf: "stretch",
+    flex: 1,
   },
   contentSlot: {
-    gap: 18,
-    justifyContent: "center",
-    minHeight: 470,
+    gap: 14,
+    justifyContent: "flex-start",
+    paddingBottom: 140,
   },
   optionButton: {
     alignItems: "center",
     alignSelf: "center",
-    backgroundColor: "#121212",
-    borderColor: "#2D2D2D",
-    borderRadius: 20,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    height: 220,
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 18,
+    borderStyle: "solid",
+    borderWidth: 2,
+    height: 190,
     justifyContent: "center",
     position: "relative",
     width: "75%",
   },
   optionButtonSelected: {
-    borderColor: "#C9B259",
+    backgroundColor: "#181818",
+    borderColor: "#ffffff",
   },
   optionMediaText: {
-    fontSize: 26,
+    fontSize: 24,
     marginBottom: 0,
     paddingHorizontal: 18,
     position: "absolute",
@@ -172,7 +193,7 @@ const styles = StyleSheet.create({
   optionLabel: {
     paddingHorizontal: 18,
     position: "absolute",
-    top: 64,
+    top: 68,
     width: "100%",
   },
   example: {
@@ -181,7 +202,7 @@ const styles = StyleSheet.create({
     gap: 18,
     justifyContent: "center",
     position: "absolute",
-    top: 112,
+    top: 124,
     width: "100%",
   },
   exampleArrow: {
@@ -203,7 +224,8 @@ const styles = StyleSheet.create({
     width: 0,
   },
   exampleBlock: {
-    width: 44,
+    gap: 4,
+    width: 46,
   },
   exampleBlockLeft: {
     alignItems: "flex-start",
@@ -212,24 +234,24 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   exampleTextLeft: {
-    textAlign: "left",
+    backgroundColor: "#ffffff",
+    borderRadius: 4,
+    color: "#000000",
+    lineHeight: 17,
+    overflow: "hidden",
+    textAlign: "center",
     width: "100%",
   },
   exampleTextRight: {
-    textAlign: "right",
+    backgroundColor: "#ffffff",
+    borderRadius: 4,
+    color: "#000000",
+    lineHeight: 17,
+    overflow: "hidden",
+    textAlign: "center",
     width: "100%",
   },
-  selectButton: {
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderRadius: 120,
-    bottom: 14,
-    height: 34,
-    justifyContent: "center",
-    position: "absolute",
-    width: 104,
-  },
-  selectButtonSelected: {
-    backgroundColor: "#000000",
+  exampleTextChanged: {
+    backgroundColor: "#C9B259",
   },
 });

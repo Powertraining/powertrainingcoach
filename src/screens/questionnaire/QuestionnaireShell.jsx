@@ -7,6 +7,7 @@ export default function QuestionnaireShell({
     hideTabBar = true,
     onLogoClick,
     onClose,
+    topBackgroundColor,
 }) {
     useEffect(() => {
         reactiveModel.setForumTabBarHidden(hideTabBar);
@@ -18,6 +19,15 @@ export default function QuestionnaireShell({
 
     return (
         <View style={ styles.container} >
+            {topBackgroundColor ? (
+                <View
+                    pointerEvents="none"
+                    style={[
+                        styles.topBackground,
+                        { backgroundColor: topBackgroundColor },
+                    ]}
+                />
+            ) : null}
             {onClose ? (
                 <Pressable
                     accessibilityRole="button"
@@ -37,6 +47,14 @@ const styles = StyleSheet.create({
     container : {
         flex: 1,
         position: "relative",
+    },
+    topBackground: {
+        height: 96,
+        left: 0,
+        position: "absolute",
+        right: 0,
+        top: 0,
+        zIndex: 0,
     },
     closeButton: {
         position: "absolute",

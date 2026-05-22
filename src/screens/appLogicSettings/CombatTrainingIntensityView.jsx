@@ -38,6 +38,7 @@ export default function CombatTrainingIntensityView({
   const dragStartYRef = useRef(0);
   const dragStartFillRatioRef = useRef(fillRatio);
   const { height: screenHeight } = useWindowDimensions();
+  const meterTop = Math.max(280, screenHeight / 2 - 60);
 
   function updateFillFromDy(dy) {
     const nextFillRatio = clamp(
@@ -64,10 +65,10 @@ export default function CombatTrainingIntensityView({
       />
       <View style={styles.section}>
         <TitleText height={130}>
-          How intense is current combat sports training?
+          Combat training intensity
         </TitleText>
       </View>
-      <View style={styles.intensityOutline}>
+      <View style={[styles.intensityOutline, { top: meterTop }]}>
         <View pointerEvents="none" style={[styles.tickLine, styles.tickLineTop]} />
         <View pointerEvents="none" style={[styles.tickLine, styles.tickLineMiddle]} />
         <View pointerEvents="none" style={[styles.tickLine, styles.tickLineBottom]} />
@@ -89,7 +90,7 @@ export default function CombatTrainingIntensityView({
           />
         </View>
       </View>
-      <StandardText style={styles.selectedValueText} center>
+      <StandardText style={[styles.selectedValueText, { top: meterTop + METER_HEIGHT + 18 }]} center>
         {getValueFromFillRatio(fillRatio)}
       </StandardText>
     </View>
@@ -120,7 +121,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     left: "50%",
     position: "absolute",
-    top: 300,
     transform: [{ translateX: -METER_WIDTH / 2 }],
     width: METER_WIDTH,
   },
@@ -171,6 +171,5 @@ const styles = StyleSheet.create({
     left: 0,
     position: "absolute",
     right: 0,
-    top: 300 + METER_HEIGHT + 18,
   },
 });

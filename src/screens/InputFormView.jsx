@@ -6,9 +6,12 @@ import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
     CONFIDENCE_STEP_KEYS,
+    DELOAD_STRATEGY_STEP_INDEX,
     DESIRED_TRAINING_STEP_INDEX,
     EVENT_DESCRIPTION_STEP_INDEX,
     getTrainingPreferencesSectionCount,
+    INJURIES_STEP_INDEX,
+    LIFT_INTENSITY_METHOD_STEP_INDEX,
     TRAINING_PHASE_STEP_INDEX,
 } from "./TrainingPreferencesFields.jsx";
 
@@ -66,6 +69,11 @@ export default function InputFormView({
     const isTrainingPhaseStep = activeStep === TRAINING_PHASE_STEP_INDEX;
     const trainingPhaseStepSelected = Boolean(trainingPreferences.trainingPhase);
     const isEventDescriptionStep = activeStep === EVENT_DESCRIPTION_STEP_INDEX;
+    const isInjuriesStep = activeStep === INJURIES_STEP_INDEX;
+    const isLiftIntensityMethodStep = activeStep === LIFT_INTENSITY_METHOD_STEP_INDEX;
+    const isDeloadStrategyStep = activeStep === DELOAD_STRATEGY_STEP_INDEX;
+    const liftIntensityMethodStepSelected = Boolean(trainingPreferences.liftIntensityMethod);
+    const deloadStrategyStepSelected = Boolean(trainingPreferences.deloadStrategy);
     const eventDescriptionStepSelected = Boolean(
         getEventDescription(trainingPreferences.eventPreparation)
     );
@@ -73,12 +81,16 @@ export default function InputFormView({
         Boolean(activeConfidenceKey) ||
         isDesiredTrainingStep ||
         isTrainingPhaseStep ||
-        isEventDescriptionStep;
+        isEventDescriptionStep ||
+        isLiftIntensityMethodStep ||
+        isDeloadStrategyStep;
     const canContinue =
         activeConfidenceKey ? confidenceStepSelected :
             isDesiredTrainingStep ? desiredTrainingStepSelected :
                 isTrainingPhaseStep ? trainingPhaseStepSelected :
                     isEventDescriptionStep ? eventDescriptionStepSelected :
+                        isLiftIntensityMethodStep ? liftIntensityMethodStepSelected :
+                            isDeloadStrategyStep ? deloadStrategyStepSelected :
                 undefined;
 
     function handleSubmit() {
@@ -112,14 +124,28 @@ export default function InputFormView({
         setActiveStep((currentStep) => Math.min(currentStep + 2, sectionCount - 1));
     }
 
+    function handleInjuriesSkip() {
+        setTrainingPreferences((currentPreferences) => ({
+            ...currentPreferences,
+            injuriesInput: "",
+        }));
+        handleContinue();
+    }
+
     return (
-        <QuestionnaireShell onClose={onClose}>
+        <QuestionnaireShell
+            onClose={onClose}
+            topBackgroundColor={isInjuriesStep ? "#141414" : null}
+        >
             {isEventDescriptionEditorOpen ? (
                 <View pointerEvents="none" style={styles.eventEditorDimLayer} />
             ) : null}
             <View
                 style={[
                     styles.center,
+                    isLiftIntensityMethodStep || isDeloadStrategyStep
+                        ? styles.centerFullHeight
+                        : null,
                     isEventDescriptionEditorOpen ? styles.centerAboveDimLayer : null,
                 ]}
             >
@@ -148,12 +174,14 @@ export default function InputFormView({
                             activeStep={activeStep}
                             onEventDescriptionSkip={handleEventDescriptionSkip}
                             onEventDescriptionEditorChange={setIsEventDescriptionEditorOpen}
+                            onInjuriesContinue={handleContinue}
+                            onInjuriesSkip={handleInjuriesSkip}
                         />
 
                     </View>
                 </View>
             </View>
-            {!isEventDescriptionEditorOpen ? (
+            {!isEventDescriptionEditorOpen && !isInjuriesStep ? (
                 <QuestionnaireBottomActionButton
                     layout={requiresSelection ? "single" : "stacked"}
                     canContinue={canContinue}
@@ -174,6 +202,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         paddingBottom: 120,
+    },
+    centerFullHeight: {
+        paddingBottom: 0,
     },
     centerAboveDimLayer: {
         position: "relative",

@@ -3,7 +3,14 @@ import {
   LIFT_INTENSITY_METHOD_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
 } from "../../constants/appLogicSettings.js";
-import { StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
@@ -14,18 +21,24 @@ const LIFT_INTENSITY_MEDIA_TEXT = Object.freeze({
 
 const PERCENTAGE_REFERENCE_BUTTONS = Object.freeze({
   true_1rm: {
-    label: "True 1RM tests",
+    label: "Use tested max",
     mediaText: "1RM",
   },
   multi_rm: {
-    label: "2-5RM + Epley",
+    label: "Estimate from 2-5 reps",
     mediaText: "2-5RM",
   },
   heavy_single: {
-    label: "Heavy single",
+    label: "Estimate from heavy single",
     mediaText: "RPE 8-9",
   },
 });
+
+const PERCENTAGE_REFERENCE_DISPLAY_ORDER = Object.freeze([
+  "heavy_single",
+  "multi_rm",
+  "true_1rm",
+]);
 
 export default function LiftIntensityMethodView({
   value,
@@ -41,13 +54,23 @@ export default function LiftIntensityMethodView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={130}>Lift intensity logic</TitleText>
-      <View style={styles.contentSlot}>
+      <TitleText height={230}>Lift intensity method</TitleText>
+      <ScrollView
+        style={styles.optionsScroll}
+        contentContainerStyle={styles.contentSlot}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         {rpeOption ? (
           <PreferenceOptionButton
             isSelected={value === rpeOption.value}
-            label={rpeOption.label}
+            label="Adjust by effort"
             mediaText={LIFT_INTENSITY_MEDIA_TEXT[rpeOption.value]}
+            buttonStyle={styles.optionButton}
+            selectedButtonStyle={styles.optionButtonSelected}
+            labelStyle={styles.optionLabel}
+            mediaTextStyle={styles.optionMediaText}
+            badge="Recommended"
             onPress={() =>
               onChange?.(value === rpeOption.value ? null : rpeOption.value)
             }
@@ -69,7 +92,14 @@ export default function LiftIntensityMethodView({
         </TouchableOpacity>
         {isAdvancedExpanded ? (
           <View style={styles.referenceOptions}>
-            {PERCENTAGE_REFERENCE_METHOD_OPTIONS.map((option) => {
+            {PERCENTAGE_REFERENCE_DISPLAY_ORDER.map((optionValue) => {
+              const option = PERCENTAGE_REFERENCE_METHOD_OPTIONS.find(
+                (referenceOption) => referenceOption.value === optionValue
+              );
+              if (!option) {
+                return null;
+              }
+
               const buttonContent = PERCENTAGE_REFERENCE_BUTTONS[option.value];
 
               return (
@@ -81,26 +111,59 @@ export default function LiftIntensityMethodView({
                   }
                   label={buttonContent?.label ?? option.label}
                   mediaText={buttonContent?.mediaText}
+                  buttonStyle={styles.optionButton}
+                  selectedButtonStyle={styles.optionButtonSelected}
+                  labelStyle={styles.optionLabel}
+                  mediaTextStyle={styles.optionMediaText}
                   onPress={() => onPercentageReferenceChange?.(option.value)}
                 />
               );
             })}
           </View>
         ) : null}
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   section: {
-    justifyContent: "center",
-    paddingBottom: 120,
+    justifyContent: "flex-start",
+    paddingTop: 78,
+  },
+  optionsScroll: {
+    alignSelf: "stretch",
+    flex: 1,
   },
   contentSlot: {
-    gap: 16,
-    height: 300,
+    gap: 14,
     justifyContent: "flex-start",
+    paddingBottom: 8,
+  },
+  optionButton: {
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 18,
+    borderStyle: "solid",
+    borderWidth: 2,
+    height: 112,
+  },
+  optionButtonSelected: {
+    backgroundColor: "#181818",
+    borderColor: "#ffffff",
+  },
+  optionLabel: {
+    bottom: "auto",
+    color: "#A6A6A6",
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 16,
+    position: "relative",
+    textTransform: "uppercase",
+  },
+  optionMediaText: {
+    fontSize: 26,
+    marginBottom: 8,
   },
   advancedRow: {
     alignItems: "center",
@@ -110,11 +173,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   advancedText: {
-    color: "#ffffff",
+    color: "#8E8E8E",
     fontSize: 16,
   },
   advancedArrow: {
-    color: "#ffffff",
+    color: "#8E8E8E",
     fontSize: 24,
     lineHeight: 24,
     transform: [{ rotate: "90deg" }],

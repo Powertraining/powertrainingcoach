@@ -1,5 +1,6 @@
 import {
   Pressable,
+  ScrollView,
   Text,
   View,
   StyleSheet,
@@ -68,72 +69,88 @@ export default function TrainingPreferencesPreferredWeekdaysView({
   const { height: screenHeight } = useWindowDimensions();
 
   return (
-    <View style={[styles.section, { minHeight: screenHeight }]}>
-      <View style={styles.field}>
-        <TitleText height={130}>Day Guidelines</TitleText>
-        <StandardText style={styles.helperText} textColor="#C9B259" center>
-          Optional. The plan still runs as Day 1, Day 2, Day 3, and so on.
-          These only add calendar guidance.
+    <ScrollView
+      style={[styles.section, { maxHeight: screenHeight }]}
+      contentContainerStyle={[
+        styles.sectionContent,
+        { minHeight: screenHeight },
+      ]}
+      bounces={false}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.content}>
+        <TitleText height={82}>Preferred weekdays</TitleText>
+        <StandardText style={styles.helperText} textColor="#9ca3af" center>
+          Optional. Choose fixed weekdays for training days that need them.
+          Leave the rest flexible.
         </StandardText>
-        <View style={styles.preferenceGrid}>
-          {Array.from({ length: daysPerWeek }, (_, index) => (
-            <View
-              key={`preferred-weekday-${index + 1}`}
-              style={styles.preferenceItem}
-            >
-              <Text style={styles.preferenceLabel}>Day {index + 1}</Text>
-              <View style={styles.weekdayRow}>
-                {WEEKDAY_CHIP_OPTIONS.map((option) => {
-                  const isSelected = preferredWeekdays[index] === option.value;
-                  const isUnavailable =
-                    !isSelected &&
-                    !canBuildOrderedWeekdaySequence(
-                      preferredWeekdays.map((weekday, selectedIndex) =>
-                        selectedIndex === index ? option.value : weekday
-                      )
-                    );
 
-                  return (
-                    <Pressable
-                      key={`${option.value}-${index + 1}`}
-                      disabled={isUnavailable}
-                      onPress={() =>
-                        onChange(index, isSelected ? "" : option.value)
-                      }
-                      style={({ pressed }) => [
-                        styles.weekdayButton,
-                        isSelected && styles.weekdayButtonSelected,
-                        isUnavailable && styles.weekdayButtonDisabled,
-                        pressed && styles.weekdayButtonPressed,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.weekdayButtonText,
-                          isSelected && styles.weekdayButtonTextSelected,
-                          isUnavailable && styles.weekdayButtonTextDisabled,
+        <View style={styles.preferenceBox}>
+          <View style={styles.preferenceGrid}>
+            {Array.from({ length: daysPerWeek }, (_, index) => (
+              <View
+                key={`preferred-weekday-${index + 1}`}
+                style={styles.preferenceItem}
+              >
+                <Text style={styles.preferenceLabel}>Day {index + 1}</Text>
+                <View style={styles.weekdayRow}>
+                  {WEEKDAY_CHIP_OPTIONS.map((option) => {
+                    const isSelected = preferredWeekdays[index] === option.value;
+                    const isUnavailable =
+                      !isSelected &&
+                      !canBuildOrderedWeekdaySequence(
+                        preferredWeekdays.map((weekday, selectedIndex) =>
+                          selectedIndex === index ? option.value : weekday
+                        )
+                      );
+
+                    return (
+                      <Pressable
+                        key={`${option.value}-${index + 1}`}
+                        disabled={isUnavailable}
+                        onPress={() =>
+                          onChange(index, isSelected ? "" : option.value)
+                        }
+                        style={({ pressed }) => [
+                          styles.weekdayButton,
+                          isSelected ? styles.weekdayButtonSelected : null,
+                          isUnavailable ? styles.weekdayButtonDisabled : null,
+                          pressed ? styles.weekdayButtonPressed : null,
                         ]}
                       >
-                        {option.label.slice(0, 3)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+                        <Text
+                          style={[
+                            styles.weekdayButtonText,
+                            isSelected ? styles.weekdayButtonTextSelected : null,
+                            isUnavailable ? styles.weekdayButtonTextDisabled : null,
+                          ]}
+                        >
+                          {option.label.slice(0, 3)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          ))}
+            ))}
+          </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   section: {
-    justifyContent: "center",
+    width: "100%",
   },
-  field: {
-    gap: 8,
+  sectionContent: {
+    justifyContent: "center",
+    paddingBottom: 150,
+    paddingTop: 24,
+  },
+  content: {
+    gap: 4,
   },
   helperText: {
     alignSelf: "center",
@@ -143,22 +160,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  preferenceBox: {
+    alignSelf: "center",
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderRadius: 0,
+    borderWidth: 0,
+    gap: 12,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    width: "90%",
+  },
   preferenceGrid: {
-    gap: 10,
+    gap: 12,
   },
   preferenceItem: {
     gap: 6,
   },
   preferenceLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
+    color: "#8E8E8E",
+    fontSize: 11,
+    fontWeight: "700",
+    lineHeight: 14,
+    textTransform: "uppercase",
   },
   weekdayRow: {
     flexDirection: "row",
     gap: 4,
     justifyContent: "center",
-    paddingHorizontal: 16,
     width: "100%",
   },
   weekdayButton: {
@@ -174,7 +203,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   weekdayButtonSelected: {
+    backgroundColor: "#ffffff",
     borderColor: "#fff",
+  },
+  weekdayButtonDisabled: {
+    opacity: 1,
   },
   weekdayButtonPressed: {
     opacity: 0.78,
@@ -185,7 +218,7 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   weekdayButtonTextSelected: {
-    color: "#fff",
+    color: "#000000",
   },
   weekdayButtonTextDisabled: {
     opacity: 0.2,
