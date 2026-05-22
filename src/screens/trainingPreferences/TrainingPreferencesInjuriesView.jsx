@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -15,7 +15,7 @@ import TitleText from "../../components/textComponents/TitleText.jsx";
 const NURSE_ICON = require("../../assets/icons/nurse.png");
 const ARROW_TEXT_ICON = require("../../assets/icons/arrowText.png");
 
-export default function TrainingPreferencesInjuriesView({
+function TrainingPreferencesInjuriesView({
   value,
   onChange,
 }) {
@@ -26,7 +26,7 @@ export default function TrainingPreferencesInjuriesView({
     value ? [value] : []
   );
 
-  function handleSend() {
+  const handleSend = useCallback(() => {
     const nextMessage = draftMessage.trim();
 
     if (!nextMessage) {
@@ -37,10 +37,10 @@ export default function TrainingPreferencesInjuriesView({
     setUserMessages(nextMessages);
     setDraftMessage("");
     onChange?.(nextMessages.join(", "));
-  }
+  }, [draftMessage, onChange, userMessages]);
 
   useEffect(() => {
-    chatScrollRef.current?.scrollToEnd({ animated: true });
+    chatScrollRef.current?.scrollToEnd({ animated: false });
   }, [userMessages.length]);
 
   return (
@@ -52,6 +52,8 @@ export default function TrainingPreferencesInjuriesView({
             ref={chatScrollRef}
             style={styles.chatScroll}
             contentContainerStyle={styles.messages}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews
             showsVerticalScrollIndicator={false}
           >
               <View style={styles.messageRow}>
@@ -129,6 +131,8 @@ export default function TrainingPreferencesInjuriesView({
     </View>
   );
 }
+
+export default memo(TrainingPreferencesInjuriesView);
 
 const styles = StyleSheet.create({
   section: {

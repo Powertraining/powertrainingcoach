@@ -19,10 +19,11 @@ import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 
-const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 21;
+const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 22;
 const APP_LOGIC_SECTION_COUNT = 4;
 export const DESIRED_TRAINING_STEP_INDEX = 14;
 export const TRAINING_PHASE_STEP_INDEX = 17;
+export const EVENT_DESCRIPTION_STEP_INDEX = 18;
 
 export function getTrainingPreferencesSectionCount(values = {}) {
   return BASE_TRAINING_PREFERENCES_SECTION_COUNT + APP_LOGIC_SECTION_COUNT;
@@ -168,6 +169,8 @@ export default function TrainingPreferencesFields({
   appLogicTitle = "App Logic Settings",
   appLogicDescription,
   activeStep,
+  onEventDescriptionSkip,
+  onEventDescriptionEditorChange,
 }) {
   const resolvedValues = getTrainingPreferencesFormState(values);
 
@@ -205,7 +208,6 @@ export default function TrainingPreferencesFields({
   function renderCapabilityConfidencePage(page) {
     return (
       <TrainingCapabilityConfidenceView
-        key={page.key}
         item={page.item}
         value={values?.trainingCapabilities?.[page.key] ?? null}
         onChange={(sectionValue) => updateNullableCapability(page.key, sectionValue)}
@@ -216,61 +218,70 @@ export default function TrainingPreferencesFields({
 
   function renderCapabilityConfidenceGroup(group) {
     return [
-      (
+      () => (
         <TrainingPreferencesExerciseEvaluationView
-          key={`exercise-evaluation-${group.category}`}
           category={group.category}
         />
       ),
-      ...group.pages.map(renderCapabilityConfidencePage),
+      ...group.pages.map((page) => () => renderCapabilityConfidencePage(page)),
     ];
   }
 
-  const sections = [
-    (
+  const sectionRenderers = [
+    () => (
       <TrainingPreferencesExperienceView
         value={resolvedValues.experience}
         onChange={(sectionValue) => updateField("experience", sectionValue)}
       />
     ),
     ...CAPABILITY_CONFIDENCE_GROUPS.flatMap(renderCapabilityConfidenceGroup),
-    (
+    () => (
       <TrainingPreferencesDesiredTrainingView
         value={resolvedValues.desiredTraining}
         onChange={(sectionValue) => updateField("desiredTraining", sectionValue)}
       />
     ),
-    (
+    () => (
       <TrainingPreferencesSessionDurationView
         value={resolvedValues.sessionDuration}
         onChange={(sectionValue) => updateField("sessionDuration", sectionValue)}
       />
     ),
-    (
+    () => (
       <TrainingPreferencesEquipmentView
         value={resolvedValues.equipment}
         onChange={(sectionValue) => updateField("equipment", sectionValue)}
       />
     ),
-    (
+    () => (
       <QuestionnaireTrainingPhaseView
         value={values?.trainingPhase ?? null}
         onChange={(sectionValue) => updateField("trainingPhase", sectionValue)}
       />
     ),
-    (
+    () => (
       <TrainingPreferencesEventPreparationView
         value={resolvedValues.eventPreparation}
         onChange={(sectionValue) => updateField("eventPreparation", sectionValue)}
+        mode="description"
+        onSkip={onEventDescriptionSkip}
+        onEditorVisibilityChange={onEventDescriptionEditorChange}
       />
     ),
-    (
+    () => (
+      <TrainingPreferencesEventPreparationView
+        value={resolvedValues.eventPreparation}
+        onChange={(sectionValue) => updateField("eventPreparation", sectionValue)}
+        mode="date"
+      />
+    ),
+    () => (
       <TrainingPreferencesInjuriesView
         value={resolvedValues.injuriesInput}
         onChange={(sectionValue) => updateField("injuriesInput", sectionValue)}
       />
     ),
-    (
+    () => (
       <CombatTrainingIntensityView
         value={resolvedValues.combatTrainingIntensity}
         onChange={(sectionValue) =>
@@ -278,7 +289,7 @@ export default function TrainingPreferencesFields({
         }
       />
     ),
-    (
+    () => (
       <LiftIntensityMethodView
         value={resolvedValues.liftIntensityMethod}
         onChange={(sectionValue) =>
@@ -300,13 +311,13 @@ export default function TrainingPreferencesFields({
         }}
       />
     ),
-    (
+    () => (
       <DeloadStrategyView
         value={resolvedValues.deloadStrategy}
         onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}
       />
     ),
-    (
+    () => (
       <LoadingStrategyView
         value={resolvedValues.loadingStrategy}
         onChange={(sectionValue) =>
@@ -314,7 +325,7 @@ export default function TrainingPreferencesFields({
         }
       />
     ),
-    (
+    () => (
       <TrainingPreferencesPreferredWeekdaysView
         daysPerWeek={resolvedValues.daysPerWeek}
         preferredWeekdays={resolvedValues.preferredWeekdays}
@@ -323,10 +334,10 @@ export default function TrainingPreferencesFields({
     ),
   ];
 
-  const renderedSections =
+  const renderedSectionIndexes =
     typeof activeStep === "number"
-      ? sections.slice(activeStep, activeStep + 1)
-      : sections;
+      ? [activeStep]
+      : sectionRenderers.map((_, index) => index);
 
   return (
     <View style={styles.section}>
@@ -339,9 +350,9 @@ export default function TrainingPreferencesFields({
         </View>
       )}
 
-      {renderedSections.map((section, index) => (
-        <View key={`training-preferences-section-${typeof activeStep === "number" ? activeStep : index}`}>
-          {section}
+      {renderedSectionIndexes.map((sectionIndex) => (
+        <View key={`training-preferences-section-${sectionIndex}`}>
+          {sectionRenderers[sectionIndex]?.()}
         </View>
       ))}
     </View>

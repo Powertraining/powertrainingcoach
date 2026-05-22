@@ -14,6 +14,7 @@ import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../src/screens/LoadingView.jsx";
 import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
 import BlackGradient from "../src/components/colorComponents/BlackGradient.jsx";
+import { preloadQuestionnaireImages } from "../src/services/utils/preloadAssets.js";
 
 
 // Make model globally available for debugging
@@ -34,6 +35,9 @@ const RootLayout = observer(function RootLayout() {
     NavigationBar.setPositionAsync("absolute");
     NavigationBar.setBackgroundColorAsync("transparent");
     NavigationBar.setButtonStyleAsync("light");
+    preloadQuestionnaireImages().catch((error) => {
+      console.warn("Could not preload questionnaire images:", error);
+    });
     
 
     return () => {

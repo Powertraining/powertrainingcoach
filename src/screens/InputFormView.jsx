@@ -7,6 +7,7 @@ import QuestionnaireBottomActionButton from "../components/questionnaireComponen
 import TrainingPreferencesFields, {
     CONFIDENCE_STEP_KEYS,
     DESIRED_TRAINING_STEP_INDEX,
+    EVENT_DESCRIPTION_STEP_INDEX,
     getTrainingPreferencesSectionCount,
     TRAINING_PHASE_STEP_INDEX,
 } from "./TrainingPreferencesFields.jsx";
@@ -15,6 +16,11 @@ import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
+
+function getEventDescription(value = "") {
+    const match = /Description:\s*([^;]+)/i.exec(String(value));
+    return match ? match[1].trim() : "";
+}
 
 export default function InputFormView({
     onSubmit,
@@ -48,6 +54,7 @@ export default function InputFormView({
         };
     });
     const [activeStep, setActiveStep] = useState(0);
+    const [isEventDescriptionEditorOpen, setIsEventDescriptionEditorOpen] = useState(false);
     const sectionCount = getTrainingPreferencesSectionCount(trainingPreferences);
     const activeConfidenceKey = CONFIDENCE_STEP_KEYS[activeStep];
     const confidenceStepSelected = Boolean(
@@ -58,12 +65,20 @@ export default function InputFormView({
     const desiredTrainingStepSelected = Boolean(trainingPreferences.desiredTraining);
     const isTrainingPhaseStep = activeStep === TRAINING_PHASE_STEP_INDEX;
     const trainingPhaseStepSelected = Boolean(trainingPreferences.trainingPhase);
+    const isEventDescriptionStep = activeStep === EVENT_DESCRIPTION_STEP_INDEX;
+    const eventDescriptionStepSelected = Boolean(
+        getEventDescription(trainingPreferences.eventPreparation)
+    );
     const requiresSelection =
-        Boolean(activeConfidenceKey) || isDesiredTrainingStep || isTrainingPhaseStep;
+        Boolean(activeConfidenceKey) ||
+        isDesiredTrainingStep ||
+        isTrainingPhaseStep ||
+        isEventDescriptionStep;
     const canContinue =
         activeConfidenceKey ? confidenceStepSelected :
             isDesiredTrainingStep ? desiredTrainingStepSelected :
                 isTrainingPhaseStep ? trainingPhaseStepSelected :
+                    isEventDescriptionStep ? eventDescriptionStepSelected :
                 undefined;
 
     function handleSubmit() {
@@ -71,6 +86,8 @@ export default function InputFormView({
     }
 
     function handleContinue() {
+        setIsEventDescriptionEditorOpen(false);
+
         if (activeStep >= sectionCount - 1) {
             handleSubmit();
             return;
@@ -80,6 +97,8 @@ export default function InputFormView({
     }
 
     function handleStepBack() {
+        setIsEventDescriptionEditorOpen(false);
+
         if (activeStep === 0) {
             onBack?.();
             return;
@@ -88,9 +107,22 @@ export default function InputFormView({
         setActiveStep((currentStep) => currentStep - 1);
     }
 
+    function handleEventDescriptionSkip() {
+        setIsEventDescriptionEditorOpen(false);
+        setActiveStep((currentStep) => Math.min(currentStep + 2, sectionCount - 1));
+    }
+
     return (
         <QuestionnaireShell onClose={onClose}>
-            <View style={styles.center}>
+            {isEventDescriptionEditorOpen ? (
+                <View pointerEvents="none" style={styles.eventEditorDimLayer} />
+            ) : null}
+            <View
+                style={[
+                    styles.center,
+                    isEventDescriptionEditorOpen ? styles.centerAboveDimLayer : null,
+                ]}
+            >
                 <View style={styles.card}>
                     <View style={styles.form}>
                         {/* {!subscription && (
@@ -114,21 +146,25 @@ export default function InputFormView({
                             appLogicTitle="App Logic Settings"
                             appLogicDescription="Choose the strength-planning logic you want the app to use for this athlete profile."
                             activeStep={activeStep}
+                            onEventDescriptionSkip={handleEventDescriptionSkip}
+                            onEventDescriptionEditorChange={setIsEventDescriptionEditorOpen}
                         />
 
                     </View>
                 </View>
             </View>
-            <QuestionnaireBottomActionButton
-                layout={requiresSelection ? "single" : "stacked"}
-                canContinue={canContinue}
-                hideBack
-                text={activeStep >= sectionCount - 1
-                    ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
-                    : "Continue"}
-                onContinue={handleContinue}
-                onBack={handleStepBack}
-            />
+            {!isEventDescriptionEditorOpen ? (
+                <QuestionnaireBottomActionButton
+                    layout={requiresSelection ? "single" : "stacked"}
+                    canContinue={canContinue}
+                    hideBack
+                    text={activeStep >= sectionCount - 1
+                        ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
+                        : "Continue"}
+                    onContinue={handleContinue}
+                    onBack={handleStepBack}
+                />
+            ) : null}
         </QuestionnaireShell>
     );
 }
@@ -138,6 +174,10 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         paddingBottom: 120,
+    },
+    centerAboveDimLayer: {
+        position: "relative",
+        zIndex: 2,
     },
     card: {
         width: "100%",
@@ -150,6 +190,11 @@ const styles = StyleSheet.create({
     title: { fontSize: 30, fontWeight: "700" },
     subtitle: { fontSize: 17, opacity: 0.8, lineHeight: 25 },
     form: { gap: 14, marginTop: 4 },
+    eventEditorDimLayer: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: "rgba(0,0,0,0.48)",
+        zIndex: 1,
+    },
     subscriptionAlert: {
         padding: 16,
         borderRadius: 10,
