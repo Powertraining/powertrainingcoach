@@ -27,6 +27,11 @@ export default function WhiteBottomMenu({
   contentStyle,
   buttonStyle,
   buttonTextStyle,
+  secondaryButtonText,
+  secondaryButtonDisabled,
+  onSecondaryButtonPress,
+  secondaryButtonStyle,
+  secondaryButtonTextStyle,
   bottomPadding = 18,
 }) {
   const insets = useSafeAreaInsets();
@@ -130,6 +135,22 @@ export default function WhiteBottomMenu({
               </Text>
             </Pressable>
           ) : null}
+
+          {secondaryButtonText ? (
+            <Pressable
+              onPress={onSecondaryButtonPress}
+              disabled={secondaryButtonDisabled}
+              style={[
+                styles.secondaryButton,
+                secondaryButtonDisabled ? styles.buttonDisabled : null,
+                secondaryButtonStyle,
+              ]}
+            >
+              <Text style={[styles.secondaryButtonText, secondaryButtonTextStyle]}>
+                {secondaryButtonText}
+              </Text>
+            </Pressable>
+          ) : null}
         </Sheet>
       </View>
     </Modal>
@@ -212,6 +233,20 @@ sheet: {
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "900",
+    lineHeight: 17,
+  },
+  secondaryButton: {
+    alignItems: "center",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 42,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  secondaryButtonText: {
+    color: "#525252",
+    fontSize: 13,
+    fontWeight: "800",
     lineHeight: 17,
   },
 });

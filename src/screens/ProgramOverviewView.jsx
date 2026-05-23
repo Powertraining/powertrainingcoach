@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Image, View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { Image, Text, View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
@@ -55,6 +55,62 @@ function hasStartedSessionProgress(progress = {}) {
   );
 }
 
+function getExerciseDisplayName(exercise = {}) {
+  return String(exercise?.name || "")
+    .replace(/^\s*\d+[a-z]?\.\s*/i, "")
+    .trim();
+}
+
+function parsePrescribedSetCount(exercise = {}) {
+  const parsedValue = Number.parseInt(exercise?.sets, 10);
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+    return 1;
+  }
+
+  return Math.min(parsedValue, 12);
+}
+
+function buildSessionSteps(exercises = []) {
+  return (Array.isArray(exercises) ? exercises : []).flatMap((exercise, exerciseIndex) =>
+    Array.from({ length: parsePrescribedSetCount(exercise) }).map((_, setIndex) => ({
+      exercise,
+      exerciseIndex,
+      setIndex,
+    }))
+  );
+}
+
+function getSessionActionSummary(day = {}, progress = {}) {
+  const steps = buildSessionSteps(day?.exercises);
+  const completedStepKeys = new Set(
+    Array.isArray(progress?.completedStepKeys) ? progress.completedStepKeys : []
+  );
+  const completedStepCount = steps.filter((step) =>
+    completedStepKeys.has(`${step.exerciseIndex}:${step.setIndex}`)
+  ).length;
+  const progressPercent =
+    steps.length > 0
+      ? Math.min(100, Math.round((completedStepCount / steps.length) * 100))
+      : 0;
+  const activeStep =
+    steps.find(
+      (step) =>
+        step.exerciseIndex === progress?.activeExerciseIndex &&
+        step.setIndex === progress?.activeSetIndex &&
+        !completedStepKeys.has(`${step.exerciseIndex}:${step.setIndex}`)
+    ) ||
+    steps.find(
+      (step) => !completedStepKeys.has(`${step.exerciseIndex}:${step.setIndex}`)
+    ) ||
+    steps[0];
+
+  return {
+    nextExerciseName: getExerciseDisplayName(activeStep?.exercise) || "Session",
+    progressPercent,
+  };
+}
+
 export default function ProgramOverviewView({
   plan,
   onSelectDay,
@@ -77,6 +133,8 @@ export default function ProgramOverviewView({
   updatingPlan = false,
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
+  const [completeConfirmVisible, setCompleteConfirmVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
   const [selectedTrainingSlotKey, setSelectedTrainingSlotKey] = useState("");
@@ -155,15 +213,6 @@ export default function ProgramOverviewView({
   const selectedRestSlot = selectedRestSlotKey
     ? currentWeekSchedule.find((slot) => slot.dateKey === selectedRestSlotKey)
     : null;
-  const selectedRestSlotIndex = selectedRestSlot
-    ? currentWeekSchedule.findIndex((slot) => slot.dateKey === selectedRestSlot.dateKey)
-    : -1;
-  const nextTrainingSlot =
-    selectedRestSlotIndex >= 0
-      ? currentWeekSchedule.find(
-          (slot, index) => index > selectedRestSlotIndex && slot.trainingDay
-        )
-      : null;
   const selectedTrainingSlot =
     selectedDay && !selectedRestSlot
       ? currentWeekSchedule.find(
@@ -200,14 +249,22 @@ export default function ProgramOverviewView({
     Boolean(selectedDay) && selectedTrainingSlotIsFuture && !selectedDayIsComplete;
   const showCompletedSessionStatus =
     Boolean(selectedDay) && selectedDayIsComplete && !selectedRestSlot;
+  const showRestSessionStatus = Boolean(selectedRestSlot);
+  const showFutureSessionStatus = showFutureTrainingPushBack && !showTodayTrainingActions;
   const showStartButton = showTodayTrainingActions;
   const showCompleteButton = showTodayTrainingActions && Boolean(onFinishDay);
   const showPushBackButton =
     (showTodayTrainingActions || showFutureTrainingPushBack) &&
     Boolean(onMissedDay);
-  const showActionButtons =
-    showStartButton || showCompleteButton || showPushBackButton;
-  const showActionContent = showActionButtons || showCompletedSessionStatus;
+  const showHeaderActionContent =
+    showStartButton ||
+    showCompletedSessionStatus ||
+    showRestSessionStatus ||
+    showFutureSessionStatus;
+  const sessionActionSummary = getSessionActionSummary(
+    selectedDay,
+    selectedDaySessionProgress
+  );
 
   function scrollWeekScheduleToToday() {
     if (lastWeekScheduleScrollDateRef.current === todayDateKey) {
@@ -228,22 +285,6 @@ export default function ProgramOverviewView({
     }
 
     return `Weeks ${phase.weekStart}-${phase.weekEnd}`;
-  }
-
-  function getRestSlotDateLabel(date) {
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    }).format(date);
-  }
-
-  function getNextTrainingSlotLabel(slot) {
-    if (!slot?.trainingDay) {
-      return "";
-    }
-
-    return `Day ${slot.trainingDay.day} on ${getRestSlotDateLabel(slot.date)}`;
   }
 
   function handleSelectTrainingDay(weekNumber, dayNumber, dateKey) {
@@ -290,6 +331,36 @@ export default function ProgramOverviewView({
     );
   }
 
+  function openPushBackConfirm() {
+    if (updatingPlan) {
+      return;
+    }
+
+    setPushBackConfirmVisible(true);
+  }
+
+  function closePushBackConfirm() {
+    setPushBackConfirmVisible(false);
+  }
+
+  function confirmPushBack() {
+    setPushBackConfirmVisible(false);
+    onMissedDay?.();
+  }
+
+  function openCompleteConfirm() {
+    setCompleteConfirmVisible(true);
+  }
+
+  function closeCompleteConfirm() {
+    setCompleteConfirmVisible(false);
+  }
+
+  function confirmComplete() {
+    setCompleteConfirmVisible(false);
+    onFinishDay?.();
+  }
+
   if (activeSessionDay) {
     const activeSessionKey = `${activeSessionDay.week}-${activeSessionDay.day}`;
 
@@ -319,14 +390,6 @@ export default function ProgramOverviewView({
         <View style={styles.header}>
           <StandardText style={styles.headerDate}>{currentDateLabel}</StandardText>
           <StandardText style={styles.headerPhase}>{currentPhaseLabel}</StandardText>
-          <TouchableOpacity
-            style={styles.headerDetailsButton}
-            onPress={() => setDetailsVisible(true)}
-          >
-            <StandardText style={styles.headerDetailsButtonText}>
-              Details
-            </StandardText>
-          </TouchableOpacity>
           <ScrollView
             ref={weekScheduleScrollRef}
             horizontal
@@ -386,73 +449,125 @@ export default function ProgramOverviewView({
           </ScrollView>
           <View
             style={[
-              styles.headerActionArea,
-              !showActionContent && styles.headerActionAreaEmpty,
+              styles.headerActionPanel,
+              !showHeaderActionContent && styles.headerActionPanelEmpty,
             ]}
           >
-            {showCompletedSessionStatus ? (
-              <View style={styles.headerCompletedStatus}>
-                <View style={styles.headerCompletedIconBadge}>
-                  <Image
-                    source={checkIcon}
-                    style={styles.headerCompletedIcon}
-                    resizeMode="contain"
-                  />
+            <View
+              style={[
+                styles.headerActionArea,
+                !showHeaderActionContent && styles.headerActionAreaEmpty,
+              ]}
+            >
+              {showCompletedSessionStatus ? (
+                <View style={styles.headerCompletedStatus}>
+                  <View style={styles.headerCompletedIconBadge}>
+                    <Image
+                      source={checkIcon}
+                      style={styles.headerCompletedIcon}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <StandardText style={styles.headerCompletedText}>
+                    Session is complete.
+                  </StandardText>
                 </View>
-                <StandardText style={styles.headerCompletedText}>
-                  Session is complete.
-                </StandardText>
-              </View>
-            ) : null}
-            {showStartButton ? (
-              <TouchableOpacity
-                style={styles.headerStartButton}
-                onPress={handleStartSession}
-              >
-                <StandardText style={styles.headerStartButtonText}>
-                  {selectedDayHasStartedSession ? "Continue" : "Start"}
-                </StandardText>
-              </TouchableOpacity>
-            ) : null}
-            {showCompleteButton || showPushBackButton ? (
-              <View
-                style={[
-                  styles.headerSessionActionRow,
-                  !showCompleteButton && styles.headerSessionActionRowCentered,
-                ]}
-              >
-                {showCompleteButton ? (
-                  <TouchableOpacity
-                    style={styles.headerCompleteButton}
-                    onPress={() => onFinishDay()}
-                  >
-                    <StandardText style={styles.headerCompleteButtonText}>
-                      Complete
-                    </StandardText>
-                  </TouchableOpacity>
-                ) : null}
-                {showCompleteButton && showPushBackButton ? (
-                  <View style={styles.headerSessionActionDivider} />
-                ) : null}
-                {showPushBackButton ? (
-                  <TouchableOpacity
-                    style={[
-                      styles.headerPushBackButton,
-                      !showCompleteButton && styles.headerPushBackButtonSingle,
-                      updatingPlan && styles.headerPushBackButtonDisabled,
-                    ]}
-                    onPress={onMissedDay}
-                    disabled={updatingPlan}
-                  >
-                    <StandardText style={styles.headerPushBackText}>
-                      {updatingPlan ? "Updating..." : "Push back"}
-                    </StandardText>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            ) : null}
+              ) : null}
+              {showRestSessionStatus ? (
+                <View style={styles.restSessionContent}>
+                  <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                    This session
+                  </Text>
+                  <StandardText lines={1} style={styles.restSessionText}>
+                    Rest
+                  </StandardText>
+                </View>
+              ) : null}
+              {showFutureSessionStatus ? (
+                <View style={styles.restSessionContent}>
+                  <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                    This session
+                  </Text>
+                  {showPushBackButton ? (
+                    <TouchableOpacity
+                      style={[
+                        styles.futureSessionPushBackButton,
+                        updatingPlan && styles.currentSessionSecondaryButtonDisabled,
+                      ]}
+                      onPress={openPushBackConfirm}
+                      disabled={updatingPlan}
+                    >
+                      <StandardText
+                        lines={1}
+                        style={styles.futureSessionPushBackButtonText}
+                      >
+                        {updatingPlan ? "Updating" : "Push back"}
+                      </StandardText>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : null}
+              {showStartButton ? (
+                <View style={styles.currentSessionContent}>
+                  <View style={styles.currentSessionSummary}>
+                    <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                      This session
+                    </Text>
+                    <View style={styles.currentSessionMeta}>
+                      <StandardText lines={1} style={styles.currentSessionMetaLabel}>
+                        Next exercise:
+                      </StandardText>
+                      <StandardText lines={2} style={styles.currentSessionMetaValue}>
+                        {sessionActionSummary.nextExerciseName}
+                      </StandardText>
+                    </View>
+                  </View>
+                  <View style={styles.currentSessionActions}>
+                    <TouchableOpacity
+                      style={styles.headerStartButton}
+                      onPress={handleStartSession}
+                    >
+                      <StandardText lines={1} style={styles.headerStartButtonText}>
+                        {selectedDayHasStartedSession ? "Continue" : "Start"}
+                      </StandardText>
+                    </TouchableOpacity>
+                    <View style={styles.currentSessionSecondaryActions}>
+                      {showPushBackButton ? (
+                        <TouchableOpacity
+                          style={[
+                            styles.currentSessionSecondaryButton,
+                            updatingPlan && styles.currentSessionSecondaryButtonDisabled,
+                          ]}
+                          onPress={openPushBackConfirm}
+                          disabled={updatingPlan}
+                        >
+                          <StandardText
+                            lines={1}
+                            style={styles.currentSessionSecondaryButtonText}
+                          >
+                            {updatingPlan ? "Updating" : "Push back"}
+                          </StandardText>
+                        </TouchableOpacity>
+                      ) : null}
+                      {showCompleteButton ? (
+                        <TouchableOpacity
+                          style={styles.currentSessionSecondaryButton}
+                          onPress={openCompleteConfirm}
+                        >
+                          <StandardText
+                            lines={1}
+                            style={styles.currentSessionSecondaryButtonText}
+                          >
+                            Complete
+                          </StandardText>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  </View>
+                </View>
+              ) : null}
+            </View>
           </View>
-          <View style={styles.headerSessionActionRule} />
 
           {pendingTrainingCheckIn ? (
             <TrainingCheckInCard
@@ -463,20 +578,6 @@ export default function ProgramOverviewView({
               isSubmitting={trainingCheckInSubmitting}
               onSubmit={onSubmitTrainingCheckIn}
             />
-          ) : null}
-
-          {selectedRestSlot ? (
-            <View style={styles.restDayCard}>
-              <StandardText style={styles.restDayTitle}>Recovery day</StandardText>
-              <StandardText style={styles.restDayText}>
-                No strength session is scheduled for {getRestSlotDateLabel(selectedRestSlot.date)}.
-              </StandardText>
-              <StandardText style={styles.restDayText}>
-                {nextTrainingSlot
-                  ? `Your next planned session is ${getNextTrainingSlotLabel(nextTrainingSlot)}. Use this day to recover and prepare for that session.`
-                  : "No later session is currently scheduled in this visible week window. Use this day for recovery."}
-              </StandardText>
-            </View>
           ) : null}
 
           {selectedDay && !selectedRestSlot ? (
@@ -501,6 +602,17 @@ export default function ProgramOverviewView({
               />
             </View>
           ) : null}
+
+          <View style={styles.programDetailsFooter}>
+            <TouchableOpacity
+              style={styles.programDetailsFooterLink}
+              onPress={() => setDetailsVisible(true)}
+            >
+              <StandardText style={styles.programDetailsFooterLinkText}>
+                Program details &gt;
+              </StandardText>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
       <WhiteBottomMenu
@@ -543,6 +655,28 @@ export default function ProgramOverviewView({
           </ScrollView>
         }
       />
+      <WhiteBottomMenu
+        visible={pushBackConfirmVisible}
+        onDismiss={closePushBackConfirm}
+        title="Push back session?"
+        description="This moves the session forward and updates the plan around the missed slot."
+        buttonText={updatingPlan ? "Updating..." : "Yes, push back"}
+        buttonDisabled={updatingPlan}
+        onButtonPress={confirmPushBack}
+        secondaryButtonText="Cancel"
+        secondaryButtonDisabled={updatingPlan}
+        onSecondaryButtonPress={closePushBackConfirm}
+      />
+      <WhiteBottomMenu
+        visible={completeConfirmVisible}
+        onDismiss={closeCompleteConfirm}
+        title="Complete this session?"
+        description="This will mark the selected workout as done without opening the tracker. Only complete it if you finished the session."
+        buttonText="Complete session"
+        onButtonPress={confirmComplete}
+        secondaryButtonText="Cancel"
+        onSecondaryButtonPress={closeCompleteConfirm}
+      />
     </QuestionnaireShell>
   );
 }
@@ -574,6 +708,8 @@ const styles = StyleSheet.create({
   header: {
     top : 0,
     alignSelf: "stretch",
+    flexGrow: 1,
+    paddingTop: 28,
     width: "100%",
     position: "relative",
   },
@@ -589,43 +725,61 @@ const styles = StyleSheet.create({
     color: "#d1d5db",
     marginBottom: 14,
   },
-  headerDetailsButton: {
-    alignSelf: "flex-start",
-    backgroundColor: "#141414",
-    borderWidth: 1,
-    borderColor: "#2f2f2f",
-    borderRadius: 120,
-    minWidth: 86,
-    height: 34,
-    paddingHorizontal: 14,
-    justifyContent: "center",
+  programDetailsFooter: {
+    alignItems: "center",
+    alignSelf: "stretch",
+    marginBottom: 28,
+    marginTop: "auto",
+    paddingTop: 28,
   },
-  headerDetailsButtonText: {
-    color: "#fff",
+  programDetailsFooterLink: {
     alignSelf: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  programDetailsFooterLinkText: {
+    color: "#9ca3af",
     fontSize: 13,
     fontWeight: "700",
+  },
+  headerActionPanel: {
+    alignSelf: "stretch",
+    alignItems: "center",
+    backgroundColor: "#101010",
+    borderBottomWidth: 1,
+    borderColor: "#1E1E1E",
+    borderTopWidth: 1,
+    marginHorizontal: -28,
+    marginTop: 56,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  headerActionPanelEmpty: {
+    marginTop: 14,
+    paddingVertical: 0,
   },
   headerActionArea: {
     alignSelf: "center",
     width: "100%",
-    maxWidth: 360,
-    marginTop: 24,
   },
   headerActionAreaEmpty: {
-    marginTop: 14,
+    minHeight: 0,
   },
   headerStartButton: {
     backgroundColor: "#fff",
     borderRadius: 120,
     justifyContent: "center",
-    height: 46,
+    height: 38,
+    paddingHorizontal: 14,
+    width: "100%",
   },
   headerStartButtonText: {
     color: "#000",
     alignSelf: "center",
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "700",
+    textAlign: "center",
+    textTransform: "uppercase",
   },
   headerCompletedStatus: {
     minHeight: 46,
@@ -654,63 +808,106 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
-  headerSessionActionRow: {
-    flexDirection: "row",
+  restSessionContent: {
     alignItems: "center",
-    justifyContent: "center",
     alignSelf: "stretch",
-    marginTop: 14,
+    gap: 22,
+    justifyContent: "flex-start",
+    minHeight: 76,
+    width: "100%",
   },
-  headerSessionActionRowCentered: {
-    alignSelf: "center",
-    width: 180,
-  },
-  headerCompleteButton: {
-    borderTopLeftRadius: 120,
-    borderBottomLeftRadius: 120,
-    flex: 1,
-    height: 46,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerCompleteButtonText: {
-    color: "#fff",
-    fontSize: 15,
+  restSessionText: {
+    color: "#7E7E7E",
+    fontSize: 13,
     fontWeight: "700",
+    lineHeight: 16,
     textAlign: "center",
   },
-  headerSessionActionDivider: {
-    width: 1,
-    height: 31,
-    backgroundColor: "#3f3f46",
-  },
-  headerSessionActionRule: {
-    height: 1,
-    alignSelf: "stretch",
-    marginHorizontal: -28,
-    marginTop: 14,
-    backgroundColor: "#2f2f2f",
-  },
-  headerPushBackButton: {
-    borderTopRightRadius: 120,
-    borderBottomRightRadius: 120,
-    flex: 1,
-    height: 46,
-    justifyContent: "center",
+  futureSessionPushBackButton: {
     alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 120,
+    height: 34,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    width: 112,
   },
-  headerPushBackButtonSingle: {
-    borderTopLeftRadius: 120,
-    borderBottomLeftRadius: 120,
+  futureSessionPushBackButtonText: {
+    color: "#000",
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "center",
+    textTransform: "uppercase",
   },
-  headerPushBackButtonDisabled: {
+  currentSessionContent: {
+    alignItems: "center",
+    flexDirection: "row",
+    width: "100%",
+  },
+  currentSessionSummary: {
+    alignItems: "center",
+    alignSelf: "stretch",
+    gap: 22,
+    justifyContent: "flex-start",
+    minWidth: 0,
+    width: "50%",
+  },
+  currentSessionTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  currentSessionMeta: {
+    alignItems: "center",
+    gap: 2,
+  },
+  currentSessionMetaLabel: {
+    color: "#858585",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 16,
+    textAlign: "center",
+  },
+  currentSessionMetaValue: {
+    color: "#858585",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 16,
+    textAlign: "center",
+  },
+  currentSessionActions: {
+    alignItems: "center",
+    gap: 22,
+    justifyContent: "center",
+    minWidth: 0,
+    paddingHorizontal: 8,
+    width: "50%",
+  },
+  currentSessionSecondaryActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    width: "100%",
+  },
+  currentSessionSecondaryButton: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+  },
+  currentSessionSecondaryButtonDisabled: {
     opacity: 0.5,
   },
-  headerPushBackText: {
+  currentSessionSecondaryButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: "700",
+    lineHeight: 14,
     textAlign: "center",
+    textTransform: "uppercase",
   },
   detailsSheet: {
     maxHeight: "72%",
@@ -751,22 +948,7 @@ const styles = StyleSheet.create({
   dayDetailEdgeToEdge: {
     alignSelf: "stretch",
     marginHorizontal: -28,
-  },
-  restDayCard: {
-    alignSelf: "stretch",
-    marginTop: 24,
-    paddingVertical: 18,
-    gap: 8,
-  },
-  restDayTitle: {
-    fontSize: 22,
-    lineHeight: 28,
-    fontWeight: "700",
-  },
-  restDayText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#d1d5db",
+    marginTop: 28,
   },
   weekScheduleItem: {
     alignItems: "center",
