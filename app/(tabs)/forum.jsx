@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
@@ -15,6 +15,7 @@ import PostView from "../../src/screens/forum/postView.jsx";
 const ForumScreen = observer(function ForumScreen() {
   const model = reactiveModel;
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [currentView, setCurrentView] = useState("feed");
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
@@ -39,6 +40,22 @@ const ForumScreen = observer(function ForumScreen() {
       console.warn("Could not load the forum feed:", error);
     });
   }, [model, model.forumFeed.length, model.ready, model.user]);
+
+  useEffect(() => {
+    const routeSearchQuery =
+      typeof params.searchQuery === "string" ? params.searchQuery.trim() : "";
+
+    if (!model.ready || !model.user || !routeSearchQuery) {
+      return;
+    }
+
+    setCurrentView("feed");
+    model.setForumFilters({ searchQuery: routeSearchQuery });
+    router.replace("/(tabs)/forum");
+    model.loadForumFeed({ searchQuery: routeSearchQuery }).catch((error) => {
+      console.warn("Could not load forum search results:", error);
+    });
+  }, [model, model.ready, model.user, params.searchQuery, router]);
 
   useEffect(() => {
     if (!isCoachResponseVisible && !isCommentsVisible) {

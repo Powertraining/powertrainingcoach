@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Pressable, Modal, useWindowDimensions } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
@@ -602,6 +603,7 @@ export default function DayDetailView({
     updatingPlan = false,
     exerciseListHorizontalBleed = CARD_HORIZONTAL_PADDING,
 }) {
+    const router = useRouter();
     const { height: windowHeight } = useWindowDimensions();
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
     const [highlightedExerciseIndex, setHighlightedExerciseIndex] = useState(null);
@@ -766,6 +768,19 @@ export default function DayDetailView({
         }
 
         onReplaceExercise?.(swapExerciseIndex, substitutionId);
+    }
+
+    function openForumSearch(exercise = {}) {
+        const searchQuery = getExerciseDisplayName(exercise);
+
+        if (!searchQuery) {
+            return;
+        }
+
+        router.push({
+            pathname: "/(tabs)/forum",
+            params: { searchQuery },
+        });
     }
 
     return (
@@ -958,8 +973,7 @@ export default function DayDetailView({
                                                 onReplaceExercise;
                                             const hasExerciseTips = Boolean(ex.notes);
                                             const showActionRail =
-                                                isHighlighted &&
-                                                (canSwapExercise || hasExerciseTips);
+                                                isHighlighted;
 
                                             return (
                                                 <TouchableOpacity
@@ -971,10 +985,12 @@ export default function DayDetailView({
                                                             : styles.tabButtonInactive,
                                                         isHighlighted && styles.tabButtonSelected,
                                                     ]}
-                                                        onPress={(event) => {
-                                                            event.stopPropagation?.();
-                                                            setSelectedExerciseIndex(exerciseIndex);
-                                                            setHighlightedExerciseIndex(exerciseIndex);
+                                                    onPress={(event) => {
+                                                        event.stopPropagation?.();
+                                                        setSelectedExerciseIndex(exerciseIndex);
+                                                        setHighlightedExerciseIndex((currentIndex) =>
+                                                            currentIndex === exerciseIndex ? null : exerciseIndex
+                                                        );
                                                     }}
                                                     onTouchStart={(event) => {
                                                         handleTabTouchStart(event);
@@ -988,46 +1004,62 @@ export default function DayDetailView({
                                                                     handleTabTouchStart(event);
                                                                 }}
                                                             >
-                                                                {canSwapExercise ? (
-                                                                    <TouchableOpacity
-                                                                        style={styles.tabButtonActionButton}
-                                                                        onPress={(event) => {
-                                                                            event.stopPropagation?.();
-                                                                            openSwapOptions(exerciseIndex);
-                                                                        }}
-                                                                        onTouchStart={(event) => {
-                                                                            handleTabTouchStart(event);
-                                                                        }}
-                                                                    >
-                                                                        <StandardText
-                                                                            style={styles.tabButtonActionText}
-                                                                            center
-                                                                            textColor="#000"
+                                                                <View style={styles.tabButtonActionIconRow}>
+                                                                    {canSwapExercise ? (
+                                                                        <TouchableOpacity
+                                                                            style={styles.tabButtonActionButton}
+                                                                            onPress={(event) => {
+                                                                                event.stopPropagation?.();
+                                                                                openSwapOptions(exerciseIndex);
+                                                                            }}
+                                                                            onTouchStart={(event) => {
+                                                                                handleTabTouchStart(event);
+                                                                            }}
                                                                         >
-                                                                            Swap
-                                                                        </StandardText>
-                                                                    </TouchableOpacity>
-                                                                ) : null}
-                                                                {hasExerciseTips ? (
-                                                                    <TouchableOpacity
-                                                                        style={styles.tabButtonActionButton}
-                                                                        onPress={(event) => {
-                                                                            event.stopPropagation?.();
-                                                                            openTips(exerciseIndex);
-                                                                        }}
-                                                                        onTouchStart={(event) => {
-                                                                            handleTabTouchStart(event);
-                                                                        }}
-                                                                    >
-                                                                        <StandardText
-                                                                            style={styles.tabButtonActionText}
-                                                                            center
-                                                                            textColor="#000"
+                                                                            <Text
+                                                                                style={[
+                                                                                    styles.tabButtonActionIcon,
+                                                                                    styles.tabButtonSwapActionIcon,
+                                                                                ]}
+                                                                            >
+                                                                                ⇅
+                                                                            </Text>
+                                                                        </TouchableOpacity>
+                                                                    ) : null}
+                                                                    {hasExerciseTips ? (
+                                                                        <TouchableOpacity
+                                                                            style={styles.tabButtonActionButton}
+                                                                            onPress={(event) => {
+                                                                                event.stopPropagation?.();
+                                                                                openTips(exerciseIndex);
+                                                                            }}
+                                                                            onTouchStart={(event) => {
+                                                                                handleTabTouchStart(event);
+                                                                            }}
                                                                         >
-                                                                            Tips
-                                                                        </StandardText>
-                                                                    </TouchableOpacity>
-                                                                ) : null}
+                                                                            <Text
+                                                                                style={[
+                                                                                    styles.tabButtonActionIcon,
+                                                                                    styles.tabButtonTipsActionIcon,
+                                                                                ]}
+                                                                            >
+                                                                                ?
+                                                                            </Text>
+                                                                        </TouchableOpacity>
+                                                                    ) : null}
+                                                                </View>
+                                                                <TouchableOpacity
+                                                                    style={styles.tabButtonForumButton}
+                                                                    onPress={(event) => {
+                                                                        event.stopPropagation?.();
+                                                                        openForumSearch(ex);
+                                                                    }}
+                                                                    onTouchStart={(event) => {
+                                                                        handleTabTouchStart(event);
+                                                                    }}
+                                                                >
+                                                                    <Text style={styles.tabButtonForumText}>Forum</Text>
+                                                                </TouchableOpacity>
                                                             </View>
                                                         ) : null}
                                                         <View
@@ -1805,25 +1837,55 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 0,
         right: 0,
-        bottom: 0,
         width: 74,
         alignItems: 'center',
         paddingTop: 7,
-        gap: 8,
+        gap: 7,
+    },
+    tabButtonActionIconRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 5,
+        justifyContent: 'center',
     },
     tabButtonActionButton: {
         alignItems: 'center',
         borderRadius: 999,
         backgroundColor: '#fff',
         justifyContent: 'center',
-        width: 65,
+        width: 30,
         height: 30,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
     },
-    tabButtonActionText: {
-        fontSize: 12,
+    tabButtonActionIcon: {
+        color: '#000',
+        fontSize: 22,
+        fontWeight: '800',
+        height: 30,
+        lineHeight: 30,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        width: 30,
+        includeFontPadding: false,
+    },
+    tabButtonSwapActionIcon: {
+        transform: [{ translateY: -3 }],
+    },
+    tabButtonTipsActionIcon: {
+        fontSize: 18,
+    },
+    tabButtonForumButton: {
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 999,
+        height: 30,
+        justifyContent: 'center',
+        width: 65,
+    },
+    tabButtonForumText: {
+        color: '#000',
+        fontSize: 13,
         fontWeight: '700',
+        lineHeight: 15,
         textAlign: 'center',
     },
     tabButtonMainText: {
