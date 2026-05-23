@@ -18,6 +18,7 @@ export default function PreferenceOptionButton({
   badge,
   badgeStyle,
   badgeTextStyle,
+  stacked = false,
 }) {
   const hasDescription = Boolean(description);
   const hasBadge = Boolean(badge);
@@ -33,11 +34,15 @@ export default function PreferenceOptionButton({
         isSelected ? selectedButtonStyle : null,
       ]}
     >
-      <View style={styles.content}>
+      <View style={[styles.content, stacked ? styles.contentStacked : null]}>
         {imageSource ? (
           <Image
             source={imageSource}
-            style={[styles.image, imageStyle]}
+            style={[
+              styles.image,
+              stacked ? styles.imageStacked : null,
+              imageStyle,
+            ]}
             resizeMode="contain"
           />
         ) : mediaText ? (
@@ -60,8 +65,10 @@ export default function PreferenceOptionButton({
         ) : null}
         <StandardText
           fontSize={14}
+          lines={stacked ? 2 : undefined}
           style={[
             styles.label,
+            stacked ? styles.labelStacked : null,
             hasDescription ? styles.labelWithDescription : null,
             labelStyle,
           ]}
@@ -111,6 +118,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
   },
+  contentStacked: {
+    gap: 10,
+    paddingHorizontal: 12,
+  },
   badge: {
     alignItems: "center",
     borderColor: "#C9B259",
@@ -132,6 +143,9 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     width: 42,
   },
+  imageStacked: {
+    marginBottom: 0,
+  },
   mediaText: {
     fontSize: 34,
     marginBottom: 18,
@@ -144,6 +158,12 @@ const styles = StyleSheet.create({
     bottom: 8,
     position: "absolute",
     width: "100%",
+  },
+  labelStacked: {
+    bottom: "auto",
+    lineHeight: 18,
+    minHeight: 36,
+    position: "relative",
   },
   labelWithDescription: {
     bottom: "auto",

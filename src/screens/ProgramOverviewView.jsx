@@ -35,6 +35,25 @@ function isSameCalendarDay(leftDate, rightDate) {
   );
 }
 
+function hasStartedSessionProgress(progress = {}) {
+  const completedStepKeys = Array.isArray(progress?.completedStepKeys)
+    ? progress.completedStepKeys
+    : [];
+
+  return (
+    completedStepKeys.length > 0 ||
+    Boolean(
+      progress?.trackingDrafts &&
+        Object.values(progress.trackingDrafts).some((draft) =>
+          draft?.loadKg ||
+          draft?.reps ||
+          draft?.rpe ||
+          Object.values(draft?.customValues || {}).some(Boolean)
+        )
+    )
+  );
+}
+
 export default function ProgramOverviewView({
   plan,
   onSelectDay,
@@ -51,6 +70,9 @@ export default function ProgramOverviewView({
   onReplaceExercise,
   onFinishDay,
   onMissedDay,
+  getActiveSessionProgress,
+  onActiveSessionProgressChange,
+  onActiveSessionProgressClear,
   updatingPlan = false,
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
@@ -163,6 +185,11 @@ export default function ProgramOverviewView({
   const selectedDayCompletionKey = selectedDay
     ? `${selectedDay.week}-${selectedDay.day}`
     : "";
+  const selectedDaySessionProgress = selectedDayCompletionKey
+    ? getActiveSessionProgress?.(selectedDayCompletionKey)
+    : null;
+  const selectedDayHasStartedSession =
+    hasStartedSessionProgress(selectedDaySessionProgress);
   const selectedDayIsComplete =
     Boolean(selectedDayCompletionKey) &&
     completedDayEntries.includes(selectedDayCompletionKey);
@@ -263,14 +290,21 @@ export default function ProgramOverviewView({
   }
 
   if (activeSessionDay) {
+    const activeSessionKey = `${activeSessionDay.week}-${activeSessionDay.day}`;
+
     return (
       <ActiveSessionView
         day={activeSessionDay.dayData}
         exercises={activeSessionDay.exercises}
         initialPerformanceResults={selectedDayPerformanceResults}
         initialAssessmentResults={selectedDayAssessmentResults}
+        initialSessionProgress={getActiveSessionProgress?.(activeSessionKey)}
+        onSessionProgressChange={(progress) =>
+          onActiveSessionProgressChange?.(activeSessionKey, progress)
+        }
         onBack={() => setActiveSessionDay(null)}
         onFinish={(trackedResults) => {
+          onActiveSessionProgressClear?.(activeSessionKey);
           onFinishDay?.(trackedResults);
           setActiveSessionDay(null);
         }}
@@ -401,7 +435,9 @@ export default function ProgramOverviewView({
                 style={styles.headerStartButton}
                 onPress={handleStartSession}
               >
-                <StandardText style={styles.headerStartButtonText}>Start</StandardText>
+                <StandardText style={styles.headerStartButtonText}>
+                  {selectedDayHasStartedSession ? "Continue" : "Start"}
+                </StandardText>
               </TouchableOpacity>
             ) : null}
             {showCompleteButton || showPushBackButton ? (

@@ -508,6 +508,22 @@ function getTrackedResultsFromDrafts(drafts = {}) {
     });
 }
 
+function getSavedNumber(value, fallback = 0) {
+  return Number.isInteger(value) && value >= 0 ? value : fallback;
+}
+
+function getSavedCompletedStepKeys(value) {
+  return new Set(
+    Array.isArray(value)
+      ? value.filter((entry) => typeof entry === "string" && entry)
+      : []
+  );
+}
+
+function getSavedTrackingDrafts(value, fallbackDrafts) {
+  return value && typeof value === "object" ? value : fallbackDrafts;
+}
+
 function getSetLoggingConfig(exercise = {}) {
   const performanceTarget = getExercisePerformanceTarget(exercise);
   const strengthAssessment = getExerciseStrengthAssessment(exercise);
@@ -721,6 +737,8 @@ export default function ActiveSessionView({
   exercises = [],
   initialPerformanceResults = [],
   initialAssessmentResults = [],
+  initialSessionProgress = null,
+  onSessionProgressChange,
   onBack,
   onFinish,
 }) {
@@ -731,16 +749,27 @@ export default function ActiveSessionView({
         : [],
     [exercises]
   );
-  const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
-  const [activeSetIndex, setActiveSetIndex] = useState(0);
-  const [completedStepKeys, setCompletedStepKeys] = useState(() => new Set());
-  const [trackingDrafts, setTrackingDrafts] = useState(() =>
-    buildTrackingDrafts(
+  const [activeExerciseIndex, setActiveExerciseIndex] = useState(() =>
+    getSavedNumber(initialSessionProgress?.activeExerciseIndex)
+  );
+  const [activeSetIndex, setActiveSetIndex] = useState(() =>
+    getSavedNumber(initialSessionProgress?.activeSetIndex)
+  );
+  const [completedStepKeys, setCompletedStepKeys] = useState(() =>
+    getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
+  );
+  const [trackingDrafts, setTrackingDrafts] = useState(() => {
+    const fallbackDrafts = buildTrackingDrafts(
       normalizedExercises,
       initialPerformanceResults,
       initialAssessmentResults
-    )
-  );
+    );
+
+    return getSavedTrackingDrafts(
+      initialSessionProgress?.trackingDrafts,
+      fallbackDrafts
+    );
+  });
   const sessionSteps = useMemo(
     () =>
       normalizedExercises.flatMap((exercise, exerciseIndex) =>
@@ -769,14 +798,36 @@ export default function ActiveSessionView({
     : [];
 
   useEffect(() => {
+    const fallbackDrafts = buildTrackingDrafts(
+      normalizedExercises,
+      initialPerformanceResults,
+      initialAssessmentResults
+    );
+
+    setActiveExerciseIndex(
+      getSavedNumber(initialSessionProgress?.activeExerciseIndex)
+    );
+    setActiveSetIndex(getSavedNumber(initialSessionProgress?.activeSetIndex));
+    setCompletedStepKeys(
+      getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
+    );
     setTrackingDrafts(
-      buildTrackingDrafts(
-        normalizedExercises,
-        initialPerformanceResults,
-        initialAssessmentResults
+      getSavedTrackingDrafts(
+        initialSessionProgress?.trackingDrafts,
+        fallbackDrafts
       )
     );
-  }, [initialAssessmentResults, initialPerformanceResults, normalizedExercises]);
+  }, [day?.day, initialAssessmentResults, initialPerformanceResults, normalizedExercises]);
+
+  useEffect(() => {
+    onSessionProgressChange?.({
+      activeExerciseIndex,
+      activeSetIndex,
+      completedStepKeys: Array.from(completedStepKeys),
+      trackingDrafts,
+      updatedAt: new Date().toISOString(),
+    });
+  }, [activeExerciseIndex, activeSetIndex, completedStepKeys, trackingDrafts]);
 
   useEffect(() => {
     const fallbackStep = sessionSteps[0] || { exerciseIndex: 0, setIndex: 0 };

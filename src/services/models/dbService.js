@@ -302,6 +302,7 @@ export function createDefaultUserData() {
     trainingPerformanceState: createDefaultTrainingPerformanceState(),
     strengthAssessmentState: createDefaultStrengthAssessmentState(),
     trainingCheckInState: createDefaultTrainingCheckInState(),
+    activeSessionProgressByKey: {},
     forumProfile: createDefaultForumProfile(),
   };
 }

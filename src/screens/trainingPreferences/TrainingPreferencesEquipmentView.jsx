@@ -15,9 +15,10 @@ export default function TrainingPreferencesEquipmentView({
   value,
   onChange,
 }) {
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
+  const imageSize = Math.min(Math.max(screenWidth * 0.12, 42), 56);
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
@@ -37,10 +38,14 @@ export default function TrainingPreferencesEquipmentView({
                 onChange?.(isSelected ? null : option.value);
               }}
               isSelected={isSelected}
+              stacked
+              buttonStyle={styles.optionButton}
               imageSource={EQUIPMENT_IMAGES[option.value]}
-              imageStyle={
-                option.value === "full_gym" ? styles.benchImage : null
-              }
+              imageStyle={[
+                styles.optionImage,
+                { height: imageSize, width: imageSize },
+              ]}
+              labelStyle={styles.optionLabel}
               label={option.label}
             />
           );
@@ -67,8 +72,17 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 56,
   },
-  benchImage: {
-    height: 68,
-    width: 68,
+  optionButton: {
+    minHeight: 118,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  optionImage: {
+    flexShrink: 1,
+  },
+  optionLabel: {
+    color: "#ffffff",
+    fontSize: 14,
+    lineHeight: 18,
   },
 });

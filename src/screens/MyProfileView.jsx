@@ -17,70 +17,14 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import RowCard from "../components/homeComponents/RowCard.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
+import ProfileNavigationCard from "../components/profileComponents/ProfileNavigationCard.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import BlackGradient from "../components/colorComponents/BlackGradient.jsx";
 import ProfilePersonalDetailsView from "./profile/ProfilePersonalDetailsView.jsx";
 import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx";
 import RegisterEventView from "./profile/RegisterEventView.jsx";
 import ProfileReportInjuryView from "./profile/ProfileReportInjuryView.jsx";
-
-function ProfileNavigationCard({
-  title,
-  description,
-  actionLabel,
-  onPress,
-  wide = false,
-}) {
-  const Card = wide ? View : RowCard;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.navigationCardButton,
-        pressed ? styles.navigationCardButtonPressed : null,
-      ]}
-    >
-      <Card
-        style={[
-          styles.navigationCard,
-          wide ? styles.navigationCardWide : null,
-        ]}
-      >
-        <View
-          style={[
-            styles.navigationCardContent,
-            wide ? styles.navigationCardContentWide : null,
-          ]}
-        >
-          <View
-            style={[
-              styles.navigationCardCopy,
-              wide ? styles.navigationCardCopyWide : null,
-            ]}
-          >
-            <Text numberOfLines={2} adjustsFontSizeToFit style={styles.navigationCardTitle}>
-              {title}
-            </Text>
-            <Text numberOfLines={2} style={styles.navigationCardText}>
-              {description}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.navigationActionText,
-              wide ? styles.navigationActionTextWide : null,
-            ]}
-          >
-            {actionLabel} &gt;
-          </Text>
-        </View>
-      </Card>
-    </Pressable>
-  );
-}
 
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
@@ -599,68 +543,6 @@ const styles = StyleSheet.create({
   navigationRow: {
     flexDirection: "row",
     gap: 12,
-  },
-  navigationCardButton: {
-    flex: 1,
-  },
-  navigationCardButtonPressed: {
-    opacity: 0.72,
-    transform: [{ scale: 0.98 }],
-  },
-  navigationCard: {
-    backgroundColor: "#141414",
-  },
-  navigationCardWide: {
-    alignSelf: "stretch",
-    borderColor: "#1E1E1E",
-    borderRadius: 20,
-    borderWidth: 2,
-    minHeight: 84,
-    overflow: "hidden",
-    width: "100%",
-  },
-  navigationCardContent: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  navigationCardContentWide: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 14,
-    paddingVertical: 14,
-  },
-  navigationCardCopy: {
-    gap: 4,
-  },
-  navigationCardCopyWide: {
-    flex: 1,
-    minWidth: 0,
-  },
-  navigationCardTitle: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
-    lineHeight: 18,
-  },
-  navigationCardText: {
-    color: "#9ca3af",
-    fontSize: 12,
-    fontWeight: "600",
-    lineHeight: 16,
-  },
-  navigationActionText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
-    lineHeight: 16,
-    textTransform: "uppercase",
-    marginTop: 12,
-  },
-  navigationActionTextWide: {
-    flexShrink: 0,
-    marginTop: 0,
   },
   pageHeader: {
     gap: 14,

@@ -156,6 +156,36 @@ const OverviewScreen = observer(function OverviewScreen() {
     setSelectedDayPointer(null);
   }
 
+  function getActiveSessionProgress(sessionKey) {
+    return sessionKey
+      ? model.activeSessionProgressByKey?.[sessionKey]
+      : null;
+  }
+
+  function handleActiveSessionProgressChange(sessionKey, progress) {
+    if (!sessionKey || !progress) {
+      return;
+    }
+
+    model.activeSessionProgressByKey = {
+      ...(model.activeSessionProgressByKey || {}),
+      [sessionKey]: progress,
+    };
+  }
+
+  function handleActiveSessionProgressClear(sessionKey) {
+    if (!sessionKey) {
+      return;
+    }
+
+    const {
+      [sessionKey]: _clearedProgress,
+      ...remainingProgress
+    } = model.activeSessionProgressByKey || {};
+
+    model.activeSessionProgressByKey = remainingProgress;
+  }
+
   function handleReplaceExercise(exerciseIndex, substitutionId) {
     if (!selectedDay || !substitutionId) {
       return;
@@ -271,6 +301,9 @@ const OverviewScreen = observer(function OverviewScreen() {
         onReplaceExercise={handleReplaceExercise}
         onFinishDay={handleFinishDay}
         onMissedDay={handleMissedDay}
+        getActiveSessionProgress={getActiveSessionProgress}
+        onActiveSessionProgressChange={handleActiveSessionProgressChange}
+        onActiveSessionProgressClear={handleActiveSessionProgressClear}
         updatingPlan={updatingPlan}
       />
     </View>

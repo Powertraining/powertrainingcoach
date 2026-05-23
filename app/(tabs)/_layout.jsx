@@ -348,6 +348,12 @@ const TabsLayout = observer(function TabsLayout() {
             href: null, // Hide from tab bar
           }}
         />
+        <Tabs.Screen
+          name="active-session"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
       {model.forumOverlayVisible && !isTabBarHidden ? (
         <Pressable

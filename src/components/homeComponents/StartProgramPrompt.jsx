@@ -1,6 +1,6 @@
 import { TouchableOpacity, StyleSheet, View } from "react-native";
 
-import GoldGradient from "../colorComponents/GoldGradient.jsx";
+import BlackGradient from "../colorComponents/BlackGradient.jsx";
 import StandardText from "../textComponents/StandardText.jsx";
 import TitleText from "../textComponents/TitleText.jsx";
 
@@ -10,8 +10,10 @@ export default function StartProgramPrompt({ onStart }) {
             <TitleText>Lets start by creating your program</TitleText>
             <View style={styles.buttonShadow}>
                 <TouchableOpacity onPress={onStart} style={styles.bigButton}>
-                    <GoldGradient style={{ borderRadius: styles.bigButton.borderRadius }} />
-                    <StandardText textColor="#fff" fontSize={36}>Start</StandardText>
+                    <BlackGradient style={{ borderRadius: styles.bigButton.borderRadius }} />
+                    <StandardText style={styles.buttonText} textColor="#fff">
+                        Continue
+                    </StandardText>
                 </TouchableOpacity>
             </View>
         </>
@@ -27,11 +29,18 @@ const styles = StyleSheet.create({
         boxShadow: "0px 0px 100px -25px #fff",
     },
     bigButton: {
-        backgroundColor: "#fff",
+        backgroundColor: "#000",
         height: 75,
-        paddingHorizontal: 70,
+        paddingHorizontal: 32,
         borderRadius: 120,
         alignItems: "center",
         justifyContent: "center",
+        minWidth: 280,
+        overflow: "hidden",
+    },
+    buttonText: {
+        fontSize: 24,
+        lineHeight: 30,
+        textAlign: "center",
     },
 });

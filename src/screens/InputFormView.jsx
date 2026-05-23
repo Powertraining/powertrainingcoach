@@ -1,6 +1,6 @@
 // npx expo install @react-native-picker/picker
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
@@ -34,6 +34,9 @@ export default function InputFormView({
     subscription,
     daysRemaining,
     initialValues = {},
+    initialActiveStep = 0,
+    onActiveStepChange,
+    onDraftChange,
     onClose,
 }) {
     const [trainingPreferences, setTrainingPreferences] = useState(() => {
@@ -56,7 +59,7 @@ export default function InputFormView({
             },
         };
     });
-    const [activeStep, setActiveStep] = useState(0);
+    const [activeStep, setActiveStep] = useState(initialActiveStep);
     const [isEventDescriptionEditorOpen, setIsEventDescriptionEditorOpen] = useState(false);
     const sectionCount = getTrainingPreferencesSectionCount(trainingPreferences);
     const activeConfidenceKey = CONFIDENCE_STEP_KEYS[activeStep];
@@ -93,6 +96,35 @@ export default function InputFormView({
                             isDeloadStrategyStep ? deloadStrategyStepSelected :
                 undefined;
 
+    useEffect(() => {
+        setActiveStep(initialActiveStep);
+        onActiveStepChange?.(initialActiveStep);
+    }, [initialActiveStep]);
+
+    function updateTrainingPreferences(nextPreferencesOrUpdater) {
+        setTrainingPreferences((currentPreferences) => {
+            const nextPreferences =
+                typeof nextPreferencesOrUpdater === "function"
+                    ? nextPreferencesOrUpdater(currentPreferences)
+                    : nextPreferencesOrUpdater;
+
+            onDraftChange?.(nextPreferences);
+            return nextPreferences;
+        });
+    }
+
+    function updateActiveStep(nextStepOrUpdater) {
+        setActiveStep((currentStep) => {
+            const nextStep =
+                typeof nextStepOrUpdater === "function"
+                    ? nextStepOrUpdater(currentStep)
+                    : nextStepOrUpdater;
+
+            onActiveStepChange?.(nextStep);
+            return nextStep;
+        });
+    }
+
     function handleSubmit() {
         onSubmit(normalizeTrainingPreferences(trainingPreferences));
     }
@@ -105,7 +137,7 @@ export default function InputFormView({
             return;
         }
 
-        setActiveStep((currentStep) => currentStep + 1);
+        updateActiveStep((currentStep) => currentStep + 1);
     }
 
     function handleStepBack() {
@@ -116,16 +148,16 @@ export default function InputFormView({
             return;
         }
 
-        setActiveStep((currentStep) => currentStep - 1);
+        updateActiveStep((currentStep) => currentStep - 1);
     }
 
     function handleEventDescriptionSkip() {
         setIsEventDescriptionEditorOpen(false);
-        setActiveStep((currentStep) => Math.min(currentStep + 2, sectionCount - 1));
+        updateActiveStep((currentStep) => Math.min(currentStep + 2, sectionCount - 1));
     }
 
     function handleInjuriesSkip() {
-        setTrainingPreferences((currentPreferences) => ({
+        updateTrainingPreferences((currentPreferences) => ({
             ...currentPreferences,
             injuriesInput: "",
         }));
@@ -168,7 +200,7 @@ export default function InputFormView({
 
                         <TrainingPreferencesFields
                             values={trainingPreferences}
-                            onChange={setTrainingPreferences}
+                            onChange={updateTrainingPreferences}
                             appLogicTitle="App Logic Settings"
                             appLogicDescription="Choose the strength-planning logic you want the app to use for this athlete profile."
                             activeStep={activeStep}

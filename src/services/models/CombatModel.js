@@ -121,6 +121,7 @@ export const model = {
   trainingPerformanceState: createDefaultTrainingPerformanceState(),
   strengthAssessmentState: createDefaultStrengthAssessmentState(),
   trainingCheckInState: createDefaultTrainingCheckInState(),
+  activeSessionProgressByKey: {},
 
   trainingPlanPromiseState: {},
 
@@ -1191,6 +1192,7 @@ export const model = {
           userInput
         );
         this.completedDays = [];
+        this.activeSessionProgressByKey = {};
       }
 
       return this.trainingPlanPromiseState.promise === prms ? this.trainingPlan : plan;
@@ -1532,6 +1534,7 @@ export const model = {
     this.trainingPlanBatch = nextTrainingPlanBatch;
     this.trainingPlan = null; // Clear current plan so new one can be generated
     this.completedDays = [];
+    this.activeSessionProgressByKey = {};
     this.questionnaire = mergeTrainingPreferences(this.questionnaire, {
       trainingPlanBatch: nextTrainingPlanBatch,
       pendingCycleReview: true,
@@ -1554,6 +1557,7 @@ export const model = {
     this.completedDays = [];
     this.trainingPerformanceState = createDefaultTrainingPerformanceState();
     this.trainingCheckInState = createDefaultTrainingCheckInState();
+    this.activeSessionProgressByKey = {};
     console.log('[CombatModel.resetTrainingProgress] Progress reset');
   },
 

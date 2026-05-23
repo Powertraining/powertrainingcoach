@@ -28,6 +28,9 @@ const HomeScreen = observer(function HomeScreen() {
   const params = useLocalSearchParams();
 
   const [step, setStep] = useState(STEPS.START);
+  const [questionnaireResumeStep, setQuestionnaireResumeStep] = useState(STEPS.Q_SPORT);
+  const [questionnaireDraft, setQuestionnaireDraft] = useState(() => model.questionnaire || {});
+  const [inputActiveStep, setInputActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
@@ -54,18 +57,34 @@ const HomeScreen = observer(function HomeScreen() {
 
   const resumeStep = getSafeResumeStep();
 
+  function setQuestionnaireStep(nextStep) {
+    setStep(nextStep);
+
+    if (nextStep !== STEPS.START) {
+      setQuestionnaireResumeStep(nextStep);
+    }
+  }
+
+  function resetQuestionnaireProgress() {
+    setStep(STEPS.START);
+    setQuestionnaireResumeStep(STEPS.Q_SPORT);
+    setQuestionnaireDraft(model.questionnaire || {});
+    setInputActiveStep(0);
+  }
+
   useEffect(() => {
     if (model.trainingPlan) {
+      resetQuestionnaireProgress();
       return;
     }
 
     if (resumeStep) {
-      setStep(resumeStep);
+      setQuestionnaireStep(resumeStep);
       return;
     }
 
     if (model.questionnaire?.pendingCycleReview) {
-      setStep(STEPS.Q_SPORT);
+      setQuestionnaireStep(STEPS.Q_SPORT);
     }
   }, [model.questionnaire, model.trainingPlan, resumeStep]);
 
@@ -127,10 +146,10 @@ const HomeScreen = observer(function HomeScreen() {
         setStep(STEPS.START);
         break;
       case STEPS.Q_FREQ:
-        setStep(STEPS.Q_SPORT);
+        setQuestionnaireStep(STEPS.Q_SPORT);
         break;
       case STEPS.INPUT:
-        setStep(STEPS.Q_FREQ);
+        setQuestionnaireStep(STEPS.Q_FREQ);
         break;
       default:
         setStep(STEPS.START);
@@ -166,6 +185,7 @@ const HomeScreen = observer(function HomeScreen() {
         pendingPlanGeneration: false,
         pendingCycleReview: false,
       });
+      resetQuestionnaireProgress();
       router.replace("/(tabs)/overview");
     } catch (e) {
       console.error("Error generating training plan:", e);
@@ -198,6 +218,100 @@ const HomeScreen = observer(function HomeScreen() {
     await generatePlanFromQuestionnaire(questionnaire);
   }
 
+  function getCurrentSession() {
+    const pointer = model.getCurrentTrainingDay?.(model.completedDays);
+    const weekNumber = Number.parseInt(pointer?.week, 10);
+    const dayNumber = Number.parseInt(pointer?.day, 10);
+
+    if (!model.trainingPlan || !Number.isFinite(weekNumber) || !Number.isFinite(dayNumber)) {
+      return null;
+    }
+
+    const week = model.trainingPlan.weeks?.find(
+      (candidateWeek) => candidateWeek.week === weekNumber
+    );
+    const day = week?.days?.find(
+      (candidateDay) => candidateDay.day === dayNumber
+    );
+
+    if (!week || !day) {
+      return null;
+    }
+
+    return {
+      week: weekNumber,
+      day: dayNumber,
+      sessionLabel: day.sessionLabel || `Week ${weekNumber} Day ${dayNumber}`,
+      preferredWeekday: day.preferredWeekday || "",
+      sessionProfile: day.sessionProfile || null,
+      exercises: Array.isArray(day.exercises) ? day.exercises : [],
+      sessionDurationMinutes: model.questionnaire?.sessionDurationMinutes,
+    };
+  }
+
+  function getExerciseProgressForSession(session) {
+    if (!session) {
+      return {
+        completedExerciseCount: 0,
+        totalExerciseCount: 0,
+        hasStartedSession: false,
+      };
+    }
+
+    const sessionKey = `${session.week}-${session.day}`;
+    const sessionProgress = model.activeSessionProgressByKey?.[sessionKey];
+    const completedStepKeys = new Set(
+      Array.isArray(sessionProgress?.completedStepKeys)
+        ? sessionProgress.completedStepKeys
+        : []
+    );
+    const exercises = Array.isArray(session.exercises) ? session.exercises : [];
+    const completedExerciseCount = exercises.filter((exercise, exerciseIndex) => {
+      const parsedSetCount = Number.parseInt(exercise?.sets, 10);
+      const setCount =
+        Number.isFinite(parsedSetCount) && parsedSetCount > 0
+          ? Math.min(parsedSetCount, 12)
+          : 1;
+
+      return Array.from({ length: setCount }).every((_, setIndex) =>
+        completedStepKeys.has(`${exerciseIndex}:${setIndex}`)
+      );
+    }).length;
+
+    return {
+      completedExerciseCount,
+      totalExerciseCount: exercises.length,
+      hasStartedSession:
+        completedStepKeys.size > 0 ||
+        Boolean(
+          sessionProgress?.trackingDrafts &&
+            Object.values(sessionProgress.trackingDrafts).some((draft) =>
+              draft?.loadKg ||
+              draft?.reps ||
+              draft?.rpe ||
+              Object.values(draft?.customValues || {}).some(Boolean)
+            )
+        ),
+    };
+  }
+
+  function openCurrentSession() {
+    const currentSession = getCurrentSession();
+
+    if (!currentSession) {
+      router.push("/(tabs)/overview");
+      return;
+    }
+
+    router.push({
+      pathname: "/(tabs)/active-session",
+      params: {
+        week: String(currentSession.week),
+        day: String(currentSession.day),
+      },
+    });
+  }
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -220,6 +334,10 @@ const HomeScreen = observer(function HomeScreen() {
     );
   }
 
+  const currentSession = getCurrentSession();
+  const { completedExerciseCount, totalExerciseCount, hasStartedSession } =
+    getExerciseProgressForSession(currentSession);
+
   const renderByStep = {
     [STEPS.START]: () => (
       <StartView
@@ -227,7 +345,14 @@ const HomeScreen = observer(function HomeScreen() {
         plan={model.trainingPlan}
         questionnaire={model.questionnaire}
         completedDays={model.completedDays}
-        onStart={() => setStep(STEPS.Q_SPORT)}
+        currentSession={currentSession}
+        completedExerciseCount={completedExerciseCount}
+        totalExerciseCount={totalExerciseCount}
+        hasStartedSession={hasStartedSession}
+        onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
+        onStartSession={openCurrentSession}
+        onAdjustPlan={() => router.push("/(tabs)/profile-plan-adjustments")}
+        onMyPosts={() => router.push("/(tabs)/profile-my-posts")}
       />
     ),
 
@@ -240,7 +365,7 @@ const HomeScreen = observer(function HomeScreen() {
         }}
         onBack={goBack}
         onClose={closeQuestionnaire}
-        onContinue={() => setStep(STEPS.Q_FREQ)}
+        onContinue={() => setQuestionnaireStep(STEPS.Q_FREQ)}
       />
     ),
 
@@ -252,7 +377,7 @@ const HomeScreen = observer(function HomeScreen() {
         }}
         onBack={goBack}
         onClose={closeQuestionnaire}
-        onContinue={() => setStep(STEPS.INPUT)}
+        onContinue={() => setQuestionnaireStep(STEPS.INPUT)}
       />
     ),
 
@@ -261,9 +386,12 @@ const HomeScreen = observer(function HomeScreen() {
         onSubmit={handleQuestionnaireSubmit}
         onBack={goBack}
         initialValues={{
-          ...(model.questionnaire || {}),
+          ...questionnaireDraft,
           daysPerWeek: model.sessionsPerWeek,
         }}
+        initialActiveStep={inputActiveStep}
+        onActiveStepChange={setInputActiveStep}
+        onDraftChange={setQuestionnaireDraft}
         subscription={model.isSubscribed?.() || false}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
         onClose={closeQuestionnaire}

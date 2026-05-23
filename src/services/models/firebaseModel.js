@@ -77,6 +77,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     model.trainingCheckInState = normalizeTrainingCheckInState(
       persistedData.trainingCheckInState
     );
+    model.activeSessionProgressByKey =
+      persistedData.activeSessionProgressByKey &&
+      typeof persistedData.activeSessionProgressByKey === "object"
+        ? persistedData.activeSessionProgressByKey
+        : {};
     model.forumProfile = normalizeForumProfile(persistedData.forumProfile);
     if (typeof model.resetForumRuntimeState === "function") {
       model.resetForumRuntimeState();
@@ -109,6 +114,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.trainingPerformanceState,
       model.strengthAssessmentState,
       model.trainingCheckInState,
+      model.activeSessionProgressByKey,
       model.forumProfile,
     ];
     console.log('[firebaseModel.modelDataToCheckACB] Tracked data:', {
@@ -145,6 +151,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         trainingPerformanceState: model.trainingPerformanceState,
         strengthAssessmentState: model.strengthAssessmentState,
         trainingCheckInState: model.trainingCheckInState,
+        activeSessionProgressByKey: model.activeSessionProgressByKey,
         forumProfile: normalizeForumProfile(model.forumProfile),
       };
       console.log('[firebaseModel.saveToCloudACB] Saving to Firestore:', {
