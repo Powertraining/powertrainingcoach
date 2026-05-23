@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Pressable, Modal } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
+import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
     getExercisePerformanceTarget,
@@ -818,45 +819,26 @@ export default function DayDetailView({
                     </Pressable>
                 </Pressable>
             </Modal>
-            <Modal
+            <WhiteBottomMenu
                 visible={Boolean(tipsExercise?.notes)}
-                transparent
-                animationType="fade"
-                onRequestClose={closeTips}
-            >
-                <Pressable style={styles.tipsOverlay} onPress={closeTips}>
-                    <Pressable
-                        style={styles.tipsCard}
-                        onPress={(event) => event.stopPropagation?.()}
+                onDismiss={closeTips}
+                title="Tips"
+                description={tipsExercise ? getExerciseDisplayName(tipsExercise) : ""}
+                buttonText="Close"
+                onButtonPress={closeTips}
+                contentStyle={styles.tipsSheetContent}
+                sheetStyle={styles.tipsSheet}
+                content={
+                    <ScrollView
+                        nestedScrollEnabled
+                        showsVerticalScrollIndicator={false}
+                        style={styles.tipsScroller}
+                        contentContainerStyle={styles.tipsContent}
                     >
-                        <View style={styles.tipsHeader}>
-                            <View style={styles.tipsHeading}>
-                                <Text style={styles.tipsTitle}>Tips</Text>
-                                <Text style={styles.tipsSubtitle}>
-                                    {tipsExercise ? getExerciseDisplayName(tipsExercise) : ""}
-                                </Text>
-                            </View>
-                            <TouchableOpacity
-                                style={styles.tipsCloseButton}
-                                onPress={closeTips}
-                            >
-                                <StandardText
-                                    style={styles.tipsCloseText}
-                                    textColor="#111827"
-                                >
-                                    Close
-                                </StandardText>
-                            </TouchableOpacity>
-                        </View>
-                        <ScrollView
-                            style={styles.tipsScroller}
-                            contentContainerStyle={styles.tipsContent}
-                        >
-                            <Text style={styles.tipsText}>{tipsExercise?.notes}</Text>
-                        </ScrollView>
-                    </Pressable>
-                </Pressable>
-            </Modal>
+                        <Text style={styles.tipsText}>{tipsExercise?.notes}</Text>
+                    </ScrollView>
+                }
+            />
             <ScrollView
                 contentContainerStyle={styles.center}
             >
@@ -1521,61 +1503,11 @@ const styles = StyleSheet.create({
         color: '#111827',
         backgroundColor: '#e5e7eb',
     },
-    tipsOverlay: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: 'rgba(0,0,0,0.48)',
+    tipsSheet: {
+        maxHeight: '72%',
     },
-    tipsCard: {
-        width: '100%',
-        maxWidth: 520,
-        maxHeight: '82%',
-        gap: 14,
-        padding: 18,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.28)',
-        backgroundColor: 'white',
-        shadowColor: '#000',
-        shadowOpacity: 0.28,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 10 },
-        elevation: 24,
-    },
-    tipsHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 12,
-    },
-    tipsHeading: {
-        flex: 1,
-        gap: 4,
-    },
-    tipsTitle: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: '#111827',
-    },
-    tipsSubtitle: {
-        fontSize: 14,
-        lineHeight: 20,
-        color: '#4b5563',
-    },
-    tipsCloseButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: 'rgba(17,24,39,0.14)',
-        backgroundColor: '#f9fafb',
-    },
-    tipsCloseText: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#111827',
+    tipsSheetContent: {
+        maxHeight: 360,
     },
     tipsScroller: {
         flexGrow: 0,
