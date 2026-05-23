@@ -8,10 +8,10 @@ import ProgramProgressRing from "../../components/homeComponents/ProgramProgress
 import StartProgramPrompt from "../../components/homeComponents/StartProgramPrompt.jsx";
 import ProfileNavigationCard from "../../components/profileComponents/ProfileNavigationCard.jsx";
 
-const SESSION_PROGRESS_RING_SIZE = 58;
+const SESSION_PROGRESS_RING_SIZE = 84;
 const SESSION_PROGRESS_RING_CENTER = SESSION_PROGRESS_RING_SIZE / 2;
-const SESSION_PROGRESS_RING_RADIUS = 22;
-const SESSION_PROGRESS_RING_STROKE = 6;
+const SESSION_PROGRESS_RING_RADIUS = 33;
+const SESSION_PROGRESS_RING_STROKE = 8;
 const SESSION_PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * SESSION_PROGRESS_RING_RADIUS;
 const WEEKDAY_NAMES = Object.freeze([
     "Sunday",
@@ -27,10 +27,26 @@ function getTodayWeekday() {
     return WEEKDAY_NAMES[new Date().getDay()] || "";
 }
 
-function getSessionScheduleText(session = {}) {
-    const preferredWeekday = typeof session.preferredWeekday === "string"
+function getWeekdayIndex(weekday = "") {
+    return WEEKDAY_NAMES.findIndex(
+        (candidate) => candidate.toLowerCase() === weekday.toLowerCase()
+    );
+}
+
+function getSessionPreferredWeekday(session = {}) {
+    return typeof session.preferredWeekday === "string"
         ? session.preferredWeekday.trim()
         : "";
+}
+
+function isSessionScheduledToday(session = {}) {
+    const preferredWeekday = getSessionPreferredWeekday(session);
+
+    return !preferredWeekday || preferredWeekday === getTodayWeekday();
+}
+
+function getSessionScheduleText(session = {}) {
+    const preferredWeekday = getSessionPreferredWeekday(session);
 
     if (!preferredWeekday) {
         return "Next session";
@@ -74,6 +90,15 @@ function StartSessionCard({
                     <StandardText style={styles.sessionScheduleText}>
                         {scheduleText}
                     </StandardText>
+                    <View style={styles.startSessionButton}>
+                        <StandardText style={styles.startSessionButtonText}>
+                            {hasStartedSession ? "Continue" : "Start"}
+                        </StandardText>
+                    </View>
+                </>
+            }
+            actionElement={
+                <View style={styles.sessionProgressLane}>
                     <View style={styles.sessionProgressRing}>
                         <Svg
                             width={SESSION_PROGRESS_RING_SIZE}
@@ -109,16 +134,66 @@ function StartSessionCard({
                             </StandardText>
                         </View>
                     </View>
-                </>
-            }
-            actionElement={
-                <View style={styles.startSessionButton}>
-                    <StandardText style={styles.startSessionButtonText}>
-                        {hasStartedSession ? "Continue" : "Start"}
-                    </StandardText>
                 </View>
             }
             onPress={onPress}
+            wide
+        />
+    );
+}
+
+function getDaysUntilSession(session = {}) {
+    const preferredWeekday = getSessionPreferredWeekday(session);
+    const targetDayIndex = getWeekdayIndex(preferredWeekday);
+
+    if (targetDayIndex < 0) {
+        return null;
+    }
+
+    const daysUntil = (targetDayIndex - new Date().getDay() + 7) % 7;
+
+    return daysUntil === 0 ? 7 : daysUntil;
+}
+
+function formatDaysUntilSession(session = {}) {
+    const daysUntil = getDaysUntilSession(session);
+
+    if (!daysUntil) {
+        return "In 7 days";
+    }
+
+    return `In ${daysUntil} day${daysUntil === 1 ? "" : "s"}`;
+}
+
+function NoSessionCard({
+    nextSession = null,
+    isPushingBack = false,
+    onPushBack,
+}) {
+    const title = nextSession ? "Recovery day" : "Plan complete";
+    const subtitle = nextSession
+        ? `${nextSession.day ? `Day ${nextSession.day}` : "Next session"} ${formatDaysUntilSession(nextSession).toLowerCase()}`
+        : "No upcoming session";
+
+    return (
+        <ProfileNavigationCard
+            title={title}
+            description={subtitle}
+            copyChildren={
+                null
+            }
+            actionElement={
+                nextSession ? (
+                    <View style={styles.recoveryActionLane}>
+                        <View style={[styles.startSessionButton, styles.recoveryActionButton]}>
+                            <StandardText style={styles.startSessionButtonText}>
+                                {isPushingBack ? "Updating..." : "Push back"}
+                            </StandardText>
+                        </View>
+                    </View>
+                ) : null
+            }
+            onPress={nextSession && !isPushingBack ? onPushBack : undefined}
             wide
         />
     );
@@ -155,12 +230,15 @@ export default function StartView({
     completedExerciseCount,
     totalExerciseCount,
     hasStartedSession,
+    isPushingBackSession = false,
     onStart,
     onStartSession,
+    onPushBackSession,
     onAdjustPlan,
     onMyPosts,
 }) {
     const insets = useSafeAreaInsets();
+    const hasSessionToday = currentSession && isSessionScheduledToday(currentSession);
 
     return (
             <Dotted>
@@ -186,13 +264,21 @@ export default function StartView({
                     </View>
                     {hasProgram ? (
                         <View style={styles.homeCards}>
-                            <StartSessionCard
-                                session={currentSession}
-                                completedExerciseCount={completedExerciseCount}
-                                totalExerciseCount={totalExerciseCount}
-                                hasStartedSession={hasStartedSession}
-                                onPress={onStartSession}
-                            />
+                            {hasSessionToday ? (
+                                <StartSessionCard
+                                    session={currentSession}
+                                    completedExerciseCount={completedExerciseCount}
+                                    totalExerciseCount={totalExerciseCount}
+                                    hasStartedSession={hasStartedSession}
+                                    onPress={onStartSession}
+                                />
+                            ) : (
+                                <NoSessionCard
+                                    nextSession={currentSession}
+                                    isPushingBack={isPushingBackSession}
+                                    onPushBack={onPushBackSession}
+                                />
+                            )}
                             <View style={styles.homeActionRow}>
                                 <AdjustPlanCard onPress={onAdjustPlan} />
                                 <MyPostsCard onPress={onMyPosts} />
@@ -264,11 +350,28 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 12,
     },
+    sessionProgressLane: {
+        alignItems: "center",
+        alignSelf: "stretch",
+        flexShrink: 0,
+        justifyContent: "center",
+        width: "42%",
+    },
+    recoveryActionLane: {
+        alignItems: "center",
+        alignSelf: "stretch",
+        flexShrink: 0,
+        justifyContent: "center",
+        width: "42%",
+    },
+    recoveryActionButton: {
+        alignSelf: "center",
+        marginTop: 0,
+    },
     sessionProgressRing: {
         alignItems: "center",
         height: SESSION_PROGRESS_RING_SIZE,
         justifyContent: "center",
-        marginTop: 6,
         width: SESSION_PROGRESS_RING_SIZE,
     },
     sessionScheduleText: {
@@ -286,16 +389,18 @@ const styles = StyleSheet.create({
     },
     sessionProgressText: {
         color: "#ffffff",
-        fontSize: 12,
+        fontSize: 15,
         fontWeight: "800",
-        lineHeight: 15,
+        lineHeight: 18,
     },
     startSessionButton: {
         alignItems: "center",
         backgroundColor: "#ffffff",
         borderRadius: 999,
+        alignSelf: "flex-start",
         flexShrink: 0,
         justifyContent: "center",
+        marginTop: 10,
         minHeight: 36,
         minWidth: 88,
         paddingHorizontal: 16,

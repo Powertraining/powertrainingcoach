@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   center: {
     flexGrow: 1,
     alignItems: "center",
-    marginTop: 40,
+    marginTop: 32,
     paddingHorizontal: 28,
     paddingBottom: 120,
   },
@@ -564,36 +564,42 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   headerDate: {
-    fontSize: 32,
-    lineHeight: 36,
-    marginBottom: 8,
+    fontSize: 30,
+    lineHeight: 34,
+    fontWeight: "700",
+    marginBottom: 6,
   },
   headerPhase: {
-    fontSize: 22,
-    lineHeight: 28,
-    marginBottom: 8, 
+    fontSize: 18,
+    lineHeight: 24,
+    color: "#d1d5db",
+    marginBottom: 14,
   },
   headerDetailsButton: {
-    backgroundColor: "#fff",
+    alignSelf: "flex-start",
+    backgroundColor: "#141414",
     borderWidth: 1,
+    borderColor: "#2f2f2f",
     borderRadius: 120,
-    width: 80,
-    height: 32,
+    minWidth: 86,
+    height: 34,
+    paddingHorizontal: 14,
     justifyContent: "center",
   },
   headerDetailsButtonText: {
-    color: "#000",
+    color: "#fff",
     alignSelf: "center",
-    fontSize: 16,
+    fontSize: 13,
+    fontWeight: "700",
   },
   headerActionArea: {
     alignSelf: "center",
     width: "100%",
     maxWidth: 360,
-    marginTop: 30,
+    marginTop: 24,
   },
   headerActionAreaEmpty: {
-    marginTop: 18,
+    marginTop: 14,
   },
   headerStartButton: {
     backgroundColor: "#fff",
@@ -604,7 +610,8 @@ const styles = StyleSheet.create({
   headerStartButtonText: {
     color: "#000",
     alignSelf: "center",
-    fontSize: 22,
+    fontSize: 18,
+    fontWeight: "700",
   },
   headerCompletedStatus: {
     minHeight: 46,
@@ -629,7 +636,8 @@ const styles = StyleSheet.create({
   },
   headerCompletedText: {
     color: "#fff",
-    fontSize: 17,
+    fontSize: 15,
+    fontWeight: "700",
     textAlign: "center",
   },
   headerSessionActionRow: {
@@ -653,20 +661,21 @@ const styles = StyleSheet.create({
   },
   headerCompleteButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: "700",
     textAlign: "center",
   },
   headerSessionActionDivider: {
     width: 1,
     height: 31,
-    backgroundColor: "#6b7280",
+    backgroundColor: "#3f3f46",
   },
   headerSessionActionRule: {
     height: 1,
     alignSelf: "stretch",
     marginHorizontal: -28,
     marginTop: 14,
-    backgroundColor: "#6b7280",
+    backgroundColor: "#2f2f2f",
   },
   headerPushBackButton: {
     borderTopRightRadius: 120,
@@ -686,11 +695,13 @@ const styles = StyleSheet.create({
   headerPushBackText: {
     color: "#fff",
     fontSize: 14,
+    fontWeight: "700",
     textAlign: "center",
   },
   detailsCard: {
     width: "100%",
     maxWidth: 960,
+    marginTop: 12,
     padding: 16,
     borderRadius: 12,
     backgroundColor: "white",
@@ -713,13 +724,14 @@ const styles = StyleSheet.create({
   },
   weekSchedule: {
     flexDirection: "row",
-    gap: 6,
+    gap: 8,
+    paddingHorizontal: 28,
   },
   weekScheduleScroller: {
     flexGrow: 0,
     alignSelf: "stretch",
     marginHorizontal: -28,
-    marginTop: 45,
+    marginTop: 28,
   },
   dayDetailEdgeToEdge: {
     alignSelf: "stretch",
@@ -746,7 +758,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   weekScheduleTileSlot: {
-    height: 66,
+    height: 64,
     justifyContent: "flex-end",
   },
   weekScheduleDay: {
@@ -754,7 +766,7 @@ const styles = StyleSheet.create({
     width: 50,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 6,
     gap: 2,
     borderColor: "#585858",
@@ -771,16 +783,19 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
   },
   weekScheduleSelectedDay: {
-    height: 66,
-    width: 60,
+    height: 64,
+    width: 58,
   },
   weekScheduleLabel: {
-    fontSize: 16,
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 15,
     textAlign: "center",
   },
   weekScheduleDate: {
-    marginTop: 4,
-    fontSize: 14,
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
   },

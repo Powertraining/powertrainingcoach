@@ -32,6 +32,7 @@ const HomeScreen = observer(function HomeScreen() {
   const [questionnaireDraft, setQuestionnaireDraft] = useState(() => model.questionnaire || {});
   const [inputActiveStep, setInputActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [pushingBackSession, setPushingBackSession] = useState(false);
   const [error, setError] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
 
@@ -312,6 +313,27 @@ const HomeScreen = observer(function HomeScreen() {
     });
   }
 
+  async function pushBackCurrentSession() {
+    const currentSession = getCurrentSession();
+
+    if (!currentSession || pushingBackSession) {
+      return;
+    }
+
+    setPushingBackSession(true);
+
+    try {
+      await model.reportMissedSession?.({
+        weekNumber: currentSession.week,
+        dayNumber: currentSession.day,
+      });
+    } catch (error) {
+      console.error("Could not update missed session logic:", error);
+    } finally {
+      setPushingBackSession(false);
+    }
+  }
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -349,8 +371,10 @@ const HomeScreen = observer(function HomeScreen() {
         completedExerciseCount={completedExerciseCount}
         totalExerciseCount={totalExerciseCount}
         hasStartedSession={hasStartedSession}
+        isPushingBackSession={pushingBackSession}
         onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
         onStartSession={openCurrentSession}
+        onPushBackSession={pushBackCurrentSession}
         onAdjustPlan={() => router.push("/(tabs)/profile-plan-adjustments")}
         onMyPosts={() => router.push("/(tabs)/profile-my-posts")}
       />

@@ -93,10 +93,62 @@ function getExerciseDisplayName(exercise = {}) {
     return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
 }
 
+function normalizePrescriptionWords(value = "") {
+    return String(value || "")
+        .replace(/\ball[-\s]?out\b/gi, "max")
+        .replace(/\bmax(?:imum)? effort\b/gi, "max")
+        .replace(/\bwork\b/gi, "hard")
+        .replace(/\bthreshold\b/gi, "hard")
+        .replace(/\btempo\b/gi, "medium-hard")
+        .replace(/\bmoderate\b/gi, "medium")
+        .replace(/\brecovery\b/gi, "easy")
+        .replace(/\beasy\s+(?:spin|jog|run|walk)\b/gi, "easy")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function getReadablePrescriptionLabel(label = "") {
+    const normalizedLabel = normalizePrescriptionWords(label).toLowerCase();
+
+    if (!normalizedLabel) {
+        return "";
+    }
+
+    if (/\brest\b/.test(normalizedLabel)) {
+        return "rest";
+    }
+
+    if (/\btransitions?\b/.test(normalizedLabel)) {
+        return "transition";
+    }
+
+    if (/\b(?:easy|light|slow|walk|jog)\b/.test(normalizedLabel)) {
+        return "easy";
+    }
+
+    if (/\b(?:max|sprint)\b/.test(normalizedLabel)) {
+        return "max";
+    }
+
+    if (/\b(?:hard|fast)\b/.test(normalizedLabel)) {
+        return normalizedLabel.includes("fast") ? "fast" : "hard";
+    }
+
+    if (/\bmedium-hard\b/.test(normalizedLabel)) {
+        return "medium-hard";
+    }
+
+    if (/\bmedium\b/.test(normalizedLabel)) {
+        return "medium";
+    }
+
+    return normalizedLabel;
+}
+
 function getCompactTimePrescription(value = "", exercise = {}) {
     const normalizedValue = String(value || "")
         .trim()
-        .replace(/\s*\+\s*/g, ", ");
+        .replace(/\s*\+\s*/g, " + ");
     const exerciseSearchText = getExerciseSearchText(exercise);
     const isLikelyDistance =
         /\b\d+(?:[.,]\d+)?\s*m(?:\s*\/\s*\d+(?:[.,]\d+)?\s*ft)?\b/i.test(normalizedValue) &&
@@ -110,19 +162,21 @@ function getCompactTimePrescription(value = "", exercise = {}) {
         return "";
     }
 
-    return normalizedValue
+    return normalizePrescriptionWords(normalizedValue
         .replace(/\bhours?\b/gi, "h")
         .replace(/\bhrs?\b/gi, "h")
         .replace(/\bseconds?\b/gi, "sec")
         .replace(/\bsecs?\b/gi, "sec")
         .replace(/\bminutes?\b/gi, "min")
         .replace(/\bmins?\b/gi, "min")
-        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*s\b/gi, "$1 sec")
-        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*m\b/gi, "$1 min")
-        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*h\b/gi, "$1 h")
-        .replace(/\s+each(?:\s+(?:side|direction|leg|arm|way))?\b.*$/i, "")
+        .replace(
+            /\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*(sec|min|h)\b/gi,
+            (_, duration, unit) => `${duration.replace(/\s*([-–])\s*/g, "$1")}${unit.toLowerCase()}`
+        )
+        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*s\b/gi, "$1sec")
+        .replace(/\b(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?)\s*m\b/gi, "$1min")
         .replace(/\s+/g, " ")
-        .trim();
+        .trim());
 }
 
 function getCompactDistancePrescription(value = "", exercise = {}) {
@@ -134,29 +188,99 @@ function getCompactDistancePrescription(value = "", exercise = {}) {
     }
 
     return normalizedValue
-        .replace(/\b(\d+(?:[.,]\d+)?)\s*m\b/gi, (_, distance) => `${distance} meters`)
-        .replace(/\b(\d+(?:[.,]\d+)?)\s*ft\b/gi, (_, distance) => `${distance} ft`)
+        .replace(/\b(\d+(?:[.,]\d+)?)\s*m\b/gi, (_, distance) => `${distance}m`)
+        .replace(/\b(\d+(?:[.,]\d+)?)\s*(?:kilometers?|kilometres?|km)\b/gi, (_, distance) => `${distance}km`)
+        .replace(/\b(\d+(?:[.,]\d+)?)\s*(?:yards?|yds?|yd)\b/gi, (_, distance) => `${distance}yd`)
+        .replace(/\b(\d+(?:[.,]\d+)?)\s*(?:feet|foot|ft)\b/gi, (_, distance) => `${distance}ft`)
+        .replace(/\b(\d+(?:[.,]\d+)?)\s*(?:miles?|mi)\b/gi, (_, distance) => `${distance}mi`)
         .replace(/\s+/g, " ")
         .trim();
 }
 
+function formatIntervalSegment(segment = "") {
+    const match = String(segment || "")
+        .trim()
+        .match(/^(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*(?:sec|min|h))\s+(.+)$/i);
+
+    if (!match) {
+        return "";
+    }
+
+    const duration = match[1].replace(/\s+/g, "");
+    const label = getReadablePrescriptionLabel(match[2]);
+
+    return label ? `${duration} ${label}` : "";
+}
+
+function getIntervalPrescriptionDisplay(prescription = "", sets = "") {
+    const normalizedPrescription = String(prescription || "")
+        .replace(/\s*\/\s*/g, " / ")
+        .replace(/\s*\+\s*/g, " + ")
+        .replace(/\s*,\s*/g, ", ")
+        .replace(/\s+/g, " ")
+        .trim();
+    const intervalParts = normalizedPrescription.split(/\s+(?:\/|\+|,)\s+/);
+
+    if (intervalParts.length !== 2) {
+        return "";
+    }
+
+    const formattedParts = intervalParts.map(formatIntervalSegment);
+
+    if (formattedParts.some((part) => !part)) {
+        return "";
+    }
+
+    return /^\d+$/.test(sets)
+        ? `${sets}x ${formattedParts.join(" + ")}`
+        : formattedParts.join(" + ");
+}
+
+function formatPrescriptionWithSets(sets = "", prescription = "") {
+    const normalizedPrescription = String(prescription || "").trim();
+
+    if (!/^\d+$/.test(sets) || !normalizedPrescription) {
+        return normalizedPrescription;
+    }
+
+    const hasMultiplePrescriptionParts = /\s(?:\/|\+|,)\s/.test(normalizedPrescription);
+
+    return hasMultiplePrescriptionParts
+        ? `${sets}x ${normalizedPrescription}`
+        : `${sets}x${normalizedPrescription}`;
+}
+
 function getExercisePrescriptionDisplay(exercise = {}) {
     const sets = String(exercise.sets || "").trim();
-    const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, ", ");
+    const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
+    const hasSimpleSetCount = /^\d+$/.test(sets);
+    const formatWithSets = (prescription) =>
+        hasSimpleSetCount && prescription
+            ? formatPrescriptionWithSets(sets, prescription)
+            : prescription;
     const compactTimePrescription = getCompactTimePrescription(reps, exercise);
 
     if (compactTimePrescription) {
-        return compactTimePrescription;
+        const intervalPrescription = getIntervalPrescriptionDisplay(
+            compactTimePrescription,
+            sets
+        );
+
+        if (intervalPrescription) {
+            return intervalPrescription;
+        }
+
+        return formatWithSets(compactTimePrescription);
     }
 
     const compactDistancePrescription = getCompactDistancePrescription(reps, exercise);
 
     if (compactDistancePrescription) {
-        return compactDistancePrescription;
+        return formatWithSets(compactDistancePrescription);
     }
 
-    if (/^\d+$/.test(sets) && reps) {
-        return Array.from({ length: Number.parseInt(sets, 10) }, () => reps).join(", ");
+    if (hasSimpleSetCount && reps) {
+        return `${sets}x${reps}`;
     }
 
     return reps;
@@ -901,7 +1025,9 @@ export default function DayDetailView({
                                                                 </StandardText>
                                                                 <StandardText
                                                                     style={styles.tabButtonSets}
-                                                                    lines={1}
+                                                                    lines={isHighlighted ? 3 : 1}
+                                                                    adjustsFontSizeToFit={isHighlighted}
+                                                                    minimumFontScale={0.82}
                                                                     textColor="#fff"
                                                                 >
                                                                     {getExercisePrescriptionDisplay(ex)}
@@ -1226,9 +1352,9 @@ const styles = StyleSheet.create({
         width: '100%',
         maxWidth: 980,
         paddingHorizontal: 28,
-        paddingTop: 8,
+        paddingTop: 18,
         paddingBottom: 28,
-        gap: 18,
+        gap: 20,
         backgroundColor: "transparent",
     },
     headerRow: {
@@ -1651,7 +1777,7 @@ const styles = StyleSheet.create({
         color: '#1d4ed8',
     },
     exerciseTabs: {
-        gap: 10,
+        gap: 18,
         paddingTop: 0,
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
@@ -1659,9 +1785,9 @@ const styles = StyleSheet.create({
         flexGrow: 0,
         alignSelf: "stretch",
     },
-    tabsContainer: { flexDirection: 'row', gap: 8, paddingLeft: 28, paddingRight: 8 },
-    tabButton: {backgroundColor: '#101010', borderRadius: 30, height: 160, width:130,
-        borderWidth: 2, borderColor: "#1E1E1E",
+    tabsContainer: { flexDirection: 'row', gap: 10, paddingLeft: 28, paddingRight: 28 },
+    tabButton: {backgroundColor: '#141414', borderRadius: 22, height: 150, width:128,
+        borderWidth: 1, borderColor: "#1E1E1E",
      },
     tabButtonSelected: {
         width: 240,
@@ -1669,7 +1795,7 @@ const styles = StyleSheet.create({
     tabButtonContent: {
         flex: 1,
         justifyContent: 'space-between',
-        margin: 8,
+        margin: 7,
         padding: 10,
         position: 'relative',
     },
@@ -1680,7 +1806,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         width: 74,
         alignItems: 'center',
-        paddingTop: 8,
+        paddingTop: 7,
         gap: 8,
     },
     tabButtonActionButton: {
@@ -1694,7 +1820,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     tabButtonActionText: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '700',
         textAlign: 'center',
     },
@@ -1704,10 +1830,10 @@ const styles = StyleSheet.create({
     tabButtonMainTextWithSwap: {
         paddingRight: 74,
     },
-    tabButtonText: { flexDirection: 'column', gap: 2},
-    tabButtonName: { fontSize: 16, fontWeight: '600', color: 'white', marginBottom: 8 },
-    tabButtonSets: { fontSize: 16, color: "#ffffff" },
-    tabButtonRecommendationPrimary: { fontSize: 18, fontWeight: '700' },
+    tabButtonText: { flexDirection: 'column', gap: 4},
+    tabButtonName: { fontSize: 15, fontWeight: '700', color: 'white', marginBottom: 5, lineHeight: 18 },
+    tabButtonSets: { fontSize: 14, color: "#d1d5db", lineHeight: 17 },
+    tabButtonRecommendationPrimary: { fontSize: 17, fontWeight: '700', lineHeight: 20 },
     tabButtonRecommendationDetails: {
         color: '#C9B259',
         fontSize: 10,
@@ -1758,13 +1884,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        marginTop: 18,
-        marginBottom: 10,
+        marginTop: 4,
+        marginBottom: 8,
     },
     exerciseSectionTitle: {
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: '700',
-        color: '#7E7E7E',
+        color: '#9ca3af',
         opacity: 1,
         textAlign: 'left',
         textTransform: 'uppercase',
