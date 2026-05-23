@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Image, View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
+import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
 import DayDetailView from "./DayDetailView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
@@ -320,39 +321,12 @@ export default function ProgramOverviewView({
           <StandardText style={styles.headerPhase}>{currentPhaseLabel}</StandardText>
           <TouchableOpacity
             style={styles.headerDetailsButton}
-            onPress={() => setDetailsVisible((visible) => !visible)}
+            onPress={() => setDetailsVisible(true)}
           >
             <StandardText style={styles.headerDetailsButtonText}>
-              {detailsVisible ? "Hide details" : "Details"}
+              Details
             </StandardText>
           </TouchableOpacity>
-          {detailsVisible ? (
-            <View style={styles.detailsCard}>
-              {plan.summary ? (
-                <StandardText style={styles.detailText} textColor="#111">
-                  {plan.summary}
-                </StandardText>
-              ) : null}
-              {phaseOverview.map((phase) => (
-                <View
-                  key={`${phase.weekStart}-${phase.weekEnd}-${phase.label}`}
-                  style={styles.phaseDetail}
-                >
-                  <StandardText style={styles.phaseRange} textColor="#6b7280">
-                    {getPhaseRangeLabel(phase)}
-                  </StandardText>
-                  <StandardText style={styles.phaseLabel} textColor="#111">
-                    {phase.label}
-                  </StandardText>
-                  {phase.focus ? (
-                    <StandardText style={styles.detailText} textColor="#374151">
-                      {phase.focus}
-                    </StandardText>
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          ) : null}
           <ScrollView
             ref={weekScheduleScrollRef}
             horizontal
@@ -529,6 +503,46 @@ export default function ProgramOverviewView({
           ) : null}
         </View>
       </ScrollView>
+      <WhiteBottomMenu
+        visible={detailsVisible}
+        onDismiss={() => setDetailsVisible(false)}
+        title="Program details"
+        buttonText="Close"
+        onButtonPress={() => setDetailsVisible(false)}
+        contentStyle={styles.detailsSheetContent}
+        sheetStyle={styles.detailsSheet}
+        content={
+          <ScrollView
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.detailsSheetScrollContent}
+          >
+            {plan.summary ? (
+              <StandardText style={styles.detailText} textColor="#111">
+                {plan.summary}
+              </StandardText>
+            ) : null}
+            {phaseOverview.map((phase) => (
+              <View
+                key={`${phase.weekStart}-${phase.weekEnd}-${phase.label}`}
+                style={styles.phaseDetail}
+              >
+                <StandardText style={styles.phaseRange} textColor="#6b7280">
+                  {getPhaseRangeLabel(phase)}
+                </StandardText>
+                <StandardText style={styles.phaseLabel} textColor="#111">
+                  {phase.label}
+                </StandardText>
+                {phase.focus ? (
+                  <StandardText style={styles.detailText} textColor="#374151">
+                    {phase.focus}
+                  </StandardText>
+                ) : null}
+              </View>
+            ))}
+          </ScrollView>
+        }
+      />
     </QuestionnaireShell>
   );
 }
@@ -698,14 +712,15 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
-  detailsCard: {
-    width: "100%",
-    maxWidth: 960,
-    marginTop: 12,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: "white",
-    gap: 12,
+  detailsSheet: {
+    maxHeight: "72%",
+  },
+  detailsSheetContent: {
+    maxHeight: 420,
+  },
+  detailsSheetScrollContent: {
+    gap: 14,
+    paddingBottom: 4,
   },
   detailText: {
     fontSize: 14,

@@ -1,4 +1,14 @@
-import { Animated, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { useMemo, useRef } from "react";
+import {
+  Animated,
+  Easing,
+  Modal,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function WhiteBottomMenu({
@@ -20,8 +30,53 @@ export default function WhiteBottomMenu({
   bottomPadding = 18,
 }) {
   const insets = useSafeAreaInsets();
-  const Sheet = animatedStyle ? Animated.View : View;
+  const defaultSheetTranslateY = useRef(new Animated.Value(0)).current;
   const resolvedContent = content || children;
+  const defaultPanResponder = useMemo(
+    function defaultPanResponderACB() {
+      return PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dy) > 4,
+        onPanResponderMove: (_, gestureState) => {
+          if (gestureState.dy > 0) {
+            defaultSheetTranslateY.setValue(gestureState.dy);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dy > 70 || gestureState.vy > 0.75) {
+            Animated.timing(defaultSheetTranslateY, {
+              toValue: 420,
+              duration: 160,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }).start(() => {
+              defaultSheetTranslateY.setValue(0);
+              onDismiss?.();
+            });
+            return;
+          }
+
+          Animated.spring(defaultSheetTranslateY, {
+            toValue: 0,
+            damping: 18,
+            stiffness: 220,
+            useNativeDriver: true,
+          }).start();
+        },
+      });
+    },
+    [defaultSheetTranslateY, onDismiss]
+  );
+  const resolvedPanHandlers = panHandlers || defaultPanResponder.panHandlers;
+  const resolvedAnimatedStyle =
+    animatedStyle ||
+    (!panHandlers
+      ? {
+          transform: [{ translateY: defaultSheetTranslateY }],
+        }
+      : null);
+  const Sheet = resolvedAnimatedStyle ? Animated.View : View;
 
   if (!visible) {
     return null;
@@ -44,10 +99,10 @@ export default function WhiteBottomMenu({
             styles.sheet,
             { paddingBottom: Math.max(insets.bottom + bottomPadding, 28) },
             sheetStyle,
-            animatedStyle,
+            resolvedAnimatedStyle,
           ]}
         >
-          <View style={styles.handleHitArea} {...(panHandlers || {})}>
+          <View style={styles.handleHitArea} {...resolvedPanHandlers}>
             <View style={styles.handle} />
           </View>
 
@@ -119,8 +174,11 @@ sheet: {
   handleHitArea: {
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
-    minHeight: 28,
+    marginBottom: 2,
+    marginHorizontal: -20,
+    marginTop: -12,
+    minHeight: 54,
+    paddingTop: 12,
   },
   title: {
     color: "#141414",
