@@ -138,6 +138,7 @@ export default function ProgramOverviewView({
   const [activeSessionDay, setActiveSessionDay] = useState(null);
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
   const [selectedTrainingSlotKey, setSelectedTrainingSlotKey] = useState("");
+  const [swapEditorVisible, setSwapEditorVisible] = useState(false);
   const weekScheduleScrollRef = useRef(null);
   const lastWeekScheduleScrollDateRef = useRef("");
 
@@ -386,7 +387,10 @@ export default function ProgramOverviewView({
 
   return (
     <QuestionnaireShell hideTabBar={false}>
-      <ScrollView contentContainerStyle={styles.center}>
+      <ScrollView
+        style={swapEditorVisible ? styles.blurredContent : null}
+        contentContainerStyle={styles.center}
+      >
         <View style={styles.header}>
           <StandardText style={styles.headerDate}>{currentDateLabel}</StandardText>
           <StandardText style={styles.headerPhase}>{currentPhaseLabel}</StandardText>
@@ -598,6 +602,7 @@ export default function ProgramOverviewView({
                 onReplaceExercise={onReplaceExercise}
                 onFinish={onFinishDay}
                 onMissed={onMissedDay}
+                onSwapEditorVisibilityChange={setSwapEditorVisible}
                 updatingPlan={updatingPlan}
               />
             </View>
@@ -688,6 +693,10 @@ const styles = StyleSheet.create({
     marginTop: 32,
     paddingHorizontal: 28,
     paddingBottom: 120,
+  },
+  blurredContent: {
+    opacity: 0.42,
+    filter: [{ blur: 4 }],
   },
   card: {
     width: "100%",

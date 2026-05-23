@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Pressable, Modal } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Pressable, Modal, useWindowDimensions } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
@@ -87,11 +87,15 @@ const EXERCISE_SECTION_LABELS = Object.freeze({
 const CARD_HORIZONTAL_PADDING = 28;
 
 function getExerciseSearchText(exercise = {}) {
-    return ` ${exercise.name || ""} ${exercise.notes || ""} ${exercise.reps || ""} `.toLowerCase();
+    const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
+
+    return ` ${safeExercise.name || ""} ${safeExercise.notes || ""} ${safeExercise.reps || ""} `.toLowerCase();
 }
 
 function getExerciseDisplayName(exercise = {}) {
-    return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
+    const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
+
+    return String(safeExercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
 }
 
 function normalizePrescriptionWords(value = "") {
@@ -252,14 +256,15 @@ function formatPrescriptionWithSets(sets = "", prescription = "") {
 }
 
 function getExercisePrescriptionDisplay(exercise = {}) {
-    const sets = String(exercise.sets || "").trim();
-    const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
+    const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
+    const sets = String(safeExercise.sets || "").trim();
+    const reps = String(safeExercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
     const hasSimpleSetCount = /^\d+$/.test(sets);
     const formatWithSets = (prescription) =>
         hasSimpleSetCount && prescription
             ? formatPrescriptionWithSets(sets, prescription)
             : prescription;
-    const compactTimePrescription = getCompactTimePrescription(reps, exercise);
+    const compactTimePrescription = getCompactTimePrescription(reps, safeExercise);
 
     if (compactTimePrescription) {
         const intervalPrescription = getIntervalPrescriptionDisplay(
@@ -274,7 +279,7 @@ function getExercisePrescriptionDisplay(exercise = {}) {
         return formatWithSets(compactTimePrescription);
     }
 
-    const compactDistancePrescription = getCompactDistancePrescription(reps, exercise);
+    const compactDistancePrescription = getCompactDistancePrescription(reps, safeExercise);
 
     if (compactDistancePrescription) {
         return formatWithSets(compactDistancePrescription);
@@ -593,9 +598,11 @@ export default function DayDetailView({
     onReplaceExercise,
     onFinish,
     onMissed,
+    onSwapEditorVisibilityChange,
     updatingPlan = false,
     exerciseListHorizontalBleed = CARD_HORIZONTAL_PADDING,
 }) {
+    const { height: windowHeight } = useWindowDimensions();
     const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
     const [highlightedExerciseIndex, setHighlightedExerciseIndex] = useState(null);
     const [swapExerciseIndex, setSwapExerciseIndex] = useState(null);
@@ -647,6 +654,25 @@ export default function DayDetailView({
     const swapExerciseOptions = swapExercise
         ? getExerciseSubstitutionOptions(swapExercise)
         : [];
+    const swapExerciseReplacementOptions = swapExercise
+        ? swapExerciseOptions.filter((option) => option.id !== swapExercise.selectedSubstitutionId)
+        : [];
+    const visibleSwapExerciseOptions =
+        swapExerciseReplacementOptions.length > 0
+            ? swapExerciseReplacementOptions.slice(0, 2)
+            : swapExerciseOptions.slice(0, 2);
+    const isSwapEditorVisible = Boolean(
+        swapExercise && swapExerciseOptions.length > 1 && onReplaceExercise
+    );
+
+    useEffect(() => {
+        onSwapEditorVisibilityChange?.(isSwapEditorVisible);
+
+        return () => {
+            onSwapEditorVisibilityChange?.(false);
+        };
+    }, [isSwapEditorVisible, onSwapEditorVisibilityChange]);
+
     const isSkipped = status === "skipped";
     const isRescheduled = status === "rescheduled";
     const trackedExercises = normalizedExercises
@@ -740,84 +766,99 @@ export default function DayDetailView({
         }
 
         onReplaceExercise?.(swapExerciseIndex, substitutionId);
-        closeSwapOptions();
     }
 
     return (
-        <QuestionnaireShell hideTabBar={false}>
+        <QuestionnaireShell hideTabBar={isSwapEditorVisible}>
             <Modal
-                visible={Boolean(swapExercise && swapExerciseOptions.length > 1 && onReplaceExercise)}
+                visible={isSwapEditorVisible}
                 transparent
                 animationType="fade"
+                hardwareAccelerated
+                presentationStyle="overFullScreen"
+                statusBarTranslucent
                 onRequestClose={closeSwapOptions}
             >
-                <Pressable style={styles.swapOverlay} onPress={closeSwapOptions}>
-                    <Pressable
-                        style={styles.swapOptionsCard}
-                        onPress={(event) => event.stopPropagation?.()}
-                    >
-                        <View style={styles.swapOptionsHeader}>
-                            <View style={styles.swapOptionsHeading}>
-                                <Text style={styles.swapOptionsTitle}>Exercise options</Text>
-                                <Text style={styles.swapOptionsSubtitle}>
-                                    {swapExercise ? getExerciseDisplayName(swapExercise) : ""}
-                                </Text>
-                            </View>
-                            <TouchableOpacity
-                                style={styles.swapOptionsCloseButton}
-                                onPress={closeSwapOptions}
-                            >
-                                <StandardText
-                                    style={styles.swapOptionsCloseText}
-                                    textColor="#111827"
-                                >
-                                    Close
-                                </StandardText>
-                            </TouchableOpacity>
-                        </View>
-                        <ScrollView
-                            style={styles.swapOptionsScroller}
-                            contentContainerStyle={styles.swapOptionsList}
+                {isSwapEditorVisible ? (
+                    <View style={styles.swapEditorModalRoot}>
+                        <Pressable
+                            onPress={closeSwapOptions}
+                            style={styles.swapEditorDimLayer}
+                        />
+                        <View
+                            pointerEvents="box-none"
+                            style={[
+                                styles.swapEditorLayer,
+                                {
+                                    minHeight: Math.max(windowHeight, 520),
+                                },
+                            ]}
                         >
-                            {swapExerciseOptions.map((option) => {
-                                const isSelected =
-                                    option.id === swapExercise?.selectedSubstitutionId;
-
-                                return (
-                                    <TouchableOpacity
-                                        key={option.id}
-                                        style={[
-                                            styles.swapOptionRow,
-                                            isSelected && styles.swapOptionRowSelected,
-                                        ]}
-                                        onPress={() => replaceExerciseFromOverlay(option.id)}
-                                        disabled={isSelected}
+                            <View style={styles.swapEditorTopArea}>
+                                <Text style={styles.swapCurrentLabel}>Current exercise</Text>
+                                <View style={styles.swapCurrentExerciseCard}>
+                                    <StandardText
+                                        lines={2}
+                                        style={styles.swapCurrentExerciseName}
                                     >
-                                        <View style={styles.swapOptionTextBlock}>
-                                            <Text style={styles.swapOptionName}>{option.name}</Text>
-                                            <Text style={styles.swapOptionPrescription}>
-                                                {option.sets} x {option.reps}
-                                            </Text>
-                                            {option.notes ? (
-                                                <Text style={styles.swapOptionNotes}>{option.notes}</Text>
-                                            ) : null}
-                                        </View>
-                                        <StandardText
-                                            style={[
-                                                styles.swapOptionAction,
-                                                isSelected && styles.swapOptionActionSelected,
-                                            ]}
-                                            center
-                                            textColor={isSelected ? "#111827" : "white"}
+                                        {getExerciseDisplayName(swapExercise)}
+                                    </StandardText>
+                                    <StandardText
+                                        lines={1}
+                                        style={styles.swapCurrentExercisePrescription}
+                                    >
+                                        {getExercisePrescriptionDisplay(swapExercise)}
+                                    </StandardText>
+                                    {swapExercise?.notes ? (
+                                        <Text
+                                            numberOfLines={3}
+                                            style={styles.swapCurrentExerciseDescription}
                                         >
-                                            {isSelected ? "Current" : "Use"}
-                                        </StandardText>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </ScrollView>
-                    </Pressable>
-                </Pressable>
+                                            {swapExercise.notes}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                            </View>
+
+                            <View style={styles.swapEditorBottomArea}>
+                                <View style={styles.swapOptionCards}>
+                                    {visibleSwapExerciseOptions.map((option) => (
+                                        <View
+                                            key={option.id}
+                                            style={styles.swapOptionCard}
+                                        >
+                                            <View style={styles.swapOptionTextBlock}>
+                                                <Text style={styles.swapOptionName}>{option.name}</Text>
+                                                <Text style={styles.swapOptionPrescription}>
+                                                    {option.sets} x {option.reps}
+                                                </Text>
+                                                {option.notes ? (
+                                                    <Text style={styles.swapOptionNotes}>
+                                                        {option.notes}
+                                                    </Text>
+                                                ) : null}
+                                            </View>
+                                            <TouchableOpacity
+                                                accessibilityRole="button"
+                                                accessibilityLabel={`Swap to ${option.name}`}
+                                                onPress={() => replaceExerciseFromOverlay(option.id)}
+                                                style={styles.swapOptionAction}
+                                            >
+                                                <Text style={styles.swapOptionActionIcon}>⇅</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                </View>
+                                <TouchableOpacity
+                                    onPress={closeSwapOptions}
+                                    style={styles.swapEditorCancelButton}
+                                >
+                                    <Text style={styles.swapEditorCancelButtonText}>Done</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                ) : null}
             </Modal>
             <WhiteBottomMenu
                 visible={Boolean(tipsExercise?.notes)}
@@ -1392,116 +1433,145 @@ const styles = StyleSheet.create({
         color: '#4b5563',
         textTransform: 'capitalize',
     },
-    swapOverlay: {
+    swapEditorModalRoot: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
+    },
+    swapEditorDimLayer: {
+        ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0,0,0,0.48)',
+        zIndex: 19,
     },
-    swapOptionsCard: {
-        width: '100%',
-        maxWidth: 520,
-        maxHeight: '82%',
-        gap: 14,
-        padding: 18,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.28)',
-        backgroundColor: 'white',
-        shadowColor: '#000',
-        shadowOpacity: 0.28,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 10 },
-        elevation: 24,
-    },
-    swapOptionsHeader: {
-        flexDirection: 'row',
+    swapEditorLayer: {
+        ...StyleSheet.absoluteFillObject,
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 12,
+        paddingBottom: 44,
+        paddingHorizontal: 20,
+        paddingTop: 56,
+        zIndex: 20,
     },
-    swapOptionsHeading: {
-        flex: 1,
-        gap: 4,
+    swapEditorTopArea: {
+        alignSelf: 'center',
+        marginBottom: 24,
+        maxWidth: 320,
+        width: '100%',
     },
-    swapOptionsTitle: {
-        fontSize: 20,
+    swapCurrentExerciseCard: {
+        alignItems: 'stretch',
+        backgroundColor: '#141414',
+        borderColor: '#1E1E1E',
+        borderRadius: 20,
+        borderWidth: 2,
+        minHeight: 118,
+        justifyContent: 'center',
+        paddingHorizontal: 18,
+        paddingVertical: 18,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 18,
+        width: '100%',
+        elevation: 12,
+    },
+    swapCurrentLabel: {
+        color: '#7E7E7E',
+        fontSize: 12,
         fontWeight: '800',
-        color: '#111827',
+        lineHeight: 15,
+        marginBottom: 6,
+        paddingHorizontal: 2,
+        textAlign: 'center',
+        textTransform: 'uppercase',
     },
-    swapOptionsSubtitle: {
-        fontSize: 14,
-        lineHeight: 20,
-        color: '#4b5563',
+    swapCurrentExerciseName: {
+        color: '#ffffff',
+        fontSize: 18,
+        fontWeight: '700',
+        lineHeight: 22,
+        textAlign: 'left',
     },
-    swapOptionsCloseButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: 'rgba(17,24,39,0.14)',
-        backgroundColor: '#f9fafb',
-    },
-    swapOptionsCloseText: {
+    swapCurrentExercisePrescription: {
+        color: '#d1d5db',
         fontSize: 13,
         fontWeight: '700',
-        color: '#111827',
+        lineHeight: 16,
+        marginTop: 6,
+        textAlign: 'left',
     },
-    swapOptionsScroller: {
-        flexGrow: 0,
+    swapCurrentExerciseDescription: {
+        color: '#9ca3af',
+        fontSize: 12,
+        fontWeight: '600',
+        lineHeight: 16,
+        marginTop: 8,
+        textAlign: 'left',
     },
-    swapOptionsList: {
+    swapEditorBottomArea: {
+        alignSelf: 'stretch',
+        gap: 24,
+    },
+    swapOptionCards: {
         gap: 10,
     },
-    swapOptionRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    swapOptionCard: {
         alignItems: 'center',
+        backgroundColor: '#141414',
+        borderColor: '#1E1E1E',
+        borderRadius: 16,
+        borderWidth: 2,
+        flexDirection: 'row',
         gap: 12,
-        padding: 14,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        backgroundColor: '#f9fafb',
-    },
-    swapOptionRowSelected: {
-        borderColor: '#111827',
-        backgroundColor: '#f3f4f6',
+        justifyContent: 'space-between',
+        minHeight: 82,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
     },
     swapOptionTextBlock: {
         flex: 1,
         gap: 3,
     },
     swapOptionName: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '700',
-        color: '#111827',
+        color: '#ffffff',
     },
     swapOptionPrescription: {
-        fontSize: 14,
-        color: '#374151',
+        fontSize: 13,
+        color: '#d1d5db',
     },
     swapOptionNotes: {
-        fontSize: 13,
-        lineHeight: 18,
-        color: '#6b7280',
+        fontSize: 12,
+        lineHeight: 16,
+        color: '#9ca3af',
     },
     swapOptionAction: {
-        minWidth: 64,
-        paddingHorizontal: 12,
-        paddingVertical: 7,
-        borderRadius: 999,
-        overflow: 'hidden',
-        textAlign: 'center',
-        fontSize: 13,
-        fontWeight: '800',
-        color: 'white',
-        backgroundColor: '#111827',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+        flexShrink: 0,
+        height: 34,
+        justifyContent: 'center',
+        width: 34,
     },
-    swapOptionActionSelected: {
-        color: '#111827',
-        backgroundColor: '#e5e7eb',
+    swapOptionActionIcon: {
+        color: '#ffffff',
+        fontSize: 20,
+        fontWeight: '800',
+        lineHeight: 22,
+        textAlign: 'center',
+    },
+    swapEditorCancelButton: {
+        alignItems: 'center',
+        alignSelf: 'center',
+        backgroundColor: '#141414',
+        borderRadius: 999,
+        justifyContent: 'center',
+        minHeight: 34,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+    },
+    swapEditorCancelButtonText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: '800',
     },
     tipsSheet: {
         maxHeight: '72%',
