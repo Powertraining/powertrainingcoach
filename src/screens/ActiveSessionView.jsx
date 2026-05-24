@@ -24,6 +24,7 @@ import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOn
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 
 const NEXT_INPUT_KEYBOARD_GAP = 36;
+const SESSION_HORIZONTAL_PADDING = 24;
 
 function getExerciseDisplayName(exercise = {}) {
   return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
@@ -626,6 +627,7 @@ function ExerciseSessionStep({
   const inputPanelTranslateY = useRef(new Animated.Value(0)).current;
   const inputRowYRef = useRef(0);
   const keyboardTopRef = useRef(null);
+  const [isInputPanelExpanded, setIsInputPanelExpanded] = useState(false);
   const {
     performanceTarget,
     strengthAssessment,
@@ -658,6 +660,7 @@ function ExerciseSessionStep({
   function handleInputFocus(inputKey) {
     const inputIndex = inputKeys.indexOf(inputKey);
     focusedScrollTargetKeyRef.current = inputKeys[inputIndex + 1] || inputKey;
+    setIsInputPanelExpanded(true);
 
     setTimeout(updateInputPanelShift, 80);
   }
@@ -728,6 +731,7 @@ function ExerciseSessionStep({
     });
     const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
       TextInput.State?.currentlyFocusedInput?.()?.blur?.();
+      setIsInputPanelExpanded(false);
       keyboardTopRef.current = null;
       focusedScrollTargetKeyRef.current = null;
       animateInputPanelShift(0);
@@ -788,6 +792,7 @@ function ExerciseSessionStep({
           <Animated.View
             style={[
               styles.inputPanel,
+              isInputPanelExpanded ? styles.inputPanelExpanded : null,
               { transform: [{ translateY: inputPanelTranslateY }] },
             ]}
             onLayout={handleInputPanelLayout}
@@ -1157,7 +1162,7 @@ const styles = StyleSheet.create({
   },
   center: {
     flexGrow: 1,
-    padding: 24,
+    padding: SESSION_HORIZONTAL_PADDING,
     paddingBottom: 48,
     gap: 18,
   },
@@ -1274,12 +1279,19 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: "#101010",
   },
+  inputPanelExpanded: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginHorizontal: -SESSION_HORIZONTAL_PADDING,
+    paddingHorizontal: SESSION_HORIZONTAL_PADDING + 14,
+  },
   inputRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
   },
   inputField: {
+    flexBasis: "100%",
     flexGrow: 1,
     minWidth: 140,
     gap: 5,
