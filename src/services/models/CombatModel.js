@@ -10,6 +10,7 @@ import {
   registerWithEmailPassword,
   logout,
   loginWithGoogle,
+  resendEmailVerification as requestEmailVerificationResend,
   resetPassword as requestPasswordReset,
   USER_ROLES,
 } from "./authService.js";
@@ -218,6 +219,8 @@ export const model = {
     if (!authResult.success) {
       throw new Error(authResult.error);
     }
+
+    return authResult;
   },
 
   // action to login
@@ -227,6 +230,8 @@ export const model = {
     if (!authResult.success) {
       throw new Error(authResult.error);
     }
+
+    return authResult;
   },
 
   // action to logout
@@ -253,6 +258,16 @@ export const model = {
     if (!authResult.success) {
       throw new Error(authResult.error);
     }
+  },
+
+  async submitEmailVerificationResend(email, password) {
+    const authResult = await requestEmailVerificationResend(email, password);
+
+    if (!authResult.success) {
+      throw new Error(authResult.error);
+    }
+
+    return authResult;
   },
 
   async submitFeedBack(rating, comment) {

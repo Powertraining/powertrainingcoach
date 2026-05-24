@@ -6,6 +6,8 @@ import {
   doc,
   getDoc,
   onAuthStateChanged,
+  reload,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithCredential,
@@ -19,6 +21,7 @@ import {
   assertSafeFirestoreDocumentId,
   normalizeBoundedString,
 } from "../utils/inputValidation.js";
+import { requiresEmailVerification } from "../utils/emailVerification.js";
 
 // Role types
 export const USER_ROLES = {
@@ -27,6 +30,7 @@ export const USER_ROLES = {
 };
 
 const BOOTSTRAP_WAIT_MS = 3000;
+export const EMAIL_NOT_VERIFIED_ERROR = "auth/email-not-verified";
 
 async function ensureAuthPersistenceReady() {
   await authPersistenceReady;
@@ -46,6 +50,7 @@ function persistUserBootstrapData(user, role = USER_ROLES.USER) {
     {
       uid: safeUid,
       email: normalizeBoundedString(user.email, 254),
+      emailVerified: user.emailVerified === true,
       displayName: normalizeBoundedString(user.displayName, 60),
       role: safeRole,
       createdAt,
@@ -68,6 +73,42 @@ function persistUserBootstrapData(user, role = USER_ROLES.USER) {
   });
 
   return Promise.all([profilePromise, combatModelPromise]);
+}
+
+export async function syncUserEmailVerificationStatus(user) {
+  if (!user?.uid) {
+    return;
+  }
+
+  const safeUid = assertSafeFirestoreDocumentId(user.uid, "uid");
+  await setDoc(
+    doc(db, "users", safeUid),
+    {
+      email: normalizeBoundedString(user.email, 254),
+      emailVerified: user.emailVerified === true,
+    },
+    { merge: true },
+  );
+}
+
+async function refreshUser(user) {
+  try {
+    await reload(user);
+  } catch (error) {
+    console.warn("Could not refresh Firebase user verification status:", error);
+  }
+
+  return auth.currentUser || user;
+}
+
+async function sendVerificationEmail(user) {
+  await sendEmailVerification(user);
+}
+
+async function signOutIfCurrentUser(user) {
+  if (auth.currentUser?.uid === user?.uid) {
+    await signOut(auth);
+  }
 }
 
 async function ensureBootstrapDataEventually(user, role = USER_ROLES.USER) {
@@ -103,7 +144,18 @@ export async function loginWithEmailPassword(email, password) {
       email,
       password
     );
-    return { success: true, user: userCredential.user };
+    const refreshedUser = await refreshUser(userCredential.user);
+
+    if (requiresEmailVerification(refreshedUser)) {
+      await signOutIfCurrentUser(refreshedUser);
+      return { success: false, error: EMAIL_NOT_VERIFIED_ERROR };
+    }
+
+    await syncUserEmailVerificationStatus(refreshedUser).catch((error) => {
+      console.warn("Could not persist e-mail verification status:", error);
+    });
+
+    return { success: true, user: refreshedUser };
   } catch (error) {
     return { success: false, error: error.code };
   }
@@ -137,9 +189,61 @@ export async function registerWithEmailPassword(
       role
     );
 
-    return { success: true, user: userCredential.user };
+    let verificationEmailSent = false;
+    let verificationEmailError = null;
+
+    try {
+      await sendVerificationEmail(userCredential.user);
+      verificationEmailSent = true;
+    } catch (error) {
+      console.warn("Could not send verification e-mail:", error);
+      verificationEmailError = error?.code || error?.message || "unknown";
+    }
+
+    await signOutIfCurrentUser(userCredential.user);
+
+    return {
+      success: true,
+      user: userCredential.user,
+      requiresEmailVerification: true,
+      verificationEmailSent,
+      verificationEmailError,
+    };
   } catch (error) {
     return { success: false, error: error.code };
+  }
+}
+
+export async function resendEmailVerification(email, password) {
+  let signedInUser = null;
+
+  try {
+    await ensureAuthPersistenceReady();
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    signedInUser = await refreshUser(userCredential.user);
+
+    if (!requiresEmailVerification(signedInUser)) {
+      await syncUserEmailVerificationStatus(signedInUser).catch((error) => {
+        console.warn("Could not persist e-mail verification status:", error);
+      });
+
+      return { success: true, alreadyVerified: true };
+    }
+
+    await sendVerificationEmail(signedInUser);
+    return { success: true, alreadyVerified: false };
+  } catch (error) {
+    return { success: false, error: error.code || error.message };
+  } finally {
+    if (signedInUser) {
+      await signOutIfCurrentUser(signedInUser).catch((error) => {
+        console.warn("Could not sign out after verification resend:", error);
+      });
+    }
   }
 }
 

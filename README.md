@@ -83,4 +83,5 @@ npm run build:ios
 ## Related docs
 
 - `docs/consultation-booking-backend.md`
+- `docs/email-verification-deliverability.md`
 - `setup.md`

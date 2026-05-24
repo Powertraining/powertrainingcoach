@@ -19,6 +19,9 @@ const AuthScreen = observer(function AuthScreen() {
   const [identifier, setIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState(null);
+  const [loginVerificationMessage, setLoginVerificationMessage] = useState(null);
+  const [canResendVerification, setCanResendVerification] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [loginSubmitting, setLoginSubmitting] = useState(false);
 
   // Signup state
@@ -26,6 +29,7 @@ const AuthScreen = observer(function AuthScreen() {
   const [email, setEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupError, setSignupError] = useState(null);
+  const [signupMessage, setSignupMessage] = useState(null);
   const [signupSubmitting, setSignupSubmitting] = useState(false);
 
   function identifierChangeACB(value) { setIdentifier(value); }
@@ -33,14 +37,53 @@ const AuthScreen = observer(function AuthScreen() {
 
   async function loginSubmitACB() {
     setLoginError(null);
+    setLoginVerificationMessage(null);
+    setCanResendVerification(false);
     setLoginSubmitting(true);
     try {
       await model.submitLogin(identifier, loginPassword);
       router.replace("/(tabs)");
     } catch (e) {
       console.error(e);
-      setLoginError("E-Mail or password incorrect");
+      const isUnverifiedEmail = e.message === "auth/email-not-verified";
+      setLoginError(
+        isUnverifiedEmail
+          ? "Please verify your e-mail address before logging in."
+          : "E-Mail or password incorrect"
+      );
+      setCanResendVerification(isUnverifiedEmail);
       setLoginSubmitting(false);
+    }
+  }
+
+  async function resendVerificationACB() {
+    const normalizedIdentifier = identifier.trim();
+
+    if (!normalizedIdentifier || !loginPassword) {
+      setLoginError("Enter your e-mail and password first.");
+      return;
+    }
+
+    setLoginError(null);
+    setLoginVerificationMessage(null);
+    setIsResendingVerification(true);
+
+    try {
+      const result = await model.submitEmailVerificationResend(
+        normalizedIdentifier,
+        loginPassword
+      );
+      setLoginVerificationMessage(
+        result?.alreadyVerified
+          ? "Your e-mail is already verified. You can log in now."
+          : "Verification e-mail sent. Check your inbox before logging in."
+      );
+      setCanResendVerification(!result?.alreadyVerified);
+    } catch (e) {
+      console.error(e);
+      setLoginError("Could not resend the verification e-mail. Check your credentials and try again.");
+    } finally {
+      setIsResendingVerification(false);
     }
   }
 
@@ -49,6 +92,9 @@ const AuthScreen = observer(function AuthScreen() {
 
     setLoginError(null);
     setSignupError(null);
+    setLoginVerificationMessage(null);
+    setCanResendVerification(false);
+    setSignupMessage(null);
 
     if (mode === "signin") {
       setLoginSubmitting(true);
@@ -94,9 +140,22 @@ const AuthScreen = observer(function AuthScreen() {
 
   async function signupSubmitACB() {
     setSignupError(null);
+    setSignupMessage(null);
     setSignupSubmitting(true);
     try {
-      await model.submitSignup(username, email, signupPassword);
+      const result = await model.submitSignup(username, email, signupPassword);
+
+      if (result?.requiresEmailVerification) {
+        setSignupPassword("");
+        setSignupMessage(
+          result.verificationEmailSent
+            ? "We sent a verification e-mail. Verify your address before logging in."
+            : "Account created, but the verification e-mail could not be sent. Try logging in and use resend verification e-mail."
+        );
+        setSignupSubmitting(false);
+        return;
+      }
+
       router.replace("/(tabs)");
     } catch (e) {
       console.error(e);
@@ -113,11 +172,15 @@ const AuthScreen = observer(function AuthScreen() {
           password={loginPassword}
           isSubmitting={loginSubmitting}
           error={loginError}
+          verificationMessage={loginVerificationMessage}
+          canResendVerification={canResendVerification}
+          isResendingVerification={isResendingVerification}
           onIdentifierChange={identifierChangeACB}
           onPasswordChange={loginPasswordChangeACB}
           onSubmit={loginSubmitACB}
           onSubmitGoogle={submitGoogleACB}
           onForgotPasswordPress={handleForgotPasswordPress}
+          onResendVerificationPress={resendVerificationACB}
         />
       ) : (
         <SignUpView
@@ -126,6 +189,7 @@ const AuthScreen = observer(function AuthScreen() {
           password={signupPassword}
           isSubmitting={signupSubmitting}
           error={signupError}
+          message={signupMessage}
           onUsernameChange={usernameChangeACB}
           onEmailChange={emailChangeACB}
           onPasswordChange={signupPasswordChangeACB}

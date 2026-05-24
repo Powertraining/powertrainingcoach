@@ -5,6 +5,8 @@ export {
   getReactNativePersistence,
   initializeAuth,
   onAuthStateChanged,
+  reload,
+  sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
   signInWithCredential,

@@ -16,9 +16,15 @@ import {
 import { normalizeTrainingPerformanceState } from "../utils/trainingPerformance.js";
 import { normalizeStrengthAssessmentState } from "../utils/strengthAssessment.js";
 import { normalizeTrainingCheckInState } from "../utils/trainingCheckIn.js";
+import { requiresEmailVerification } from "../utils/emailVerification.js";
+import { reload } from "../config/firebaseSdk.js";
 
 // To subscribe to the login/logout event
-import { subscribeToAuthChanges } from "./authService";
+import {
+  logout,
+  subscribeToAuthChanges,
+  syncUserEmailVerificationStatus,
+} from "./authService";
 
 export function connectToPersistance(model, sideEffectWatcherFunction) {
   model.ready = false;
@@ -181,9 +187,38 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     console.log('[firebaseModel.onAuthStateChangedACB] Auth state changed, user:', user?.uid || null);
 
     model.ready = false;
+
+    if (user && requiresEmailVerification(user)) {
+      try {
+        await reload(user);
+      } catch (error) {
+        console.warn(
+          "[firebaseModel.onAuthStateChangedACB] Could not refresh unverified user:",
+          error
+        );
+      }
+    }
+
+    if (user && requiresEmailVerification(user)) {
+      console.warn(
+        "[firebaseModel.onAuthStateChangedACB] Signing out unverified e-mail/password user."
+      );
+      model.user = null;
+      model.ready = true;
+      await logout();
+      return;
+    }
+
     model.user = user;
 
     if (user) {
+      syncUserEmailVerificationStatus(user).catch((error) => {
+        console.warn(
+          "[firebaseModel.onAuthStateChangedACB] Could not persist e-mail verification status:",
+          error
+        );
+      });
+
       try {
         const result = await getUserData(user.uid);
         if (!result?.success) {

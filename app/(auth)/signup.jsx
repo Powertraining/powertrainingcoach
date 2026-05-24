@@ -34,6 +34,7 @@ const SignUpScreen = observer(function SignUpScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const returnTo = getSafeReturnToPath(params);
 
@@ -51,10 +52,23 @@ const SignUpScreen = observer(function SignUpScreen() {
 
   async function submitACB() {
     setError(null);
+    setMessage(null);
     setIsSubmitting(true);
 
     try {
-      await model.submitSignup(username, email, password);
+      const result = await model.submitSignup(username, email, password);
+
+      if (result?.requiresEmailVerification) {
+        setPassword("");
+        setMessage(
+          result.verificationEmailSent
+            ? "We sent a verification e-mail. Verify your address before logging in."
+            : "Account created, but the verification e-mail could not be sent. Try logging in and use resend verification e-mail."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       router.replace(returnTo || "/(tabs)");
     } catch (e) {
       console.error(e);
@@ -66,6 +80,7 @@ const SignUpScreen = observer(function SignUpScreen() {
 
   async function submitGoogleACB() {
     setError(null);
+    setMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -100,6 +115,7 @@ const SignUpScreen = observer(function SignUpScreen() {
       password={password}
       isSubmitting={isSubmitting}
       error={error}
+      message={message}
       onUsernameChange={usernameChangeACB}
       onEmailChange={emailChangeACB}
       onPasswordChange={passwordChangeACB}
