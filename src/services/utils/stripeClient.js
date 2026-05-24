@@ -6,10 +6,15 @@ import { Linking } from "react-native";
 import { auth } from "../config/firebase.js";
 import { onAuthStateChanged } from "../config/firebaseSdk.js";
 import {
+  STRIPE_CANCEL_CONSULTATION_BOOKING_ENDPOINT,
   STRIPE_CHECKOUT_ENDPOINT,
+  STRIPE_CONSULTATION_CHECKOUT_ENDPOINT,
+  STRIPE_LIST_CONSULTATION_AVAILABILITY_ENDPOINT,
+  STRIPE_LIST_MY_CONSULTATION_BOOKINGS_ENDPOINT,
   STRIPE_LIST_SUBSCRIPTION_PLANS_ENDPOINT,
   STRIPE_PORTAL_ENDPOINT,
   STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT,
+  STRIPE_VERIFY_CONSULTATION_CHECKOUT_ENDPOINT,
   STRIPE_VERIFY_CHECKOUT_ENDPOINT,
 } from "../config/apiConfig.js";
 import {
@@ -185,6 +190,97 @@ export async function createCheckoutSession(lookupKey, returnTo = "") {
     };
   } catch (error) {
     console.error("Checkout error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Returns upcoming coach consultation slots.
+ * @param {object=} options - Optional slot filters
+ * @returns {Promise<object>}
+ */
+export async function listConsultationAvailability(options = {}) {
+  try {
+    return await postStripeJson(STRIPE_LIST_CONSULTATION_AVAILABILITY_ENDPOINT, {
+      startsAfter: normalizeBoundedString(options.startsAfter, 40),
+      endsBefore: normalizeBoundedString(options.endsBefore, 40),
+      coachUid: normalizeBoundedString(options.coachUid, 128),
+      limit: options.limit,
+    });
+  } catch (error) {
+    console.error("List consultation availability error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Starts Stripe Checkout for a consultation slot.
+ * @param {string} slotId - Firestore consultation slot ID
+ * @param {string=} returnTo - In-app route to return to after checkout
+ * @returns {Promise<object>}
+ */
+export async function createConsultationCheckoutSession(slotId, returnTo = "") {
+  try {
+    const data = await postStripeJson(STRIPE_CONSULTATION_CHECKOUT_ENDPOINT, {
+      slotId: normalizeBoundedString(slotId, 128),
+      returnTo: normalizeSafeReturnToPath(returnTo),
+    });
+
+    return {
+      ...data,
+      checkoutUrl: normalizeTrustedStripeUrl(data.checkoutUrl),
+    };
+  } catch (error) {
+    console.error("Consultation checkout error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Verifies a paid consultation Checkout Session.
+ * @param {string} sessionId - Stripe Checkout Session ID
+ * @returns {Promise<object>}
+ */
+export async function verifyConsultationCheckoutSession(sessionId) {
+  try {
+    return await postStripeJson(STRIPE_VERIFY_CONSULTATION_CHECKOUT_ENDPOINT, {
+      sessionId: normalizeBoundedString(sessionId, 255),
+    });
+  } catch (error) {
+    console.error("Consultation checkout verification error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Returns consultation bookings for the authenticated user.
+ * @param {object=} options - Optional booking filters
+ * @returns {Promise<object>}
+ */
+export async function listMyConsultationBookings(options = {}) {
+  try {
+    return await postStripeJson(STRIPE_LIST_MY_CONSULTATION_BOOKINGS_ENDPOINT, {
+      upcomingOnly: options.upcomingOnly,
+      limit: options.limit,
+    });
+  } catch (error) {
+    console.error("List consultation bookings error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Cancels a consultation booking and lets the server apply refund policy.
+ * @param {string} bookingId - Firestore consultation booking ID
+ * @returns {Promise<object>}
+ */
+export async function cancelConsultationBooking(bookingId) {
+  try {
+    return await postStripeJson(STRIPE_CANCEL_CONSULTATION_BOOKING_ENDPOINT, {
+      bookingId: normalizeBoundedString(bookingId, 128),
+    });
+  } catch (error) {
+    console.error("Cancel consultation booking error:", error);
     throw error;
   }
 }
