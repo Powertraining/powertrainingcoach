@@ -58,30 +58,49 @@ function getExerciseText(exercise = {}) {
 
 function getExercisePrescriptionDisplay(exercise = {}) {
   const sets = String(exercise.sets || "").trim();
-  const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, ", ");
+  const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
+  const hasSimpleSetCount = /^\d+$/.test(sets);
+  const formatWithSets = (prescription) =>
+    hasSimpleSetCount && prescription
+      ? formatPrescriptionWithSets(sets, prescription)
+      : prescription;
   const compactTimePrescription = getCompactTimePrescription(reps, exercise);
 
   if (compactTimePrescription) {
-    return compactTimePrescription;
+    return formatWithSets(compactTimePrescription);
   }
 
   const compactDistancePrescription = getCompactDistancePrescription(reps, exercise);
 
   if (compactDistancePrescription) {
-    return compactDistancePrescription;
+    return formatWithSets(compactDistancePrescription);
   }
 
-  if (/^\d+$/.test(sets) && reps) {
-    return Array.from({ length: Number.parseInt(sets, 10) }, () => reps).join(", ");
+  if (hasSimpleSetCount && reps) {
+    return `${sets}x${reps}`;
   }
 
   return reps;
 }
 
+function formatPrescriptionWithSets(sets = "", prescription = "") {
+  const normalizedPrescription = String(prescription || "").trim();
+
+  if (!/^\d+$/.test(sets) || !normalizedPrescription) {
+    return normalizedPrescription;
+  }
+
+  const hasMultiplePrescriptionParts = /\s(?:\/|\+|,)\s/.test(normalizedPrescription);
+
+  return hasMultiplePrescriptionParts
+    ? `${sets}x ${normalizedPrescription}`
+    : `${sets}x${normalizedPrescription}`;
+}
+
 function getCompactTimePrescription(value = "", exercise = {}) {
   const normalizedValue = String(value || "")
     .trim()
-    .replace(/\s*\+\s*/g, ", ");
+    .replace(/\s*\+\s*/g, " + ");
   const exerciseSearchText = getExerciseText(exercise);
   const isLikelyDistance =
     /\b\d+(?:[.,]\d+)?\s*m(?:\s*\/\s*\d+(?:[.,]\d+)?\s*ft)?\b/i.test(normalizedValue) &&
@@ -1046,7 +1065,8 @@ const styles = StyleSheet.create({
   exerciseInfoCard: {
     width: 98,
     height: 118,
-    padding: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 18,
     borderRadius: 30,
     borderWidth: 2,
     borderColor: "#1E1E1E",
@@ -1057,12 +1077,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   exerciseInfoMainText: {
-    gap: 2,
+    gap: 4,
   },
   exercisePrescription: {
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+    lineHeight: 17,
   },
   exerciseWeight: {
     color: "#fff",

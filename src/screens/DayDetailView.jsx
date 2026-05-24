@@ -1004,50 +1004,52 @@ export default function DayDetailView({
                                                                     handleTabTouchStart(event);
                                                                 }}
                                                             >
-                                                                <View style={styles.tabButtonActionIconRow}>
-                                                                    {canSwapExercise ? (
-                                                                        <TouchableOpacity
-                                                                            style={styles.tabButtonActionButton}
-                                                                            onPress={(event) => {
-                                                                                event.stopPropagation?.();
-                                                                                openSwapOptions(exerciseIndex);
-                                                                            }}
-                                                                            onTouchStart={(event) => {
-                                                                                handleTabTouchStart(event);
-                                                                            }}
-                                                                        >
-                                                                            <Text
-                                                                                style={[
-                                                                                    styles.tabButtonActionIcon,
-                                                                                    styles.tabButtonSwapActionIcon,
-                                                                                ]}
+                                                                {canSwapExercise || hasExerciseTips ? (
+                                                                    <View style={styles.tabButtonActionIconRow}>
+                                                                        {canSwapExercise ? (
+                                                                            <TouchableOpacity
+                                                                                style={styles.tabButtonActionButton}
+                                                                                onPress={(event) => {
+                                                                                    event.stopPropagation?.();
+                                                                                    openSwapOptions(exerciseIndex);
+                                                                                }}
+                                                                                onTouchStart={(event) => {
+                                                                                    handleTabTouchStart(event);
+                                                                                }}
                                                                             >
-                                                                                ⇅
-                                                                            </Text>
-                                                                        </TouchableOpacity>
-                                                                    ) : null}
-                                                                    {hasExerciseTips ? (
-                                                                        <TouchableOpacity
-                                                                            style={styles.tabButtonActionButton}
-                                                                            onPress={(event) => {
-                                                                                event.stopPropagation?.();
-                                                                                openTips(exerciseIndex);
-                                                                            }}
-                                                                            onTouchStart={(event) => {
-                                                                                handleTabTouchStart(event);
-                                                                            }}
-                                                                        >
-                                                                            <Text
-                                                                                style={[
-                                                                                    styles.tabButtonActionIcon,
-                                                                                    styles.tabButtonTipsActionIcon,
-                                                                                ]}
+                                                                                <Text
+                                                                                    style={[
+                                                                                        styles.tabButtonActionIcon,
+                                                                                        styles.tabButtonSwapActionIcon,
+                                                                                    ]}
+                                                                                >
+                                                                                    ⇅
+                                                                                </Text>
+                                                                            </TouchableOpacity>
+                                                                        ) : null}
+                                                                        {hasExerciseTips ? (
+                                                                            <TouchableOpacity
+                                                                                style={styles.tabButtonActionButton}
+                                                                                onPress={(event) => {
+                                                                                    event.stopPropagation?.();
+                                                                                    openTips(exerciseIndex);
+                                                                                }}
+                                                                                onTouchStart={(event) => {
+                                                                                    handleTabTouchStart(event);
+                                                                                }}
                                                                             >
-                                                                                ?
-                                                                            </Text>
-                                                                        </TouchableOpacity>
-                                                                    ) : null}
-                                                                </View>
+                                                                                <Text
+                                                                                    style={[
+                                                                                        styles.tabButtonActionIcon,
+                                                                                        styles.tabButtonTipsActionIcon,
+                                                                                    ]}
+                                                                                >
+                                                                                    ?
+                                                                                </Text>
+                                                                            </TouchableOpacity>
+                                                                        ) : null}
+                                                                    </View>
+                                                                ) : null}
                                                                 <TouchableOpacity
                                                                     style={styles.tabButtonForumButton}
                                                                     onPress={(event) => {
