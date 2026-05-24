@@ -249,7 +249,12 @@ export default function DateSelector({
     setSelectedYear(nextDate.year);
     setSelectedMonth(nextDate.month);
     setSelectedDay(nextDate.day);
-  }, [maxDate, parsedValue, today]);
+    const nextDateValue = formatDate(nextDate.year, nextDate.month, nextDate.day);
+
+    if (nextDateValue !== String(value).trim()) {
+      onChange?.(nextDateValue);
+    }
+  }, [maxDate, onChange, parsedValue, today, value]);
 
   useEffect(() => {
     const nextDate = clampDateToRange(

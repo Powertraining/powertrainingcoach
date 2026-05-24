@@ -907,21 +907,30 @@ export default function DayDetailView({
                     style={styles.card}
                     onPress={() => setHighlightedExerciseIndex(null)}
                 >
-                    {(adjustmentSummary || isRescheduled || isSkipped) ? (
+                    {isSkipped ? (
+                        <View style={styles.skippedStatus}>
+                            <Text style={styles.skippedStatusTitle}>Session skipped</Text>
+                            <Text style={styles.skippedStatusText}>
+                                {adjustmentSummary ||
+                                    "This slot no longer counts toward the current training week."}
+                            </Text>
+                            {rescueMode ? (
+                                <Text style={styles.skippedStatusMeta}>Mode: {rescueMode.replace(/_/g, " ")}</Text>
+                            ) : null}
+                        </View>
+                    ) : isRescheduled ? (
                         <View
                             style={[
                                 styles.adjustmentBox,
-                                isSkipped ? styles.adjustmentBoxSkipped : styles.adjustmentBoxRescue,
+                                styles.adjustmentBoxRescue,
                             ]}
                         >
                             <Text style={styles.adjustmentTitle}>
-                                {isSkipped ? "Session skipped" : isRescheduled ? "Rescheduled session" : "Plan update"}
+                                Rescheduled session
                             </Text>
                             <Text style={styles.adjustmentText}>
                                 {adjustmentSummary ||
-                                    (isRescheduled
-                                        ? "This session was moved after a missed slot."
-                                        : "This slot no longer counts toward the current training week.")}
+                                    "This session was moved after a missed slot."}
                             </Text>
                             {rescueMode ? (
                                 <Text style={styles.adjustmentMeta}>Mode: {rescueMode.replace(/_/g, " ")}</Text>
@@ -929,14 +938,7 @@ export default function DayDetailView({
                         </View>
                     ) : null}
 
-                    {normalizedExercises.length === 0 ? (
-                        <View style={styles.emptyState}>
-                            <Text style={styles.emptyStateTitle}>No active workout in this slot.</Text>
-                            <Text style={styles.emptyStateText}>
-                                This slot has already been skipped or absorbed by a later rescue decision for the week.
-                            </Text>
-                        </View>
-                    ) : (
+                    {normalizedExercises.length === 0 ? null : (
                         <>
                     <View style={styles.exerciseTabs}>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
@@ -1448,10 +1450,6 @@ const styles = StyleSheet.create({
         borderColor: '#0f766e',
         backgroundColor: '#ecfeff',
     },
-    adjustmentBoxSkipped: {
-        borderColor: '#9ca3af',
-        backgroundColor: '#f3f4f6',
-    },
     adjustmentTitle: {
         fontSize: 14,
         fontWeight: '700',
@@ -1465,6 +1463,25 @@ const styles = StyleSheet.create({
     adjustmentMeta: {
         fontSize: 12,
         color: '#4b5563',
+        textTransform: 'capitalize',
+    },
+    skippedStatus: {
+        gap: 4,
+    },
+    skippedStatusTitle: {
+        color: '#9ca3af',
+        fontSize: 12,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+    },
+    skippedStatusText: {
+        color: '#4b5563',
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    skippedStatusMeta: {
+        color: '#6b7280',
+        fontSize: 12,
         textTransform: 'capitalize',
     },
     swapEditorModalRoot: {

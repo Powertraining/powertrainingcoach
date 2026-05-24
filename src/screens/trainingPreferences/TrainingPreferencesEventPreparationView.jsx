@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -59,6 +59,11 @@ export default function TrainingPreferencesEventPreparationView({
     typeof helperBottom === "number"
       ? helperBottom + (continueButtonTop - helperBottom) / 2
       : null;
+
+  useEffect(() => {
+    setEventDate(getInitialDate(value));
+    setEventDescription(getInitialDescription(value));
+  }, [value]);
 
   function updateDate(nextDate) {
     setEventDate(nextDate);

@@ -23,6 +23,43 @@ import { subscribeToAuthChanges } from "./authService";
 export function connectToPersistance(model, sideEffectWatcherFunction) {
   model.ready = false;
 
+  function normalizePersistedTrainingPlanHistory(value = [], questionnaire = {}) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((entry = {}) => {
+        if (!entry?.plan) {
+          return null;
+        }
+
+        try {
+          return {
+            ...entry,
+            plan: sanitizeTrainingPlanForQuestionnaire(
+              parseGeneratedTrainingPlan(entry.plan),
+              questionnaire
+            ),
+            completedDays: Array.isArray(entry.completedDays)
+              ? entry.completedDays
+              : [],
+            createdAt:
+              typeof entry.createdAt === "string" ? entry.createdAt : "",
+            archivedAt:
+              typeof entry.archivedAt === "string" ? entry.archivedAt : "",
+          };
+        } catch (error) {
+          console.warn(
+            "[firebaseModel.applyPersistedUserData] Ignoring invalid archived training plan:",
+            error
+          );
+          return null;
+        }
+      })
+      .filter(Boolean);
+  }
+
   function applyPersistedUserData(data) {
     const persistedData = {
       ...createDefaultUserData(),
@@ -61,6 +98,10 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     } else {
       model.trainingPlan = null;
     }
+    model.trainingPlanHistory = normalizePersistedTrainingPlanHistory(
+      persistedData.trainingPlanHistory,
+      model.questionnaire
+    );
     model.completedDays = persistedData.completedDays ?? [];
     model.trainingPlanBatch = persistedData.trainingPlanBatch ?? 1;
     model.completedWeeks = persistedData.completedWeeks ?? 0;
@@ -108,6 +149,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.subscriptionStartDate,
       model.stripePriceLookupKey,
       model.trainingPlan,
+      model.trainingPlanHistory,
       model.completedDays,
       model.trainingPlanBatch,
       model.completedWeeks,
@@ -145,6 +187,9 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         subscriptionStartDate: model.subscriptionStartDate,
         stripePriceLookupKey: model.stripePriceLookupKey,
         trainingPlan: model.trainingPlan,
+        trainingPlanHistory: Array.isArray(model.trainingPlanHistory)
+          ? model.trainingPlanHistory
+          : [],
         completedDays: Array.from(model.completedDays || []),
         trainingPlanBatch: model.trainingPlanBatch,
         completedWeeks: model.completedWeeks,
@@ -246,6 +291,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       console.log('[firebaseModel.onAuthStateChangedACB] User logged out, resetting all user data');
       model.questionnaire = null;
       model.trainingPlan = null;
+      model.trainingPlanHistory = [];
       model.completedDays = [];
       model.trainingPlanBatch = 1;
       model.completedWeeks = 0;

@@ -36,6 +36,50 @@ function isSameCalendarDay(leftDate, rightDate) {
   );
 }
 
+function startOfLocalDay(value) {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function getPlanStartDate(plan = {}) {
+  return startOfLocalDay(plan?.createdAt || plan?.generatedAt);
+}
+
+function isDateInRange(date, startDate, endDate = null) {
+  if (!(date instanceof Date) || !(startDate instanceof Date)) {
+    return false;
+  }
+
+  return date >= startDate && (!endDate || date < endDate);
+}
+
+function getPlanWeekForDate(plan = {}, date) {
+  const weeks = Array.isArray(plan?.weeks) ? plan.weeks : [];
+  const planStartDate = getPlanStartDate(plan);
+
+  if (!weeks.length || !(date instanceof Date) || !planStartDate) {
+    return null;
+  }
+
+  const elapsedDays = Math.max(
+    0,
+    Math.floor((date - planStartDate) / (24 * 60 * 60 * 1000))
+  );
+  const firstWeekNumber = weeks[0]?.week || 1;
+  const targetWeekNumber = firstWeekNumber + Math.floor(elapsedDays / 7);
+
+  return (
+    weeks.find((week) => week.week === targetWeekNumber) ||
+    weeks[weeks.length - 1]
+  );
+}
+
 function hasStartedSessionProgress(progress = {}) {
   const completedStepKeys = Array.isArray(progress?.completedStepKeys)
     ? progress.completedStepKeys
@@ -113,6 +157,7 @@ function getSessionActionSummary(day = {}, progress = {}) {
 
 export default function ProgramOverviewView({
   plan,
+  trainingPlanHistory = [],
   onSelectDay,
   completedDays,
   pendingTrainingCheckIn,
@@ -136,6 +181,7 @@ export default function ProgramOverviewView({
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [completeConfirmVisible, setCompleteConfirmVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
+  const [selectedArchivedDay, setSelectedArchivedDay] = useState(null);
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
   const [selectedTrainingSlotKey, setSelectedTrainingSlotKey] = useState("");
   const [swapEditorVisible, setSwapEditorVisible] = useState(false);
@@ -165,11 +211,23 @@ export default function ProgramOverviewView({
       : Array.isArray(completedDays)
         ? completedDays
         : [];
+  const activeSelectedDay = selectedArchivedDay ? null : selectedDay;
+  const detailSelectedDay = selectedArchivedDay || selectedDay;
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const planStartDate = getPlanStartDate(plan);
+  const archivedPlanContexts = Array.isArray(trainingPlanHistory)
+    ? trainingPlanHistory
+        .map((entry = {}) => ({
+          ...entry,
+          startedAt: getPlanStartDate(entry.plan),
+          endedAt: startOfLocalDay(entry.archivedAt),
+        }))
+        .filter((entry) => entry.plan?.weeks?.length && entry.startedAt)
+    : [];
   const todayDateKey = today.toDateString();
   const currentDateLabel = new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -194,11 +252,32 @@ export default function ProgramOverviewView({
   const assignedFallbackTrainingDays = new Set();
   const currentWeekSchedule = rollingDates.map((date, index) => {
     const weekday = WEEKDAY_NAMES[date.getDay()];
-    let trainingDay = currentWeek?.days?.find(
+    const archivedContext = archivedPlanContexts
+      .slice()
+      .reverse()
+      .find((entry) => isDateInRange(date, entry.startedAt, entry.endedAt));
+    const sourcePlan = archivedContext?.plan || plan;
+    const sourceWeek = getPlanWeekForDate(sourcePlan, date) || currentWeek;
+    const sourceWeekNumber = sourceWeek?.week || currentWeek?.week;
+    const isBeforeCurrentPlanStart =
+      !archivedContext && planStartDate instanceof Date && date < planStartDate;
+
+    if (isBeforeCurrentPlanStart) {
+      return {
+        date,
+        dateKey: date.toDateString(),
+        weekday,
+        trainingDay: null,
+        weekNumber: null,
+        isArchived: false,
+      };
+    }
+
+    let trainingDay = sourceWeek?.days?.find(
       (day) => getTrainingDayPreferredWeekday(day) === weekday
     );
 
-    if (!trainingDay && index >= LOOKBACK_DAYS) {
+    if (!trainingDay && index >= LOOKBACK_DAYS && !archivedContext) {
       trainingDay = fallbackTrainingDays.find((day) => {
         if (assignedFallbackTrainingDays.has(day)) {
           return false;
@@ -209,23 +288,30 @@ export default function ProgramOverviewView({
       });
     }
 
-    return { date, dateKey: date.toDateString(), weekday, trainingDay };
+    return {
+      date,
+      dateKey: date.toDateString(),
+      weekday,
+      trainingDay,
+      weekNumber: sourceWeekNumber,
+      isArchived: Boolean(archivedContext),
+    };
   });
   const selectedRestSlot = selectedRestSlotKey
     ? currentWeekSchedule.find((slot) => slot.dateKey === selectedRestSlotKey)
     : null;
   const selectedTrainingSlot =
-    selectedDay && !selectedRestSlot
+    activeSelectedDay && !selectedRestSlot
       ? currentWeekSchedule.find(
           (slot) =>
             selectedTrainingSlotKey &&
             slot.dateKey === selectedTrainingSlotKey &&
-            slot.trainingDay?.day === selectedDay.day
+            slot.trainingDay?.day === activeSelectedDay.day
         ) ||
         currentWeekSchedule.find(
           (slot) =>
             isSameCalendarDay(slot.date, today) &&
-            slot.trainingDay?.day === selectedDay.day
+            slot.trainingDay?.day === activeSelectedDay.day
         )
       : null;
   const selectedTrainingSlotIsToday =
@@ -233,8 +319,8 @@ export default function ProgramOverviewView({
     isSameCalendarDay(selectedTrainingSlot.date, today);
   const selectedTrainingSlotIsFuture =
     Boolean(selectedTrainingSlot) && selectedTrainingSlot.date > today;
-  const selectedDayCompletionKey = selectedDay
-    ? `${selectedDay.week}-${selectedDay.day}`
+  const selectedDayCompletionKey = activeSelectedDay
+    ? `${activeSelectedDay.week}-${activeSelectedDay.day}`
     : "";
   const selectedDaySessionProgress = selectedDayCompletionKey
     ? getActiveSessionProgress?.(selectedDayCompletionKey)
@@ -244,12 +330,24 @@ export default function ProgramOverviewView({
   const selectedDayIsComplete =
     Boolean(selectedDayCompletionKey) &&
     completedDayEntries.includes(selectedDayCompletionKey);
+  const selectedDayIsPushedBack = activeSelectedDay?.status === "skipped";
   const showTodayTrainingActions =
-    Boolean(selectedDay) && selectedTrainingSlotIsToday && !selectedDayIsComplete;
+    Boolean(activeSelectedDay) &&
+    selectedTrainingSlotIsToday &&
+    !selectedDayIsComplete &&
+    !selectedDayIsPushedBack;
   const showFutureTrainingPushBack =
-    Boolean(selectedDay) && selectedTrainingSlotIsFuture && !selectedDayIsComplete;
+    Boolean(activeSelectedDay) &&
+    selectedTrainingSlotIsFuture &&
+    !selectedDayIsComplete &&
+    !selectedDayIsPushedBack;
   const showCompletedSessionStatus =
-    Boolean(selectedDay) && selectedDayIsComplete && !selectedRestSlot;
+    Boolean(activeSelectedDay) &&
+    selectedDayIsComplete &&
+    !selectedRestSlot &&
+    !selectedDayIsPushedBack;
+  const showPushedBackSessionStatus =
+    Boolean(activeSelectedDay) && selectedDayIsPushedBack && !selectedRestSlot;
   const showRestSessionStatus = Boolean(selectedRestSlot);
   const showFutureSessionStatus = showFutureTrainingPushBack && !showTodayTrainingActions;
   const showStartButton = showTodayTrainingActions;
@@ -260,10 +358,11 @@ export default function ProgramOverviewView({
   const showHeaderActionContent =
     showStartButton ||
     showCompletedSessionStatus ||
+    showPushedBackSessionStatus ||
     showRestSessionStatus ||
     showFutureSessionStatus;
   const sessionActionSummary = getSessionActionSummary(
-    selectedDay,
+    activeSelectedDay,
     selectedDaySessionProgress
   );
 
@@ -289,12 +388,21 @@ export default function ProgramOverviewView({
   }
 
   function handleSelectTrainingDay(weekNumber, dayNumber, dateKey) {
+    setSelectedArchivedDay(null);
     setSelectedRestSlotKey("");
     setSelectedTrainingSlotKey(dateKey);
     onSelectDay(weekNumber, dayNumber);
   }
 
+  function handleSelectArchivedTrainingDay(weekNumber, dayData = {}, dateKey) {
+    setSelectedRestSlotKey("");
+    setSelectedTrainingSlotKey(dateKey);
+    setSelectedArchivedDay(buildSessionDayPayload(dayData, weekNumber));
+    onClearSelectedDay?.();
+  }
+
   function handleSelectRestSlot(dateKey) {
+    setSelectedArchivedDay(null);
     setSelectedRestSlotKey(dateKey);
     setSelectedTrainingSlotKey("");
     onClearSelectedDay?.();
@@ -316,11 +424,11 @@ export default function ProgramOverviewView({
 
   function handleStartSession() {
     const nextTrainingDay =
-      selectedDay?.dayData ||
+      activeSelectedDay?.dayData ||
       currentWeekSchedule.find(
         (slot, index) => index >= LOOKBACK_DAYS && slot.trainingDay
       )?.trainingDay;
-    const nextWeekNumber = selectedDay?.week || currentWeek?.week;
+    const nextWeekNumber = activeSelectedDay?.week || currentWeek?.week;
 
     if (!nextTrainingDay || !nextWeekNumber) {
       return;
@@ -328,7 +436,7 @@ export default function ProgramOverviewView({
 
     onSelectDay(nextWeekNumber, nextTrainingDay.day);
     setActiveSessionDay(
-      selectedDay || buildSessionDayPayload(nextTrainingDay, nextWeekNumber)
+      activeSelectedDay || buildSessionDayPayload(nextTrainingDay, nextWeekNumber)
     );
   }
 
@@ -403,16 +511,23 @@ export default function ProgramOverviewView({
             contentOffset={{ x: WEEK_SCHEDULE_TODAY_OFFSET, y: 0 }}
             onContentSizeChange={scrollWeekScheduleToToday}
           >
-            {currentWeekSchedule.map(({ date, dateKey, weekday, trainingDay }, index) => {
+            {currentWeekSchedule.map(({ date, dateKey, weekday, trainingDay, weekNumber, isArchived }, index) => {
               const isToday = isSameCalendarDay(date, today);
+              const isSelectableCurrentTrainingDay = trainingDay && !isArchived;
               const isSelectedTrainingDay =
-                trainingDay &&
+                isSelectableCurrentTrainingDay &&
                 !selectedRestSlotKey &&
-                selectedDay?.week === currentWeek?.week &&
-                selectedDay?.day === trainingDay.day &&
+                activeSelectedDay?.week === weekNumber &&
+                activeSelectedDay?.day === trainingDay.day &&
                 (selectedTrainingSlotKey
                   ? selectedTrainingSlotKey === dateKey
                   : isToday);
+              const isSelectedArchivedDay =
+                isArchived &&
+                !selectedRestSlotKey &&
+                selectedArchivedDay?.week === weekNumber &&
+                selectedArchivedDay?.day === trainingDay?.day &&
+                selectedTrainingSlotKey === dateKey;
               const isSelectedRestDay = !trainingDay && selectedRestSlotKey === dateKey;
 
               return (
@@ -420,8 +535,10 @@ export default function ProgramOverviewView({
                   <View style={styles.weekScheduleTileSlot}>
                     <TouchableOpacity
                       onPress={() => {
-                        if (trainingDay) {
-                          handleSelectTrainingDay(currentWeek.week, trainingDay.day, dateKey);
+                        if (isSelectableCurrentTrainingDay) {
+                          handleSelectTrainingDay(weekNumber, trainingDay.day, dateKey);
+                        } else if (trainingDay && isArchived) {
+                          handleSelectArchivedTrainingDay(weekNumber, trainingDay, dateKey);
                         } else {
                           handleSelectRestSlot(dateKey);
                         }
@@ -429,8 +546,10 @@ export default function ProgramOverviewView({
                       style={[
                         styles.weekScheduleDay,
                         trainingDay && styles.weekScheduleTrainingDay,
+                        isArchived && styles.weekScheduleArchivedDay,
                         isToday && styles.weekScheduleToday,
                         isSelectedTrainingDay && styles.weekScheduleSelectedDay,
+                        isSelectedArchivedDay && styles.weekScheduleSelectedDay,
                         isSelectedRestDay && styles.weekScheduleSelectedDay,
                       ]}
                     >
@@ -484,6 +603,16 @@ export default function ProgramOverviewView({
                   </Text>
                   <StandardText lines={1} style={styles.restSessionText}>
                     Rest
+                  </StandardText>
+                </View>
+              ) : null}
+              {showPushedBackSessionStatus ? (
+                <View style={styles.restSessionContent}>
+                  <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                    This session
+                  </Text>
+                  <StandardText lines={1} style={styles.restSessionText}>
+                    Pushed back
                   </StandardText>
                 </View>
               ) : null}
@@ -584,26 +713,34 @@ export default function ProgramOverviewView({
             />
           ) : null}
 
-          {selectedDay && !selectedRestSlot ? (
+          {detailSelectedDay && !selectedRestSlot ? (
             <View style={styles.dayDetailEdgeToEdge}>
               <DayDetailView
-                week={selectedDay.week}
-                day={selectedDay.dayData}
-                exercises={selectedDay.exercises}
-                preferredWeekday={selectedDay.preferredWeekday}
-                sessionLabel={selectedDay.sessionLabel}
-                status={selectedDay.status}
-                rescueMode={selectedDay.rescueMode}
-                adjustmentSummary={selectedDay.adjustmentSummary}
-                initialPerformanceResults={selectedDayPerformanceResults}
-                initialAssessmentResults={selectedDayAssessmentResults}
+                week={detailSelectedDay.week}
+                day={detailSelectedDay.dayData}
+                exercises={detailSelectedDay.exercises}
+                preferredWeekday={detailSelectedDay.preferredWeekday}
+                sessionLabel={detailSelectedDay.sessionLabel}
+                status={detailSelectedDay.status}
+                rescueMode={detailSelectedDay.rescueMode}
+                adjustmentSummary={detailSelectedDay.adjustmentSummary}
+                initialPerformanceResults={
+                  selectedArchivedDay ? [] : selectedDayPerformanceResults
+                }
+                initialAssessmentResults={
+                  selectedArchivedDay ? [] : selectedDayAssessmentResults
+                }
                 strengthAssessmentSummary={strengthAssessmentSummary}
-                onBack={onClearSelectedDay}
-                onReplaceExercise={onReplaceExercise}
-                onFinish={onFinishDay}
-                onMissed={onMissedDay}
+                onBack={
+                  selectedArchivedDay
+                    ? () => setSelectedArchivedDay(null)
+                    : onClearSelectedDay
+                }
+                onReplaceExercise={selectedArchivedDay ? undefined : onReplaceExercise}
+                onFinish={selectedArchivedDay ? undefined : onFinishDay}
+                onMissed={selectedArchivedDay ? undefined : onMissedDay}
                 onSwapEditorVisibilityChange={setSwapEditorVisible}
-                updatingPlan={updatingPlan}
+                updatingPlan={selectedArchivedDay ? true : updatingPlan}
               />
             </View>
           ) : null}
@@ -982,6 +1119,9 @@ const styles = StyleSheet.create({
   weekScheduleTrainingDay: {
     backgroundColor: "#1E1E1E",
     borderStyle: "solid",
+  },
+  weekScheduleArchivedDay: {
+    opacity: 0.62,
   },
   weekScheduleToday: {
     backgroundColor: "#fff",

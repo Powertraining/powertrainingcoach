@@ -109,6 +109,7 @@ export const model = {
   sessionsPerWeek: 3, // Number of sessions per week from questionnaire
   
   trainingPlan: null,
+  trainingPlanHistory: [],
   // Stores completed day identifiers as ['1-1', '1-2'] for persistence
   completedDays: [],
   trainingPlanBatch: 1, // Tracks which 12-week cycle user is on (1, 2, 3, etc.)
@@ -1174,7 +1175,8 @@ export const model = {
 
     const prms = generatePlan(userInput).then((plan) => {
       if (this.trainingPlanPromiseState.promise === prms) {
-        const createdAt = plan?.createdAt || plan?.generatedAt || new Date().toISOString();
+        const createdAt = new Date().toISOString();
+        this.archiveCurrentTrainingPlan?.(createdAt);
 
         this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
           applySportLoadLevelToPlanWeek(
@@ -1200,6 +1202,26 @@ export const model = {
 
     resolvePromise(prms, this.trainingPlanPromiseState);
     return prms;
+  },
+
+  archiveCurrentTrainingPlan(archivedAt = new Date().toISOString()) {
+    if (!this.trainingPlan?.weeks?.length) {
+      return;
+    }
+
+    const previousCompletedDays = Array.isArray(this.completedDays)
+      ? this.completedDays
+      : [];
+
+    this.trainingPlanHistory = [
+      ...(Array.isArray(this.trainingPlanHistory) ? this.trainingPlanHistory : []),
+      {
+        plan: this.trainingPlan,
+        completedDays: previousCompletedDays,
+        createdAt: this.trainingPlan.createdAt || this.trainingPlan.generatedAt || "",
+        archivedAt,
+      },
+    ].slice(-8);
   },
 
   replaceTrainingPlanExercise(weekNumber, dayNumber, exerciseIndex, substitutionId) {
@@ -1532,6 +1554,7 @@ export const model = {
 
     this.completedWeeks += normalizedWeeksCompleted;
     this.trainingPlanBatch = nextTrainingPlanBatch;
+    this.archiveCurrentTrainingPlan?.();
     this.trainingPlan = null; // Clear current plan so new one can be generated
     this.completedDays = [];
     this.activeSessionProgressByKey = {};
@@ -1554,6 +1577,7 @@ export const model = {
     this.trainingPlanBatch = 1;
     this.completedWeeks = 0;
     this.trainingPlan = null;
+    this.trainingPlanHistory = [];
     this.completedDays = [];
     this.trainingPerformanceState = createDefaultTrainingPerformanceState();
     this.trainingCheckInState = createDefaultTrainingCheckInState();

@@ -292,6 +292,7 @@ export function createDefaultUserData() {
     primaryCombatSport: "",
     sessionsPerWeek: 3,
     trainingPlan: null,
+    trainingPlanHistory: [],
     completedDays: [],
     trainingPlanBatch: 1,
     completedWeeks: 0,

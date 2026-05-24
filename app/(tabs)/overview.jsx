@@ -287,6 +287,7 @@ const OverviewScreen = observer(function OverviewScreen() {
     <View style={styles.container}>
       <ProgramOverviewView
         plan={plan}
+        trainingPlanHistory={model.trainingPlanHistory}
         onSelectDay={handleSelectDay}
         completedDays={completedDays}
         pendingTrainingCheckIn={pendingTrainingCheckIn}

@@ -67,6 +67,7 @@ const FeedbackScreen = observer(function FeedbackScreen() {
       model.setFinishedWorkout?.(0);
 
       // Clear training plan to start fresh
+      model.archiveCurrentTrainingPlan?.();
       model.trainingPlan = null;
       model.completedDays = [];
 
@@ -85,6 +86,7 @@ const FeedbackScreen = observer(function FeedbackScreen() {
     model.setFinishedWorkout?.(0);
 
     // Clear training plan to start fresh
+    model.archiveCurrentTrainingPlan?.();
     model.trainingPlan = null;
     model.completedDays = [];
 
