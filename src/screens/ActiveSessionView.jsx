@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
+  Dimensions,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 import PlanSetTabs from "../components/planComponents/PlanSetTabs.jsx";
@@ -23,7 +23,7 @@ import {
 import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOneRepMaxKg } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 
-const NEXT_INPUT_KEYBOARD_GAP = 10;
+const NEXT_INPUT_KEYBOARD_GAP = 36;
 
 function getExerciseDisplayName(exercise = {}) {
   return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
@@ -618,13 +618,14 @@ function ExerciseSessionStep({
   onNext,
   onSkip,
   onDraftChange,
-  onInputFocus,
-  onInputLayout,
 }) {
-  const exerciseCardYRef = useRef(0);
-  const inputPanelYRef = useRef(0);
-  const inputRowYRef = useRef(0);
+  const focusedScrollTargetKeyRef = useRef(null);
   const inputFieldLayoutsRef = useRef({});
+  const inputPanelLayoutRef = useRef(null);
+  const inputPanelAnchorRef = useRef(null);
+  const inputPanelTranslateY = useRef(new Animated.Value(0)).current;
+  const inputRowYRef = useRef(0);
+  const keyboardTopRef = useRef(null);
   const {
     performanceTarget,
     strengthAssessment,
@@ -656,50 +657,90 @@ function ExerciseSessionStep({
 
   function handleInputFocus(inputKey) {
     const inputIndex = inputKeys.indexOf(inputKey);
-    const scrollTargetKey = inputKeys[inputIndex + 1] || inputKey;
+    focusedScrollTargetKeyRef.current = inputKeys[inputIndex + 1] || inputKey;
 
-    onInputFocus?.(scrollTargetKey);
-  }
-
-  function reportInputLayout(inputKey) {
-    const fieldLayout = inputFieldLayoutsRef.current[inputKey];
-
-    if (!fieldLayout) {
-      return;
-    }
-
-    onInputLayout?.(inputKey, {
-      height: fieldLayout.height,
-      y:
-        exerciseCardYRef.current +
-        inputPanelYRef.current +
-        inputRowYRef.current +
-        fieldLayout.y,
-    });
-  }
-
-  function handleExerciseCardLayout(event) {
-    exerciseCardYRef.current = event.nativeEvent.layout.y;
-    Object.keys(inputFieldLayoutsRef.current).forEach(reportInputLayout);
-  }
-
-  function handleInputPanelLayout(event) {
-    inputPanelYRef.current = event.nativeEvent.layout.y;
-    Object.keys(inputFieldLayoutsRef.current).forEach(reportInputLayout);
-  }
-
-  function handleInputRowLayout(event) {
-    inputRowYRef.current = event.nativeEvent.layout.y;
-    Object.keys(inputFieldLayoutsRef.current).forEach(reportInputLayout);
+    setTimeout(updateInputPanelShift, 80);
   }
 
   function handleInputFieldLayout(inputKey, event) {
     inputFieldLayoutsRef.current[inputKey] = event.nativeEvent.layout;
-    reportInputLayout(inputKey);
   }
 
+  function handleInputPanelLayout(event) {
+    inputPanelLayoutRef.current = event.nativeEvent.layout;
+  }
+
+  function animateInputPanelShift(nextShift) {
+    Animated.timing(inputPanelTranslateY, {
+      duration: 180,
+      toValue: -nextShift,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  function updateInputPanelShift() {
+    const keyboardTop = keyboardTopRef.current;
+    const targetKey = focusedScrollTargetKeyRef.current;
+    const targetLayout = targetKey ? inputFieldLayoutsRef.current[targetKey] : null;
+    const inputPanelLayout = inputPanelLayoutRef.current;
+    const inputPanelAnchor = inputPanelAnchorRef.current;
+
+    if (
+      keyboardTop == null ||
+      !targetLayout ||
+      !inputPanelLayout ||
+      !inputPanelAnchor?.measureInWindow
+    ) {
+      return;
+    }
+
+    inputPanelAnchor.measureInWindow((x, y) => {
+      const inputPanelBottom = y + inputPanelLayout.height;
+      const targetBottomInPanel =
+        inputRowYRef.current + targetLayout.y + targetLayout.height;
+      const distanceFromPanelBottomToTargetBottom =
+        inputPanelLayout.height - targetBottomInPanel;
+      const nextShift = Math.max(
+        inputPanelBottom +
+          NEXT_INPUT_KEYBOARD_GAP -
+          keyboardTop -
+          distanceFromPanelBottomToTargetBottom,
+        0
+      );
+
+      animateInputPanelShift(nextShift);
+    });
+  }
+
+  useEffect(() => {
+    const keyboardShowEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const keyboardHideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSubscription = Keyboard.addListener(keyboardShowEvent, (event) => {
+      const keyboardCoordinates = event.endCoordinates;
+      keyboardTopRef.current =
+        keyboardCoordinates?.screenY ??
+        (keyboardCoordinates?.height
+          ? Dimensions.get("window").height - keyboardCoordinates.height
+          : null);
+      setTimeout(updateInputPanelShift, 40);
+    });
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+      TextInput.State?.currentlyFocusedInput?.()?.blur?.();
+      keyboardTopRef.current = null;
+      focusedScrollTargetKeyRef.current = null;
+      animateInputPanelShift(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
   return (
-    <View style={styles.exerciseCard} onLayout={handleExerciseCardLayout}>
+    <View style={styles.exerciseCard}>
       <View style={styles.exerciseSummaryRow}>
         <View
           style={[
@@ -739,87 +780,104 @@ function ExerciseSessionStep({
       </View>
 
       {showInputs || customFields.length > 0 ? (
-        <View style={styles.inputPanel} onLayout={handleInputPanelLayout}>
-          <View style={styles.inputRow} onLayout={handleInputRowLayout}>
-            {showLoad ? (
-              <View
-                style={styles.inputField}
-                onLayout={(event) => handleInputFieldLayout("loadKg", event)}
-              >
-                <Text style={styles.inputLabel}>
-                  {strengthRequirements?.loadLabel || "Load used (kg)"}
-                </Text>
-                <TextInput
-                  value={inputDraft.loadKg}
-                  onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "loadKg", value)}
-                  onFocus={() => handleInputFocus("loadKg")}
-                  keyboardType="decimal-pad"
-                  placeholder="e.g. 150"
-                  placeholderTextColor="#A1A1AA"
-                  style={styles.input}
-                />
-              </View>
-            ) : null}
+        <View
+          ref={inputPanelAnchorRef}
+          collapsable={false}
+          style={styles.inputPanelAnchor}
+        >
+          <Animated.View
+            style={[
+              styles.inputPanel,
+              { transform: [{ translateY: inputPanelTranslateY }] },
+            ]}
+            onLayout={handleInputPanelLayout}
+          >
+            <View
+              style={styles.inputRow}
+              onLayout={(event) => {
+                inputRowYRef.current = event.nativeEvent.layout.y;
+              }}
+            >
+              {showLoad ? (
+                <View
+                  style={styles.inputField}
+                  onLayout={(event) => handleInputFieldLayout("loadKg", event)}
+                >
+                  <Text style={styles.inputLabel}>
+                    {strengthRequirements?.loadLabel || "Load used (kg)"}
+                  </Text>
+                  <TextInput
+                    value={inputDraft.loadKg}
+                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "loadKg", value)}
+                    onFocus={() => handleInputFocus("loadKg")}
+                    keyboardType="decimal-pad"
+                    placeholder="e.g. 150"
+                    placeholderTextColor="#A1A1AA"
+                    style={styles.input}
+                  />
+                </View>
+              ) : null}
 
-            {showReps ? (
-              <View
-                style={styles.inputField}
-                onLayout={(event) => handleInputFieldLayout("reps", event)}
-              >
-                <Text style={styles.inputLabel}>
-                  {strengthRequirements?.repsLabel || "Reps completed"}
-                </Text>
-                <TextInput
-                  value={inputDraft.reps}
-                  onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "reps", value)}
-                  onFocus={() => handleInputFocus("reps")}
-                  keyboardType="number-pad"
-                  placeholder={strengthAssessment ? "2-5" : "e.g. 8"}
-                  placeholderTextColor="#A1A1AA"
-                  style={styles.input}
-                />
-              </View>
-            ) : null}
+              {showReps ? (
+                <View
+                  style={styles.inputField}
+                  onLayout={(event) => handleInputFieldLayout("reps", event)}
+                >
+                  <Text style={styles.inputLabel}>
+                    {strengthRequirements?.repsLabel || "Reps completed"}
+                  </Text>
+                  <TextInput
+                    value={inputDraft.reps}
+                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "reps", value)}
+                    onFocus={() => handleInputFocus("reps")}
+                    keyboardType="number-pad"
+                    placeholder={strengthAssessment ? "2-5" : "e.g. 8"}
+                    placeholderTextColor="#A1A1AA"
+                    style={styles.input}
+                  />
+                </View>
+              ) : null}
 
-            {showRpe ? (
-              <View
-                style={styles.inputField}
-                onLayout={(event) => handleInputFieldLayout("rpe", event)}
-              >
-                <Text style={styles.inputLabel}>
-                  {strengthRequirements?.rpeLabel || "RPE"}
-                </Text>
-                <TextInput
-                  value={inputDraft.rpe}
-                  onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "rpe", value)}
-                  onFocus={() => handleInputFocus("rpe")}
-                  keyboardType="decimal-pad"
-                  placeholder="8-9"
-                  placeholderTextColor="#A1A1AA"
-                  style={styles.input}
-                />
-              </View>
-            ) : null}
+              {showRpe ? (
+                <View
+                  style={styles.inputField}
+                  onLayout={(event) => handleInputFieldLayout("rpe", event)}
+                >
+                  <Text style={styles.inputLabel}>
+                    {strengthRequirements?.rpeLabel || "RPE"}
+                  </Text>
+                  <TextInput
+                    value={inputDraft.rpe}
+                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "rpe", value)}
+                    onFocus={() => handleInputFocus("rpe")}
+                    keyboardType="decimal-pad"
+                    placeholder="8-9"
+                    placeholderTextColor="#A1A1AA"
+                    style={styles.input}
+                  />
+                </View>
+              ) : null}
 
-            {customFields.map((field) => (
-              <View
-                key={field.id}
-                style={styles.inputField}
-                onLayout={(event) => handleInputFieldLayout(field.id, event)}
-              >
-                <Text style={styles.inputLabel}>{field.label}</Text>
-                <TextInput
-                  value={inputDraft.customValues?.[field.id] || ""}
-                  onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, field.id, value, true)}
-                  onFocus={() => handleInputFocus(field.id)}
-                  keyboardType={field.keyboardType}
-                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                  placeholderTextColor="#A1A1AA"
-                  style={styles.input}
-                />
-              </View>
-            ))}
-          </View>
+              {customFields.map((field) => (
+                <View
+                  key={field.id}
+                  style={styles.inputField}
+                  onLayout={(event) => handleInputFieldLayout(field.id, event)}
+                >
+                  <Text style={styles.inputLabel}>{field.label}</Text>
+                  <TextInput
+                    value={inputDraft.customValues?.[field.id] || ""}
+                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, field.id, value, true)}
+                    onFocus={() => handleInputFocus(field.id)}
+                    keyboardType={field.keyboardType}
+                    placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                    placeholderTextColor="#A1A1AA"
+                    style={styles.input}
+                  />
+                </View>
+              ))}
+            </View>
+          </Animated.View>
         </View>
       ) : null}
 
@@ -847,10 +905,6 @@ export default function ActiveSessionView({
   onBack,
   onFinish,
 }) {
-  const sessionScrollRef = useRef(null);
-  const inputLayoutsRef = useRef({});
-  const keyboardHeightRef = useRef(0);
-  const { height: windowHeight } = useWindowDimensions();
   const normalizedExercises = useMemo(
     () =>
       Array.isArray(exercises)
@@ -937,24 +991,6 @@ export default function ActiveSessionView({
       updatedAt: new Date().toISOString(),
     });
   }, [activeExerciseIndex, activeSetIndex, completedStepKeys, trackingDrafts]);
-
-  useEffect(() => {
-    const keyboardShowEvent =
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const keyboardHideEvent =
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSubscription = Keyboard.addListener(keyboardShowEvent, (event) => {
-      keyboardHeightRef.current = event.endCoordinates?.height || 0;
-    });
-    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
-      keyboardHeightRef.current = 0;
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
 
   useEffect(() => {
     const fallbackStep = sessionSteps[0] || { exerciseIndex: 0, setIndex: 0 };
@@ -1046,111 +1082,76 @@ export default function ActiveSessionView({
     onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
   }
 
-  function handleInputLayout(inputKey, layout) {
-    inputLayoutsRef.current[inputKey] = layout;
-  }
-
-  function handleInputFocus(inputKey) {
-    setTimeout(() => {
-      const inputLayout = inputLayoutsRef.current[inputKey];
-
-      if (!inputLayout) {
-        return;
-      }
-
-      const keyboardHeight = keyboardHeightRef.current;
-      const keyboardTop = keyboardHeight > 0 ? windowHeight - keyboardHeight : windowHeight;
-      const targetBottom = inputLayout.y + inputLayout.height;
-      const nextScrollY = targetBottom + NEXT_INPUT_KEYBOARD_GAP - keyboardTop;
-
-      sessionScrollRef.current?.scrollTo({
-        animated: true,
-        y: Math.max(nextScrollY, 0),
-      });
-    }, 80);
-  }
-
   return (
     <QuestionnaireShell hideTabBar={true}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingContainer}
+      <ScrollView
+        contentContainerStyle={styles.center}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        style={styles.sessionScroll}
       >
-        <ScrollView
-          ref={sessionScrollRef}
-          contentContainerStyle={styles.center}
-          keyboardDismissMode="interactive"
-          keyboardShouldPersistTaps="handled"
-          style={styles.sessionScroll}
-        >
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={handleExitSession}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-            >
-              <Text style={styles.backButtonIcon}>←</Text>
-            </TouchableOpacity>
-            <View style={styles.headerTitleWrap}>
-              {activeExercise ? (
-                <Text style={styles.headerTitle} numberOfLines={1}>
-                  {getExerciseDisplayName(activeExercise)}
-                </Text>
-              ) : null}
-            </View>
-            {activeStep ? (
-              <View style={styles.progressRow}>
-                <Text style={styles.progressText}>
-                  {activeStep.exerciseIndex + 1} of {normalizedExercises.length}
-                </Text>
-              </View>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleExitSession}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+          >
+            <Text style={styles.backButtonIcon}>←</Text>
+          </TouchableOpacity>
+          <View style={styles.headerTitleWrap}>
+            {activeExercise ? (
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                {getExerciseDisplayName(activeExercise)}
+              </Text>
             ) : null}
           </View>
-
-          {activeExercise ? (
-            <ExerciseSessionStep
-              key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
-              exercise={activeExercise}
-              exerciseIndex={activeStep.exerciseIndex}
-              setIndex={activeStep.setIndex}
-              draft={trackingDrafts[getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)]}
-              prescribedSets={activeExerciseSetTabs}
-              completedSetIndexes={activeExerciseSetTabs
-                .filter(({ setIndex }) =>
-                  completedStepKeys.has(
-                    getStepKey(activeStep.exerciseIndex, setIndex)
-                  )
-                )
-                .map(({ setIndex }) => setIndex)}
-              onSelectSet={(setIndex) => {
-                setActiveExerciseIndex(activeStep.exerciseIndex);
-                setActiveSetIndex(setIndex);
-              }}
-              onNext={handleCompleteCurrentSet}
-              onSkip={handleSkipExercise}
-              onDraftChange={updateTrackingDraft}
-              onInputFocus={handleInputFocus}
-              onInputLayout={handleInputLayout}
-            />
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateTitle}>No exercises in this session.</Text>
-              <TouchableOpacity style={styles.nextButton} onPress={onBack}>
-                <StandardText style={styles.nextButtonText}>Back</StandardText>
-              </TouchableOpacity>
+          {activeStep ? (
+            <View style={styles.progressRow}>
+              <Text style={styles.progressText}>
+                {activeStep.exerciseIndex + 1} of {normalizedExercises.length}
+              </Text>
             </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+          ) : null}
+        </View>
+
+        {activeExercise ? (
+          <ExerciseSessionStep
+            key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
+            exercise={activeExercise}
+            exerciseIndex={activeStep.exerciseIndex}
+            setIndex={activeStep.setIndex}
+            draft={trackingDrafts[getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)]}
+            prescribedSets={activeExerciseSetTabs}
+            completedSetIndexes={activeExerciseSetTabs
+              .filter(({ setIndex }) =>
+                completedStepKeys.has(
+                  getStepKey(activeStep.exerciseIndex, setIndex)
+                )
+              )
+              .map(({ setIndex }) => setIndex)}
+            onSelectSet={(setIndex) => {
+              setActiveExerciseIndex(activeStep.exerciseIndex);
+              setActiveSetIndex(setIndex);
+            }}
+            onNext={handleCompleteCurrentSet}
+            onSkip={handleSkipExercise}
+            onDraftChange={updateTrackingDraft}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No exercises in this session.</Text>
+            <TouchableOpacity style={styles.nextButton} onPress={onBack}>
+              <StandardText style={styles.nextButtonText}>Back</StandardText>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
     </QuestionnaireShell>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoidingContainer: {
-    flex: 1,
-  },
   sessionScroll: {
     flex: 1,
   },
@@ -1264,8 +1265,10 @@ const styles = StyleSheet.create({
   setTabsBlock: {
     marginTop: 30,
   },
-  inputPanel: {
+  inputPanelAnchor: {
     marginTop: 30,
+  },
+  inputPanel: {
     gap: 10,
     padding: 14,
     borderRadius: 15,
