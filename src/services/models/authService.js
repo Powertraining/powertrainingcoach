@@ -19,6 +19,7 @@ import { clearGoogleCredentialState } from "../auth/googleIdentity";
 import { createDefaultUserData, saveUserData } from "./dbService.js";
 import {
   assertSafeFirestoreDocumentId,
+  getPasswordValidationError,
   normalizeBoundedString,
 } from "../utils/inputValidation.js";
 import { requiresEmailVerification } from "../utils/emailVerification.js";
@@ -30,7 +31,9 @@ export const USER_ROLES = {
 };
 
 const BOOTSTRAP_WAIT_MS = 3000;
-export const EMAIL_NOT_VERIFIED_ERROR = "auth/email-not-verified";
+// Keep auth failures generic so the UI does not disclose which account states exist.
+export const GENERIC_LOGIN_ERROR = "auth/invalid-login";
+export const GENERIC_SIGNUP_ERROR = "auth/signup-unavailable";
 
 async function ensureAuthPersistenceReady() {
   await authPersistenceReady;
@@ -148,7 +151,7 @@ export async function loginWithEmailPassword(email, password) {
 
     if (requiresEmailVerification(refreshedUser)) {
       await signOutIfCurrentUser(refreshedUser);
-      return { success: false, error: EMAIL_NOT_VERIFIED_ERROR };
+      return { success: false, error: GENERIC_LOGIN_ERROR };
     }
 
     await syncUserEmailVerificationStatus(refreshedUser).catch((error) => {
@@ -157,7 +160,7 @@ export async function loginWithEmailPassword(email, password) {
 
     return { success: true, user: refreshedUser };
   } catch (error) {
-    return { success: false, error: error.code };
+    return { success: false, error: GENERIC_LOGIN_ERROR };
   }
 }
 
@@ -169,6 +172,18 @@ export async function registerWithEmailPassword(
 ) {
   try {
     await ensureAuthPersistenceReady();
+    const passwordValidationError = getPasswordValidationError(password);
+
+    if (passwordValidationError) {
+      return { success: false, error: passwordValidationError };
+    }
+
+    const safeUsername = normalizeBoundedString(username, 60);
+
+    if (!safeUsername) {
+      return { success: false, error: "Username is required." };
+    }
+
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -177,14 +192,14 @@ export async function registerWithEmailPassword(
 
     // Update the user's displayName with the provided username
     await updateProfile(userCredential.user, {
-      displayName: normalizeBoundedString(username, 60),
+      displayName: safeUsername,
     });
 
     await ensureBootstrapDataEventually(
       {
         ...userCredential.user,
         email,
-        displayName: username,
+        displayName: safeUsername,
       },
       role
     );
@@ -210,7 +225,23 @@ export async function registerWithEmailPassword(
       verificationEmailError,
     };
   } catch (error) {
-    return { success: false, error: error.code };
+    if (error?.code === "auth/email-already-in-use") {
+      return {
+        success: true,
+        requiresEmailVerification: true,
+        verificationEmailSent: true,
+        genericAccepted: true,
+      };
+    }
+
+    if (
+      error?.code === "auth/invalid-email" ||
+      error?.code === "auth/missing-email"
+    ) {
+      return { success: false, error: "Enter a valid e-mail address." };
+    }
+
+    return { success: false, error: GENERIC_SIGNUP_ERROR };
   }
 }
 
@@ -236,8 +267,9 @@ export async function resendEmailVerification(email, password) {
 
     await sendVerificationEmail(signedInUser);
     return { success: true, alreadyVerified: false };
-  } catch (error) {
-    return { success: false, error: error.code || error.message };
+  } catch {
+    console.warn("Could not complete verification resend request.");
+    return { success: true, genericAccepted: true };
   } finally {
     if (signedInUser) {
       await signOutIfCurrentUser(signedInUser).catch((error) => {

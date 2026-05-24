@@ -38,6 +38,10 @@ const LoginScreen = observer(function LoginScreen() {
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const returnTo = getSafeReturnToPath(params);
+  const genericLoginError =
+    "Unable to sign in. Check your details, verification status, or reset your password.";
+  const genericVerificationMessage =
+    "If this account needs verification, a verification e-mail is on its way.";
 
   function identifierChangeACB(value) {
     setIdentifier(value);
@@ -58,12 +62,8 @@ const LoginScreen = observer(function LoginScreen() {
       router.replace(returnTo || "/(tabs)");
     } catch (e) {
       console.error(e);
-      const isUnverifiedEmail = e.message === "auth/email-not-verified";
-      const message = isUnverifiedEmail
-        ? "Please verify your e-mail address before logging in."
-        : "E-Mail or password incorrect";
-      setError(message);
-      setCanResendVerification(isUnverifiedEmail);
+      setError(genericLoginError);
+      setCanResendVerification(true);
       setIsSubmitting(false);
     }
   }
@@ -120,20 +120,16 @@ const LoginScreen = observer(function LoginScreen() {
     setIsResendingVerification(true);
 
     try {
-      const result = await model.submitEmailVerificationResend(
+      await model.submitEmailVerificationResend(
         normalizedIdentifier,
         password
       );
-      setVerificationMessage(
-        result?.alreadyVerified
-          ? "Your e-mail is already verified. You can log in now."
-          : "Verification e-mail sent. Check your inbox before logging in."
-      );
-      setCanResendVerification(!result?.alreadyVerified);
+      setVerificationMessage(genericVerificationMessage);
     } catch (e) {
       console.error(e);
-      setError("Could not resend the verification e-mail. Check your credentials and try again.");
+      setVerificationMessage(genericVerificationMessage);
     } finally {
+      setCanResendVerification(false);
       setIsResendingVerification(false);
     }
   }

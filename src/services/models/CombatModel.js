@@ -87,7 +87,10 @@ import {
   DEFAULT_TRAINING_CYCLE_WEEKS,
   resolveTrainingCycleWeeks,
 } from "../utils/trainingCycle.js";
-import { normalizeBoundedString } from "../utils/inputValidation.js";
+import {
+  getPasswordValidationError,
+  normalizeBoundedString,
+} from "../utils/inputValidation.js";
 import {
   applyTrainingCheckInAction,
   applyMissedRepPlanAdjustment,
@@ -303,6 +306,12 @@ export const model = {
 
       // 2 Update password if it is not connected with google account
       if (!isGoogleUser && password && password.length > 0) {
+        const passwordValidationError = getPasswordValidationError(password);
+
+        if (passwordValidationError) {
+          throw new Error(passwordValidationError);
+        }
+
         await updatePassword(this.user, password);
       }
     } catch (error) {

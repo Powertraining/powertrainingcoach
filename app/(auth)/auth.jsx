@@ -31,6 +31,12 @@ const AuthScreen = observer(function AuthScreen() {
   const [signupError, setSignupError] = useState(null);
   const [signupMessage, setSignupMessage] = useState(null);
   const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const genericLoginError =
+    "Unable to sign in. Check your details, verification status, or reset your password.";
+  const genericVerificationMessage =
+    "If this account needs verification, a verification e-mail is on its way.";
+  const genericSignupMessage =
+    "If this e-mail can be used for a new account, a verification e-mail will be sent. Check your inbox before logging in.";
 
   function identifierChangeACB(value) { setIdentifier(value); }
   function loginPasswordChangeACB(value) { setLoginPassword(value); }
@@ -45,13 +51,8 @@ const AuthScreen = observer(function AuthScreen() {
       router.replace("/(tabs)");
     } catch (e) {
       console.error(e);
-      const isUnverifiedEmail = e.message === "auth/email-not-verified";
-      setLoginError(
-        isUnverifiedEmail
-          ? "Please verify your e-mail address before logging in."
-          : "E-Mail or password incorrect"
-      );
-      setCanResendVerification(isUnverifiedEmail);
+      setLoginError(genericLoginError);
+      setCanResendVerification(true);
       setLoginSubmitting(false);
     }
   }
@@ -69,20 +70,16 @@ const AuthScreen = observer(function AuthScreen() {
     setIsResendingVerification(true);
 
     try {
-      const result = await model.submitEmailVerificationResend(
+      await model.submitEmailVerificationResend(
         normalizedIdentifier,
         loginPassword
       );
-      setLoginVerificationMessage(
-        result?.alreadyVerified
-          ? "Your e-mail is already verified. You can log in now."
-          : "Verification e-mail sent. Check your inbox before logging in."
-      );
-      setCanResendVerification(!result?.alreadyVerified);
+      setLoginVerificationMessage(genericVerificationMessage);
     } catch (e) {
       console.error(e);
-      setLoginError("Could not resend the verification e-mail. Check your credentials and try again.");
+      setLoginVerificationMessage(genericVerificationMessage);
     } finally {
+      setCanResendVerification(false);
       setIsResendingVerification(false);
     }
   }
@@ -147,11 +144,7 @@ const AuthScreen = observer(function AuthScreen() {
 
       if (result?.requiresEmailVerification) {
         setSignupPassword("");
-        setSignupMessage(
-          result.verificationEmailSent
-            ? "We sent a verification e-mail. Verify your address before logging in."
-            : "Account created, but the verification e-mail could not be sent. Try logging in and use resend verification e-mail."
-        );
+        setSignupMessage(genericSignupMessage);
         setSignupSubmitting(false);
         return;
       }
@@ -159,7 +152,11 @@ const AuthScreen = observer(function AuthScreen() {
       router.replace("/(tabs)");
     } catch (e) {
       console.error(e);
-      setSignupError(e.message || "Impossible to create an account.");
+      setSignupError(
+        e.message === "auth/signup-unavailable"
+          ? "Could not process sign-up right now. Please try again."
+          : e.message || "Could not process sign-up right now. Please try again."
+      );
       setSignupSubmitting(false);
     }
   }

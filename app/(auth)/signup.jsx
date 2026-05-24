@@ -37,6 +37,8 @@ const SignUpScreen = observer(function SignUpScreen() {
   const [message, setMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const returnTo = getSafeReturnToPath(params);
+  const genericSignupMessage =
+    "If this e-mail can be used for a new account, a verification e-mail will be sent. Check your inbox before logging in.";
 
   function usernameChangeACB(value) {
     setUsername(value);
@@ -60,11 +62,7 @@ const SignUpScreen = observer(function SignUpScreen() {
 
       if (result?.requiresEmailVerification) {
         setPassword("");
-        setMessage(
-          result.verificationEmailSent
-            ? "We sent a verification e-mail. Verify your address before logging in."
-            : "Account created, but the verification e-mail could not be sent. Try logging in and use resend verification e-mail."
-        );
+        setMessage(genericSignupMessage);
         setIsSubmitting(false);
         return;
       }
@@ -72,7 +70,10 @@ const SignUpScreen = observer(function SignUpScreen() {
       router.replace(returnTo || "/(tabs)");
     } catch (e) {
       console.error(e);
-      const message = e.message || "Impossible to create an account.";
+      const message =
+        e.message === "auth/signup-unavailable"
+          ? "Could not process sign-up right now. Please try again."
+          : e.message || "Could not process sign-up right now. Please try again.";
       setError(message);
       setIsSubmitting(false);
     }
