@@ -9,6 +9,26 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function hasUserRole(role) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        ).data.role == role;
+    }
+
+    function isAdminUser() {
+      return hasUserRole("admin");
+    }
+
+    function trustedAuthorRole() {
+      return isAdminUser() ? "admin" : "user";
+    }
+
+    function trustedCoachVerified() {
+      return isAdminUser();
+    }
+
     function isString(value, maxLength) {
       return value is string && value.size() <= maxLength;
     }
@@ -106,21 +126,49 @@ service cloud.firestore {
       ]);
     }
 
+    function isUnitCounterChange(field) {
+      return !request.resource.data.diff(resource.data).changedKeys().hasAny([field])
+        || request.resource.data[field] == resource.data[field] + 1
+        || request.resource.data[field] == resource.data[field] - 1;
+    }
+
     function isValidCounterUpdate() {
       return request.resource.data.authorId == resource.data.authorId
         && onlyCounterFieldsChanged()
+        && isUnitCounterChange("likesCount")
+        && isUnitCounterChange("savesCount")
+        && isUnitCounterChange("commentsCount")
         && (!request.resource.data.keys().hasAny(["likesCount"]) ||
           isNonNegativeInt(request.resource.data.likesCount))
         && (!request.resource.data.keys().hasAny(["savesCount"]) ||
           isNonNegativeInt(request.resource.data.savesCount))
         && (!request.resource.data.keys().hasAny(["commentsCount"]) ||
           isNonNegativeInt(request.resource.data.commentsCount))
-        && (!request.resource.data.keys().hasAny(["coachResponseStatus"]) ||
-          request.resource.data.coachResponseStatus in [
-            "none",
-            "requested",
-            "responded",
-          ]);
+        && (!request.resource.data.diff(resource.data).changedKeys().hasAny([
+          "coachResponseStatus",
+        ]) || (
+          isAdminUser()
+          && request.resource.data.coachResponseStatus == "responded"
+        ));
+    }
+
+    function ownerCoachResponseStatusIsValid() {
+      return !request.resource.data.diff(resource.data).changedKeys().hasAny([
+          "coachResponseStatus",
+        ])
+        || (
+          resource.data.coachResponseStatus != "responded"
+          && (
+            (
+              request.resource.data.coachResponseRequested == true
+              && request.resource.data.coachResponseStatus == "requested"
+            )
+            || (
+              request.resource.data.coachResponseRequested == false
+              && request.resource.data.coachResponseStatus == "none"
+            )
+          )
+        );
     }
 
     function hasValidForumCommentDepth() {
@@ -161,8 +209,8 @@ service cloud.firestore {
         && request.resource.data.authorId == request.auth.uid
         && isString(request.resource.data.authorDisplayName, 60)
         && isString(request.resource.data.authorAvatarUrl, 2048)
-        && isString(request.resource.data.authorRole, 40)
-        && request.resource.data.isCoachVerified is bool
+        && request.resource.data.authorRole == trustedAuthorRole()
+        && request.resource.data.isCoachVerified == trustedCoachVerified()
         && isNonEmptyString(request.resource.data.title, 140)
         && isString(request.resource.data.body, 5000)
         && isString(request.resource.data.topic, 40)
@@ -179,8 +227,10 @@ service cloud.firestore {
           "responded",
         ]
         && request.resource.data.featured is bool
+        && (!request.resource.data.featured || isAdminUser())
         && isNonNegativeInt(request.resource.data.priorityScore)
         && request.resource.data.priorityScore <= 100
+        && (request.resource.data.priorityScore == 0 || isAdminUser())
         && request.resource.data.likesCount == 0
         && request.resource.data.savesCount == 0
         && request.resource.data.commentsCount == 0
@@ -228,8 +278,8 @@ service cloud.firestore {
           request.resource.data.coachResponseStatus in [
             "none",
             "requested",
-            "responded",
           ])
+        && ownerCoachResponseStatusIsValid()
         && (!request.resource.data.keys().hasAny(["searchIndex"]) ||
           (request.resource.data.searchIndex is list &&
             request.resource.data.searchIndex.size() <= 30));
@@ -255,8 +305,8 @@ service cloud.firestore {
         && request.resource.data.postId == postId
         && isString(request.resource.data.authorDisplayName, 60)
         && isString(request.resource.data.authorAvatarUrl, 2048)
-        && isString(request.resource.data.authorRole, 40)
-        && request.resource.data.isCoachVerified is bool
+        && request.resource.data.authorRole == trustedAuthorRole()
+        && request.resource.data.isCoachVerified == trustedCoachVerified()
         && isNonEmptyString(request.resource.data.body, 2000)
         && isString(request.resource.data.parentCommentId, 128)
         && isString(request.resource.data.rootCommentId, 128)

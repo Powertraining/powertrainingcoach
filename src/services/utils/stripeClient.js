@@ -18,6 +18,40 @@ import {
 } from "./inputValidation.js";
 
 const AUTH_WAIT_TIMEOUT_MS = 4000;
+const TRUSTED_STRIPE_HOSTS = new Set([
+  "billing.stripe.com",
+  "checkout.stripe.com",
+]);
+
+export function normalizeTrustedStripeUrl(value) {
+  const normalizedValue = normalizeBoundedString(value, 2048);
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  try {
+    const url = new URL(normalizedValue);
+
+    if (url.protocol !== "https:" || !TRUSTED_STRIPE_HOSTS.has(url.hostname)) {
+      return "";
+    }
+
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
+export async function openTrustedStripeUrl(value) {
+  const trustedUrl = normalizeTrustedStripeUrl(value);
+
+  if (!trustedUrl) {
+    throw new Error("The billing service returned an unexpected payment URL.");
+  }
+
+  await Linking.openURL(trustedUrl);
+}
 
 function waitForAuthenticatedUser(timeoutMs = AUTH_WAIT_TIMEOUT_MS) {
   if (auth.currentUser) {
@@ -140,10 +174,15 @@ async function postStripeJson(url, body) {
  */
 export async function createCheckoutSession(lookupKey, returnTo = "") {
   try {
-    return await postStripeJson(STRIPE_CHECKOUT_ENDPOINT, {
+    const data = await postStripeJson(STRIPE_CHECKOUT_ENDPOINT, {
       lookupKey: normalizeBoundedString(lookupKey, 80),
       returnTo: normalizeSafeReturnToPath(returnTo),
     });
+
+    return {
+      ...data,
+      checkoutUrl: normalizeTrustedStripeUrl(data.checkoutUrl),
+    };
   } catch (error) {
     console.error("Checkout error:", error);
     throw error;
@@ -195,7 +234,7 @@ export async function refreshSubscriptionStatus() {
 
 /**
  * Creates a billing portal session for managing subscriptions
- * @param {string|object} sessionOrOptions - The Checkout session ID or portal identifiers
+ * @param {string|object} sessionOrOptions - The Checkout session ID or options
  * @returns {Promise<object>} Opens Stripe Billing Portal
  */
 export async function createPortalSession(sessionOrOptions) {
@@ -205,7 +244,6 @@ export async function createPortalSession(sessionOrOptions) {
       (sessionOrOptions || {});
     const sanitizedPayload = {
       sessionId: normalizeBoundedString(payload.sessionId, 255),
-      customerId: normalizeBoundedString(payload.customerId, 80),
     };
 
     const data = await postStripeJson(STRIPE_PORTAL_ENDPOINT, sanitizedPayload);
@@ -214,7 +252,7 @@ export async function createPortalSession(sessionOrOptions) {
       throw new Error("No portal URL returned from server");
     }
 
-    await Linking.openURL(data.url);
+    await openTrustedStripeUrl(data.url);
     return data;
   } catch (error) {
     console.error("Portal error:", error);

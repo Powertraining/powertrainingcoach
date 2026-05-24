@@ -1,10 +1,10 @@
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import { createPortalSession } from '../services/utils/stripeClient.js';
 
-export default function PaymentSuccessView({ customerId, sessionId, onContinue }) {
+export default function PaymentSuccessView({ sessionId, onContinue }) {
   const handleManageBilling = async () => {
     try {
-      await createPortalSession({ customerId, sessionId });
+      await createPortalSession({ sessionId });
     } catch (error) {
       Alert.alert("Error", error.message);
     }

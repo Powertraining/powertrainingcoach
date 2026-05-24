@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +16,7 @@ import MembershipPlanOption from "../components/subscriptionComponents/Membershi
 import {
   createCheckoutSession,
   listSubscriptionPlans,
+  openTrustedStripeUrl,
 } from "../services/utils/stripeClient.js";
 
 const PLAN_OPTIONS = [
@@ -253,7 +253,7 @@ export default function SubscriptionPlanView({
         checkoutSessionId: checkoutData.sessionId,
       });
 
-      await Linking.openURL(checkoutData.checkoutUrl);
+      await openTrustedStripeUrl(checkoutData.checkoutUrl);
     } catch (err) {
       setError(err.message || "Failed to start checkout. Please try again.");
     } finally {

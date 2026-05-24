@@ -34,7 +34,6 @@ const {
   normalizeInteger,
   normalizeSafeReturnToPath,
   normalizeStripeCheckoutSessionId,
-  normalizeStripeCustomerId,
   requirePlainObject,
 } = require("./inputValidation");
 
@@ -2922,13 +2921,7 @@ exports.refreshSubscriptionStatus = functions.https.onRequest(
 exports.createPortalSession = functions.https.onRequest(
     {invoker: "public", secrets: [stripeSecretKeyParam]},
     async (req, res) => {
-      // Enable CORS
-      res.set("Access-Control-Allow-Origin", "*");
-      res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.set(
-          "Access-Control-Allow-Headers",
-          "Content-Type, Authorization",
-      );
+      setCorsHeaders(res);
 
       if (req.method === "OPTIONS") {
         res.status(204).send("");
@@ -2951,41 +2944,35 @@ exports.createPortalSession = functions.https.onRequest(
         const sessionId = requestBody.sessionId ?
           normalizeStripeCheckoutSessionId(requestBody.sessionId) :
           "";
-        const customerId = requestBody.customerId ?
-          normalizeStripeCustomerId(requestBody.customerId) :
-          "";
-        const firebaseUID = normalizeFirestoreDocumentId(
-            authUser.uid,
-            "firebaseUID",
-        );
-        const userRef = getUsersCollection().doc(firebaseUID);
-        const userSnap = await userRef.get();
-        const storedCustomerId = userSnap.exists ?
-          userSnap.data().stripeCustomerId :
-          null;
 
-        let resolvedCustomerId = customerId || storedCustomerId;
-
-        if (!resolvedCustomerId && sessionId) {
+        if (sessionId) {
           const checkoutSession =
             await stripeClient.checkout.sessions.retrieve(sessionId);
-          resolvedCustomerId = checkoutSession.customer;
+          const resolvedFirebaseUID = checkoutSession.client_reference_id ||
+            getObjectMetadataValue(checkoutSession, "firebaseUID") ||
+            await resolveFirebaseUidForCustomer({
+              stripeClient,
+              customerId: checkoutSession.customer,
+            });
+
+          if (resolvedFirebaseUID !== authUser.uid) {
+            return res.status(403).json({
+              error: "Checkout session does not belong to this user",
+            });
+          }
         }
 
-        if (!resolvedCustomerId) {
-          return res.status(400).json({
-            error: "Missing customer identifier for billing portal",
-          });
-        }
-
-        if (storedCustomerId && resolvedCustomerId !== storedCustomerId) {
-          return res.status(403).json({error: "Customer does not match user"});
-        }
+        // Never trust client-supplied Stripe customer IDs. Resolve or create
+        // the customer from the verified Firebase user before opening portal.
+        const customer = await getOrCreateStripeCustomer({
+          stripeClient,
+          authUser,
+        });
 
         // Create billing portal session
         const portalSession =
           await stripeClient.billingPortal.sessions.create({
-            customer: resolvedCustomerId,
+            customer: customer.id,
             return_url: BILLING_PORTAL_RETURN_URL,
           });
 
