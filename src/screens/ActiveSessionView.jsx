@@ -24,6 +24,9 @@ import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOn
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 
 const NEXT_INPUT_KEYBOARD_GAP = 36;
+const INPUT_PANEL_ANIMATION_DURATION = 180;
+const INPUT_FOCUS_SHIFT_DELAY_MS = 80;
+const KEYBOARD_SHOW_SHIFT_DELAY_MS = 40;
 const SESSION_HORIZONTAL_PADDING = 24;
 
 function getExerciseDisplayName(exercise = {}) {
@@ -624,10 +627,10 @@ function ExerciseSessionStep({
   const inputFieldLayoutsRef = useRef({});
   const inputPanelLayoutRef = useRef(null);
   const inputPanelAnchorRef = useRef(null);
+  const inputPanelExpansion = useRef(new Animated.Value(0)).current;
   const inputPanelTranslateY = useRef(new Animated.Value(0)).current;
   const inputRowYRef = useRef(0);
   const keyboardTopRef = useRef(null);
-  const [isInputPanelExpanded, setIsInputPanelExpanded] = useState(false);
   const {
     performanceTarget,
     strengthAssessment,
@@ -657,12 +660,25 @@ function ExerciseSessionStep({
     ...customFields.map((field) => field.id),
   ].filter(Boolean);
 
-  function handleInputFocus(inputKey) {
+  function getInputKeyBelow(inputKey) {
     const inputIndex = inputKeys.indexOf(inputKey);
-    focusedScrollTargetKeyRef.current = inputKeys[inputIndex + 1] || inputKey;
-    setIsInputPanelExpanded(true);
+    return inputKeys[inputIndex + 1] || inputKey;
+  }
 
-    setTimeout(updateInputPanelShift, 80);
+  function getKeyboardTop(keyboardCoordinates) {
+    return (
+      keyboardCoordinates?.screenY ??
+      (keyboardCoordinates?.height
+        ? Dimensions.get("window").height - keyboardCoordinates.height
+        : null)
+    );
+  }
+
+  function handleInputFocus(inputKey) {
+    focusedScrollTargetKeyRef.current = getInputKeyBelow(inputKey);
+    animateInputPanelExpansion(1);
+
+    setTimeout(updateInputPanelShift, INPUT_FOCUS_SHIFT_DELAY_MS);
   }
 
   function handleInputFieldLayout(inputKey, event) {
@@ -675,10 +691,34 @@ function ExerciseSessionStep({
 
   function animateInputPanelShift(nextShift) {
     Animated.timing(inputPanelTranslateY, {
-      duration: 180,
+      duration: INPUT_PANEL_ANIMATION_DURATION,
       toValue: -nextShift,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
+  }
+
+  function animateInputPanelExpansion(nextValue) {
+    Animated.timing(inputPanelExpansion, {
+      duration: INPUT_PANEL_ANIMATION_DURATION,
+      toValue: nextValue,
+      useNativeDriver: false,
+    }).start();
+  }
+
+  function resetInputPanel() {
+    TextInput.State?.currentlyFocusedInput?.()?.blur?.();
+    keyboardTopRef.current = null;
+    focusedScrollTargetKeyRef.current = null;
+    animateInputPanelExpansion(0);
+    animateInputPanelShift(0);
+  }
+
+  function handleInputBlur() {
+    setTimeout(() => {
+      if (!TextInput.State?.currentlyFocusedInput?.()) {
+        resetInputPanel();
+      }
+    }, 0);
   }
 
   function updateInputPanelShift() {
@@ -718,30 +758,42 @@ function ExerciseSessionStep({
   useEffect(() => {
     const keyboardShowEvent =
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const keyboardHideEvent =
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
     const showSubscription = Keyboard.addListener(keyboardShowEvent, (event) => {
-      const keyboardCoordinates = event.endCoordinates;
-      keyboardTopRef.current =
-        keyboardCoordinates?.screenY ??
-        (keyboardCoordinates?.height
-          ? Dimensions.get("window").height - keyboardCoordinates.height
-          : null);
-      setTimeout(updateInputPanelShift, 40);
+      keyboardTopRef.current = getKeyboardTop(event.endCoordinates);
+      setTimeout(updateInputPanelShift, KEYBOARD_SHOW_SHIFT_DELAY_MS);
     });
-    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
-      TextInput.State?.currentlyFocusedInput?.()?.blur?.();
-      setIsInputPanelExpanded(false);
-      keyboardTopRef.current = null;
-      focusedScrollTargetKeyRef.current = null;
-      animateInputPanelShift(0);
-    });
+    const hideSubscriptions = [
+      Keyboard.addListener("keyboardDidHide", resetInputPanel),
+    ];
+
+    if (Platform.OS === "ios") {
+      hideSubscriptions.push(Keyboard.addListener("keyboardWillHide", resetInputPanel));
+    }
 
     return () => {
       showSubscription.remove();
-      hideSubscription.remove();
+      hideSubscriptions.forEach((subscription) => subscription.remove());
     };
   }, []);
+
+  const inputPanelAnimatedStyle = {
+    borderBottomLeftRadius: inputPanelExpansion.interpolate({
+      inputRange: [0, 1],
+      outputRange: [15, 0],
+    }),
+    borderBottomRightRadius: inputPanelExpansion.interpolate({
+      inputRange: [0, 1],
+      outputRange: [15, 0],
+    }),
+    marginHorizontal: inputPanelExpansion.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, -SESSION_HORIZONTAL_PADDING],
+    }),
+    paddingHorizontal: inputPanelExpansion.interpolate({
+      inputRange: [0, 1],
+      outputRange: [14, SESSION_HORIZONTAL_PADDING + 14],
+    }),
+  };
 
   return (
     <View style={styles.exerciseCard}>
@@ -792,7 +844,7 @@ function ExerciseSessionStep({
           <Animated.View
             style={[
               styles.inputPanel,
-              isInputPanelExpanded ? styles.inputPanelExpanded : null,
+              inputPanelAnimatedStyle,
               { transform: [{ translateY: inputPanelTranslateY }] },
             ]}
             onLayout={handleInputPanelLayout}
@@ -814,6 +866,7 @@ function ExerciseSessionStep({
                   <TextInput
                     value={inputDraft.loadKg}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "loadKg", value)}
+                    onBlur={handleInputBlur}
                     onFocus={() => handleInputFocus("loadKg")}
                     keyboardType="decimal-pad"
                     placeholder="e.g. 150"
@@ -834,6 +887,7 @@ function ExerciseSessionStep({
                   <TextInput
                     value={inputDraft.reps}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "reps", value)}
+                    onBlur={handleInputBlur}
                     onFocus={() => handleInputFocus("reps")}
                     keyboardType="number-pad"
                     placeholder={strengthAssessment ? "2-5" : "e.g. 8"}
@@ -854,6 +908,7 @@ function ExerciseSessionStep({
                   <TextInput
                     value={inputDraft.rpe}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "rpe", value)}
+                    onBlur={handleInputBlur}
                     onFocus={() => handleInputFocus("rpe")}
                     keyboardType="decimal-pad"
                     placeholder="8-9"
@@ -873,6 +928,7 @@ function ExerciseSessionStep({
                   <TextInput
                     value={inputDraft.customValues?.[field.id] || ""}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, field.id, value, true)}
+                    onBlur={handleInputBlur}
                     onFocus={() => handleInputFocus(field.id)}
                     keyboardType={field.keyboardType}
                     placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
@@ -1278,12 +1334,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 15,
     backgroundColor: "#101010",
-  },
-  inputPanelExpanded: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    marginHorizontal: -SESSION_HORIZONTAL_PADDING,
-    paddingHorizontal: SESSION_HORIZONTAL_PADDING + 14,
   },
   inputRow: {
     flexDirection: "row",
