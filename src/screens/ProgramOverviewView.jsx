@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Image, Text, View, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { Image, Text, View, TouchableOpacity, ScrollView, StyleSheet, Pressable } from "react-native";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
@@ -26,6 +26,13 @@ import {
 const WEEK_SCHEDULE_ITEM_WIDTH = 56;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
+const SKELETON_WEEK_SLOTS = Object.freeze(Array.from({ length: 8 }));
+const SKELETON_DAY_CONTAINERS = Object.freeze([
+  { height: 92 },
+  { height: 150 },
+  { height: 150 },
+  { height: 118 },
+]);
 
 function startOfLocalDay(value) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
@@ -146,6 +153,93 @@ function getSessionActionSummary(day = {}, progress = {}) {
   };
 }
 
+function SkeletonBlock({ style }) {
+  return <View style={[styles.skeletonBlock, style]} />;
+}
+
+function SkeletonDayDetailPreview() {
+  return (
+    <View style={styles.skeletonDayDetailCard}>
+      {SKELETON_DAY_CONTAINERS.map((container, index) => (
+        <SkeletonBlock
+          key={`skeleton-day-container-${index}`}
+          style={[
+            styles.skeletonDayContainer,
+            { height: container.height },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ProgramOverviewSkeleton() {
+  return (
+    <QuestionnaireShell hideTabBar={false}>
+      <View style={styles.skeletonLockedRoot}>
+        <ScrollView
+          style={styles.skeletonLockedContent}
+          contentContainerStyle={styles.center}
+        >
+          <View style={styles.header}>
+            <View style={styles.skeletonHeaderCopy}>
+              <SkeletonBlock style={styles.skeletonDateLine} />
+              <SkeletonBlock style={styles.skeletonPhaseLine} />
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.weekScheduleScroller}
+              contentContainerStyle={styles.weekSchedule}
+              contentOffset={{ x: WEEK_SCHEDULE_TODAY_OFFSET, y: 0 }}
+            >
+              {SKELETON_WEEK_SLOTS.map((_, index) => (
+                <View key={`skeleton-week-slot-${index}`} style={styles.weekScheduleItem}>
+                  <View style={styles.weekScheduleTileSlot}>
+                    <View
+                      style={[
+                        styles.weekScheduleDay,
+                        styles.skeletonWeekTile,
+                      ]}
+                    />
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+
+            <SkeletonBlock style={[styles.headerActionPanel, styles.skeletonActionPanel]} />
+
+            <View style={styles.dayDetailEdgeToEdge}>
+              <SkeletonDayDetailPreview />
+            </View>
+
+            <View style={styles.programDetailsFooter}>
+              <SkeletonBlock style={styles.skeletonFooterLink} />
+            </View>
+          </View>
+        </ScrollView>
+        <Pressable
+          accessible={false}
+          onMoveShouldSetResponder={() => true}
+          onPress={() => {}}
+          onStartShouldSetResponder={() => true}
+          style={styles.skeletonInteractionBlocker}
+        >
+          <View style={styles.skeletonMessageCard}>
+            <StandardText style={styles.skeletonMessageTitle}>
+              No program yet.
+            </StandardText>
+            <StandardText style={styles.skeletonMessageText}>
+              Generate a plan to see your weekly breakdown.
+            </StandardText>
+          </View>
+        </Pressable>
+      </View>
+    </QuestionnaireShell>
+  );
+}
+
 export default function ProgramOverviewView({
   plan,
   trainingPlanHistory = [],
@@ -180,20 +274,7 @@ export default function ProgramOverviewView({
   const lastWeekScheduleScrollDateRef = useRef("");
 
   if (!plan) {
-    return (
-      <QuestionnaireShell hideTabBar={false}>
-        <View style={styles.center}>
-          <View style={styles.card}>
-            <StandardText style={styles.title} textColor="#111">
-              No program yet.
-            </StandardText>
-            <StandardText style={styles.subtitle} textColor="#111">
-              Generate a plan to see your weekly breakdown.
-            </StandardText>
-          </View>
-        </View>
-      </QuestionnaireShell>
-    );
+    return <ProgramOverviewSkeleton />;
   }
 
   const completedDayEntries =
@@ -1132,5 +1213,85 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
+  },
+  skeletonBlock: {
+    backgroundColor: "#242424",
+    borderColor: "#353535",
+    borderWidth: 1,
+    opacity: 0.88,
+  },
+  skeletonLockedRoot: {
+    flex: 1,
+    position: "relative",
+  },
+  skeletonLockedContent: {
+    filter: [{ blur: 3 }],
+  },
+  skeletonInteractionBlocker: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.58)",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+    zIndex: 10,
+  },
+  skeletonMessageCard: {
+    alignItems: "center",
+    gap: 10,
+    maxWidth: 340,
+  },
+  skeletonMessageTitle: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "700",
+    lineHeight: 34,
+    textAlign: "center",
+  },
+  skeletonMessageText: {
+    color: "#C9B259",
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: "center",
+  },
+  skeletonHeaderCopy: {
+    gap: 8,
+  },
+  skeletonDateLine: {
+    borderRadius: 8,
+    height: 30,
+    width: 210,
+  },
+  skeletonPhaseLine: {
+    borderRadius: 7,
+    height: 20,
+    width: 142,
+  },
+  skeletonWeekTile: {
+    backgroundColor: "#242424",
+    borderWidth: 0,
+  },
+  skeletonActionPanel: {
+    backgroundColor: "#242424",
+    borderRadius: 0,
+    marginTop: 56,
+    minHeight: 124,
+    paddingVertical: 0,
+  },
+  skeletonDayDetailCard: {
+    alignSelf: "stretch",
+    gap: 14,
+    paddingHorizontal: 28,
+    paddingTop: 18,
+    paddingBottom: 28,
+  },
+  skeletonDayContainer: {
+    borderColor: "#262626",
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  skeletonFooterLink: {
+    borderRadius: 6,
+    height: 15,
+    width: 112,
   },
 });
