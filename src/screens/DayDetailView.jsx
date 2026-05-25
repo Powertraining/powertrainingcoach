@@ -258,6 +258,17 @@ function formatPrescriptionWithSets(sets = "", prescription = "") {
 
 function getExercisePrescriptionDisplay(exercise = {}) {
     const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
+    const endurancePrescription = safeExercise.endurancePrescription || {};
+    if (endurancePrescription.work || endurancePrescription.rest) {
+        return [endurancePrescription.work, endurancePrescription.rest]
+            .filter(Boolean)
+            .join(" / ");
+    }
+
+    if (endurancePrescription.durationMinutes) {
+        return `${endurancePrescription.durationMinutes} min`;
+    }
+
     const sets = String(safeExercise.sets || "").trim();
     const reps = String(safeExercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
     const hasSimpleSetCount = /^\d+$/.test(sets);
@@ -291,6 +302,63 @@ function getExercisePrescriptionDisplay(exercise = {}) {
     }
 
     return reps;
+}
+
+function formatEnduranceToken(value = "") {
+    return String(value || "")
+        .replace(/_/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function getEndurancePrescriptionDetails(exercise = {}) {
+    const endurancePrescription = exercise.endurancePrescription || {};
+    const circuitPrescription = exercise.circuitPrescription || {};
+    const heavyBagPrescription = exercise.heavyBagPrescription || {};
+    const sprintPrescription = exercise.sprintPrescription || {};
+    const details = [];
+
+    if (endurancePrescription.modality) {
+        details.push(formatEnduranceToken(endurancePrescription.modality));
+    }
+
+    if (endurancePrescription.format) {
+        details.push(formatEnduranceToken(endurancePrescription.format));
+    }
+
+    if (endurancePrescription.intensity) {
+        details.push(endurancePrescription.intensity);
+    }
+
+    if (endurancePrescription.workRestRatio) {
+        details.push(`Work:rest ${endurancePrescription.workRestRatio}`);
+    }
+
+    if (circuitPrescription.primaryTarget) {
+        details.push(`Target ${formatEnduranceToken(circuitPrescription.primaryTarget)}`);
+    }
+
+    if (circuitPrescription.targetAreaEmphasis) {
+        details.push(circuitPrescription.targetAreaEmphasis);
+    }
+
+    if (heavyBagPrescription.target) {
+        details.push(formatEnduranceToken(heavyBagPrescription.target));
+    }
+
+    if (heavyBagPrescription.overloadConstraint) {
+        details.push(`Overload ${heavyBagPrescription.overloadConstraint}`);
+    }
+
+    if (sprintPrescription.target) {
+        details.push(formatEnduranceToken(sprintPrescription.target));
+    }
+
+    if (sprintPrescription.stopRule) {
+        details.push(sprintPrescription.stopRule);
+    }
+
+    return details.filter(Boolean).join(" * ");
 }
 
 function formatCompactNumberUnit(value, unit = "") {
@@ -453,6 +521,7 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
     const percentagePrescription = getExercisePercentagePrescription(exercise);
     const primaryWorkingSet = getPrimaryPercentageWorkingSet(percentagePrescription);
     const notesDetails = getNotesIntensityDetails(exercise);
+    const enduranceDetails = getEndurancePrescriptionDetails(exercise);
 
     if (primaryWorkingSet) {
         const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
@@ -468,6 +537,7 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
         const detailParts = [
             primaryWorkingSet.percent1RM ? `${primaryWorkingSet.percent1RM}% 1RM` : "",
             primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
+            enduranceDetails,
             notesDetails,
         ].filter(Boolean);
 
@@ -481,7 +551,7 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
         primary:
             getExplicitLoadOrSpeedValue(exercise) ||
             getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
-        details: notesDetails,
+        details: [enduranceDetails, notesDetails].filter(Boolean).join(" * "),
     };
 }
 

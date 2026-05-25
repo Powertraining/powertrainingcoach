@@ -890,7 +890,7 @@ function ExerciseSessionStep({
                     onBlur={handleInputBlur}
                     onFocus={() => handleInputFocus("reps")}
                     keyboardType="number-pad"
-                    placeholder={strengthAssessment ? "2-5" : "e.g. 8"}
+                    placeholder={strengthRequirements?.repsPlaceholder || (strengthAssessment ? "2-5" : "e.g. 8")}
                     placeholderTextColor="#A1A1AA"
                     style={styles.input}
                   />
@@ -911,7 +911,7 @@ function ExerciseSessionStep({
                     onBlur={handleInputBlur}
                     onFocus={() => handleInputFocus("rpe")}
                     keyboardType="decimal-pad"
-                    placeholder="8-9"
+                    placeholder={strengthRequirements?.rpePlaceholder || "8-9"}
                     placeholderTextColor="#A1A1AA"
                     style={styles.input}
                   />

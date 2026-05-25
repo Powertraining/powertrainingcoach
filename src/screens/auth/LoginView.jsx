@@ -41,6 +41,22 @@ export function LoginView(props) {
       </TouchableOpacity>
 
       {props.error ? <StandardText center={true}>{props.error}</StandardText> : null}
+      {props.verificationMessage ? (
+        <StandardText center={true}>{props.verificationMessage}</StandardText>
+      ) : null}
+      {props.canResendVerification ? (
+        <TouchableOpacity
+          style={styles.resendVerificationButton}
+          onPress={props.onResendVerificationPress}
+          disabled={props.isSubmitting || props.isResendingVerification}
+        >
+          <StandardText center={true}>
+            {props.isResendingVerification
+              ? "Sending verification e-mail..."
+              : "Resend verification e-mail"}
+          </StandardText>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
@@ -48,6 +64,11 @@ export function LoginView(props) {
 const styles = StyleSheet.create({
   forgotPasswordButton: {
     width: "100%",
+    marginBottom: 15,
+  },
+  resendVerificationButton: {
+    width: "100%",
+    marginTop: 4,
     marginBottom: 15,
   },
 });

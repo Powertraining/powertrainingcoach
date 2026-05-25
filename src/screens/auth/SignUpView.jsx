@@ -43,6 +43,9 @@ export function SignUpView(props) {
         disabled={props.isSubmitting}
       />
 
+      {props.message ? (
+        <StandardText center={true}>{props.message}</StandardText>
+      ) : null}
       {props.error && <StandardText center={true}>{props.error}</StandardText>}
     </View>
   );

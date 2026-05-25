@@ -34,8 +34,11 @@ const SignUpScreen = observer(function SignUpScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const returnTo = getSafeReturnToPath(params);
+  const genericSignupMessage =
+    "If this e-mail can be used for a new account, a verification e-mail will be sent. Check your inbox before logging in.";
 
   function usernameChangeACB(value) {
     setUsername(value);
@@ -51,14 +54,26 @@ const SignUpScreen = observer(function SignUpScreen() {
 
   async function submitACB() {
     setError(null);
+    setMessage(null);
     setIsSubmitting(true);
 
     try {
-      await model.submitSignup(username, email, password);
+      const result = await model.submitSignup(username, email, password);
+
+      if (result?.requiresEmailVerification) {
+        setPassword("");
+        setMessage(genericSignupMessage);
+        setIsSubmitting(false);
+        return;
+      }
+
       router.replace(returnTo || "/(tabs)");
     } catch (e) {
       console.error(e);
-      const message = e.message || "Impossible to create an account.";
+      const message =
+        e.message === "auth/signup-unavailable"
+          ? "Could not process sign-up right now. Please try again."
+          : e.message || "Could not process sign-up right now. Please try again.";
       setError(message);
       setIsSubmitting(false);
     }
@@ -66,6 +81,7 @@ const SignUpScreen = observer(function SignUpScreen() {
 
   async function submitGoogleACB() {
     setError(null);
+    setMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -100,6 +116,7 @@ const SignUpScreen = observer(function SignUpScreen() {
       password={password}
       isSubmitting={isSubmitting}
       error={error}
+      message={message}
       onUsernameChange={usernameChangeACB}
       onEmailChange={emailChangeACB}
       onPasswordChange={passwordChangeACB}

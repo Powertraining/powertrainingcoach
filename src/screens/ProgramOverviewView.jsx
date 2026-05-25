@@ -7,34 +7,25 @@ import DayDetailView from "./DayDetailView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
 import checkIcon from "../assets/icons/check.png";
+import { getWeekdayNameFromIndex } from "../constants/weekdays.js";
 import {
   getCurrentTrainingPhase,
   getCurrentTrainingWeek,
   getTrainingDayPreferredWeekday,
   getTrainingPlanPhaseOverview,
 } from "../services/utils/trainingPlan.js";
+import {
+  PROGRAM_OVERVIEW_LOOKBACK_DAYS,
+  PROGRAM_OVERVIEW_UPCOMING_DAYS_INCLUDING_TODAY,
+  formatCurrentDateLabel,
+  getPhaseRangeLabel,
+  getProgramOverviewToday,
+  isSameCalendarDay,
+} from "../services/utils/programOverview.js";
 
-const WEEKDAY_NAMES = Object.freeze([
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-]);
-const LOOKBACK_DAYS = 14;
-const UPCOMING_DAYS_INCLUDING_TODAY = 7;
 const WEEK_SCHEDULE_ITEM_WIDTH = 56;
-const WEEK_SCHEDULE_TODAY_OFFSET = LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
-
-function isSameCalendarDay(leftDate, rightDate) {
-  return (
-    leftDate.getFullYear() === rightDate.getFullYear() &&
-    leftDate.getMonth() === rightDate.getMonth() &&
-    leftDate.getDate() === rightDate.getDate()
-  );
-}
+const WEEK_SCHEDULE_TODAY_OFFSET =
+  PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
 
 function startOfLocalDay(value) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
@@ -216,8 +207,7 @@ export default function ProgramOverviewView({
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getProgramOverviewToday();
   const planStartDate = getPlanStartDate(plan);
   const archivedPlanContexts = Array.isArray(trainingPlanHistory)
     ? trainingPlanHistory
@@ -229,17 +219,18 @@ export default function ProgramOverviewView({
         .filter((entry) => entry.plan?.weeks?.length && entry.startedAt)
     : [];
   const todayDateKey = today.toDateString();
-  const currentDateLabel = new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-  }).format(today);
+  const currentDateLabel = formatCurrentDateLabel(today);
   const currentPhaseLabel = currentPhase?.label
     ? `${currentPhase.label} week ${currentWeek?.week || 1}`
     : `Week ${currentWeek?.week || 1}`;
   const rollingDates = Array.from(
-    { length: LOOKBACK_DAYS + UPCOMING_DAYS_INCLUDING_TODAY },
+    {
+      length:
+        PROGRAM_OVERVIEW_LOOKBACK_DAYS +
+        PROGRAM_OVERVIEW_UPCOMING_DAYS_INCLUDING_TODAY,
+    },
     (_, index) => {
-      const dayOffset = index - LOOKBACK_DAYS;
+      const dayOffset = index - PROGRAM_OVERVIEW_LOOKBACK_DAYS;
       const date = new Date(today);
       date.setDate(date.getDate() + dayOffset);
 
@@ -251,7 +242,7 @@ export default function ProgramOverviewView({
   ) || [];
   const assignedFallbackTrainingDays = new Set();
   const currentWeekSchedule = rollingDates.map((date, index) => {
-    const weekday = WEEKDAY_NAMES[date.getDay()];
+    const weekday = getWeekdayNameFromIndex(date.getDay());
     const archivedContext = archivedPlanContexts
       .slice()
       .reverse()
@@ -277,7 +268,11 @@ export default function ProgramOverviewView({
       (day) => getTrainingDayPreferredWeekday(day) === weekday
     );
 
-    if (!trainingDay && index >= LOOKBACK_DAYS && !archivedContext) {
+    if (
+      !trainingDay &&
+      index >= PROGRAM_OVERVIEW_LOOKBACK_DAYS &&
+      !archivedContext
+    ) {
       trainingDay = fallbackTrainingDays.find((day) => {
         if (assignedFallbackTrainingDays.has(day)) {
           return false;
@@ -379,14 +374,6 @@ export default function ProgramOverviewView({
     lastWeekScheduleScrollDateRef.current = todayDateKey;
   }
 
-  function getPhaseRangeLabel(phase = {}) {
-    if (phase.weekStart === phase.weekEnd) {
-      return `Week ${phase.weekStart}`;
-    }
-
-    return `Weeks ${phase.weekStart}-${phase.weekEnd}`;
-  }
-
   function handleSelectTrainingDay(weekNumber, dayNumber, dateKey) {
     setSelectedArchivedDay(null);
     setSelectedRestSlotKey("");
@@ -426,7 +413,8 @@ export default function ProgramOverviewView({
     const nextTrainingDay =
       activeSelectedDay?.dayData ||
       currentWeekSchedule.find(
-        (slot, index) => index >= LOOKBACK_DAYS && slot.trainingDay
+        (slot, index) =>
+          index >= PROGRAM_OVERVIEW_LOOKBACK_DAYS && slot.trainingDay
       )?.trainingDay;
     const nextWeekNumber = activeSelectedDay?.week || currentWeek?.week;
 

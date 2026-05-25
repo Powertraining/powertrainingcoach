@@ -14,12 +14,9 @@ import {
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
+import { parseInjuryReport } from "../../services/utils/profileFields.js";
 
 const INJURY_CONTAINER_HEIGHT = 252;
-
-function parseInjuryReport(value = "") {
-  return String(value || "").trim();
-}
 
 export default function ProfileReportInjuryView({
   value,

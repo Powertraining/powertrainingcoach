@@ -201,7 +201,6 @@ export function MyProfileView(props) {
             planName={props.subscriptionPlanName}
             timeRemainingText={props.subscriptionTimeRemainingText}
             subscriptionText={props.subscriptionText}
-            isActive={props.isSubscriptionActive}
             isSubmitting={props.isSubmitting}
             onUpgradePress={props.onChangeSubscription}
             onDetailsPress={

@@ -50,15 +50,17 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Accessories, most rows, RDL-style secondary work, isolation lifts, and stability drills stay on RPE, RIR, feel, time, or quality-based notes even if the athlete selected percentage loading.`,
   rm_attempts: `# Strength-reference rules
 - Percentage-based plans must respect percentageReferenceMethod.
-- heavy_single is the default and lowest-fatigue option: embed a single @RPE 8-9 as a normal-session top set, usually once per loading block, never in deload weeks, and soften or remove it near competition.
+- rpe_based_1rm is the default and lowest-fatigue option: prescribe "work up to 3 reps @RPE 8" as the normal-session top set, usually once per loading block, never in deload weeks, and soften or remove it near competition.
+- For rpe_based_1rm, estimate 1RM from logged load, completed reps, and RPE by adding reps in reserve to completed reps, then using Epley. Interpret RPE 10 as 0 RIR, RPE 9 as 1 RIR, RPE 8 as 2 RIR, and RPE 7 as 3 RIR.
+- Keep rpe_based_1rm calibration attempts to 1-3 reps at RPE 8-9 only. The athlete may change the default to 1 @RPE 8, 1 @RPE 9, 2 @RPE 8, 2 @RPE 9, or 3 @RPE 9, but do not prescribe RPE 10 or more than 3 reps for this feature.
 - multi_rm uses a hard top set of 2-5 reps, updates 1RM with Epley, and should usually appear every 4-6 weeks in off-season or early camp, not in the final 3-4 weeks before competition.
 - true_1rm is rare, only for experienced athletes in off-camp general-strength phases, never close to competition, and never more than one true 1RM test in a week.
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,
   rpe_rationale: `# RPE adjustment rules
-- In low-rep strength work, 1 RPE point is roughly a 2.5% load change.
-- Use that rule for 1-5 rep top sets and small RPE-based load adjustments on monitored lifts.
-- Do not turn RPE-based plans into RM tests or heavy-single strength assessments unless the athlete explicitly chose the percentage system.
-- A reference set at the same rep target can move about plus or minus 2.5% per RPE point while staying in the same strength zone.`,
+- For ordinary low-rep load adjustments, 1 RPE point is roughly a 2.5% load change.
+- Use that rule for small same-rep-target load adjustments on monitored lifts, not for rpe_based_1rm strength-reference estimates.
+- Do not turn RPE-based plans into RM tests or strength-reference assessments unless the athlete explicitly chose the percentage system.
+- A reference set at the same rep target can move about plus or minus 2.5% for each RPE step while staying in the same strength zone.`,
   missed_rep: `# Missed-rep rules
 - When a monitored lift has a missed rep, ask why: too heavy, pain/irritation, or technical error.
 - In RPE-based plans, treat a missed rep as an overshoot: lower load about 2.5-5%, keep the rep target, and avoid automatic scheme changes.
@@ -83,6 +85,16 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Low-load motor-control drills such as dead bugs or bird dogs belong in warm-ups, rehab, or deload maintenance, not as the only real core work in a normal week.
 - Keep accessories practical: heavier secondary lifts use RPE, small isolation work uses RPE or feel, and rehab or activation drills use quality-based notes rather than fake percentage precision.
 - Use concrete exercise names for neck work rather than vague movement-pattern labels.`,
+  pull_ups_chin_ups: `# Pull-up and chin-up rules
+- Pull-ups and chin-ups are always prescribed with RPE or RIR, even when the athlete chose percentage loading, because bodyweight already contributes heavily to the true load.
+- Do not add percentagePrescription or strengthAssessment objects to pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, or lat pulldowns.
+- If the athlete cannot perform clean bodyweight pull-ups, use assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, or lat pulldowns for 3-4 x 5-8 @ RPE 7-8.
+- If the athlete can perform 1-9 clean pull-ups, use bodyweight pull-ups and progress reps while stopping with 1-2 reps in reserve.
+- If the athlete can perform 10+ clean pull-ups, weighted pull-ups become available. Use 3-5 x 3-6 @ RPE 7-9 and progress load only when all sets hit the top of the rep range at the target RPE.
+- If max clean pull-up reps are not provided, do not assume the athlete qualifies for weighted pull-ups. Use trainingCapabilities.pullingWork conservatively: "no" means assisted pull-ups or lat pulldowns, "somewhat" means assisted or bodyweight work with reps in reserve, and "yes" means bodyweight progression unless the input shows 10+ clean reps.
+- In camp or under high combat-sport load, reduce pull-up/chin-up work to 1-3 sets @ RPE 7-8.
+- Key cues: clean reps only, no kicking, control the bottom, pull chest toward the bar, and stop the set before form breaks.
+- Log bodyweight, added weight if used, reps per set, RPE/RIR, and grip variation.`,
   substitutes: `# Substitution rules
 - Every exercise needs a substitutionOptions array so the app can swap in comparable variations.
 - Add pragmatic substitutes for exercises that are technical, inconvenient, crowded, or equipment-sensitive.
@@ -146,12 +158,14 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - If "sessionDuration" is "no_time_limit" or "sessionDurationMinutes" is null, treat it as flexible but still pragmatic. Do not create marathon sessions, excessive exercise lists, 10-hour workouts, or unrealistic volumes. Prefer focused sessions that would usually fit within about 90-120 minutes.`,
   endurance_training: `# Endurance training rules
 - Include dedicated endurance work only when desiredTraining is "endurance" or "strength_power_endurance", or when the athlete explicitly opted in with includeEnduranceTraining or enduranceTraining.include. If desiredTraining is "strength_power" and there is no explicit opt-in, keep conditioning minimal and supportive.
-- Take the athlete's combat sport, trainingPhase, sportLoadLevel, combatTrainingIntensity, weekly S&C frequency, preferred weekdays, sessionDuration, injuries, equipment, and selected modality into account before placing endurance.
+- Take the athlete's combat sport, trainingPhase, sportLoadLevel, combatTrainingIntensity, weekly S&C frequency, preferred weekdays, sessionDuration, injuries, equipment, selected modality, enduranceTraining.sessionsPerWeek, and enduranceTraining.preferredFormat into account before placing endurance.
+- Start with the lowest number of endurance sessions needed. One to two sessions is enough for many combat athletes; three or more requires low enough sport load and stable recovery. Warn in notes if the selected frequency is high relative to combat load.
 - In off-camp/off-season, endurance can build a broader aerobic base, work capacity, and specific weak links. In fight camp/in-camp, endurance must fit around sparring, pads, grappling, weight management, and freshness; prioritize specificity and reduce extra fatigue.
 - When endurance is included, prescribe it as a clear exercise entry with an endurancePrescription object so the app can render the modality, format, duration, intensity, work/rest, rounds, and target.
-- Available endurance modalities are running, sprinting, circuit_training, heavy_bag, swimming, assault_bike, rowing_ergometer, skiing_ergometer, and arm_crank_machine.
+- Available endurance modalities are running, sprinting, circuit_training, heavy_bag, swimming, assault_bike, rowing_ergometer, skiing_ergometer, arm_crank_machine, bicycling, versaclimber, and sport_specific.
 - Running is best for accessible general aerobic work, especially off-camp, but avoid overusing it when lower-body fatigue, joint irritation, plyometric exposure, or combat load is high.
 - Sprinting is best for acceleration, maximal-speed exposure, and repeated high-power efforts, but use it only when speed quality can stay high and the athlete has the tissue tolerance; avoid it under high fatigue or heavy explosive lower-body loading.
+- Bicycling is useful for lower-impact aerobic volume, tempo work, and longer conditioning sessions when running impact is not ideal.
 - Circuit training is best for local muscular endurance, repeated-effort capacity, grip/arm/trunk weak links, and blended work capacity. Keep it recoverable and avoid letting it interfere with key strength, power, sparring, or skill days.
 - Heavy bag endurance is for strikers and is most useful when the athlete needs conditioning close to striking mechanics, local upper-body fatigue, flurry capacity, or fight-camp specificity. Do not prescribe direct heavy bag work if heavyBag capability is "no".
 - Swimming is useful for low-impact aerobic or recovery-oriented conditioning when joints, legs, or the overall combat load need relief. Remember that poor swim skill can make the session technique-limited.
@@ -159,7 +173,23 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Rowing ergometer is useful for measurable total-body steady work, intervals, threshold efforts, and hard intervals without impact, but avoid excessive low-back or arm fatigue when technique is poor.
 - Skiing ergometer is useful for upper-body and trunk-driven conditioning with low leg impact, especially for grapplers, hand-fighting transfer, or weeks with heavy running/kicking/leg fatigue.
 - Arm crank machine is useful when lower-body loading should be avoided or when upper-body endurance is the target, especially for wrestlers, but it is usually targeted rather than the default modality.
-- If the selected modality conflicts with injuries, equipment, sport demands, or capability ratings, choose the closest safer allowed modality and explain briefly in the notes.`
+- VersaClimber is useful for low-impact full-body climbing intervals when the athlete can tolerate combined upper-body, trunk, and leg drive.
+- Sport-specific endurance is the match-prep alternative: use it when competition specificity matters most, and shape it around round length, density, technical quality, and the athlete's actual combat schedule.
+- Non-circuit endurance must be classified as continuous_aerobic, aerobic_intervals, tempo_threshold, long_hiit, repeated_sprint_training, sprint_interval_training, recovery, or sport_specific_conditioning rather than generic conditioning.
+- Continuous aerobic work is mainly for base, active recovery, or low-cost conditioning. Use easy-to-moderate RPE/talk-test guidance, often 20-45 minutes, and progress duration before pace/power.
+- Aerobic intervals use longer controlled work bouts with incomplete easy recovery. Threshold/tempo work should use sustainable pace, split, speed, or power markers when available.
+- High-intensity intervals must be separated by purpose: long_hiit for 1-4 minute hard aerobic intervals, repeated_sprint_training for very short repeat-burst work, and sprint_interval_training for 20-30 second all-out bouts with long recovery. Use the minimum effective dose.
+- Sprinting is anaerobic only. Do not prescribe sprinting as steady aerobic, aerobic intervals, or recovery work. Speed/explosiveness uses about 10-20 m, repeat bursts about 20-40 m, and hard conditioning about 60-150 m. Stop or reduce volume when speed clearly drops, fatigue is high, or lower-body loading is already heavy.
+- Circuit training must solve the athlete's stated fatigue problem, not merely generate a hard circuit. Use enduranceTraining.circuitTraining.goalInput, primaryPriority, and secondaryPriorities to classify the target as local muscular endurance, repeated high-effort capacity, whole-body work capacity, sport-specific fatigue resistance, aerobic recovery between bursts, or a specific grip/neck/trunk/shoulder/leg endurance issue.
+- Circuit construction should put roughly 50-70% of stress on the primary target and 30-50% on secondary/supportive qualities. Choose simple exercises that match the complaint; include dynamic, isometric, or mixed endurance according to the sport demand.
+- Circuit work:rest must come from the target, not a universal Tabata default. Local endurance often fits 30-60s work with 15-30s rest; general work capacity 20-60s work with 15-40s rest; repeated hard efforts 10-30s work with incomplete recovery; explosive repeatability needs longer rest such as 1:3 to 1:6. Use the least aggressive ratio that trains the quality.
+- Circuit rounds should come from target total work, density, station count, exercise complexity, training age, and weekly fatigue. Reduce rounds before increasing density if quality drops. Progress only one variable at a time: rounds, work duration, rest duration, exercise difficulty, or priority-area exposure.
+- Heavy bag endurance is its own category. First identify the target: aerobic bag work, tempo/sustained conditioning, repeated-burst bag work, local upper-body endurance, or sport-specific fight-camp simulation. Do not make every bag endurance session maximal.
+- Heavy bag aerobic/tempo sessions use longer, steadier rounds with technical control. Repeated-burst bag sessions use short hard bursts with enough rest to preserve output. The harder the conditioning, the simpler the combinations should be.
+- Sport-specific fight-camp bag work should resemble the sport first, then be slightly harder through one controlled overload only: rest reduction, one extra round, surge windows, or output quotas. Do not increase round count, reduce rest, and raise intensity all at once.
+- Place hard endurance away from heavy lower-body strength/power and important sparring when possible. If endurance and lifting must share a day, put the athlete's higher-priority quality first. Easy aerobic work is safest near strength work.
+- Never stack hard endurance the day before important sparring if avoidable, and do not put the hardest endurance on the hardest sparring day unless intentionally using a high-low model.
+- If the selected modality conflicts with injuries, equipment, sport demands, capability ratings, or weekly load, choose the closest safer allowed modality and explain briefly in the notes.`
 });
 
 export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
@@ -176,6 +206,7 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "close_grip_bench_press",
   "compound_lifts",
   "accessory_exercises",
+  "pull_ups_chin_ups",
   "substitutes",
   "plyometrics_loading_jumps",
   "bilateral",
@@ -377,6 +408,7 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
     "missed_rep",
     "compound_lifts",
     "accessory_exercises",
+    "pull_ups_chin_ups",
     "substitutes",
     "plyometrics_loading_jumps",
     "bilateral",

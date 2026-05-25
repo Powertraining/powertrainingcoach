@@ -13,7 +13,7 @@ test("training prompt embeds the key striking and percentage instruction rules",
     goal: "power",
     experience: "intermediate",
     liftIntensityMethod: "percentage",
-    percentageReferenceMethod: "heavy_single",
+    percentageReferenceMethod: "rpe_based_1rm",
     loadingStrategy: "ascending_pyramid",
   });
 
@@ -64,6 +64,11 @@ test("training prompt embeds endurance rules and prescription schema", () => {
   assert.match(prompt, /Endurance training rules/i);
   assert.match(prompt, /endurancePrescription/i);
   assert.match(prompt, /rowing_ergometer/i);
+  assert.match(prompt, /versaclimber/i);
+  assert.match(prompt, /sport_specific/i);
+  assert.match(prompt, /circuitPrescription/i);
+  assert.match(prompt, /heavyBagPrescription/i);
+  assert.match(prompt, /sprintPrescription/i);
   assert.match(prompt, /Assault Bike Intervals/i);
 });
 
@@ -81,7 +86,7 @@ test("RPE prompt explicitly blocks percentage prescriptions and strength assessm
     prompt,
     /do not add "percentagePrescription" or "strengthAssessment"/i
   );
-  assert.doesNotMatch(prompt, /heavy_single is the default/i);
+  assert.doesNotMatch(prompt, /rpe_based_1rm is the default/i);
 });
 
 test("RPE missed-session prompt blocks preserving strength assessments", () => {
@@ -140,4 +145,23 @@ test("training prompt includes newly added striking periodization instructions",
   assert.match(prompt, /Far from the fight, train what the athlete lacks/i);
   assert.match(prompt, /move violently fast with maximal concentric intent/i);
   assert.match(prompt, /scissor jumps, split-squat jumps, single-leg bounds/i);
+});
+
+test("training prompt includes pull-up and chin-up prescription rules", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    goal: "strength",
+    experience: "intermediate",
+    liftIntensityMethod: "percentage",
+  });
+
+  assert.match(prompt, /Pull-up and chin-up rules/i);
+  assert.match(prompt, /always prescribed with RPE or RIR/i);
+  assert.match(prompt, /weighted pull-ups become available/i);
+  assert.match(prompt, /do not assume the athlete qualifies for weighted pull-ups/i);
+  assert.match(
+    prompt,
+    /never add "percentagePrescription" or "strengthAssessment"/i
+  );
 });

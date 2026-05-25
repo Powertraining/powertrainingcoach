@@ -10,25 +10,31 @@ import {
   upsertStrengthAssessmentSessionResults,
 } from "../src/services/utils/strengthAssessment.js";
 
-test("percentage app logic defaults to heavy singles and preserves explicit choices", () => {
+test("percentage app logic defaults to RPE-based 1RM estimates and preserves explicit choices", () => {
   const defaults = normalizeAppLogicSettings({});
+  const legacyChoice = normalizeAppLogicSettings({
+    liftIntensityMethod: "percentage",
+    percentageReferenceMethod: "heavy_single",
+  });
   const explicitChoice = normalizeAppLogicSettings({
     liftIntensityMethod: "percentage",
     percentageReferenceMethod: "multi_rm",
   });
 
-  assert.equal(defaults.percentageReferenceMethod, "heavy_single");
+  assert.equal(defaults.percentageReferenceMethod, "rpe_based_1rm");
+  assert.equal(legacyChoice.percentageReferenceMethod, "rpe_based_1rm");
   assert.equal(explicitChoice.percentageReferenceMethod, "multi_rm");
 });
 
-test("strength assessment entries compute estimated 1RM for heavy singles and multi-RM sets", () => {
-  const heavySingleEntry = createStrengthAssessmentEntry({
+test("strength assessment entries compute estimated 1RM for RPE-based and multi-RM sets", () => {
+  const rpeBasedEntry = createStrengthAssessmentEntry({
     metadata: {
-      method: "heavy_single",
+      method: "rpe_based_1rm",
       liftName: "Trap Bar Deadlift",
     },
     result: {
       loadKg: 150,
+      reps: 3,
       rpe: 8,
     },
   });
@@ -43,8 +49,8 @@ test("strength assessment entries compute estimated 1RM for heavy singles and mu
     },
   });
 
-  assert.equal(heavySingleEntry.estimatedOneRepMaxKg, 157.9);
-  assert.equal(heavySingleEntry.trainingMaxKg, 154);
+  assert.equal(rpeBasedEntry.estimatedOneRepMaxKg, 175);
+  assert.equal(rpeBasedEntry.trainingMaxKg, 170.6);
   assert.equal(multiRmEntry.estimatedOneRepMaxKg, 140);
   assert.equal(multiRmEntry.trainingMaxKg, 136.5);
 });
@@ -67,11 +73,12 @@ test("strength assessment state summarizes the latest result per lift", () => {
   });
   const secondEntry = createStrengthAssessmentEntry({
     metadata: {
-      method: "heavy_single",
+      method: "rpe_based_1rm",
       liftName: "Back Squat",
     },
     result: {
       loadKg: 138,
+      reps: 3,
       rpe: 8,
     },
     previousTrainingMaxKg: firstEntry.trainingMaxKg,
@@ -95,20 +102,20 @@ test("strength assessment state summarizes the latest result per lift", () => {
   const summary = getStrengthAssessmentSummary(finalState);
 
   assert.equal(summary.latestByLift.length, 1);
-  assert.equal(summary.latestByLift[0].method, "heavy_single");
-  assert.equal(summary.latestByLift[0].trainingMaxKg, 141.7);
+  assert.equal(summary.latestByLift[0].method, "rpe_based_1rm");
+  assert.equal(summary.latestByLift[0].trainingMaxKg, 146.7);
   assert.equal(summary.recentAssessments.length, 2);
 });
 
 test("generated training plans preserve strength assessment metadata on exercises", () => {
   const normalizedPlan = parseGeneratedTrainingPlan({
-    summary: "Use a heavy single before back-off work.",
+    summary: "Use an RPE-based 1RM estimate before back-off work.",
     phaseOverview: [
       {
         label: "Building",
         weekStart: 1,
         weekEnd: 1,
-        focus: "Introduce the first heavy-single check-in.",
+        focus: "Introduce the first RPE-based estimate.",
       },
     ],
     weeks: [
@@ -128,12 +135,12 @@ test("generated training plans preserve strength assessment metadata on exercise
               {
                 name: "Trap Bar Deadlift",
                 sets: "1 top set + 3 back-off sets",
-                reps: "1 + 3 x 3",
-                notes: "Work up to a heavy single @RPE 8 before the back-off work.",
+                reps: "3 + 3 x 3",
+                notes: "Work up to 3 reps @RPE 8 before the back-off work.",
                 strengthAssessment: {
-                  method: "heavy_single",
+                  method: "rpe_based_1rm",
                   liftName: "Trap Bar Deadlift",
-                  prompt: "Log the load and RPE of the top single.",
+                  prompt: "Log the load, reps, and RPE of the top set.",
                 },
                 substitutionOptions: [],
               },
@@ -147,9 +154,9 @@ test("generated training plans preserve strength assessment metadata on exercise
   const assessment =
     normalizedPlan.weeks[0].days[0].exercises[0].strengthAssessment;
 
-  assert.equal(assessment.method, "heavy_single");
+  assert.equal(assessment.method, "rpe_based_1rm");
   assert.equal(assessment.liftName, "Trap Bar Deadlift");
-  assert.equal(assessment.prompt, "Log the load and RPE of the top single.");
+  assert.equal(assessment.prompt, "Log the load, reps, and RPE of the top set.");
 });
 
 test("close-grip bench press can estimate its reference max from bench press", () => {

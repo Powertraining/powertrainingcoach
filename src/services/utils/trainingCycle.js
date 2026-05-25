@@ -1,6 +1,6 @@
-export const DEFAULT_TRAINING_CYCLE_WEEKS = 12;
+import { DAY_IN_MS, startOfLocalDay } from "./dateUtils.js";
 
-const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
+export const DEFAULT_TRAINING_CYCLE_WEEKS = 12;
 
 function parsePositiveInteger(value) {
   const parsedValue =
@@ -16,17 +16,6 @@ function normalizeString(value, fallback = "") {
 
   const trimmedValue = value.trim();
   return trimmedValue || fallback;
-}
-
-function startOfLocalDay(value = new Date()) {
-  const date = value instanceof Date ? new Date(value) : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  date.setHours(0, 0, 0, 0);
-  return date;
 }
 
 function parseEventDateFromText(value = "") {
@@ -70,7 +59,7 @@ export function getWeeksUntilEvent(value = "", today = new Date()) {
 
   const eventStart = startOfLocalDay(eventDate);
   const daysUntilEvent = Math.ceil(
-    (eventStart - currentDate) / MILLISECONDS_PER_DAY
+    (eventStart - currentDate) / DAY_IN_MS
   );
 
   return daysUntilEvent > 0

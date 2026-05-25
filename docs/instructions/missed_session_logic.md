@@ -21,8 +21,8 @@ The simplest app philosophy becomes:
 1. Missed session logic should be phase-aware
 In normal 3:1 training blocks, one missed session can simply roll forward. But if the miss happens in week 4 deload, don’t carry extra fatigue into the next block just to “catch up.” Rules already use a 3 loading weeks + 1 deload structure, and deload weeks are where volume and sometimes stimulus are intentionally reduced.
 2. Testing sessions need special rules
-If the missed session contained a heavy single, 2–5RM test, or true 1RM test, treat it differently from a normal workout:
-heavy singles: reschedule only if still inside the allowed week/block
+If the missed session contained an RPE-based 1RM estimation top set, 2–5RM test, or true 1RM test, treat it differently from a normal workout:
+RPE-based 1RM estimation top sets: reschedule only if still inside the allowed week/block
 2–5RM tests: reschedule only if still far enough from competition
 true 1RM tests: skip rather than force if timing is no longer appropriate
 3. Near a fight, missed volume should usually be abandoned, not repaid
@@ -75,7 +75,7 @@ Do not import missed loading-week work into deload week, and do not try to “ma
 ##### Taper / fight week
 No catch-up volume. At most, replace a missed session with a short primer. Otherwise skip.
 RM / test week
-If the missed session contained a true 1RM, multi-RM, or heavy single used for estimation, only rescue it within that same week. If the week is gone, skip the test and keep the last usable training max.
+If the missed session contained a true 1RM, multi-RM, or RPE-based 1RM estimation top set, only rescue it within that same week. If the week is gone, skip the test and keep the last usable training max.
 ##### Reason-based modifier
 The app should also ask why the session was missed:
 schedule/travel → use normal rescue logic

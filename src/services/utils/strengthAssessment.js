@@ -1,15 +1,18 @@
 const STRENGTH_ASSESSMENT_METHODS = Object.freeze({
   TRUE_1RM: "true_1rm",
   MULTI_RM: "multi_rm",
-  HEAVY_SINGLE: "heavy_single",
+  RPE_BASED_1RM: "rpe_based_1rm",
 });
 
 const VALID_STRENGTH_ASSESSMENT_METHODS = new Set(
   Object.values(STRENGTH_ASSESSMENT_METHODS)
 );
+const LEGACY_STRENGTH_ASSESSMENT_METHODS = Object.freeze({
+  heavy_single: STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM,
+});
 
 const DEFAULT_STRENGTH_ASSESSMENT_METHOD =
-  STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE;
+  STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM;
 const DEFAULT_TRAINING_MAX_BUFFER = 0.975;
 const RECENT_ASSESSMENT_LIMIT = 8;
 const CLOSE_GRIP_BENCH_PRESS_REFERENCE_FACTOR = 0.95;
@@ -110,9 +113,9 @@ function buildDefaultPrompt(method, liftName) {
       return `Log the heaviest successful single for ${resolvedLiftName} so future % work can use the updated max.`;
     case STRENGTH_ASSESSMENT_METHODS.MULTI_RM:
       return `Log the load and exact reps for the top 2-5RM set on ${resolvedLiftName} so the app can estimate your 1RM with Epley.`;
-    case STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE:
+    case STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM:
     default:
-      return `Log the load and RPE for the heavy single on ${resolvedLiftName} so the app can update your future % work.`;
+      return `Log the load, reps, and RPE for the top 1-3 rep set on ${resolvedLiftName} so the app can estimate your 1RM from reps in reserve.`;
   }
 }
 
@@ -132,9 +135,14 @@ function clampRelativeChange(candidateTrainingMaxKg, previousTrainingMaxKg, maxD
   return Math.min(Math.max(candidateTrainingMaxKg, minimum), maximum);
 }
 
-function getHeavySingleMultiplier(rpe) {
-  const normalizedRpe = Math.min(Math.max(rpe, 7), 10);
-  return 1 - (10 - normalizedRpe) * 0.025;
+function getRepsInReserveFromRpe(rpe) {
+  const normalizedRpe = parsePositiveNumber(rpe);
+
+  if (!normalizedRpe) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(4, 10 - normalizedRpe));
 }
 
 function calculateEstimatedOneRepMax(method, { loadKg, reps, rpe }) {
@@ -143,9 +151,9 @@ function calculateEstimatedOneRepMax(method, { loadKg, reps, rpe }) {
       return loadKg;
     case STRENGTH_ASSESSMENT_METHODS.MULTI_RM:
       return loadKg * (1 + reps / 30);
-    case STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE:
+    case STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM:
     default:
-      return loadKg / getHeavySingleMultiplier(rpe);
+      return loadKg * (1 + (reps + getRepsInReserveFromRpe(rpe)) / 30);
   }
 }
 
@@ -265,6 +273,10 @@ export function normalizeStrengthAssessmentMethod(
   value,
   fallback = ""
 ) {
+  if (LEGACY_STRENGTH_ASSESSMENT_METHODS[value]) {
+    return LEGACY_STRENGTH_ASSESSMENT_METHODS[value];
+  }
+
   return VALID_STRENGTH_ASSESSMENT_METHODS.has(value) ? value : fallback;
 }
 
@@ -274,8 +286,8 @@ export function getStrengthAssessmentMethodLabel(method) {
       return "True 1RM test";
     case STRENGTH_ASSESSMENT_METHODS.MULTI_RM:
       return "2-5RM + Epley";
-    case STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE:
-      return "Heavy single @RPE 8-9";
+    case STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM:
+      return "RPE-based 1RM estimation";
     default:
       return "";
   }
@@ -289,13 +301,23 @@ export function getStrengthAssessmentRequirements(method) {
 
   return {
     requiresLoad: true,
-    requiresReps: normalizedMethod === STRENGTH_ASSESSMENT_METHODS.MULTI_RM,
-    requiresRpe: normalizedMethod === STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE,
+    requiresReps:
+      normalizedMethod === STRENGTH_ASSESSMENT_METHODS.MULTI_RM ||
+      normalizedMethod === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM,
+    requiresRpe: normalizedMethod === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM,
     loadLabel:
       normalizedMethod === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM ?
         "Heaviest successful single (kg)" :
         "Load used (kg)",
-    repsLabel: "Reps completed",
+    repsLabel:
+      normalizedMethod === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM ?
+        "Top-set reps (1-3)" :
+        "Reps completed",
+    repsPlaceholder:
+      normalizedMethod === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM ?
+        "1-3" :
+        "2-5",
+    rpePlaceholder: "8-9",
     rpeLabel: "RPE",
   };
 }
@@ -422,11 +444,11 @@ export function createStrengthAssessmentEntry({
   }
 
   const reps =
-    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.MULTI_RM ?
-      parsePositiveInteger(safeResult.reps) :
-      1;
+    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM ?
+      1 :
+      parsePositiveInteger(safeResult.reps);
   const rpe =
-    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE ?
+    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM ?
       parsePositiveNumber(safeResult.rpe) :
       null;
 
@@ -438,8 +460,22 @@ export function createStrengthAssessmentEntry({
   }
 
   if (
-    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.HEAVY_SINGLE &&
+    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM &&
+    (!reps || reps > 3)
+  ) {
+    return null;
+  }
+
+  if (
+    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM &&
     !rpe
+  ) {
+    return null;
+  }
+
+  if (
+    normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM &&
+    (rpe < 8 || rpe > 9)
   ) {
     return null;
   }

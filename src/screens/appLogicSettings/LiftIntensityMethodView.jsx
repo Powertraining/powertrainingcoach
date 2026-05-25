@@ -28,14 +28,14 @@ const PERCENTAGE_REFERENCE_BUTTONS = Object.freeze({
     label: "Estimate from 2-5 reps",
     mediaText: "2-5RM",
   },
-  heavy_single: {
-    label: "Estimate from heavy single",
+  rpe_based_1rm: {
+    label: "Estimate from RPE-based heavy single",
     mediaText: "RPE 8-9",
   },
 });
 
 const PERCENTAGE_REFERENCE_DISPLAY_ORDER = Object.freeze([
-  "heavy_single",
+  "rpe_based_1rm",
   "multi_rm",
   "true_1rm",
 ]);

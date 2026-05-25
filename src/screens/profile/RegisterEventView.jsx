@@ -18,41 +18,13 @@ import {
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import DateSelector from "../../components/questionnaireComponents/DateSelector.jsx";
+import { getTodayDateValue } from "../../services/utils/dateUtils.js";
+import {
+  formatEventPreparation,
+  parseEventPreparation,
+} from "../../services/utils/profileFields.js";
 
 const DESCRIPTION_CONTAINER_HEIGHT = 252;
-
-function parseEventPreparation(value = "") {
-  const text = String(value || "").trim();
-  const dateMatch = /\d{4}-\d{2}-\d{2}/.exec(text);
-  const descriptionMatch = /Description:\s*(.*)$/i.exec(text);
-  const fallbackDescription = text
-    .replace(/Date:\s*\d{4}-\d{2}-\d{2}/i, "")
-    .replace(/\d{4}-\d{2}-\d{2}/, "")
-    .replace(/^[;,\s]+|[;,\s]+$/g, "");
-
-  return {
-    hasEvent: Boolean(text),
-    date: dateMatch ? dateMatch[0] : "",
-    description: descriptionMatch ? descriptionMatch[1].trim() : fallbackDescription,
-  };
-}
-
-function formatEventPreparation(date, description) {
-  return [
-    date ? `Date: ${date}` : "",
-    description ? `Description: ${description}` : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
-}
-
-function formatDateValue(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
 
 export default function RegisterEventView({
   value,
@@ -126,7 +98,7 @@ export default function RegisterEventView({
   );
 
   function openDateEditor() {
-    setDraftEventDate(eventDate || formatDateValue(new Date()));
+    setDraftEventDate(eventDate || getTodayDateValue());
     setEditingField("date");
   }
 

@@ -14,6 +14,10 @@ import {
 import DateSelector from "../../components/questionnaireComponents/DateSelector.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
+import {
+  formatEventPreparation,
+  parseEventPreparation,
+} from "../../services/utils/profileFields.js";
 
 const CONTINUE_BUTTON_TOP_OFFSET = 80;
 const DESCRIPTION_CARD_HEIGHT = 104;
@@ -21,22 +25,11 @@ const DATE_SELECTOR_HEIGHT = 70 * 3;
 const SECTION_TOP_PADDING = 180;
 
 function getInitialDate(value = "") {
-  const match = /\d{4}-\d{2}-\d{2}/.exec(String(value));
-  return match ? match[0] : "";
+  return parseEventPreparation(value).date;
 }
 
 function getInitialDescription(value = "") {
-  const match = /Description:\s*([^;]+)/i.exec(String(value));
-  return match ? match[1].trim() : "";
-}
-
-function formatEventPreparation(date, description) {
-  return [
-    date ? `Date: ${date}` : "",
-    description ? `Description: ${description}` : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
+  return parseEventPreparation(value).description;
 }
 
 export default function TrainingPreferencesEventPreparationView({

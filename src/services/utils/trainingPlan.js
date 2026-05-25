@@ -5,6 +5,7 @@ import {
 import { normalizePerformanceTarget } from "./trainingPerformance.js";
 import { normalizePercentagePrescription } from "./percentagePrescription.js";
 import { normalizeStrengthAssessmentConfig } from "./strengthAssessment.js";
+import { DAY_IN_MS, startOfLocalDay } from "./dateUtils.js";
 
 const SESSION_REGION_DEFINITIONS = Object.freeze([
   {
@@ -168,15 +169,42 @@ const ENDURANCE_MODALITIES = Object.freeze([
   "rowing_ergometer",
   "skiing_ergometer",
   "arm_crank_machine",
+  "bicycling",
+  "versaclimber",
+  "sport_specific",
 ]);
+
+const ENDURANCE_MODALITY_ALIASES = Object.freeze({
+  arm_bike: "arm_crank_machine",
+  arm_crank: "arm_crank_machine",
+  assaultbike: "assault_bike",
+  bike: "bicycling",
+  cycling: "bicycling",
+  heavy_bag_endurance: "heavy_bag",
+  match_prep: "sport_specific",
+  rowing: "rowing_ergometer",
+  rower: "rowing_ergometer",
+  skiing: "skiing_ergometer",
+  skierg: "skiing_ergometer",
+  ski_erg: "skiing_ergometer",
+  sport_specific_match_prep: "sport_specific",
+  sport_specific_match_prep_alternative: "sport_specific",
+  versa_climber: "versaclimber",
+});
 
 const ENDURANCE_FORMATS = Object.freeze([
   "steady_aerobic",
+  "continuous_aerobic",
+  "aerobic_intervals",
   "tempo_threshold",
   "intervals",
+  "long_hiit",
+  "repeated_sprint_training",
+  "sprint_interval_training",
   "repeated_sprint",
   "recovery",
   "circuit",
+  "sport_specific_conditioning",
 ]);
 
 function normalizeString(value, fallback = "") {
@@ -227,6 +255,17 @@ function normalizeEnumString(value, allowedValues = []) {
   return allowedValues.includes(normalizedValue) ? normalizedValue : "";
 }
 
+function normalizeEnduranceModality(value) {
+  const normalizedValue = normalizeString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  const resolvedValue =
+    ENDURANCE_MODALITY_ALIASES[normalizedValue] ?? normalizedValue;
+
+  return ENDURANCE_MODALITIES.includes(resolvedValue) ? resolvedValue : "";
+}
+
 function normalizeEndurancePrescription(prescription = {}) {
   if (!isPlainObject(prescription)) {
     return undefined;
@@ -237,7 +276,7 @@ function normalizeEndurancePrescription(prescription = {}) {
   );
   const rounds = parsePositiveInteger(prescription.rounds);
   const normalizedPrescription = omitUndefinedObjectFields({
-    modality: normalizeEnumString(prescription.modality, ENDURANCE_MODALITIES),
+    modality: normalizeEnduranceModality(prescription.modality),
     format: normalizeEnumString(prescription.format, ENDURANCE_FORMATS),
     durationMinutes: durationMinutes || undefined,
     intensity: normalizeString(prescription.intensity),
@@ -245,7 +284,109 @@ function normalizeEndurancePrescription(prescription = {}) {
     rest: normalizeString(prescription.rest),
     rounds: rounds || undefined,
     target: normalizeString(prescription.target),
+    sessionType: normalizeString(prescription.sessionType) || undefined,
+    workRestRatio: normalizeString(prescription.workRestRatio) || undefined,
+    totalWorkMinutes:
+      parsePositiveInteger(prescription.totalWorkMinutes) || undefined,
+    totalRestMinutes:
+      parsePositiveInteger(prescription.totalRestMinutes) || undefined,
     notes: normalizeString(prescription.notes),
+  });
+
+  return Object.values(normalizedPrescription).some(Boolean)
+    ? normalizedPrescription
+    : undefined;
+}
+
+function normalizeStringArray(value = []) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((entry) => normalizeString(entry)).filter(Boolean);
+}
+
+function normalizeCircuitPrescription(prescription = {}) {
+  if (!isPlainObject(prescription)) {
+    return undefined;
+  }
+
+  const normalizedPrescription = omitUndefinedObjectFields({
+    primaryTarget: normalizeString(prescription.primaryTarget),
+    secondaryTargets: normalizeStringArray(prescription.secondaryTargets),
+    stationCount: parsePositiveInteger(prescription.stationCount) || undefined,
+    workSeconds: parsePositiveInteger(prescription.workSeconds) || undefined,
+    restSeconds: parsePositiveInteger(prescription.restSeconds) || undefined,
+    workRestRatio: normalizeString(prescription.workRestRatio),
+    rounds: parsePositiveInteger(prescription.rounds) || undefined,
+    targetAreaEmphasis: normalizeString(prescription.targetAreaEmphasis),
+    progression: normalizeString(prescription.progression),
+    analytics: isPlainObject(prescription.analytics)
+      ? omitUndefinedObjectFields({
+          totalWorkDuration: normalizeString(
+            prescription.analytics.totalWorkDuration
+          ),
+          workRestStructure: normalizeString(
+            prescription.analytics.workRestStructure
+          ),
+          roundsCompleted: normalizeString(
+            prescription.analytics.roundsCompleted
+          ),
+          targetAreaEmphasis: normalizeString(
+            prescription.analytics.targetAreaEmphasis
+          ),
+          rpePrompt: normalizeString(prescription.analytics.rpePrompt),
+          performanceDropPrompt: normalizeString(
+            prescription.analytics.performanceDropPrompt
+          ),
+        })
+      : undefined,
+  });
+
+  return Object.values(normalizedPrescription).some((entry) =>
+    Array.isArray(entry) ? entry.length > 0 : Boolean(entry)
+  )
+    ? normalizedPrescription
+    : undefined;
+}
+
+function normalizeHeavyBagPrescription(prescription = {}) {
+  if (!isPlainObject(prescription)) {
+    return undefined;
+  }
+
+  const normalizedPrescription = omitUndefinedObjectFields({
+    target: normalizeString(prescription.target),
+    sessionType: normalizeString(prescription.sessionType),
+    roundLength: normalizeString(prescription.roundLength),
+    rest: normalizeString(prescription.rest),
+    rounds: parsePositiveInteger(prescription.rounds) || undefined,
+    bouts: parsePositiveInteger(prescription.bouts) || undefined,
+    technicalFocus: normalizeString(prescription.technicalFocus),
+    overloadConstraint: normalizeString(prescription.overloadConstraint),
+    totalWorkTime: normalizeString(prescription.totalWorkTime),
+    totalRestTime: normalizeString(prescription.totalRestTime),
+    rpePrompt: normalizeString(prescription.rpePrompt),
+  });
+
+  return Object.values(normalizedPrescription).some(Boolean)
+    ? normalizedPrescription
+    : undefined;
+}
+
+function normalizeSprintPrescription(prescription = {}) {
+  if (!isPlainObject(prescription)) {
+    return undefined;
+  }
+
+  const normalizedPrescription = omitUndefinedObjectFields({
+    target: normalizeString(prescription.target),
+    distanceMeters: normalizeString(prescription.distanceMeters),
+    repsPerSet: normalizeString(prescription.repsPerSet),
+    sets: normalizeString(prescription.sets),
+    restBetweenReps: normalizeString(prescription.restBetweenReps),
+    restBetweenSets: normalizeString(prescription.restBetweenSets),
+    stopRule: normalizeString(prescription.stopRule),
   });
 
   return Object.values(normalizedPrescription).some(Boolean)
@@ -748,6 +889,47 @@ function dedupeExerciseOptions(options = []) {
   });
 }
 
+function isPullUpChinUpExerciseName(name = "") {
+  const normalizedName = normalizeString(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ");
+
+  return /\b(pull ups?|chin ups?|lat pull downs?|lat pulldowns?)\b/.test(
+    normalizedName
+  );
+}
+
+function includesRpeOrRirGuidance(value = "") {
+  return /\b(rpe|rir|reps? in reserve|rep reserve|reserve)\b/i.test(
+    normalizeString(value)
+  );
+}
+
+function applyPullUpChinUpRules(exercise = {}) {
+  if (!isPullUpChinUpExerciseName(exercise.name)) {
+    return exercise;
+  }
+
+  const {
+    percentagePrescription: _percentagePrescription,
+    strengthAssessment: _strengthAssessment,
+    notes,
+    ...exerciseWithoutPercentageFields
+  } = exercise;
+  const resolvedNotes = includesRpeOrRirGuidance(notes)
+    ? notes
+    : [notes, "Use RPE/RIR loading; log bodyweight, added weight, reps, and RPE/RIR."]
+        .filter(Boolean)
+        .join(" ");
+
+  return {
+    ...exerciseWithoutPercentageFields,
+    percentagePrescription: null,
+    strengthAssessment: null,
+    notes: resolvedNotes,
+  };
+}
+
 export function normalizeExercise(exercise = {}) {
   const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
   const { videoUrl: _videoUrl, ...exerciseWithoutVideo } = safeExercise;
@@ -777,7 +959,7 @@ export function normalizeExercise(exercise = {}) {
     normalizedOptions[0] ||
     normalizeExerciseOption(currentExercise);
 
-  return omitUndefinedObjectFields({
+  return applyPullUpChinUpRules(omitUndefinedObjectFields({
     ...exerciseWithoutVideo,
     name: selectedOption.name,
     sets: selectedOption.sets,
@@ -785,6 +967,15 @@ export function normalizeExercise(exercise = {}) {
     notes: selectedOption.notes,
     endurancePrescription: normalizeEndurancePrescription(
       safeExercise.endurancePrescription
+    ),
+    circuitPrescription: normalizeCircuitPrescription(
+      safeExercise.circuitPrescription
+    ),
+    heavyBagPrescription: normalizeHeavyBagPrescription(
+      safeExercise.heavyBagPrescription
+    ),
+    sprintPrescription: normalizeSprintPrescription(
+      safeExercise.sprintPrescription
     ),
     performanceTarget: normalizePerformanceTarget(
       safeExercise.performanceTarget,
@@ -801,7 +992,7 @@ export function normalizeExercise(exercise = {}) {
     ),
     selectedSubstitutionId: selectedOption.id,
     substitutionOptions: normalizedOptions,
-  });
+  }));
 }
 
 function shouldKeepPercentageOnlyFields(questionnaire = {}) {
@@ -975,13 +1166,14 @@ export function getDaysUntilCompetition(value = "", fromDate = new Date()) {
     return null;
   }
 
-  const startOfToday = new Date(fromDate);
-  startOfToday.setHours(0, 0, 0, 0);
-  competitionDate.setHours(0, 0, 0, 0);
+  const startOfToday = startOfLocalDay(fromDate);
+  const competitionStart = startOfLocalDay(competitionDate);
 
-  return Math.ceil(
-    (competitionDate - startOfToday) / (1000 * 60 * 60 * 24)
-  );
+  if (!startOfToday || !competitionStart) {
+    return null;
+  }
+
+  return Math.ceil((competitionStart - startOfToday) / DAY_IN_MS);
 }
 
 function isDeloadWeek(week = {}) {
@@ -1108,6 +1300,8 @@ function isTestingTrainingDay(day = {}) {
     sessionText.includes(" 3rm ") ||
     sessionText.includes(" 4rm ") ||
     sessionText.includes(" 5rm ") ||
+    sessionText.includes(" rpe based 1rm ") ||
+    sessionText.includes(" 1rm estimation ") ||
     sessionText.includes(" heavy single ") ||
     sessionText.includes(" max single ")
   );
@@ -1586,6 +1780,9 @@ function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
     reps: exercise.reps,
     notes: exercise.notes,
     endurancePrescription: exercise.endurancePrescription,
+    circuitPrescription: exercise.circuitPrescription,
+    heavyBagPrescription: exercise.heavyBagPrescription,
+    sprintPrescription: exercise.sprintPrescription,
     performanceTarget: exercise.performanceTarget,
     percentagePrescription: exercise.percentagePrescription,
     strengthAssessment: exercise.strengthAssessment,
@@ -1741,17 +1938,19 @@ export function parseGeneratedTrainingPlan(plan = {}) {
     Array.isArray(plan.phases) ?
       plan.phases :
       [];
-  const normalizedPlan = normalizeTrainingPlan({
-    createdAt: plan.createdAt,
-    generatedAt: plan.generatedAt,
-    summary: plan.summary,
-    phaseOverview: phaseSource.map((phase, phaseIndex) =>
-      normalizeGeneratedPhase(phase, phaseIndex)
-    ),
-    weeks: plan.weeks.map((week, weekIndex) =>
-      normalizeGeneratedTrainingWeek(week, weekIndex)
-    ),
-  });
+  const normalizedPlan = normalizeTrainingPlan(
+    omitUndefinedObjectFields({
+      createdAt: plan.createdAt,
+      generatedAt: plan.generatedAt,
+      summary: plan.summary,
+      phaseOverview: phaseSource.map((phase, phaseIndex) =>
+        normalizeGeneratedPhase(phase, phaseIndex)
+      ),
+      weeks: plan.weeks.map((week, weekIndex) =>
+        normalizeGeneratedTrainingWeek(week, weekIndex)
+      ),
+    })
+  );
 
   if (!normalizedPlan.weeks.some((week) => Array.isArray(week.days) && week.days.length > 0)) {
     throw new Error(

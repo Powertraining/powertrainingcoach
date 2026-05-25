@@ -33,8 +33,15 @@ const LoginScreen = observer(function LoginScreen() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [verificationMessage, setVerificationMessage] = useState(null);
+  const [canResendVerification, setCanResendVerification] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const returnTo = getSafeReturnToPath(params);
+  const genericLoginError =
+    "Unable to sign in. Check your details, verification status, or reset your password.";
+  const genericVerificationMessage =
+    "If this account needs verification, a verification e-mail is on its way.";
 
   function identifierChangeACB(value) {
     setIdentifier(value);
@@ -46,6 +53,8 @@ const LoginScreen = observer(function LoginScreen() {
 
   async function submitACB() {
     setError(null);
+    setVerificationMessage(null);
+    setCanResendVerification(false);
     setIsSubmitting(true);
 
     try {
@@ -53,14 +62,16 @@ const LoginScreen = observer(function LoginScreen() {
       router.replace(returnTo || "/(tabs)");
     } catch (e) {
       console.error(e);
-      const message = "E-Mail or password incorrect";
-      setError(message);
+      setError(genericLoginError);
+      setCanResendVerification(true);
       setIsSubmitting(false);
     }
   }
 
   async function submitGoogleACB() {
     setError(null);
+    setVerificationMessage(null);
+    setCanResendVerification(false);
     setIsSubmitting(true);
 
     try {
@@ -96,6 +107,33 @@ const LoginScreen = observer(function LoginScreen() {
     });
   }
 
+  async function handleResendVerificationPress() {
+    const normalizedIdentifier = identifier.trim();
+
+    if (!normalizedIdentifier || !password) {
+      setError("Enter your e-mail and password first.");
+      return;
+    }
+
+    setError(null);
+    setVerificationMessage(null);
+    setIsResendingVerification(true);
+
+    try {
+      await model.submitEmailVerificationResend(
+        normalizedIdentifier,
+        password
+      );
+      setVerificationMessage(genericVerificationMessage);
+    } catch (e) {
+      console.error(e);
+      setVerificationMessage(genericVerificationMessage);
+    } finally {
+      setCanResendVerification(false);
+      setIsResendingVerification(false);
+    }
+  }
+
   useEffect(() => {
     if (model.ready && model.user) {
       router.replace(returnTo || "/(tabs)");
@@ -108,11 +146,15 @@ const LoginScreen = observer(function LoginScreen() {
       password={password}
       isSubmitting={isSubmitting}
       error={error}
+      verificationMessage={verificationMessage}
+      canResendVerification={canResendVerification}
+      isResendingVerification={isResendingVerification}
       onIdentifierChange={identifierChangeACB}
       onPasswordChange={passwordChangeACB}
       onSubmit={submitACB}
       onSubmitGoogle={submitGoogleACB}
       onForgotPasswordPress={handleForgotPasswordPress}
+      onResendVerificationPress={handleResendVerificationPress}
       onSignupPress={handleSignupPress}
     />
   );

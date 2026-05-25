@@ -19,6 +19,9 @@ const AuthScreen = observer(function AuthScreen() {
   const [identifier, setIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState(null);
+  const [loginVerificationMessage, setLoginVerificationMessage] = useState(null);
+  const [canResendVerification, setCanResendVerification] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [loginSubmitting, setLoginSubmitting] = useState(false);
 
   // Signup state
@@ -26,21 +29,58 @@ const AuthScreen = observer(function AuthScreen() {
   const [email, setEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupError, setSignupError] = useState(null);
+  const [signupMessage, setSignupMessage] = useState(null);
   const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const genericLoginError =
+    "Unable to sign in. Check your details, verification status, or reset your password.";
+  const genericVerificationMessage =
+    "If this account needs verification, a verification e-mail is on its way.";
+  const genericSignupMessage =
+    "If this e-mail can be used for a new account, a verification e-mail will be sent. Check your inbox before logging in.";
 
   function identifierChangeACB(value) { setIdentifier(value); }
   function loginPasswordChangeACB(value) { setLoginPassword(value); }
 
   async function loginSubmitACB() {
     setLoginError(null);
+    setLoginVerificationMessage(null);
+    setCanResendVerification(false);
     setLoginSubmitting(true);
     try {
       await model.submitLogin(identifier, loginPassword);
       router.replace("/(tabs)");
     } catch (e) {
       console.error(e);
-      setLoginError("E-Mail or password incorrect");
+      setLoginError(genericLoginError);
+      setCanResendVerification(true);
       setLoginSubmitting(false);
+    }
+  }
+
+  async function resendVerificationACB() {
+    const normalizedIdentifier = identifier.trim();
+
+    if (!normalizedIdentifier || !loginPassword) {
+      setLoginError("Enter your e-mail and password first.");
+      return;
+    }
+
+    setLoginError(null);
+    setLoginVerificationMessage(null);
+    setIsResendingVerification(true);
+
+    try {
+      await model.submitEmailVerificationResend(
+        normalizedIdentifier,
+        loginPassword
+      );
+      setLoginVerificationMessage(genericVerificationMessage);
+    } catch (e) {
+      console.error(e);
+      setLoginVerificationMessage(genericVerificationMessage);
+    } finally {
+      setCanResendVerification(false);
+      setIsResendingVerification(false);
     }
   }
 
@@ -49,6 +89,9 @@ const AuthScreen = observer(function AuthScreen() {
 
     setLoginError(null);
     setSignupError(null);
+    setLoginVerificationMessage(null);
+    setCanResendVerification(false);
+    setSignupMessage(null);
 
     if (mode === "signin") {
       setLoginSubmitting(true);
@@ -94,13 +137,26 @@ const AuthScreen = observer(function AuthScreen() {
 
   async function signupSubmitACB() {
     setSignupError(null);
+    setSignupMessage(null);
     setSignupSubmitting(true);
     try {
-      await model.submitSignup(username, email, signupPassword);
+      const result = await model.submitSignup(username, email, signupPassword);
+
+      if (result?.requiresEmailVerification) {
+        setSignupPassword("");
+        setSignupMessage(genericSignupMessage);
+        setSignupSubmitting(false);
+        return;
+      }
+
       router.replace("/(tabs)");
     } catch (e) {
       console.error(e);
-      setSignupError(e.message || "Impossible to create an account.");
+      setSignupError(
+        e.message === "auth/signup-unavailable"
+          ? "Could not process sign-up right now. Please try again."
+          : e.message || "Could not process sign-up right now. Please try again."
+      );
       setSignupSubmitting(false);
     }
   }
@@ -113,11 +169,15 @@ const AuthScreen = observer(function AuthScreen() {
           password={loginPassword}
           isSubmitting={loginSubmitting}
           error={loginError}
+          verificationMessage={loginVerificationMessage}
+          canResendVerification={canResendVerification}
+          isResendingVerification={isResendingVerification}
           onIdentifierChange={identifierChangeACB}
           onPasswordChange={loginPasswordChangeACB}
           onSubmit={loginSubmitACB}
           onSubmitGoogle={submitGoogleACB}
           onForgotPasswordPress={handleForgotPasswordPress}
+          onResendVerificationPress={resendVerificationACB}
         />
       ) : (
         <SignUpView
@@ -126,6 +186,7 @@ const AuthScreen = observer(function AuthScreen() {
           password={signupPassword}
           isSubmitting={signupSubmitting}
           error={signupError}
+          message={signupMessage}
           onUsernameChange={usernameChangeACB}
           onEmailChange={emailChangeACB}
           onPasswordChange={signupPasswordChangeACB}

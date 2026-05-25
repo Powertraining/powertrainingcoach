@@ -61,7 +61,11 @@ function normalizeCurrency(value, fallbackCurrency) {
     return resolvedFallback;
   }
 
-  return value.trim().toLowerCase();
+  const normalizedCurrency = value.trim().toLowerCase();
+
+  return /^[a-z]{3}$/.test(normalizedCurrency) ?
+    normalizedCurrency :
+    resolvedFallback;
 }
 
 /**

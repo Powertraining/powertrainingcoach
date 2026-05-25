@@ -104,6 +104,9 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
         model.applySubscriptionState?.({
           subscription: verification.active,
           subscriptionEndDate: verification.subscriptionEndDate,
+          subscriptionStartDate: verification.subscriptionStartDate,
+          subscriptionType: verification.subscriptionType,
+          lookupKey: verification.lookupKey,
         });
 
         const shouldAutoGeneratePlan =
@@ -217,9 +220,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     return (
       <View style={styles.container}>
         <SubscriptionPlanView
-          currentPlanKey={
-            model.getDaysRemainingInSubscription?.() > 0 ? "pro_plan_setup" : ""
-          }
+          currentPlanKey={model.getActiveSubscriptionLookupKey?.() || ""}
           onBack={handleBack}
           onCheckoutSuccess={handleCheckoutSuccess}
           returnTo={returnTo}

@@ -114,7 +114,7 @@ test("training prompt instructs percentage users to emit structured percentage p
     goal: "strength",
     experience: "intermediate",
     liftIntensityMethod: "percentage",
-    percentageReferenceMethod: "heavy_single",
+    percentageReferenceMethod: "rpe_based_1rm",
     loadingStrategy: "ascending_pyramid",
   });
 
@@ -153,9 +153,9 @@ test("RPE questionnaires strip percentage prescriptions and strength assessments
                   ],
                 },
                 strengthAssessment: {
-                  method: "heavy_single",
+                  method: "rpe_based_1rm",
                   liftName: "Back Squat",
-                  prompt: "Log the top single.",
+                  prompt: "Log the top set.",
                 },
                 substitutionOptions: [],
               },
@@ -173,4 +173,52 @@ test("RPE questionnaires strip percentage prescriptions and strength assessments
 
   assert.equal(exercise.percentagePrescription, null);
   assert.equal(exercise.strengthAssessment, null);
+});
+
+test("pull-ups stay RPE-based even in percentage plans", () => {
+  const normalizedPlan = parseGeneratedTrainingPlan({
+    summary: "Percentage plan with a weighted pull-up slot.",
+    weeks: [
+      {
+        week: 1,
+        days: [
+          {
+            day: 1,
+            sessionLabel: "Day 1",
+            exercises: [
+              {
+                name: "Weighted Pull-ups",
+                sets: "4",
+                reps: "5",
+                notes: "Controlled reps with no kicking.",
+                percentagePrescription: {
+                  referenceLiftName: "Weighted Pull-up",
+                  loadingStrategy: "flat_loading",
+                  workingSets: [
+                    {
+                      count: 4,
+                      reps: 5,
+                      percent1RM: 75,
+                    },
+                  ],
+                },
+                strengthAssessment: {
+                  method: "rpe_based_1rm",
+                  liftName: "Weighted Pull-up",
+                  prompt: "Log the top set.",
+                },
+                substitutionOptions: [],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  const exercise = normalizedPlan.weeks[0].days[0].exercises[0];
+
+  assert.equal(exercise.percentagePrescription, null);
+  assert.equal(exercise.strengthAssessment, null);
+  assert.match(exercise.notes, /RPE\/RIR/i);
 });
