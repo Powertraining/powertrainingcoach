@@ -27,10 +27,11 @@ const ProfileSubscriptionDetailsScreen = observer(function ProfileSubscriptionDe
       return;
     }
 
+    const refreshUid = model.user.uid;
     refreshAttemptedRef.current = true;
     refreshSubscriptionStatus()
       .then((result) => {
-        if (!result?.refreshed) {
+        if (!result?.refreshed || model.user?.uid !== refreshUid) {
           return;
         }
 
