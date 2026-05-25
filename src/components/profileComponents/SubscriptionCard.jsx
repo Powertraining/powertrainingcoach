@@ -28,6 +28,7 @@ export default function SubscriptionCard({
   showActions = true,
   showBackground = true,
   showBraces = true,
+  showDetailsButton = true,
   isSubmitting = false,
   onPress,
   onDetailsPress,
@@ -68,7 +69,12 @@ export default function SubscriptionCard({
         </View>
 
         {showActions ? (
-          <View style={styles.actionRow}>
+          <View
+            style={[
+              styles.actionRow,
+              !showDetailsButton ? styles.actionRowCentered : null,
+            ]}
+          >
             <TouchableOpacity
               onPress={handleUpgradePress}
               disabled={isSubmitting}
@@ -77,19 +83,21 @@ export default function SubscriptionCard({
               <Text style={styles.actionButtonText}>Subscribe</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleDetailsPress}
-              disabled={isSubmitting}
-              style={[
-                styles.actionButton,
-                styles.secondaryButton,
-                isSubmitting ? styles.buttonDisabled : null,
-              ]}
-            >
-              <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>
-                Details
-              </Text>
-            </TouchableOpacity>
+            {showDetailsButton ? (
+              <TouchableOpacity
+                onPress={handleDetailsPress}
+                disabled={isSubmitting}
+                style={[
+                  styles.actionButton,
+                  styles.secondaryButton,
+                  isSubmitting ? styles.buttonDisabled : null,
+                ]}
+              >
+                <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>
+                  Details
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : null}
       </View>
@@ -173,6 +181,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     justifyContent: "center",
+  },
+  actionRowCentered: {
+    alignItems: "center",
   },
   actionButton: {
     alignItems: "center",

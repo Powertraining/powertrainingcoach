@@ -27,7 +27,6 @@ function TrashIcon() {
 function GalleryIcon() {
   return (
     <View style={styles.galleryIcon}>
-      <View style={styles.galleryIconBack} />
       <View style={styles.galleryIconFront}>
         <View style={styles.galleryIconSun} />
         <View style={styles.galleryIconHill} />
@@ -85,7 +84,7 @@ export default function MakePostView({
 }) {
   const insets = useSafeAreaInsets();
   const [isTagsPickerVisible, setIsTagsPickerVisible] = useState(false);
-  const contentTopPadding = Math.max(insets.top + 46, 70);
+  const contentTopPadding = !locked && onBack ? 26 : Math.max(insets.top + 46, 70);
   const avatarSource =
     userPhotoUrl ?
       { uri: userPhotoUrl } :
@@ -108,6 +107,15 @@ export default function MakePostView({
 
   return (
     <View style={styles.container}>
+      {!locked && onBack ? (
+        <TouchableOpacity
+          onPress={onBack}
+          disabled={isSubmitting}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      ) : null}
       <View
         style={[
           styles.content,
@@ -457,28 +465,17 @@ const styles = StyleSheet.create({
   galleryIcon: {
     height: 16,
     position: "relative",
-    width: 17,
-  },
-  galleryIconBack: {
-    borderColor: COLORS.text,
-    borderRadius: 3,
-    borderWidth: 1.5,
-    height: 11,
-    left: 3,
-    opacity: 0.55,
-    position: "absolute",
-    top: 1,
-    width: 13,
+    width: 16,
   },
   galleryIconFront: {
     borderColor: COLORS.text,
     borderRadius: 3,
     borderWidth: 1.5,
     height: 12,
-    left: 0,
+    left: 1,
     overflow: "hidden",
     position: "absolute",
-    top: 4,
+    top: 2,
     width: 14,
   },
   galleryIconSun: {
@@ -495,7 +492,7 @@ const styles = StyleSheet.create({
     height: 7,
     left: 2,
     position: "absolute",
-    top: 8,
+    top: 7,
     transform: [{ rotate: "45deg" }],
     width: 9,
   },
@@ -528,6 +525,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 17,
     marginTop: 10,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 24,
+    paddingBottom: 8,
+    paddingTop: 18,
+  },
+  backButtonText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
   },
   lockedOverlay: {
     ...StyleSheet.absoluteFillObject,

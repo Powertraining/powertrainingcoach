@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Redirect, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
@@ -75,7 +75,7 @@ const ForumScreen = observer(function ForumScreen() {
       return;
     }
 
-    setCurrentView("feed");
+    setForumCurrentView("feed");
     model.setForumFilters({ searchQuery: routeSearchQuery });
     router.replace("/(tabs)/forum");
     model.loadForumFeed({ searchQuery: routeSearchQuery }).catch((error) => {
@@ -91,17 +91,19 @@ const ForumScreen = observer(function ForumScreen() {
     hideForumOverlay();
   }, [model.forumOverlayDismissCount]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     model.setForumTabBarHidden(
       currentView === "post" ||
         currentView === "compose" ||
         currentView === "composeLocked"
     );
+  }, [currentView, model]);
 
+  useEffect(() => {
     return () => {
       model.setForumTabBarHidden(false);
     };
-  }, [currentView, model]);
+  }, [model]);
 
   const feedError = model.forumFeedPromiseState?.error;
   const isFeedLoading =
@@ -111,6 +113,13 @@ const ForumScreen = observer(function ForumScreen() {
     !feedError &&
     !model.forumFeedPromiseState?.data;
   const canUseForumActions = model.isSubscribed?.() || false;
+  const isForumTabHiddenView = (view) =>
+    view === "post" || view === "compose" || view === "composeLocked";
+
+  function setForumCurrentView(view) {
+    model.setForumTabBarHidden(isForumTabHiddenView(view));
+    setCurrentView(view);
+  }
 
   const coachComments =
     selectedPostId === model.forumSelectedPost?.id ?
@@ -147,14 +156,14 @@ const ForumScreen = observer(function ForumScreen() {
 
   function handlePressPostButton() {
     if (!canUseForumActions) {
-      setCurrentView("composeLocked");
+      setForumCurrentView("composeLocked");
       return;
     }
 
     model.resetForumComposer();
     model.updateForumComposer(model.getDefaultForumPostDraft());
     setCreatePostError(null);
-    setCurrentView("compose");
+    setForumCurrentView("compose");
   }
 
   function handleComposeTitleChange(title) {
@@ -182,14 +191,26 @@ const ForumScreen = observer(function ForumScreen() {
     });
   }
 
-  function handleDiscardPost() {
+  function handleClearPostDraft() {
+    const defaultDraft = model.getDefaultForumPostDraft();
+
+    setCreatePostError(null);
+    model.updateForumComposer({
+      title: "",
+      body: "",
+      tags: [],
+      topic: defaultDraft.topic,
+    });
+  }
+
+  function handleLeavePostComposer() {
     if (isCreatingPost) {
       return;
     }
 
     setCreatePostError(null);
     model.resetForumComposer();
-    setCurrentView("feed");
+    setForumCurrentView("feed");
   }
 
   function handleUploadImage() {
@@ -203,7 +224,7 @@ const ForumScreen = observer(function ForumScreen() {
     try {
       const createdPost = await model.createForumPost();
       setSelectedPostId(createdPost?.id || null);
-      setCurrentView("post");
+      setForumCurrentView("post");
     } catch (error) {
       console.warn("Could not create the forum post:", error);
       setCreatePostError(error?.message || "Could not create the forum post.");
@@ -238,7 +259,7 @@ const ForumScreen = observer(function ForumScreen() {
     setSelectedPostId(postId);
     setCreateCommentError(null);
     resetReplyComposer();
-    setCurrentView("post");
+    setForumCurrentView("post");
 
     model.loadForumPostThread(postId).catch((error) => {
       console.warn(`Could not load the forum thread for ${postId}:`, error);
@@ -261,7 +282,7 @@ const ForumScreen = observer(function ForumScreen() {
     setCommentDraft("");
     setCreateCommentError(null);
     resetReplyComposer();
-    setCurrentView("feed");
+    setForumCurrentView("feed");
   }
 
   function hideForumOverlay() {
@@ -446,7 +467,8 @@ const ForumScreen = observer(function ForumScreen() {
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
           onUploadImage={handleUploadImage}
-          onDiscard={handleDiscardPost}
+          onBack={handleLeavePostComposer}
+          onDiscard={handleClearPostDraft}
         />
       ) : null}
       {currentView === "composeLocked" ? (
@@ -456,8 +478,8 @@ const ForumScreen = observer(function ForumScreen() {
           userPhotoUrl={model.user?.photoURL || ""}
           selectedTags={["training"]}
           locked
-          onBack={handleDiscardPost}
-          onDiscard={handleDiscardPost}
+          onBack={handleLeavePostComposer}
+          onDiscard={handleClearPostDraft}
         />
       ) : null}
       {currentView === "post" ? (

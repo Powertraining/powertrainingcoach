@@ -155,7 +155,19 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
     });
   }
 
-  function handleDiscardPost() {
+  function handleClearPostDraft() {
+    const defaultDraft = model.getDefaultForumPostDraft();
+
+    setCreatePostError(null);
+    model.updateForumComposer({
+      title: "",
+      body: "",
+      tags: [],
+      topic: defaultDraft.topic,
+    });
+  }
+
+  function handleLeavePostComposer() {
     if (isCreatingPost) {
       return;
     }
@@ -353,7 +365,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
           onUploadImage={handleUploadImage}
-          onDiscard={handleDiscardPost}
+          onBack={handleLeavePostComposer}
+          onDiscard={handleClearPostDraft}
         />
       ) : null}
       {currentView === "composeLocked" ? (
@@ -363,8 +376,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           userPhotoUrl={model.user?.photoURL || ""}
           selectedTags={["training"]}
           locked
-          onBack={handleDiscardPost}
-          onDiscard={handleDiscardPost}
+          onBack={handleLeavePostComposer}
+          onDiscard={handleClearPostDraft}
         />
       ) : null}
       {currentView === "post" ? (
