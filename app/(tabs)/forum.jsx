@@ -92,7 +92,11 @@ const ForumScreen = observer(function ForumScreen() {
   }, [model.forumOverlayDismissCount]);
 
   useEffect(() => {
-    model.setForumTabBarHidden(currentView === "post" || currentView === "compose");
+    model.setForumTabBarHidden(
+      currentView === "post" ||
+        currentView === "compose" ||
+        currentView === "composeLocked"
+    );
 
     return () => {
       model.setForumTabBarHidden(false);
@@ -106,6 +110,7 @@ const ForumScreen = observer(function ForumScreen() {
     model.forumFeed.length === 0 &&
     !feedError &&
     !model.forumFeedPromiseState?.data;
+  const canUseForumActions = model.isSubscribed?.() || false;
 
   const coachComments =
     selectedPostId === model.forumSelectedPost?.id ?
@@ -141,6 +146,11 @@ const ForumScreen = observer(function ForumScreen() {
   }
 
   function handlePressPostButton() {
+    if (!canUseForumActions) {
+      setCurrentView("composeLocked");
+      return;
+    }
+
     model.resetForumComposer();
     model.updateForumComposer(model.getDefaultForumPostDraft());
     setCreatePostError(null);
@@ -280,6 +290,10 @@ const ForumScreen = observer(function ForumScreen() {
   }
 
   async function handleCreateComment() {
+    if (!canUseForumActions) {
+      return;
+    }
+
     if (!selectedPost?.id || isCreatingComment) {
       return;
     }
@@ -301,6 +315,10 @@ const ForumScreen = observer(function ForumScreen() {
   }
 
   async function handleCreateReply() {
+    if (!canUseForumActions) {
+      return;
+    }
+
     if (!selectedPost?.id || !activeReplyCommentId || isCreatingReply) {
       return;
     }
@@ -408,6 +426,7 @@ const ForumScreen = observer(function ForumScreen() {
           onTogglePostSave={handleTogglePostSave}
           onToggleCoachResponse={showCoachResponseView}
           onPressPostButton={handlePressPostButton}
+          isPostButtonLocked={!canUseForumActions}
           onRetryPosts={handleRetry}
           onPressComments={showCommentsView}
           onPressPost={showPostView}
@@ -430,6 +449,17 @@ const ForumScreen = observer(function ForumScreen() {
           onDiscard={handleDiscardPost}
         />
       ) : null}
+      {currentView === "composeLocked" ? (
+        <MakePostView
+          titleValue="Post title"
+          value="Share your training question, progress update, or discussion topic."
+          userPhotoUrl={model.user?.photoURL || ""}
+          selectedTags={["training"]}
+          locked
+          onBack={handleDiscardPost}
+          onDiscard={handleDiscardPost}
+        />
+      ) : null}
       {currentView === "post" ? (
         <PostView
           post={selectedPost}
@@ -442,6 +472,7 @@ const ForumScreen = observer(function ForumScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          commentsLocked={!canUseForumActions}
           onBack={hidePostView}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
@@ -475,6 +506,7 @@ const ForumScreen = observer(function ForumScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          commentsLocked={!canUseForumActions}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
           onPressReply={handlePressReply}

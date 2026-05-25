@@ -17,6 +17,7 @@ import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import VerifiedBadge from "../../components/forumComponents/VerifiedBadge.jsx";
 import Comment from "../../components/forumComponents/Comment.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
+import LockIcon from "../../components/LockIcon.jsx";
 
 const COLORS = {
   gold: "#C9B259",
@@ -37,6 +38,7 @@ export default function PostView({
   currentUserPhotoUrl = "",
   isSubmittingComment = false,
   isSubmittingReply = false,
+  commentsLocked = false,
   onBack,
   onChangeCommentText,
   onCreateComment,
@@ -108,6 +110,10 @@ export default function PostView({
   }, [isSubmittingReply, replyError, replyTargetComment]);
 
   function openCommentEditor() {
+    if (commentsLocked) {
+      return;
+    }
+
     if (replyTargetComment) {
       onCancelReply?.();
       setReplyTargetComment(null);
@@ -131,12 +137,20 @@ export default function PostView({
       return;
     }
 
+    if (commentsLocked) {
+      return;
+    }
+
     setReplyTargetComment(comment);
     onPressReply?.(comment);
     setIsCommentEditorOpen(true);
   }
 
   function handleChangeEditorText(value) {
+    if (commentsLocked) {
+      return;
+    }
+
     if (isReplyEditor) {
       onChangeReplyText?.(value);
       return;
@@ -146,6 +160,10 @@ export default function PostView({
   }
 
   function handleSubmitEditor() {
+    if (commentsLocked) {
+      return;
+    }
+
     if (isReplyEditor) {
       onCreateReply?.();
       return;
@@ -203,6 +221,13 @@ export default function PostView({
                   {post?.likesCount}
                 </Text>
               </TouchableOpacity>
+              <View style={styles.commentCount}>
+                <Image
+                  source={require("../../assets/icons/conversation.png")}
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.countText}>{post?.commentsCount}</Text>
+              </View>
               {post?.coachResponseStatus === "responded" ? (
                 <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                   <GoldGradient style={styles.coachResponseStatus}>
@@ -216,32 +241,62 @@ export default function PostView({
 
             <View style={styles.commentsSection}>
               <Pressable
+                disabled={commentsLocked}
                 onPress={openCommentEditor}
                 style={({ pressed }) => [
                   styles.commentComposer,
+                  commentsLocked ? styles.commentComposerLocked : null,
                   pressed ? styles.commentComposerPressed : null,
                 ]}
               >
-                <Image source={avatarSource} style={styles.commentAvatar} />
-                <View style={styles.commentComposerBody}>
-                  <Text
-                    numberOfLines={3}
-                    style={[
-                      styles.commentPreviewText,
-                      !commentValue ? styles.commentPreviewPlaceholder : null,
-                    ]}
-                  >
-                    {commentValue || "Write a comment"}
-                  </Text>
-                  <View style={styles.commentPromptUnderline} />
+                <Image
+                  source={avatarSource}
+                  style={[
+                    styles.commentAvatar,
+                    commentsLocked ? styles.lockedCommentPreviewContent : null,
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.commentComposerBody,
+                    commentsLocked ? styles.lockedCommentPreviewContent : null,
+                  ]}
+                >
+                  {commentsLocked ? (
+                    <>
+                      <View style={styles.lockedCommentLineLong} />
+                      <View style={styles.lockedCommentLine} />
+                    </>
+                  ) : (
+                    <>
+                      <Text
+                        numberOfLines={3}
+                        style={[
+                          styles.commentPreviewText,
+                          !commentValue ? styles.commentPreviewPlaceholder : null,
+                        ]}
+                      >
+                        {commentValue || "Write a comment"}
+                      </Text>
+                      <View style={styles.commentPromptUnderline} />
+                    </>
+                  )}
                 </View>
+                {commentsLocked ? (
+                  <View pointerEvents="none" style={styles.commentComposerLockOverlay}>
+                    <LockIcon size={16} style={styles.commentComposerLockInlineIcon} />
+                    <Text style={styles.commentComposerLockText}>
+                      Members only, so coaches can ensure safety and quality.
+                    </Text>
+                  </View>
+                ) : null}
               </Pressable>
               <View style={styles.commentsList}>
                 {comments.map((comment) => (
                   <Comment
                     key={comment.id}
                     comment={comment}
-                    onPressReply={handlePressReply}
+                    onPressReply={commentsLocked ? undefined : handlePressReply}
                   />
                 ))}
               </View>
@@ -268,6 +323,37 @@ export default function PostView({
               },
             ]}
           >
+            {commentsLocked ? (
+              <View style={[styles.commentEditorCard, styles.lockedCommentEditorCard, { height: commentEditorHeight }]}>
+                <View style={styles.lockedCommentEditorContent}>
+                  <View style={styles.lockedCommentEditorPreview}>
+                    <Image source={avatarSource} style={styles.commentAvatar} />
+                    <View style={styles.lockedCommentEditorPreviewBody}>
+                      <View style={styles.lockedCommentLineLong} />
+                      <View style={styles.lockedCommentLine} />
+                      <View style={styles.lockedCommentLineShort} />
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.lockedCommentEditorOverlay}>
+                  <LockIcon size={24} style={styles.lockedCommentMessageIcon} />
+                  <Text style={styles.lockedCommentMessageTitle}>
+                    Commenting is locked
+                  </Text>
+                  <Text style={styles.lockedCommentMessageText}>
+                    Commenting is limited to members so coaches can maintain safety and quality feedback.
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.lockedCommentBackButton}
+                    onPress={closeCommentEditor}
+                  >
+                    <Text style={styles.lockedCommentBackButtonText}>
+                      Go Back
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
             <View style={[styles.commentEditorCard, { height: commentEditorHeight }]}>
               {isReplyEditor ? (
                 <View style={styles.replyTargetPreview}>
@@ -316,7 +402,9 @@ export default function PostView({
                 </View>
               </View>
             </View>
-            <View style={styles.commentEditorActions}>
+            )}
+            {!commentsLocked ? (
+              <View style={styles.commentEditorActions}>
               <TouchableOpacity
                 style={styles.commentSubmitButton}
                 onPress={handleSubmitEditor}
@@ -336,6 +424,7 @@ export default function PostView({
                 <Text style={styles.commentCancelButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
+            ) : null}
           </KeyboardAvoidingView>
         ) : null}
       </View>
@@ -446,6 +535,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
   },
+  commentComposerLocked: {
+    position: "relative",
+  },
+  lockedCommentPreviewContent: {
+    opacity: 0.42,
+    filter: [{ blur: 3 }],
+  },
   commentComposerPressed: {
     opacity: 0.72,
   },
@@ -473,6 +569,46 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     backgroundColor: COLORS.text,
     opacity: 0.9,
+  },
+  lockedCommentLineLong: {
+    backgroundColor: COLORS.text,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.72,
+    width: "72%",
+  },
+  lockedCommentLine: {
+    backgroundColor: COLORS.muted,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.62,
+    width: "54%",
+  },
+  lockedCommentLineShort: {
+    backgroundColor: COLORS.muted,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.54,
+    width: "36%",
+  },
+  commentComposerLockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.5)",
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    paddingHorizontal: 28,
+  },
+  commentComposerLockInlineIcon: {
+    flexShrink: 0,
+  },
+  commentComposerLockText: {
+    color: COLORS.gold,
+    flexShrink: 1,
+    fontSize: 11,
+    fontWeight: "700",
+    lineHeight: 15,
   },
   commentInput: {
     minHeight: 90,
@@ -508,6 +644,67 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.18)",
     borderTopWidth: 1,
     overflow: "hidden",
+  },
+  lockedCommentEditorCard: {
+    position: "relative",
+  },
+  lockedCommentEditorContent: {
+    flex: 1,
+    opacity: 0.42,
+    filter: [{ blur: 3 }],
+  },
+  lockedCommentEditorPreview: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  lockedCommentEditorPreviewBody: {
+    flex: 1,
+    gap: 13,
+    paddingTop: 10,
+  },
+  lockedCommentEditorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.58)",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+  },
+  lockedCommentMessageIcon: {
+    marginBottom: 10,
+  },
+  lockedCommentMessageTitle: {
+    color: COLORS.text,
+    fontSize: 24,
+    fontWeight: "700",
+    lineHeight: 30,
+    textAlign: "center",
+  },
+  lockedCommentMessageText: {
+    color: COLORS.gold,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 8,
+    maxWidth: 320,
+    textAlign: "center",
+  },
+  lockedCommentBackButton: {
+    alignItems: "center",
+    backgroundColor: COLORS.text,
+    borderRadius: 999,
+    justifyContent: "center",
+    marginTop: 18,
+    minHeight: 34,
+    paddingHorizontal: 18,
+  },
+  lockedCommentBackButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
   },
   commentEditorComposer: {
     flex: 1,
@@ -632,6 +829,14 @@ const styles = StyleSheet.create({
   countButtonActive: {
     backgroundColor: COLORS.text,
     borderColor: COLORS.text,
+  },
+  commentCount: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    gap: 8,
+    height: 36,
+    justifyContent: "center",
   },
   standardButton: {
     backgroundColor: "rgba(255,255,255,0.12)",

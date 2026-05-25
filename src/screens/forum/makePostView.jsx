@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text, Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SearchFiltersView from "./searchFiltersView.jsx";
+import LockIcon from "../../components/LockIcon.jsx";
 
 const COLORS = {
   panel: "#141414",
@@ -44,6 +45,28 @@ function PlusIcon() {
   );
 }
 
+function LockedComposePreview({ avatarSource }) {
+  return (
+    <>
+      <View style={styles.header}>
+        <Image source={avatarSource} style={styles.avatar} />
+        <View style={styles.lockedTagPlaceholder} />
+      </View>
+      <View style={styles.lockedTitlePlaceholder} />
+      <View style={styles.lockedBodyPreview}>
+        <View style={styles.lockedBodyLineLong} />
+        <View style={styles.lockedBodyLine} />
+        <View style={styles.lockedBodyLineMedium} />
+      </View>
+      <View style={styles.footer}>
+        <View style={styles.lockedFooterButton} />
+        <View style={styles.lockedFooterButton} />
+        <View style={[styles.lockedFooterButton, styles.lockedFooterButtonPrimary]} />
+      </View>
+    </>
+  );
+}
+
 export default function MakePostView({
   titleValue = "",
   value = "",
@@ -51,11 +74,13 @@ export default function MakePostView({
   isSubmitting = false,
   error = null,
   selectedTags = [],
+  locked = false,
   onChangeTitle,
   onChangeText,
   onChangeTags,
   onPost,
   onUploadImage,
+  onBack,
   onDiscard,
 }) {
   const insets = useSafeAreaInsets();
@@ -71,6 +96,7 @@ export default function MakePostView({
   const tagsButtonLabel = normalizedSelectedTags.length > 0 ?
     `Tags (${normalizedSelectedTags.length})` :
     "Tags";
+  const isInteractionDisabled = isSubmitting || locked;
 
   function toggleTagsPicker() {
     setIsTagsPickerVisible((isVisible) => !isVisible);
@@ -82,7 +108,17 @@ export default function MakePostView({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.content, { paddingTop: contentTopPadding }]}>
+      <View
+        style={[
+          styles.content,
+          locked ? styles.lockedContent : null,
+          { paddingTop: contentTopPadding },
+        ]}
+      >
+        {locked ? (
+          <LockedComposePreview avatarSource={avatarSource} />
+        ) : (
+          <>
         <View style={styles.header}>
           <Image source={avatarSource} style={styles.avatar} />
           <TouchableOpacity
@@ -91,7 +127,7 @@ export default function MakePostView({
               normalizedSelectedTags.length > 0 ? styles.tagContainerActive : null,
             ]}
             onPress={toggleTagsPicker}
-            disabled={isSubmitting}
+            disabled={isInteractionDisabled}
           >
             <Text
               style={[
@@ -119,7 +155,7 @@ export default function MakePostView({
           placeholderTextColor={COLORS.faint}
           value={titleValue}
           onChangeText={onChangeTitle}
-          editable={!isSubmitting}
+          editable={!isInteractionDisabled}
           maxLength={140}
           returnKeyType="next"
           selectionColor="#fff"
@@ -131,7 +167,7 @@ export default function MakePostView({
           placeholderTextColor={COLORS.faint}
           value={value}
           onChangeText={onChangeText}
-          editable={!isSubmitting}
+          editable={!isInteractionDisabled}
           selectionColor="#fff"
         />
         <View style={styles.footer}>
@@ -146,7 +182,7 @@ export default function MakePostView({
           <TouchableOpacity
             style={styles.secondaryButton}
             onPress={onUploadImage}
-            disabled={isSubmitting}
+            disabled={isInteractionDisabled}
           >
             <GalleryIcon />
             <Text style={styles.secondaryButtonText}>Image</Text>
@@ -154,7 +190,7 @@ export default function MakePostView({
           <TouchableOpacity
             style={[styles.primaryButton, isSubmitting ? styles.disabledButton : null]}
             onPress={onPost}
-            disabled={isSubmitting}
+            disabled={isInteractionDisabled}
           >
             <PlusIcon />
             <Text style={styles.primaryButtonText}>
@@ -165,7 +201,26 @@ export default function MakePostView({
         {error ? (
           <Text style={styles.errorText}>{error}</Text>
         ) : null}
+          </>
+        )}
       </View>
+      {locked ? (
+        <View style={styles.lockedOverlay}>
+          <View style={styles.lockedMessageCard}>
+            <LockIcon size={24} />
+            <Text style={styles.lockedMessageTitle}>Posting is locked</Text>
+            <Text style={styles.lockedMessageText}>
+              Posting is available to subscribed members so coaches can keep up with discussions, give useful feedback, and maintain a safe training space.
+            </Text>
+            <TouchableOpacity
+              style={styles.lockedBackButton}
+              onPress={onBack || onDiscard}
+            >
+              <Text style={styles.lockedBackButtonText}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -179,6 +234,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 26,
     paddingBottom: 40,
+  },
+  lockedContent: {
+    opacity: 0.42,
+    filter: [{ blur: 3 }],
   },
   header: {
     height: 40,
@@ -244,6 +303,49 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: 22,
   },
+  lockedTagPlaceholder: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 40,
+    width: 112,
+  },
+  lockedTitlePlaceholder: {
+    backgroundColor: COLORS.text,
+    borderRadius: 4,
+    height: 20,
+    marginBottom: 24,
+    opacity: 0.72,
+    width: "72%",
+  },
+  lockedBodyPreview: {
+    flex: 1,
+    gap: 12,
+    paddingTop: 4,
+    width: "100%",
+  },
+  lockedBodyLineLong: {
+    backgroundColor: COLORS.faint,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.74,
+    width: "92%",
+  },
+  lockedBodyLine: {
+    backgroundColor: COLORS.faint,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.68,
+    width: "78%",
+  },
+  lockedBodyLineMedium: {
+    backgroundColor: COLORS.faint,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.62,
+    width: "56%",
+  },
   footer: {
     paddingTop: 15,
     borderColor: "rgba(255,255,255,0.16)",
@@ -251,6 +353,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
+  },
+  lockedFooterButton: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: 999,
+    borderWidth: 1,
+    flex: 1,
+    height: 38,
+  },
+  lockedFooterButtonPrimary: {
+    backgroundColor: COLORS.text,
+    borderColor: COLORS.text,
   },
   primaryButton: {
     alignItems: "center",
@@ -414,5 +528,47 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 17,
     marginTop: 10,
+  },
+  lockedOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.58)",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+    zIndex: 10,
+  },
+  lockedMessageCard: {
+    alignItems: "center",
+    gap: 10,
+    maxWidth: 340,
+  },
+  lockedMessageTitle: {
+    color: COLORS.text,
+    fontSize: 28,
+    fontWeight: "700",
+    lineHeight: 34,
+    textAlign: "center",
+  },
+  lockedMessageText: {
+    color: "#C9B259",
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: "center",
+  },
+  lockedBackButton: {
+    alignItems: "center",
+    backgroundColor: COLORS.text,
+    borderRadius: 999,
+    justifyContent: "center",
+    marginTop: 8,
+    minHeight: 34,
+    paddingHorizontal: 18,
+  },
+  lockedBackButtonText: {
+    color: COLORS.panel,
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
   },
 });

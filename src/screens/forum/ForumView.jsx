@@ -3,6 +3,7 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, TextInput 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PostCard from "../../components/forumComponents/PostCard.jsx";
+import LockIcon from "../../components/LockIcon.jsx";
 import LoadingView from "../LoadingView.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import SearchFiltersView from "./searchFiltersView.jsx";
@@ -37,6 +38,7 @@ export default function ForumView({
   title = "",
   emptyText = "No forum posts found.",
   showPostButton = true,
+  isPostButtonLocked = false,
   searchQuery = "",
   filters = {},
   isSearchFiltersVisible = false,
@@ -175,11 +177,25 @@ export default function ForumView({
           </View>
         </ScrollView>
         {showPostButton ? (
-          <TouchableOpacity style={styles.postButton} onPress={onPressPostButton}>
+          <TouchableOpacity
+            style={[
+              styles.postButton,
+              isPostButtonLocked ? styles.postButtonLocked : null,
+            ]}
+            onPress={onPressPostButton}
+          >
             <Image
               source={require("../../assets/icons/post.png")}
-              style={styles.postButtonIcon}
+              style={[
+                styles.postButtonIcon,
+                isPostButtonLocked ? styles.postButtonIconLocked : null,
+              ]}
             />
+            {isPostButtonLocked ? (
+              <View pointerEvents="none" style={styles.postButtonLockOverlay}>
+                <LockIcon size={22} />
+              </View>
+            ) : null}
           </TouchableOpacity>
         ) : null}
       </View>
@@ -331,10 +347,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.22,
     shadowRadius: 18,
     elevation: 10,
+    overflow: "hidden",
+  },
+  postButtonLocked: {
+    backgroundColor: "rgba(201, 178, 89, 0.64)",
   },
   postButtonIcon: {
     width: 26,
     height: 26,
     tintColor: "#000",
+  },
+  postButtonIconLocked: {
+    opacity: 0.42,
+    filter: [{ blur: 4 }],
+  },
+  postButtonLockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.42)",
+    justifyContent: "center",
   },
 });

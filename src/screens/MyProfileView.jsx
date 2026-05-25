@@ -48,6 +48,7 @@ export function MyProfileView(props) {
     (!isMainMode || props.canSave || props.isSubmitting);
   const showFloatingActions =
     isPlanAdjustmentsMode && (props.canSave || props.isSubmitting);
+  const shouldObscurePlanActions = !props.hasProgram;
 
   useEffect(
     function animateActionBarACB() {
@@ -202,6 +203,7 @@ export function MyProfileView(props) {
             timeRemainingText={props.subscriptionTimeRemainingText}
             subscriptionText={props.subscriptionText}
             isSubmitting={props.isSubmitting}
+            showDetailsButton={props.isSubscriptionActive}
             onUpgradePress={props.onChangeSubscription}
             onDetailsPress={
               props.isSubscriptionActive
@@ -225,6 +227,7 @@ export function MyProfileView(props) {
               description="Sport, schedule, and training logic"
               actionLabel="Adjust"
               onPress={props.onOpenPlanAdjustments}
+              obscureContent={shouldObscurePlanActions}
               featured
             />
           </View>
@@ -237,6 +240,7 @@ export function MyProfileView(props) {
               description="Competition date and details"
               actionLabel="Register"
               onPress={props.onOpenEventPreparation}
+              obscureContent={shouldObscurePlanActions}
             />
 
             <ProfileNavigationCard
@@ -244,6 +248,7 @@ export function MyProfileView(props) {
               description="Injuries and limitations"
               actionLabel="Report"
               onPress={props.onOpenInjuries}
+              obscureContent={shouldObscurePlanActions}
             />
           </View>
         ) : null}

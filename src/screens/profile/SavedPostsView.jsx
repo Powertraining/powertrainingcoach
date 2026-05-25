@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PostCard from "../../components/forumComponents/PostCard.jsx";
+import LockIcon from "../../components/LockIcon.jsx";
 import LoadingView from "../LoadingView.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 
@@ -20,6 +21,8 @@ export default function SavedPostsView({
   searchPlaceholder = "Search saved posts",
   emptyText = "Saved posts will show up here.",
   errorText = "Could not load saved posts.",
+  showPostButton = false,
+  isPostButtonLocked = false,
   searchQuery = "",
   onBack,
   onChangeSearchQuery,
@@ -29,91 +32,119 @@ export default function SavedPostsView({
   onToggleCoachResponse,
   onPressPost,
   onPressTopic,
+  onPressPostButton,
 }) {
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef(null);
 
   return (
     <QuestionnaireShell hideTabBar={false}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={styles.backButtonText}>Go Back</Text>
-      </TouchableOpacity>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: Math.max(insets.top + 12, 20) },
-        ]}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-        </View>
+      <View style={styles.wrapper}>
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: Math.max(insets.top + 12, 20) },
+          ]}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+          </View>
 
-        <View style={styles.searchBar}>
+          <View style={styles.searchBar}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => searchInputRef.current?.focus()}
+              style={styles.searchIconButton}
+            >
+              <Image
+                source={require("../../assets/icons/search.png")}
+                style={styles.searchIcon}
+              />
+            </TouchableOpacity>
+            <TextInput
+              ref={searchInputRef}
+              selectionColor="#fff"
+              placeholder={searchPlaceholder}
+              placeholderTextColor={COLORS.muted}
+              value={searchQuery}
+              onChangeText={onChangeSearchQuery}
+              style={styles.searchInput}
+            />
+          </View>
+
+          {isLoading ? (
+            <View style={styles.state}>
+              <LoadingView />
+            </View>
+          ) : error ? (
+            <View style={styles.state}>
+              <Text style={styles.errorText}>
+                {error.message || errorText}
+              </Text>
+              <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+                <Text style={styles.retryButtonText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          ) : posts.length === 0 ? (
+            <View style={styles.state}>
+              <Text style={styles.emptyText}>{emptyText}</Text>
+            </View>
+          ) : (
+            <View style={styles.postsSection}>
+              {posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onTogglePostLike={onTogglePostLike}
+                  onTogglePostSave={onTogglePostSave}
+                  onToggleCoachResponse={onToggleCoachResponse}
+                  onPressPost={onPressPost}
+                  onPressTopic={onPressTopic}
+                />
+              ))}
+            </View>
+          )}
+        </ScrollView>
+        {showPostButton ? (
           <TouchableOpacity
-            accessibilityRole="button"
-            onPress={() => searchInputRef.current?.focus()}
-            style={styles.searchIconButton}
+            style={[
+              styles.postButton,
+              isPostButtonLocked ? styles.postButtonLocked : null,
+            ]}
+            onPress={onPressPostButton}
           >
             <Image
-              source={require("../../assets/icons/search.png")}
-              style={styles.searchIcon}
+              source={require("../../assets/icons/post.png")}
+              style={[
+                styles.postButtonIcon,
+                isPostButtonLocked ? styles.postButtonIconLocked : null,
+              ]}
             />
+            {isPostButtonLocked ? (
+              <View pointerEvents="none" style={styles.postButtonLockOverlay}>
+                <LockIcon size={22} />
+              </View>
+            ) : null}
           </TouchableOpacity>
-          <TextInput
-            ref={searchInputRef}
-            selectionColor="#fff"
-            placeholder={searchPlaceholder}
-            placeholderTextColor={COLORS.muted}
-            value={searchQuery}
-            onChangeText={onChangeSearchQuery}
-            style={styles.searchInput}
-          />
-        </View>
-
-        {isLoading ? (
-          <View style={styles.state}>
-            <LoadingView />
-          </View>
-        ) : error ? (
-          <View style={styles.state}>
-            <Text style={styles.errorText}>
-              {error.message || errorText}
-            </Text>
-            <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-              <Text style={styles.retryButtonText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        ) : posts.length === 0 ? (
-          <View style={styles.state}>
-            <Text style={styles.emptyText}>{emptyText}</Text>
-          </View>
-        ) : (
-          <View style={styles.postsSection}>
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onTogglePostLike={onTogglePostLike}
-                onTogglePostSave={onTogglePostSave}
-                onToggleCoachResponse={onToggleCoachResponse}
-                onPressPost={onPressPost}
-                onPressTopic={onPressTopic}
-              />
-            ))}
-          </View>
-        )}
-      </ScrollView>
+        ) : null}
+      </View>
     </QuestionnaireShell>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
   scroll: {
     flex: 1,
   },
   content: {
-    paddingBottom: 32,
+    paddingBottom: 120,
   },
   header: {
     gap: 14,
@@ -211,5 +242,41 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
+  },
+  postButton: {
+    alignItems: "center",
+    backgroundColor: "#C9B259",
+    borderRadius: 120,
+    bottom: 100,
+    elevation: 10,
+    height: 54,
+    justifyContent: "center",
+    overflow: "hidden",
+    position: "absolute",
+    right: 30,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    width: 54,
+    zIndex: 10,
+  },
+  postButtonLocked: {
+    backgroundColor: "rgba(201, 178, 89, 0.64)",
+  },
+  postButtonIcon: {
+    height: 26,
+    tintColor: "#000",
+    width: 26,
+  },
+  postButtonIconLocked: {
+    opacity: 0.42,
+    filter: [{ blur: 4 }],
+  },
+  postButtonLockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.42)",
+    justifyContent: "center",
   },
 });

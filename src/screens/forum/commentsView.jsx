@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import Comment from "../../components/forumComponents/Comment.jsx";
+import LockIcon from "../../components/LockIcon.jsx";
 
 const COLORS = {
   panel: "#141414",
@@ -30,6 +31,7 @@ export default function CommentsView({
   currentUserPhotoUrl = "",
   isSubmittingComment = false,
   isSubmittingReply = false,
+  commentsLocked = false,
   onChangeCommentText,
   onCreateComment,
   onPressReply,
@@ -47,6 +49,7 @@ export default function CommentsView({
   const composerValue = isReplyComposer ? replyValue : commentValue;
   const composerError = isReplyComposer ? replyError : commentError;
   const isSubmittingComposer = isReplyComposer ? isSubmittingReply : isSubmittingComment;
+  const isComposerDisabled = isSubmittingComposer || commentsLocked;
   const replyTargetAvatarSource =
     replyTargetComment?.authorAvatarUrl ?
       { uri: replyTargetComment.authorAvatarUrl } :
@@ -76,11 +79,19 @@ export default function CommentsView({
       return;
     }
 
+    if (commentsLocked) {
+      return;
+    }
+
     setReplyTargetComment(comment);
     onPressReply?.(comment);
   }
 
   function handleChangeComposerText(value) {
+    if (commentsLocked) {
+      return;
+    }
+
     if (isReplyComposer) {
       onChangeReplyText?.(value);
       return;
@@ -90,6 +101,10 @@ export default function CommentsView({
   }
 
   function handleSubmitComposer() {
+    if (commentsLocked) {
+      return;
+    }
+
     if (isReplyComposer) {
       onCreateReply?.();
       return;
@@ -119,26 +134,48 @@ export default function CommentsView({
           <View style={styles.commentComposer}>
             <Image source={avatarSource} style={styles.commentAvatar} />
             <View style={styles.commentComposerBody}>
-              <TextInput
-                multiline
-                value={composerValue}
-                onChangeText={handleChangeComposerText}
-                editable={!isSubmittingComposer}
-                placeholder={isReplyComposer ? "Write a reply" : "Write a comment"}
-                placeholderTextColor={COLORS.muted}
-                selectionColor="#fff"
-                style={styles.commentInput}
-              />
+              {commentsLocked ? (
+                <View style={styles.lockedComposerPreviewWrap}>
+                  <View style={styles.lockedComposerPreview}>
+                    <View style={styles.lockedComposerLineLong} />
+                    <View style={styles.lockedComposerLine} />
+                  </View>
+                  <View pointerEvents="none" style={styles.lockedComposerInlineOverlay}>
+                    <LockIcon size={16} style={styles.lockedComposerInlineIcon} />
+                    <Text style={styles.lockedComposerInlineText}>
+                      Members only, so coaches can ensure safety and quality.
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <TextInput
+                  multiline
+                  value={composerValue}
+                  onChangeText={handleChangeComposerText}
+                  editable={!isComposerDisabled}
+                  placeholder={isReplyComposer ? "Write a reply" : "Write a comment"}
+                  placeholderTextColor={COLORS.muted}
+                  selectionColor="#fff"
+                  style={styles.commentInput}
+                />
+              )}
               <TouchableOpacity
-                style={styles.commentSubmitButton}
+                style={[
+                  styles.commentSubmitButton,
+                  commentsLocked ? styles.commentSubmitButtonLocked : null,
+                ]}
                 onPress={handleSubmitComposer}
-                disabled={isSubmittingComposer}
+                disabled={isComposerDisabled}
               >
-                <Text style={styles.commentSubmitButtonText}>
-                  {isSubmittingComposer ?
-                    "Posting..." :
-                    isReplyComposer ? "Post Reply" : "Post Comment"}
-                </Text>
+                {commentsLocked ? (
+                  <LockIcon size={16} />
+                ) : (
+                  <Text style={styles.commentSubmitButtonText}>
+                    {isSubmittingComposer ?
+                      "Posting..." :
+                      isReplyComposer ? "Post Reply" : "Post Comment"}
+                  </Text>
+                )}
               </TouchableOpacity>
               {composerError ? (
                 <Text style={styles.commentError}>{composerError}</Text>
@@ -154,7 +191,7 @@ export default function CommentsView({
               <Comment
                 key={comment.id}
                 comment={comment}
-                onPressReply={handlePressReply}
+                onPressReply={commentsLocked ? undefined : handlePressReply}
               />
             ))}
           </ScrollView>
@@ -216,6 +253,55 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlignVertical: "top",
   },
+  lockedComposerPreviewWrap: {
+    minHeight: 90,
+    position: "relative",
+  },
+  lockedComposerPreview: {
+    borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 12,
+    minHeight: 90,
+    opacity: 0.42,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    filter: [{ blur: 3 }],
+  },
+  lockedComposerInlineOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.5)",
+    borderRadius: 16,
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  lockedComposerInlineIcon: {
+    flexShrink: 0,
+  },
+  lockedComposerInlineText: {
+    color: "#C9B259",
+    flexShrink: 1,
+    fontSize: 11,
+    fontWeight: "700",
+    lineHeight: 15,
+  },
+  lockedComposerLineLong: {
+    backgroundColor: COLORS.text,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.72,
+    width: "76%",
+  },
+  lockedComposerLine: {
+    backgroundColor: COLORS.muted,
+    borderRadius: 4,
+    height: 12,
+    opacity: 0.62,
+    width: "54%",
+  },
   commentSubmitButton: {
     alignSelf: "flex-start",
     minHeight: 36,
@@ -224,6 +310,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.text,
     justifyContent: "center",
     alignItems: "center",
+  },
+  commentSubmitButtonLocked: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.2)",
+    borderWidth: 1,
+    width: 48,
   },
   commentSubmitButtonText: {
     color: COLORS.panel,

@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 
@@ -13,6 +13,9 @@ const SESSION_PROGRESS_RING_CENTER = SESSION_PROGRESS_RING_SIZE / 2;
 const SESSION_PROGRESS_RING_RADIUS = 33;
 const SESSION_PROGRESS_RING_STROKE = 8;
 const SESSION_PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * SESSION_PROGRESS_RING_RADIUS;
+const TAB_BAR_HEIGHT = 70;
+const GRID_TO_TAB_BAR_GAP = 10;
+const MIN_TAB_BAR_BOTTOM_OFFSET = 12;
 const WEEKDAY_NAMES = Object.freeze([
     "Sunday",
     "Monday",
@@ -25,6 +28,12 @@ const WEEKDAY_NAMES = Object.freeze([
 
 function getTodayWeekday() {
     return WEEKDAY_NAMES[new Date().getDay()] || "";
+}
+
+function getHomeBottomPadding(bottomInset = 0) {
+    return Math.max(Math.round(bottomInset / 2), MIN_TAB_BAR_BOTTOM_OFFSET) +
+        TAB_BAR_HEIGHT +
+        GRID_TO_TAB_BAR_GAP;
 }
 
 function getWeekdayIndex(weekday = "") {
@@ -168,6 +177,7 @@ function formatDaysUntilSession(session = {}) {
 function NoSessionCard({
     nextSession = null,
     isPushingBack = false,
+    obscureContent = false,
     onPushBack,
 }) {
     const title = nextSession ? "Recovery day" : "Plan complete";
@@ -194,29 +204,32 @@ function NoSessionCard({
                 ) : null
             }
             onPress={nextSession && !isPushingBack ? onPushBack : undefined}
+            obscureContent={obscureContent}
             wide
         />
     );
 }
 
-function AdjustPlanCard({ onPress }) {
+function AdjustPlanCard({ obscureContent = false, onPress }) {
     return (
         <ProfileNavigationCard
             title="Adjust plan"
             description="Sport, schedule, and logic"
             actionLabel="Adjust"
             onPress={onPress}
+            obscureContent={obscureContent}
         />
     );
 }
 
-function MyPostsCard({ onPress }) {
+function MyPostsCard({ obscureContent = false, onPress }) {
     return (
         <ProfileNavigationCard
             title="My posts"
             description="Forum posts you created"
             actionLabel="View"
             onPress={onPress}
+            obscureContent={obscureContent}
         />
     );
 }
@@ -238,33 +251,52 @@ export default function StartView({
     onMyPosts,
 }) {
     const insets = useSafeAreaInsets();
+    const { height: windowHeight } = useWindowDimensions();
     const hasSessionToday = currentSession && isSessionScheduledToday(currentSession);
+    const shouldObscureGrid = !hasProgram;
+    const bottomPadding = getHomeBottomPadding(insets.bottom);
 
     return (
             <Dotted>
                 <ScrollView
-                    contentContainerStyle={{
-                        paddingBottom: Math.max(insets.bottom + 96, 120),
-                    }}
+                    contentContainerStyle={[
+                        styles.scrollContent,
+                        { paddingBottom: bottomPadding },
+                    ]}
                     showsVerticalScrollIndicator={false}
                     style={styles.column}
                 >
-                    <View>
-                        {hasProgram ? (
-                            <View style={styles.programStatus}>
-                                <ProgramProgressRing
-                                    plan={plan}
-                                    questionnaire={questionnaire}
-                                    completedDays={completedDays}
+                    <View
+                        style={[
+                            styles.firstScreenContent,
+                            { minHeight: Math.max(windowHeight - bottomPadding, 0) },
+                        ]}
+                    >
+                        <View style={styles.widgetArea}>
+                            {hasProgram ? (
+                                <View style={styles.programStatus}>
+                                    <ProgramProgressRing
+                                        plan={plan}
+                                        questionnaire={questionnaire}
+                                        completedDays={completedDays}
+                                    />
+                                </View>
+                            ) : (
+                                <StartProgramPrompt
+                                    onStart={onStart}
+                                    label={
+                                        questionnaire ?
+                                            "Continue generating plan" :
+                                            "Start generating plan"
+                                    }
+                                    hideTitle
+                                    circular
+                                    buttonShadowStyle={styles.startPromptButtonShadow}
                                 />
-                            </View>
-                        ) : (
-                            <StartProgramPrompt onStart={onStart} />
-                        )}
-                    </View>
-                    {hasProgram ? (
+                            )}
+                        </View>
                         <View style={styles.homeCards}>
-                            {hasSessionToday ? (
+                            {hasProgram && hasSessionToday ? (
                                 <StartSessionCard
                                     session={currentSession}
                                     completedExerciseCount={completedExerciseCount}
@@ -274,17 +306,24 @@ export default function StartView({
                                 />
                             ) : (
                                 <NoSessionCard
-                                    nextSession={currentSession}
+                                    nextSession={hasProgram ? currentSession : null}
                                     isPushingBack={isPushingBackSession}
+                                    obscureContent={shouldObscureGrid}
                                     onPushBack={onPushBackSession}
                                 />
                             )}
                             <View style={styles.homeActionRow}>
-                                <AdjustPlanCard onPress={onAdjustPlan} />
-                                <MyPostsCard onPress={onMyPosts} />
+                                <AdjustPlanCard
+                                    obscureContent={shouldObscureGrid}
+                                    onPress={onAdjustPlan}
+                                />
+                                <MyPostsCard
+                                    obscureContent={shouldObscureGrid}
+                                    onPress={onMyPosts}
+                                />
                             </View>
                         </View>
-                    ) : null}
+                    </View>
                     <TouchableOpacity style={styles.testButton} onPress={onStart}>
                         <StandardText textColor="#000" fontSize={18}>
                             Test questionnaire
@@ -320,9 +359,24 @@ export default function StartView({
 // }
 
 const styles = StyleSheet.create({
+    scrollContent: {
+        flexGrow: 1,
+    },
+    firstScreenContent: {
+        flexGrow: 1,
+    },
+    widgetArea: {
+        alignItems: "center",
+        flexGrow: 1,
+        flexShrink: 1,
+        justifyContent: "center",
+        minHeight: 0,
+        paddingHorizontal: 20,
+        paddingTop: 18,
+    },
     testButton: {
         alignSelf: "center",
-        marginTop: 36,
+        marginTop: 24,
         marginBottom: 20,
         paddingHorizontal: 22,
         height: 44,
@@ -332,7 +386,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     programStatus: {
-        minHeight: 400,
+        minHeight: 280,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -342,8 +396,12 @@ const styles = StyleSheet.create({
     homeCards: {
         gap: 12,
         marginHorizontal: 20,
-        marginTop: -36,
-        marginBottom: 24,
+        marginTop: 0,
+        marginBottom: 0,
+    },
+    startPromptButtonShadow: {
+        marginBottom: 0,
+        marginTop: 0,
     },
     homeActionRow: {
         alignItems: "stretch",

@@ -150,8 +150,6 @@ const styles = StyleSheet.create({
     gap: 10,
     flexDirection: "row",
     alignItems: "flex-start",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.18)",
   },
   replyComment: {
     borderBottomWidth: 0,

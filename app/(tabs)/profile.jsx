@@ -333,6 +333,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         subscriptionTimeRemainingText={subscriptionTimeRemainingText}
         subscriptionText={subscriptionText}
         isSubscriptionActive={isSubscriptionActive}
+        hasProgram={Boolean(model.trainingPlan)}
         isSubmitting={isSubmitting}
         error={error}
         passwordResetMessage={passwordResetMessage}

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import RowCard from "../homeComponents/RowCard.jsx";
+import LockIcon from "../LockIcon.jsx";
 
 export default function ProfileNavigationCard({
   title,
@@ -9,17 +10,20 @@ export default function ProfileNavigationCard({
   actionElement,
   copyChildren,
   onPress,
+  obscureContent = false,
   wide = false,
   children,
 }) {
   const Card = wide ? View : RowCard;
+  const isDisabled = obscureContent || !onPress;
 
   return (
     <Pressable
-      onPress={onPress}
+      disabled={isDisabled}
+      onPress={obscureContent ? undefined : onPress}
       style={({ pressed }) => [
         styles.navigationCardButton,
-        pressed ? styles.navigationCardButtonPressed : null,
+        pressed && !isDisabled ? styles.navigationCardButtonPressed : null,
       ]}
     >
       <Card
@@ -44,18 +48,34 @@ export default function ProfileNavigationCard({
               {title}
             </Text>
             {description ? (
-              <Text numberOfLines={2} style={styles.navigationCardText}>
-                {description}
-              </Text>
+              <View style={obscureContent ? styles.obscuredContent : null}>
+                <Text numberOfLines={2} style={styles.navigationCardText}>
+                  {description}
+                </Text>
+              </View>
             ) : null}
-            {copyChildren || null}
+            {obscureContent ? null : copyChildren || null}
           </View>
 
-          {children}
+          {obscureContent ? null : children}
 
-          {actionElement || null}
+          {obscureContent && actionElement ? (
+            <View style={styles.obscuredContent}>
+              {actionElement}
+            </View>
+          ) : actionElement || null}
 
-          {!actionElement && actionLabel ? (
+          {obscureContent && !actionElement && actionLabel ? (
+            <Text
+              style={[
+                styles.navigationActionText,
+                styles.obscuredContent,
+                wide ? styles.navigationActionTextWide : null,
+              ]}
+            >
+              {actionLabel} &gt;
+            </Text>
+          ) : !actionElement && actionLabel ? (
             <Text
               style={[
                 styles.navigationActionText,
@@ -64,6 +84,12 @@ export default function ProfileNavigationCard({
             >
               {actionLabel} &gt;
             </Text>
+          ) : null}
+
+          {obscureContent ? (
+            <View pointerEvents="none" style={styles.lockIconOverlay}>
+              <LockIcon />
+            </View>
           ) : null}
         </View>
       </Card>
@@ -96,6 +122,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 16,
+    position: "relative",
   },
   navigationCardContentWide: {
     alignItems: "center",
@@ -122,6 +149,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 16,
   },
+  obscuredContent: {
+    opacity: 0.42,
+    filter: [{ blur: 4 }],
+  },
   navigationActionText: {
     color: "#ffffff",
     fontSize: 12,
@@ -133,5 +164,12 @@ const styles = StyleSheet.create({
   navigationActionTextWide: {
     flexShrink: 0,
     marginTop: 0,
+  },
+  lockIconOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(12, 12, 12, 0.42)",
+    justifyContent: "center",
+    zIndex: 5,
   },
 });

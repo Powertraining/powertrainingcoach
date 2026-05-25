@@ -8,6 +8,7 @@ import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import CoachResponseView from "../../src/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/forum/commentsView.jsx";
+import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
 import SavedPostsView from "../../src/screens/profile/SavedPostsView.jsx";
 
@@ -19,6 +20,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [createPostError, setCreatePostError] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [isCreatingComment, setIsCreatingComment] = useState(false);
   const [createCommentError, setCreateCommentError] = useState(null);
@@ -55,6 +58,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
     model.myForumPosts.length === 0 &&
     !feedError &&
     !model.myForumPostsPromiseState?.data;
+  const canUseForumActions = model.isSubscribed?.() || false;
   const selectedPost =
     (selectedPostId === model.forumSelectedPost?.id ? model.forumSelectedPost : null) ||
     model.myForumPosts.find((post) => post?.id === selectedPostId) ||
@@ -111,6 +115,78 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
       await model.toggleForumPostSave(postId);
     } catch (error) {
       console.warn(`Could not toggle the forum save for ${postId}:`, error);
+    }
+  }
+
+  function handlePressPostButton() {
+    if (!canUseForumActions) {
+      setCurrentView("composeLocked");
+      return;
+    }
+
+    model.resetForumComposer();
+    model.updateForumComposer(model.getDefaultForumPostDraft());
+    setCreatePostError(null);
+    setCurrentView("compose");
+  }
+
+  function handleComposeTitleChange(title) {
+    model.updateForumComposer({
+      title: String(title ?? "").slice(0, 140),
+    });
+  }
+
+  function handleComposeTextChange(body) {
+    model.updateForumComposer({
+      body: String(body ?? ""),
+    });
+  }
+
+  function handleComposeTagsChange(tags = []) {
+    const normalizedTags = Array.isArray(tags) ?
+      tags
+        .map((tag) => String(tag ?? "").trim().toLowerCase())
+        .filter((tag) => tag && tag !== "coach") :
+      [];
+
+    model.updateForumComposer({
+      tags: normalizedTags,
+      topic: normalizedTags[0] || model.getDefaultForumPostDraft().topic,
+    });
+  }
+
+  function handleDiscardPost() {
+    if (isCreatingPost) {
+      return;
+    }
+
+    setCreatePostError(null);
+    model.resetForumComposer();
+    setCurrentView("list");
+  }
+
+  function handleUploadImage() {
+    console.warn("Image upload is not wired yet.");
+  }
+
+  async function handleCreatePost() {
+    if (!canUseForumActions) {
+      return;
+    }
+
+    setCreatePostError(null);
+    setIsCreatingPost(true);
+
+    try {
+      const createdPost = await model.createForumPost();
+      setSelectedPostId(createdPost?.id || null);
+      await reloadMyPosts(model.forumFilters);
+      setCurrentView("post");
+    } catch (error) {
+      console.warn("Could not create the forum post:", error);
+      setCreatePostError(error?.message || "Could not create the forum post.");
+    } finally {
+      setIsCreatingPost(false);
     }
   }
 
@@ -192,6 +268,10 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   }
 
   async function handleCreateComment() {
+    if (!canUseForumActions) {
+      return;
+    }
+
     if (!selectedPost?.id || isCreatingComment) {
       return;
     }
@@ -213,6 +293,10 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   }
 
   async function handleCreateReply() {
+    if (!canUseForumActions) {
+      return;
+    }
+
     if (!selectedPost?.id || !activeReplyCommentId || isCreatingReply) {
       return;
     }
@@ -251,6 +335,36 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           onToggleCoachResponse={showCoachResponseView}
           onPressComments={showCommentsView}
           onPressPost={showPostView}
+          showPostButton
+          isPostButtonLocked={!canUseForumActions}
+          onPressPostButton={handlePressPostButton}
+        />
+      ) : null}
+      {currentView === "compose" ? (
+        <MakePostView
+          titleValue={model.forumComposer?.title || ""}
+          value={model.forumComposer?.body || ""}
+          userPhotoUrl={model.user?.photoURL || ""}
+          isSubmitting={isCreatingPost}
+          error={createPostError}
+          selectedTags={model.forumComposer?.tags || []}
+          onChangeTitle={handleComposeTitleChange}
+          onChangeText={handleComposeTextChange}
+          onChangeTags={handleComposeTagsChange}
+          onPost={handleCreatePost}
+          onUploadImage={handleUploadImage}
+          onDiscard={handleDiscardPost}
+        />
+      ) : null}
+      {currentView === "composeLocked" ? (
+        <MakePostView
+          titleValue="Post title"
+          value="Share your training question, progress update, or discussion topic."
+          userPhotoUrl={model.user?.photoURL || ""}
+          selectedTags={["training"]}
+          locked
+          onBack={handleDiscardPost}
+          onDiscard={handleDiscardPost}
         />
       ) : null}
       {currentView === "post" ? (
@@ -265,6 +379,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          commentsLocked={!canUseForumActions}
           onBack={hidePostView}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
@@ -298,6 +413,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          commentsLocked={!canUseForumActions}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
           onPressReply={handlePressReply}

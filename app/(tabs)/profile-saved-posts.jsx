@@ -55,6 +55,7 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
     model.savedForumPosts.length === 0 &&
     !feedError &&
     !model.savedForumPostsPromiseState?.data;
+  const canUseForumActions = model.isSubscribed?.() || false;
   const selectedPost =
     (selectedPostId === model.forumSelectedPost?.id ? model.forumSelectedPost : null) ||
     model.savedForumPosts.find((post) => post?.id === selectedPostId) ||
@@ -196,6 +197,10 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
   }
 
   async function handleCreateComment() {
+    if (!canUseForumActions) {
+      return;
+    }
+
     if (!selectedPost?.id || isCreatingComment) {
       return;
     }
@@ -217,6 +222,10 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
   }
 
   async function handleCreateReply() {
+    if (!canUseForumActions) {
+      return;
+    }
+
     if (!selectedPost?.id || !activeReplyCommentId || isCreatingReply) {
       return;
     }
@@ -265,6 +274,7 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          commentsLocked={!canUseForumActions}
           onBack={hidePostView}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
@@ -298,6 +308,7 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          commentsLocked={!canUseForumActions}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
           onPressReply={handlePressReply}
