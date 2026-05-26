@@ -175,6 +175,8 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
   return (
     <View style={styles.container}>
       <ActiveSessionView
+        plan={plan}
+        weekNumber={selectedDay.week}
         day={selectedDay.dayData}
         exercises={selectedDay.exercises}
         initialPerformanceResults={sessionPerformanceResults}

@@ -84,6 +84,8 @@ function MediaButton({
   onPickImage,
   onPickVideo,
   onRemove,
+  showImageOption = true,
+  showVideoOption = true,
 }) {
   const displayMediaUrl = previewMediaUrl || mediaUrl;
   const displayMediaType = previewMediaUrl ? previewMediaType : mediaType;
@@ -124,22 +126,36 @@ function MediaButton({
       {isMenuVisible ? (
         <View style={styles.mediaMenu}>
           <View style={styles.mediaMenuPointer} />
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={onPickImage}
-            style={[styles.mediaMenuOption, styles.mediaMenuOptionPrimary]}
-          >
-            <Text style={[styles.mediaMenuOptionText, styles.mediaMenuOptionTextPrimary]}>
-              Photo
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={onPickVideo}
-            style={styles.mediaMenuOption}
-          >
-            <Text style={styles.mediaMenuOptionText}>Video</Text>
-          </TouchableOpacity>
+          {showImageOption ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onPickImage}
+              style={[styles.mediaMenuOption, styles.mediaMenuOptionPrimary]}
+            >
+              <Text style={[styles.mediaMenuOptionText, styles.mediaMenuOptionTextPrimary]}>
+                Photo
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+          {showVideoOption ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onPickVideo}
+              style={[
+                styles.mediaMenuOption,
+                !showImageOption ? styles.mediaMenuOptionPrimary : null,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.mediaMenuOptionText,
+                  !showImageOption ? styles.mediaMenuOptionTextPrimary : null,
+                ]}
+              >
+                Video
+              </Text>
+            </TouchableOpacity>
+          ) : null}
           {hasMedia ? (
             <TouchableOpacity
               accessibilityRole="button"
@@ -196,6 +212,8 @@ export default function MakePostView({
   onUploadImage,
   onUploadVideo,
   onRemoveMedia,
+  allowImageUpload = true,
+  allowVideoUpload = true,
   onBack,
   onDiscard,
 }) {
@@ -315,6 +333,8 @@ export default function MakePostView({
               onPickImage={handlePickImage}
               onPickVideo={handlePickVideo}
               onRemove={handleRemoveMedia}
+              showImageOption={allowImageUpload}
+              showVideoOption={allowVideoUpload}
             />
           </View>
         </View>

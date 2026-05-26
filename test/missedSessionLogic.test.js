@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   applyMissedSessionAdjustment,
+  getClosestActiveTrainingDay,
   getCurrentTrainingDay,
 } from "../src/services/utils/trainingPlan.js";
 
@@ -64,6 +65,25 @@ test("one missed session in a 3-day week creates a late-week rescue and skips th
   assert.equal(rescueSlot.status, "rescheduled");
   assert.equal(rescueSlot.sessionLabel, "Day 2");
   assert.equal(getCurrentTrainingDay(result.plan, result.completedDays)?.day, 3);
+});
+
+test("closest active training day includes today before later upcoming days", () => {
+  const plan = {
+    weeks: [
+      {
+        week: 1,
+        days: [
+          createDay(1, [createExercise("Back Squat")]),
+          createDay(2, [createExercise("Bench Press")]),
+          createDay(3, [createExercise("Trap Bar Deadlift")]),
+        ],
+      },
+    ],
+  };
+  const wednesday = new Date("2026-05-27T12:00:00");
+
+  assert.equal(getCurrentTrainingDay(plan, [])?.day, 1);
+  assert.equal(getClosestActiveTrainingDay(plan, [], wednesday)?.day, 2);
 });
 
 test("missing half of a 2-day week expires the slot and repeats the week target next week", () => {

@@ -14,6 +14,7 @@ import ErrorView from "../../src/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
+import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
 
 const STEPS = Object.freeze({
   START: "start",
@@ -222,7 +223,9 @@ const HomeScreen = observer(function HomeScreen() {
   }
 
   function getCurrentSession() {
-    const pointer = model.getCurrentTrainingDay?.(model.completedDays);
+    const pointer =
+      getClosestActiveTrainingDay(model.trainingPlan, model.completedDays) ||
+      model.getCurrentTrainingDay?.(model.completedDays);
     const weekNumber = Number.parseInt(pointer?.week, 10);
     const dayNumber = Number.parseInt(pointer?.day, 10);
 

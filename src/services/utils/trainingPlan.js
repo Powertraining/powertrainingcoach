@@ -2106,6 +2106,62 @@ export function getCurrentTrainingDay(plan = {}, completedDays = []) {
   return null;
 }
 
+function getDaysUntilWeekday(day = {}, today = new Date()) {
+  const weekdayIndex = getWeekdayIndex(day);
+
+  if (weekdayIndex === null) {
+    return 0;
+  }
+
+  const todayIndex = today instanceof Date && Number.isFinite(today.getDay())
+    ? today.getDay()
+    : new Date().getDay();
+
+  return (weekdayIndex - todayIndex + 7) % 7;
+}
+
+export function getClosestActiveTrainingDay(
+  plan = {},
+  completedDays = [],
+  today = new Date()
+) {
+  const normalizedPlan = normalizeTrainingPlan(plan);
+  const completedDaySet = getCompletedDaySet(completedDays);
+
+  for (const week of normalizedPlan.weeks) {
+    const activeDays = week.days.filter(
+      (day) => !isDayResolved(day, week.week, completedDaySet)
+    );
+
+    if (activeDays.length === 0) {
+      continue;
+    }
+
+    const closestDay = activeDays
+      .map((day, index) => ({
+        day,
+        index,
+        daysUntil: getDaysUntilWeekday(day, today),
+      }))
+      .sort((left, right) => {
+        if (left.daysUntil !== right.daysUntil) {
+          return left.daysUntil - right.daysUntil;
+        }
+
+        return left.index - right.index;
+      })[0]?.day;
+
+    return closestDay
+      ? {
+          week: week.week,
+          day: closestDay.day,
+        }
+      : null;
+  }
+
+  return null;
+}
+
 export function getWeekSpacingAdvisories(week = {}) {
   const normalizedWeek =
     week && typeof week === "object"

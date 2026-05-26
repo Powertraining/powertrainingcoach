@@ -11,13 +11,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import PlanSetTabs from "../components/planComponents/PlanSetTabs.jsx";
 import StandardText from "../components/textComponents/StandardText.jsx";
+import ActiveSessionSectionIntroView from "./ActiveSessionSectionIntroView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
   getExercisePerformanceTarget,
   getExercisePercentagePrescription,
   getExerciseStrengthAssessment,
+  getTrainingPlanPhaseOverview,
   normalizeExercise,
 } from "../services/utils/trainingPlan.js";
 import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOneRepMaxKg } from "../services/utils/strengthAssessment.js";
@@ -28,9 +31,124 @@ const INPUT_PANEL_ANIMATION_DURATION = 180;
 const INPUT_FOCUS_SHIFT_DELAY_MS = 80;
 const KEYBOARD_SHOW_SHIFT_DELAY_MS = 40;
 const SESSION_HORIZONTAL_PADDING = 24;
+const HEADER_PROGRESS_RING_SIZE = 54;
+const HEADER_PROGRESS_RING_CENTER = HEADER_PROGRESS_RING_SIZE / 2;
+const HEADER_PROGRESS_RING_RADIUS = 22;
+const HEADER_PROGRESS_RING_STROKE = 5;
+const HEADER_PROGRESS_RING_CIRCUMFERENCE =
+  2 * Math.PI * HEADER_PROGRESS_RING_RADIUS;
+const SESSION_SCREEN_MODES = Object.freeze({
+  SECTION_INTRO: "sectionIntro",
+  EXERCISE: "exercise",
+  SESSION_COMPLETE: "sessionComplete",
+});
+const EXERCISE_SECTION_LABELS = Object.freeze({
+  power: "Power",
+  compound: "Compound",
+  primary_pull: "Primary pull",
+  core: "Core",
+  accessory: "Accessory",
+});
 
 function getExerciseDisplayName(exercise = {}) {
   return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
+}
+
+function includesAnyKeyword(text = "", keywords = []) {
+  return keywords.some((keyword) => text.includes(keyword));
+}
+
+function getExplicitExerciseSection(exercise = {}) {
+  const exerciseText = ` ${exercise?.name || ""} ${exercise?.notes || ""} ${exercise?.reps || ""} `.toLowerCase();
+
+  if (
+    includesAnyKeyword(exerciseText, [
+      " med ball",
+      " medicine ball",
+      " plyo",
+      " box jump",
+      " broad jump",
+      " vertical jump",
+      " squat jump",
+      " hurdle jump",
+      " bound",
+      " throw",
+      " slam",
+      " sprint",
+      " ballistic",
+      " clean",
+      " snatch",
+    ])
+  ) {
+    return "power";
+  }
+
+  if (
+    includesAnyKeyword(exerciseText, [
+      " pull-up",
+      " pull up",
+      " chin-up",
+      " chin up",
+      " row",
+      " lat pulldown",
+    ])
+  ) {
+    return "primary_pull";
+  }
+
+  if (
+    includesAnyKeyword(exerciseText, [
+      " plank",
+      " anti rotation",
+      " rollout",
+      " pallof",
+      " hollow",
+      " hanging knee raise",
+      " hanging leg raise",
+      " suitcase carry",
+      " farmer carry",
+    ])
+  ) {
+    return "core";
+  }
+
+  if (
+    getExercisePerformanceTarget(exercise) ||
+    getExercisePercentagePrescription(exercise) ||
+    getExerciseStrengthAssessment(exercise) ||
+    includesAnyKeyword(exerciseText, [
+      " squat",
+      " deadlift",
+      " bench",
+      " press",
+      " split squat",
+      " lunge",
+    ])
+  ) {
+    return "compound";
+  }
+
+  return "accessory";
+}
+
+function buildExerciseSectionRuns(exercises = []) {
+  return exercises.reduce((runs, exercise, exerciseIndex) => {
+    const section = getExplicitExerciseSection(exercise);
+    const previousRun = runs[runs.length - 1];
+    const exerciseItem = { exercise, exerciseIndex };
+
+    if (previousRun?.section === section) {
+      previousRun.exercises.push(exerciseItem);
+      return runs;
+    }
+
+    runs.push({
+      section,
+      exercises: [exerciseItem],
+    });
+
+    return runs;
+  }, []);
 }
 
 function parsePrescribedSetCount(exercise = {}) {
@@ -560,6 +678,112 @@ function getSavedTrackingDrafts(value, fallbackDrafts) {
   return value && typeof value === "object" ? value : fallbackDrafts;
 }
 
+function ActiveSessionHeader({
+  title = "",
+  progressText = "",
+  progressPercent = 0,
+  showProgressRing = false,
+  onBack,
+}) {
+  const progressOffset =
+    HEADER_PROGRESS_RING_CIRCUMFERENCE -
+    HEADER_PROGRESS_RING_CIRCUMFERENCE * (progressPercent / 100);
+
+  return (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={onBack}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+      >
+        <Text style={styles.backButtonIcon}>←</Text>
+      </TouchableOpacity>
+      <View style={styles.headerTitleWrap}>
+        {title ? (
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {title}
+          </Text>
+        ) : null}
+      </View>
+      {showProgressRing ? (
+        <View style={styles.headerProgressRing}>
+          <Svg
+            width={HEADER_PROGRESS_RING_SIZE}
+            height={HEADER_PROGRESS_RING_SIZE}
+            viewBox={`0 0 ${HEADER_PROGRESS_RING_SIZE} ${HEADER_PROGRESS_RING_SIZE}`}
+          >
+            <Circle
+              cx={HEADER_PROGRESS_RING_CENTER}
+              cy={HEADER_PROGRESS_RING_CENTER}
+              r={HEADER_PROGRESS_RING_RADIUS}
+              fill="none"
+              stroke="#5f5f5f"
+              strokeWidth={HEADER_PROGRESS_RING_STROKE}
+            />
+            <Circle
+              cx={HEADER_PROGRESS_RING_CENTER}
+              cy={HEADER_PROGRESS_RING_CENTER}
+              r={HEADER_PROGRESS_RING_RADIUS}
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth={HEADER_PROGRESS_RING_STROKE}
+              strokeLinecap="round"
+              strokeDasharray={`${HEADER_PROGRESS_RING_CIRCUMFERENCE} ${HEADER_PROGRESS_RING_CIRCUMFERENCE}`}
+              strokeDashoffset={progressOffset}
+              rotation="-90"
+              originX={HEADER_PROGRESS_RING_CENTER}
+              originY={HEADER_PROGRESS_RING_CENTER}
+            />
+          </Svg>
+          <View style={styles.headerProgressRingContent}>
+            <Text style={styles.headerProgressRingText}>{progressText}</Text>
+          </View>
+        </View>
+      ) : progressText ? (
+        <View style={styles.progressRow}>
+          <Text style={styles.progressText}>{progressText}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function getSectionLabel(section = "") {
+  return EXERCISE_SECTION_LABELS[section] || "Section";
+}
+
+function getSectionRunForExerciseIndex(sectionRuns = [], exerciseIndex = 0) {
+  const sectionRunIndex = sectionRuns.findIndex((run) =>
+    run.exercises.some((item) => item.exerciseIndex === exerciseIndex)
+  );
+  const sectionRun = sectionRunIndex >= 0 ? sectionRuns[sectionRunIndex] : null;
+
+  return {
+    sectionRun,
+    sectionRunIndex,
+    sectionLabel: getSectionLabel(sectionRun?.section),
+  };
+}
+
+function getSessionPhaseDetails(plan = {}, weekNumber = 1) {
+  const phaseOverview = getTrainingPlanPhaseOverview(plan);
+  const week = Number.parseInt(weekNumber, 10) || 1;
+  const phase =
+    phaseOverview.find(
+      (candidatePhase) =>
+        week >= candidatePhase.weekStart && week <= candidatePhase.weekEnd
+    ) ||
+    phaseOverview.find((candidatePhase) => week <= candidatePhase.weekEnd) ||
+    phaseOverview[phaseOverview.length - 1] ||
+    null;
+
+  return {
+    label: phase?.label || "Building",
+    focus: normalizeText(phase?.focus),
+  };
+}
+
 function getSetLoggingConfig(exercise = {}) {
   const performanceTarget = getExercisePerformanceTarget(exercise);
   const strengthAssessment = getExerciseStrengthAssessment(exercise);
@@ -957,6 +1181,8 @@ function ExerciseSessionStep({
 }
 
 export default function ActiveSessionView({
+  plan,
+  weekNumber = 1,
   day,
   exercises = [],
   initialPerformanceResults = [],
@@ -973,11 +1199,18 @@ export default function ActiveSessionView({
         : [],
     [exercises]
   );
+  const phaseDetails = useMemo(
+    () => getSessionPhaseDetails(plan, weekNumber),
+    [plan, weekNumber]
+  );
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(() =>
     getSavedNumber(initialSessionProgress?.activeExerciseIndex)
   );
   const [activeSetIndex, setActiveSetIndex] = useState(() =>
     getSavedNumber(initialSessionProgress?.activeSetIndex)
+  );
+  const [sessionScreenMode, setSessionScreenMode] = useState(
+    SESSION_SCREEN_MODES.SECTION_INTRO
   );
   const [completedStepKeys, setCompletedStepKeys] = useState(() =>
     getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
@@ -994,6 +1227,10 @@ export default function ActiveSessionView({
       fallbackDrafts
     );
   });
+  const sectionRuns = useMemo(
+    () => buildExerciseSectionRuns(normalizedExercises),
+    [normalizedExercises]
+  );
   const sessionSteps = useMemo(
     () =>
       normalizedExercises.flatMap((exercise, exerciseIndex) =>
@@ -1002,6 +1239,7 @@ export default function ActiveSessionView({
           exerciseIndex,
           setIndex,
           setCount: parsePrescribedSetCount(exercise),
+          section: getExplicitExerciseSection(exercise),
         }))
       ),
     [normalizedExercises]
@@ -1014,7 +1252,49 @@ export default function ActiveSessionView({
   const resolvedActiveStepIndex = activeStepIndex >= 0 ? activeStepIndex : 0;
   const activeStep = sessionSteps[resolvedActiveStepIndex] || null;
   const activeExercise = activeStep?.exercise || null;
+  const {
+    sectionRun: activeSectionRun,
+    sectionRunIndex: activeSectionRunIndex,
+    sectionLabel: activeSectionLabel,
+  } = getSectionRunForExerciseIndex(sectionRuns, activeStep?.exerciseIndex || 0);
   const isLastStep = resolvedActiveStepIndex >= sessionSteps.length - 1;
+  const isSessionCompleteIntro =
+    sessionScreenMode === SESSION_SCREEN_MODES.SESSION_COMPLETE;
+  const showSectionIntro =
+    sessionScreenMode === SESSION_SCREEN_MODES.SECTION_INTRO && activeExercise;
+  const showExerciseStep =
+    sessionScreenMode === SESSION_SCREEN_MODES.EXERCISE && activeExercise;
+  const completedExerciseCount = normalizedExercises.filter((exercise, exerciseIndex) =>
+    Array.from({ length: parsePrescribedSetCount(exercise) }).every((_, setIndex) =>
+      completedStepKeys.has(getStepKey(exerciseIndex, setIndex))
+    )
+  ).length;
+  const safeCompletedExerciseCount = Number.isFinite(completedExerciseCount)
+    ? completedExerciseCount
+    : 0;
+  const safeTotalExerciseCount = Number.isFinite(normalizedExercises.length)
+    ? normalizedExercises.length
+    : 0;
+  const exerciseProgressText =
+    `${safeCompletedExerciseCount} of ${safeTotalExerciseCount}`;
+  const exerciseProgressPercent =
+    safeTotalExerciseCount > 0
+      ? Math.round((safeCompletedExerciseCount / safeTotalExerciseCount) * 100)
+      : 0;
+  const headerTitle = isSessionCompleteIntro
+    ? "Session complete"
+    : showSectionIntro
+      ? activeSectionLabel
+      : activeExercise
+        ? getExerciseDisplayName(activeExercise)
+        : "";
+  const headerProgressText = isSessionCompleteIntro
+    ? exerciseProgressText
+    : showSectionIntro
+      ? exerciseProgressText
+      : activeStep
+        ? `${activeStep.exerciseIndex + 1} of ${normalizedExercises.length}`
+        : "";
   const activeExerciseSetTabs = activeExercise
     ? Array.from({ length: activeStep.setCount }).map((_, setIndex) => ({
         setIndex,
@@ -1032,6 +1312,7 @@ export default function ActiveSessionView({
       getSavedNumber(initialSessionProgress?.activeExerciseIndex)
     );
     setActiveSetIndex(getSavedNumber(initialSessionProgress?.activeSetIndex));
+    setSessionScreenMode(SESSION_SCREEN_MODES.SECTION_INTRO);
     setCompletedStepKeys(
       getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
     );
@@ -1101,6 +1382,13 @@ export default function ActiveSessionView({
     setActiveSetIndex(nextStep.setIndex);
   }
 
+  function goToSessionStep(stepIndex, { showIntro = false } = {}) {
+    goToStep(stepIndex);
+    setSessionScreenMode(
+      showIntro ? SESSION_SCREEN_MODES.SECTION_INTRO : SESSION_SCREEN_MODES.EXERCISE
+    );
+  }
+
   function handleExitSession() {
     onBack?.();
   }
@@ -1119,11 +1407,14 @@ export default function ActiveSessionView({
     });
 
     if (!isLastStep) {
-      goToStep(resolvedActiveStepIndex + 1);
+      const nextStep = sessionSteps[resolvedActiveStepIndex + 1];
+      goToSessionStep(resolvedActiveStepIndex + 1, {
+        showIntro: nextStep?.section !== activeStep.section,
+      });
       return;
     }
 
-    onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
+    setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
   }
 
   function handleSkipExercise() {
@@ -1136,11 +1427,23 @@ export default function ActiveSessionView({
     );
 
     if (nextExerciseStepIndex >= 0) {
-      goToStep(nextExerciseStepIndex);
+      const nextStep = sessionSteps[nextExerciseStepIndex];
+      goToSessionStep(nextExerciseStepIndex, {
+        showIntro: nextStep?.section !== activeStep.section,
+      });
       return;
     }
 
-    onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
+    setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
+  }
+
+  function handleContinueIntro() {
+    if (isSessionCompleteIntro) {
+      onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
+      return;
+    }
+
+    setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
   }
 
   return (
@@ -1151,32 +1454,29 @@ export default function ActiveSessionView({
         keyboardShouldPersistTaps="handled"
         style={styles.sessionScroll}
       >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={handleExitSession}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-          >
-            <Text style={styles.backButtonIcon}>←</Text>
-          </TouchableOpacity>
-          <View style={styles.headerTitleWrap}>
-            {activeExercise ? (
-              <Text style={styles.headerTitle} numberOfLines={1}>
-                {getExerciseDisplayName(activeExercise)}
-              </Text>
-            ) : null}
-          </View>
-          {activeStep ? (
-            <View style={styles.progressRow}>
-              <Text style={styles.progressText}>
-                {activeStep.exerciseIndex + 1} of {normalizedExercises.length}
-              </Text>
-            </View>
-          ) : null}
-        </View>
+        <ActiveSessionHeader
+          title={headerTitle}
+          progressText={headerProgressText}
+          progressPercent={exerciseProgressPercent}
+          showProgressRing={showExerciseStep}
+          onBack={handleExitSession}
+        />
 
-        {activeExercise ? (
+        {showSectionIntro || isSessionCompleteIntro ? (
+          <ActiveSessionSectionIntroView
+            weekNumber={weekNumber}
+            phaseLabel={phaseDetails.label}
+            phaseFocus={phaseDetails.focus}
+            sectionLabel={activeSectionLabel}
+            sectionIndex={Math.max(activeSectionRunIndex, 0)}
+            sectionCount={sectionRuns.length}
+            exerciseCount={activeSectionRun?.exercises.length || 0}
+            completedExerciseCount={completedExerciseCount}
+            totalExerciseCount={normalizedExercises.length}
+            isSessionComplete={isSessionCompleteIntro}
+            onContinue={handleContinueIntro}
+          />
+        ) : showExerciseStep ? (
           <ExerciseSessionStep
             key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
             exercise={activeExercise}
@@ -1194,6 +1494,7 @@ export default function ActiveSessionView({
             onSelectSet={(setIndex) => {
               setActiveExerciseIndex(activeStep.exerciseIndex);
               setActiveSetIndex(setIndex);
+              setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
             }}
             onNext={handleCompleteCurrentSet}
             onSkip={handleSkipExercise}
@@ -1264,6 +1565,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     textTransform: "uppercase",
+  },
+  headerProgressRing: {
+    alignItems: "center",
+    flexShrink: 0,
+    height: HEADER_PROGRESS_RING_SIZE,
+    justifyContent: "center",
+    width: HEADER_PROGRESS_RING_SIZE,
+  },
+  headerProgressRingContent: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerProgressRingText: {
+    color: "#fff",
+    fontSize: 9,
+    fontWeight: "800",
+    lineHeight: 11,
+    textAlign: "center",
   },
   exerciseCard: {
     flex: 1,

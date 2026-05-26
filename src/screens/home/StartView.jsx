@@ -7,6 +7,7 @@ import Dotted from "../../components/colorComponents/Dotted.jsx";
 import ProgramProgressRing from "../../components/homeComponents/ProgramProgressRing.jsx";
 import StartProgramPrompt from "../../components/homeComponents/StartProgramPrompt.jsx";
 import ProfileNavigationCard from "../../components/profileComponents/ProfileNavigationCard.jsx";
+import { getNormalizedWeekday } from "../../constants/weekdays.js";
 
 const SESSION_PROGRESS_RING_SIZE = 84;
 const SESSION_PROGRESS_RING_CENTER = SESSION_PROGRESS_RING_SIZE / 2;
@@ -37,15 +38,13 @@ function getHomeBottomPadding(bottomInset = 0) {
 }
 
 function getWeekdayIndex(weekday = "") {
-    return WEEKDAY_NAMES.findIndex(
-        (candidate) => candidate.toLowerCase() === weekday.toLowerCase()
-    );
+    const normalizedWeekday = getNormalizedWeekday(weekday);
+
+    return WEEKDAY_NAMES.findIndex((candidate) => candidate === normalizedWeekday);
 }
 
 function getSessionPreferredWeekday(session = {}) {
-    return typeof session.preferredWeekday === "string"
-        ? session.preferredWeekday.trim()
-        : "";
+    return getNormalizedWeekday(session.preferredWeekday);
 }
 
 function isSessionScheduledToday(session = {}) {
@@ -161,14 +160,18 @@ function getDaysUntilSession(session = {}) {
 
     const daysUntil = (targetDayIndex - new Date().getDay() + 7) % 7;
 
-    return daysUntil === 0 ? 7 : daysUntil;
+    return daysUntil;
 }
 
 function formatDaysUntilSession(session = {}) {
     const daysUntil = getDaysUntilSession(session);
 
-    if (!daysUntil) {
-        return "In 7 days";
+    if (daysUntil === null) {
+        return "Today";
+    }
+
+    if (daysUntil === 0) {
+        return "Today";
     }
 
     return `In ${daysUntil} day${daysUntil === 1 ? "" : "s"}`;
