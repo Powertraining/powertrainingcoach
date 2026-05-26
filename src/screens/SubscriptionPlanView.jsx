@@ -307,13 +307,19 @@ export default function SubscriptionPlanView({
               badge={plan.badge}
               current={plan.isCurrentPlan}
               selected={selectedPlanKey === plan.lookupKey}
+              loading={loadingPlans}
               disabled={
+                loadingPlans ||
                 Boolean(loadingPlan) ||
                 !plan.isAvailable ||
                 plan.isCurrentOrLowerPlan
               }
               onPress={() => {
-                if (plan.isAvailable && !plan.isCurrentOrLowerPlan) {
+                if (
+                  !loadingPlans &&
+                  plan.isAvailable &&
+                  !plan.isCurrentOrLowerPlan
+                ) {
                   setSelectedPlanKey((currentPlanKey) =>
                     currentPlanKey === plan.lookupKey ? "" : plan.lookupKey
                   );

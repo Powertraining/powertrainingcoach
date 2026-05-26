@@ -1,4 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
 
@@ -11,6 +17,7 @@ export default function MembershipPlanOption({
   selected = false,
   current = false,
   disabled = false,
+  loading = false,
   onPress,
 }) {
   return (
@@ -23,12 +30,14 @@ export default function MembershipPlanOption({
         styles.row,
         current ? styles.rowCurrent : null,
         selected ? styles.rowSelected : null,
+        loading ? styles.rowLoading : null,
         disabled ? styles.rowDisabled : null,
         pressed ? styles.rowPressed : null,
       ]}
     >
       <View style={styles.copy}>
         {current ? <Text style={styles.currentLabel}>YOUR PLAN</Text> : null}
+        {loading ? <Text style={styles.loadingLabel}>LOADING</Text> : null}
         <View style={styles.titleRow}>
           <Text numberOfLines={1} adjustsFontSizeToFit style={styles.title}>
             {title}
@@ -47,8 +56,18 @@ export default function MembershipPlanOption({
         </View>
       </View>
 
-      <View style={[styles.radio, selected ? styles.radioSelected : null]}>
-        {selected ? <View style={styles.radioDot} /> : null}
+      <View
+        style={[
+          styles.radio,
+          selected ? styles.radioSelected : null,
+          loading ? styles.radioLoading : null,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color="#ffffff" size="small" />
+        ) : selected ? (
+          <View style={styles.radioDot} />
+        ) : null}
       </View>
     </Pressable>
   );
@@ -66,12 +85,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   rowSelected: {},
+  rowLoading: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
   rowCurrent: {
     backgroundColor: "rgba(255,255,255,0.14)",
     minHeight: 84,
   },
   rowDisabled: {
-    opacity: 0.65,
+    opacity: 0.72,
   },
   rowPressed: {
     transform: [{ scale: 0.99 }],
@@ -83,6 +105,12 @@ const styles = StyleSheet.create({
   },
   currentLabel: {
     color: GOLD,
+    fontSize: 11,
+    fontWeight: "900",
+    lineHeight: 14,
+  },
+  loadingLabel: {
+    color: "rgba(255,255,255,0.62)",
     fontSize: 11,
     fontWeight: "900",
     lineHeight: 14,
@@ -141,6 +169,10 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 2,
     backgroundColor: "transparent",
+  },
+  radioLoading: {
+    borderColor: "rgba(255,255,255,0.45)",
+    borderStyle: "solid",
   },
   radioDot: {
     backgroundColor: GOLD,
