@@ -59,7 +59,7 @@
 
       deepLink.searchParams.set("success", "true");
 
-      if (sessionId) {
+      if (/^cs_(test|live)_[A-Za-z0-9_]+$/.test(sessionId || "")) {
         deepLink.searchParams.set("session_id", sessionId);
       }
 

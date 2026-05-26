@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 
 import {
   appendForumReply,
+  buildForumPostPayload,
   findForumCommentNode,
   flattenForumComments,
   normalizeForumComment,
+  normalizeForumPost,
 } from "../src/services/models/forumModel.js";
 
 const thread = [
@@ -81,4 +83,27 @@ test("flattenForumComments returns every comment in the thread", () => {
     flattenedComments.map((comment) => comment.id),
     ["root", "reply-1", "reply-2"]
   );
+});
+
+test("forum posts preserve uploaded video media type", () => {
+  const payload = buildForumPostPayload({
+    draft: {
+      title: "Bag work form check",
+      body: "",
+      mediaUrl: "https://example.com/forum/video.mp4",
+      mediaType: "video",
+    },
+    author: {
+      uid: "user-1",
+      displayName: "Athlete",
+    },
+  });
+  const normalizedPost = normalizeForumPost({
+    id: "post-1",
+    ...payload,
+  });
+
+  assert.equal(payload.mediaType, "video");
+  assert.equal(normalizedPost.mediaType, "video");
+  assert.equal(normalizedPost.contentType, "media");
 });

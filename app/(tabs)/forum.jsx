@@ -10,6 +10,10 @@ import CommentsView from "../../src/screens/forum/commentsView.jsx";
 import ForumView from "../../src/screens/forum/ForumView.jsx";
 import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
+import {
+  pickForumMedia,
+  uploadForumMedia,
+} from "../../src/services/utils/mediaUpload.js";
 
 function buildForumReturnTo(pathname, params) {
   if (typeof pathname !== "string" || !pathname.startsWith("/")) {
@@ -47,6 +51,7 @@ const ForumScreen = observer(function ForumScreen() {
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [isUploadingPostMedia, setIsUploadingPostMedia] = useState(false);
   const [createPostError, setCreatePostError] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [isCreatingComment, setIsCreatingComment] = useState(false);
@@ -210,7 +215,7 @@ const ForumScreen = observer(function ForumScreen() {
   }
 
   function handleLeavePostComposer() {
-    if (isCreatingPost) {
+    if (isCreatingPost || isUploadingPostMedia) {
       return;
     }
 
@@ -219,11 +224,39 @@ const ForumScreen = observer(function ForumScreen() {
     setForumCurrentView("feed");
   }
 
-  function handleUploadImage() {
-    console.warn("Image upload is not wired yet.");
+  async function handleUploadMedia() {
+    setCreatePostError(null);
+
+    try {
+      const asset = await pickForumMedia();
+
+      if (!asset) {
+        return;
+      }
+
+      setIsUploadingPostMedia(true);
+      const uploadedMedia = await uploadForumMedia({
+        asset,
+        ownerId: model.user?.uid,
+      });
+
+      model.updateForumComposer({
+        mediaUrl: uploadedMedia.url,
+        mediaType: uploadedMedia.mediaType,
+      });
+    } catch (error) {
+      console.warn("Could not upload forum media:", error);
+      setCreatePostError(error?.message || "Could not upload media.");
+    } finally {
+      setIsUploadingPostMedia(false);
+    }
   }
 
   async function handleCreatePost() {
+    if (isUploadingPostMedia) {
+      return;
+    }
+
     setCreatePostError(null);
     setIsCreatingPost(true);
 
@@ -465,14 +498,17 @@ const ForumScreen = observer(function ForumScreen() {
           titleValue={model.forumComposer?.title || ""}
           value={model.forumComposer?.body || ""}
           userPhotoUrl={model.user?.photoURL || ""}
+          mediaUrl={model.forumComposer?.mediaUrl || ""}
+          mediaType={model.forumComposer?.mediaType || "none"}
           isSubmitting={isCreatingPost}
+          isUploadingMedia={isUploadingPostMedia}
           error={createPostError}
           selectedTags={model.forumComposer?.tags || []}
           onChangeTitle={handleComposeTitleChange}
           onChangeText={handleComposeTextChange}
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
-          onUploadImage={handleUploadImage}
+          onUploadMedia={handleUploadMedia}
           onBack={handleLeavePostComposer}
           onDiscard={handleClearPostDraft}
         />

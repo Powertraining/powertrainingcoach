@@ -14,6 +14,10 @@ import {
   normalizeTrainingPreferences,
 } from "../../src/constants/trainingPreferences.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
+import {
+  pickProfileImage,
+  uploadProfileImage,
+} from "../../src/services/utils/mediaUpload.js";
 
 function getSyncedTrainingPreferences(questionnaire = {}, sessionsPerWeek = 3) {
   const resolvedSessionsPerWeek = Number.parseInt(sessionsPerWeek, 10) || 3;
@@ -46,6 +50,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
 
   const [username, setUsername] = useState(user.displayName || "");
   const [email, setEmail] = useState(user.email || "");
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(user.photoURL || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [passwordResetMessage, setPasswordResetMessage] = useState(null);
@@ -63,6 +68,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     function syncFormWithModelACB() {
       setUsername(user.displayName || "");
       setEmail(user.email || "");
+      setProfilePhotoUrl(user.photoURL || "");
       setPassword("");
       setPasswordResetMessage(null);
       setTrainingPreferences(
@@ -71,7 +77,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       setPrimaryCombatSport(model.primaryCombatSport || "");
       setSessionsPerWeek(model.sessionsPerWeek || 3);
     },
-    [user.displayName, user.email, model.primaryCombatSport, model.questionnaire, model.sessionsPerWeek]
+    [user.displayName, user.email, user.photoURL, model.primaryCombatSport, model.questionnaire, model.sessionsPerWeek]
   );
 
   const persistedTrainingPreferences = useMemo(
@@ -193,6 +199,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     setError(null);
     setPasswordResetMessage(null);
     setUsername(user.displayName || "");
+    setProfilePhotoUrl(user.photoURL || "");
     setPassword("");
     setTrainingPreferences(
       getSyncedTrainingPreferences(model.questionnaire || {}, model.sessionsPerWeek || 3)
@@ -322,12 +329,44 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     }
   }
 
+  async function changeProfilePhotoACB() {
+    setError(null);
+    setPasswordResetMessage(null);
+
+    try {
+      const asset = await pickProfileImage();
+
+      if (!asset) {
+        return;
+      }
+
+      setIsSubmitting(true);
+      const uploadedImage = await uploadProfileImage({
+        asset,
+        ownerId: model.user?.uid,
+      });
+
+      await model.updateProfile({
+        displayName: user.displayName || username,
+        password: "",
+        isGoogleUser,
+        photoURL: uploadedImage.url,
+      });
+      setProfilePhotoUrl(uploadedImage.url);
+    } catch (e) {
+      setError(e.message || "Could not update profile picture.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <MyProfileView
         mode={mode}
         username={username}
         email={email}
+        userPhotoUrl={profilePhotoUrl}
         password={password}
         subscriptionPlanName={subscriptionPlanName}
         subscriptionTimeRemainingText={subscriptionTimeRemainingText}
@@ -346,6 +385,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
         onPasswordReset={sendPasswordResetACB}
+        onProfilePhotoChange={changeProfilePhotoACB}
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}
         onSessionsPerWeekChange={changeSessionsPerWeekACB}

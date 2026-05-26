@@ -10,6 +10,12 @@ import MessageView from "../../src/screens/MessageView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import { verifyCheckoutSession } from "../../src/services/utils/stripeClient.js";
+import {
+  normalizeStripeCheckoutSessionId,
+} from "../../src/services/utils/inputValidation.js";
+
+const INVALID_CHECKOUT_SESSION_MESSAGE =
+  "Stripe returned an invalid checkout session. Please try checkout again.";
 
 const SubscriptionScreen = observer(function SubscriptionScreen() {
   const model = reactiveModel;
@@ -90,17 +96,33 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
       return;
     }
 
-    if (!model.user || !model.ready || handledSessionIdRef.current === sessionIdParam) {
+    const normalizedSessionId = normalizeStripeCheckoutSessionId(sessionIdParam);
+
+    if (!normalizedSessionId) {
+      if (handledSessionIdRef.current !== sessionIdParam) {
+        handledSessionIdRef.current = sessionIdParam;
+        setVerifyingSession(false);
+        setSuccess(false);
+        setMessage(INVALID_CHECKOUT_SESSION_MESSAGE);
+      }
+      return;
+    }
+
+    if (
+      !model.user ||
+      !model.ready ||
+      handledSessionIdRef.current === normalizedSessionId
+    ) {
       return;
     }
 
     const verificationUid = model.user.uid;
-    handledSessionIdRef.current = sessionIdParam;
+    handledSessionIdRef.current = normalizedSessionId;
     setVerifyingSession(true);
     setSuccess(false);
     setMessage("");
 
-    verifyCheckoutSession(sessionIdParam)
+    verifyCheckoutSession(normalizedSessionId)
       .then(async (verification) => {
         if (model.user?.uid !== verificationUid) {
           return;
@@ -143,7 +165,6 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
               "Training plan generation failed after subscription:",
               error
             );
-            handledSessionIdRef.current = "";
             setSuccess(false);
             setSessionId("");
             setCustomerId("");
@@ -163,12 +184,11 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
         }
 
         setCustomerId(verification.customerId || "");
-        setSessionId(sessionIdParam);
+        setSessionId(normalizedSessionId);
         setSuccess(true);
       })
       .catch((error) => {
         console.error("Subscription verification failed:", error);
-        handledSessionIdRef.current = "";
         setSuccess(false);
         setMessage(
           error.message ||

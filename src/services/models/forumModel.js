@@ -95,6 +95,14 @@ function normalizeCoachResponseStatus(value) {
   return FORUM_COACH_RESPONSE_STATUSES.includes(value) ? value : "none";
 }
 
+function normalizeForumMediaType(value, { allowNone = false } = {}) {
+  if (value === "none" && allowNone) {
+    return "none";
+  }
+
+  return value === "video" ? "video" : "image";
+}
+
 function normalizeSortBy(value) {
   return value === "popular" ? "popular" : DEFAULT_FORUM_SORT_BY;
 }
@@ -170,7 +178,7 @@ export function createDefaultForumComposer() {
     exerciseId: "",
     exerciseName: "",
     mediaUrl: "",
-    mediaType: "image",
+    mediaType: "none",
     tags: [],
     coachResponseRequested: false,
     featured: false,
@@ -216,7 +224,7 @@ export function normalizeForumPost(record = {}, viewerProfile = {}) {
     exerciseName: normalizeString(record.exerciseName, 80),
     mediaUrl,
     mediaType: mediaUrl
-      ? normalizeString(record.mediaType) || "image"
+      ? normalizeForumMediaType(record.mediaType)
       : "none",
     tags: normalizeTags(record.tags),
     coachResponseRequested: Boolean(record.coachResponseRequested),
@@ -509,7 +517,7 @@ export function buildForumPostPayload({
     exerciseName,
     mediaUrl,
     mediaType: mediaUrl
-      ? normalizeString(draft.mediaType) || "image"
+      ? normalizeForumMediaType(draft.mediaType)
       : "none",
     tags,
     coachResponseRequested: Boolean(draft.coachResponseRequested),

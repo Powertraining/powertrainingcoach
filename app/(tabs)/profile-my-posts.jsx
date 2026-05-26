@@ -11,6 +11,10 @@ import CommentsView from "../../src/screens/forum/commentsView.jsx";
 import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
 import SavedPostsView from "../../src/screens/profile/SavedPostsView.jsx";
+import {
+  pickForumMedia,
+  uploadForumMedia,
+} from "../../src/services/utils/mediaUpload.js";
 
 const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   const model = reactiveModel;
@@ -21,6 +25,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [isUploadingPostMedia, setIsUploadingPostMedia] = useState(false);
   const [createPostError, setCreatePostError] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [isCreatingComment, setIsCreatingComment] = useState(false);
@@ -174,7 +179,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   }
 
   function handleLeavePostComposer() {
-    if (isCreatingPost) {
+    if (isCreatingPost || isUploadingPostMedia) {
       return;
     }
 
@@ -183,12 +188,40 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
     setCurrentView("list");
   }
 
-  function handleUploadImage() {
-    console.warn("Image upload is not wired yet.");
+  async function handleUploadMedia() {
+    setCreatePostError(null);
+
+    try {
+      const asset = await pickForumMedia();
+
+      if (!asset) {
+        return;
+      }
+
+      setIsUploadingPostMedia(true);
+      const uploadedMedia = await uploadForumMedia({
+        asset,
+        ownerId: model.user?.uid,
+      });
+
+      model.updateForumComposer({
+        mediaUrl: uploadedMedia.url,
+        mediaType: uploadedMedia.mediaType,
+      });
+    } catch (error) {
+      console.warn("Could not upload forum media:", error);
+      setCreatePostError(error?.message || "Could not upload media.");
+    } finally {
+      setIsUploadingPostMedia(false);
+    }
   }
 
   async function handleCreatePost() {
     if (!canUseForumActions) {
+      return;
+    }
+
+    if (isUploadingPostMedia) {
       return;
     }
 
@@ -363,14 +396,17 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           titleValue={model.forumComposer?.title || ""}
           value={model.forumComposer?.body || ""}
           userPhotoUrl={model.user?.photoURL || ""}
+          mediaUrl={model.forumComposer?.mediaUrl || ""}
+          mediaType={model.forumComposer?.mediaType || "none"}
           isSubmitting={isCreatingPost}
+          isUploadingMedia={isUploadingPostMedia}
           error={createPostError}
           selectedTags={model.forumComposer?.tags || []}
           onChangeTitle={handleComposeTitleChange}
           onChangeText={handleComposeTextChange}
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
-          onUploadImage={handleUploadImage}
+          onUploadMedia={handleUploadMedia}
           onBack={handleLeavePostComposer}
           onDiscard={handleClearPostDraft}
         />

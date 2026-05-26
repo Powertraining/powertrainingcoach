@@ -56,6 +56,18 @@ test("percentage-based lifts infer an e1RM tracking target by default", () => {
   assert.equal(target.repTarget, 5);
 });
 
+test("legacy generated percentage top-set strategies normalize to e1RM", () => {
+  const target = normalizePerformanceTarget({
+    strategy: "percentage_with_top_set_check",
+    liftName: "Back Squat",
+    repTarget: 3,
+  });
+
+  assert.equal(target.strategy, "e1rm");
+  assert.equal(target.liftName, "Back Squat");
+  assert.equal(target.repTarget, 3);
+});
+
 test("missed rep entries persist without a completed load result", () => {
   const entry = createTrainingPerformanceEntry({
     metadata: {

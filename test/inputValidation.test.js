@@ -5,6 +5,7 @@ import {
   PASSWORD_EXPECTATIONS_MESSAGE,
   getPasswordValidationError,
   isPasswordWithinExpectations,
+  normalizeStripeCheckoutSessionId,
 } from "../src/services/utils/inputValidation.js";
 
 test("password expectations require the configured length range", () => {
@@ -37,4 +38,13 @@ test("password expectations require lower, upper, number, and special character"
     PASSWORD_EXPECTATIONS_MESSAGE
   );
   assert.equal(isPasswordWithinExpectations("Aa1!aaaa"), true);
+});
+
+test("checkout session IDs must be real Stripe Checkout IDs", () => {
+  assert.equal(
+    normalizeStripeCheckoutSessionId(" cs_test_a1B2_c3 "),
+    "cs_test_a1B2_c3"
+  );
+  assert.equal(normalizeStripeCheckoutSessionId("{CHECKOUT_SESSION_ID}"), "");
+  assert.equal(normalizeStripeCheckoutSessionId("pi_test_123"), "");
 });

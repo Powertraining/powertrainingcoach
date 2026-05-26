@@ -16,6 +16,7 @@ import {
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import VerifiedBadge from "../../components/forumComponents/VerifiedBadge.jsx";
 import Comment from "../../components/forumComponents/Comment.jsx";
+import PostMedia from "../../components/forumComponents/PostMedia.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 
@@ -228,6 +229,10 @@ export default function PostView({
 
             <Text style={styles.title}>{post?.title}</Text>
             <Text style={styles.body}>{post?.body}</Text>
+            <PostMedia
+              mediaUrl={post?.mediaUrl}
+              mediaType={post?.mediaType}
+            />
 
             <View style={styles.menu}>
               <TouchableOpacity

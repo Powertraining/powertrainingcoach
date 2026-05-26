@@ -9,6 +9,7 @@ import {
 
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
 import VerifiedBadge from "./VerifiedBadge.jsx";
+import PostMedia from "./PostMedia.jsx";
 
 const COLORS = {
   gold: "#C9B259",
@@ -68,6 +69,11 @@ export default function PostCard({
             {post?.title}
           </Text>
           <Text numberOfLines={5} style={styles.postContent}>{post?.body}</Text>
+          <PostMedia
+            compact
+            mediaUrl={post?.mediaUrl}
+            mediaType={post?.mediaType}
+          />
           <View style={styles.postCardMenu}>
             <TouchableOpacity
               style={[styles.standardButton, isPostSaved ? styles.standardButtonActive : null]}

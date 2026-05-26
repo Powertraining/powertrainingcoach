@@ -33,4 +33,4 @@ export {
   where,
 } from "firebase/firestore/lite";
 export { getFunctions, httpsCallable } from "firebase/functions";
-export { getDownloadURL, getStorage, listAll, ref } from "firebase/storage";
+export { getDownloadURL, getStorage, listAll, ref, uploadBytes } from "firebase/storage";

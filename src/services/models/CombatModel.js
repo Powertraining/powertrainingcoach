@@ -295,18 +295,26 @@ export const model = {
     return this.submitFeedBack(rating, comment);
   },
 
-  async updateProfile({ displayName, password, isGoogleUser }) {
+  async updateProfile({ displayName, password, isGoogleUser, photoURL }) {
     try {
       // 1 Update display name
       const safeDisplayName = normalizeBoundedString(displayName, 60);
+      const safePhotoURL = normalizeBoundedString(photoURL, 2048);
+      const profilePatch = {};
 
       if (safeDisplayName && safeDisplayName !== this.user.displayName) {
-        await fbUpdateProfile(this.user, {
-          displayName: safeDisplayName,
-        });
+        profilePatch.displayName = safeDisplayName;
       }
 
-      // 2 Update password if it is not connected with google account
+      if (safePhotoURL && safePhotoURL !== this.user.photoURL) {
+        profilePatch.photoURL = safePhotoURL;
+      }
+
+      if (Object.keys(profilePatch).length > 0) {
+        await fbUpdateProfile(this.user, profilePatch);
+      }
+
+      // Update password if it is not connected with google account
       if (!isGoogleUser && password && password.length > 0) {
         const passwordValidationError = getPasswordValidationError(password);
 

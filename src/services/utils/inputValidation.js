@@ -1,4 +1,5 @@
 const SAFE_FIRESTORE_DOCUMENT_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+export const STRIPE_CHECKOUT_SESSION_ID_PATTERN = /^cs_(test|live)_[A-Za-z0-9_]+$/;
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/g;
 const PASSWORD_LOWERCASE_PATTERN = /[a-z]/;
 const PASSWORD_UPPERCASE_PATTERN = /[A-Z]/;
@@ -111,4 +112,12 @@ export function normalizeSafeReturnToPath(value) {
   }
 
   return normalizedValue;
+}
+
+export function normalizeStripeCheckoutSessionId(value) {
+  const normalizedValue = normalizeBoundedString(value, 255);
+
+  return STRIPE_CHECKOUT_SESSION_ID_PATTERN.test(normalizedValue) ?
+    normalizedValue :
+    "";
 }
