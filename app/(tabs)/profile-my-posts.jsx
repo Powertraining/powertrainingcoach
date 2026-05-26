@@ -27,6 +27,10 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [isUploadingPostMedia, setIsUploadingPostMedia] = useState(false);
+  const [postMediaPreview, setPostMediaPreview] = useState({
+    mediaUrl: "",
+    mediaType: "none",
+  });
   const [createPostError, setCreatePostError] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [isCreatingComment, setIsCreatingComment] = useState(false);
@@ -179,6 +183,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
       mediaUrl: "",
       mediaType: "none",
     });
+    setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
   }
 
   function handleLeavePostComposer() {
@@ -188,6 +193,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
 
     setCreatePostError(null);
     model.resetForumComposer();
+    setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
     setCurrentView("list");
   }
 
@@ -202,6 +208,10 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
         return;
       }
 
+      setPostMediaPreview({
+        mediaUrl: asset.uri,
+        mediaType,
+      });
       setIsUploadingPostMedia(true);
       const uploadedMedia = await uploadForumMedia({
         asset,
@@ -218,6 +228,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
       setCreatePostError(error?.message || "Could not upload media.");
     } finally {
       setIsUploadingPostMedia(false);
+      setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
     }
   }
 
@@ -227,6 +238,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
       mediaUrl: "",
       mediaType: "none",
     });
+    setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
   }
 
   async function handleCreatePost() {
@@ -411,6 +423,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           userPhotoUrl={model.user?.photoURL || ""}
           mediaUrl={model.forumComposer?.mediaUrl || ""}
           mediaType={model.forumComposer?.mediaType || "none"}
+          previewMediaUrl={postMediaPreview.mediaUrl}
+          previewMediaType={postMediaPreview.mediaType}
           isSubmitting={isCreatingPost}
           isUploadingMedia={isUploadingPostMedia}
           error={createPostError}

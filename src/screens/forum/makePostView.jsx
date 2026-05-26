@@ -66,6 +66,7 @@ function VideoPosterPreview({ uri }) {
       contentFit="cover"
       nativeControls={false}
       player={player}
+      pointerEvents="none"
       style={styles.mediaStatusImage}
     />
   );

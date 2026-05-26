@@ -42,34 +42,36 @@ export default function PostCard({
       ]}
     >
       <View style={styles.cardContent}>
-        <TouchableOpacity
-          onPress={() => onPressPost?.(post.id)}
-          style={styles.postPressable}
-        >
-          <View style={styles.postHeader}>
-            <TouchableOpacity style={styles.authorButton}>
-              {post?.isCoachVerified ? (
-                <VerifiedBadge />
-              ) : null}
-              <Text numberOfLines={1} style={styles.postAuthor}>
-                {post?.authorDisplayName}
-              </Text>
-            </TouchableOpacity>
+        <View style={styles.postContentWrap}>
+          <TouchableOpacity
+            onPress={() => onPressPost?.(post.id)}
+            style={styles.postPressable}
+          >
+            <View style={styles.postHeader}>
+              <TouchableOpacity style={styles.authorButton}>
+                {post?.isCoachVerified ? (
+                  <VerifiedBadge />
+                ) : null}
+                <Text numberOfLines={1} style={styles.postAuthor}>
+                  {post?.authorDisplayName}
+                </Text>
+              </TouchableOpacity>
 
-            <View style={styles.dot} />
+              <View style={styles.dot} />
 
-            <TouchableOpacity onPress={() => onPressTopic?.(post?.topic)}>
-              <Text numberOfLines={1} style={styles.postTopic}>
-                {post?.topic}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <Text numberOfLines={2} style={styles.postTitle}>
-            {post?.title}
-          </Text>
-          <Text numberOfLines={hasMedia ? 3 : 5} style={styles.postContent}>
-            {post?.body}
-          </Text>
+              <TouchableOpacity onPress={() => onPressTopic?.(post?.topic)}>
+                <Text numberOfLines={1} style={styles.postTopic}>
+                  {post?.topic}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text numberOfLines={2} style={styles.postTitle}>
+              {post?.title}
+            </Text>
+            <Text numberOfLines={hasMedia ? 3 : 5} style={styles.postContent}>
+              {post?.body}
+            </Text>
+          </TouchableOpacity>
           <PostMedia
             compact
             mediaUrl={post?.mediaUrl}
@@ -114,7 +116,7 @@ export default function PostCard({
               </TouchableOpacity>
             ) : null}
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -131,9 +133,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
   },
-  postPressable: {
+  postContentWrap: {
     flex: 1,
   },
+  postPressable: {},
 
   postHeader: {
     gap: 8,

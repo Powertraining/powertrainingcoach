@@ -53,6 +53,10 @@ const ForumScreen = observer(function ForumScreen() {
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [isUploadingPostMedia, setIsUploadingPostMedia] = useState(false);
+  const [postMediaPreview, setPostMediaPreview] = useState({
+    mediaUrl: "",
+    mediaType: "none",
+  });
   const [createPostError, setCreatePostError] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [isCreatingComment, setIsCreatingComment] = useState(false);
@@ -215,6 +219,7 @@ const ForumScreen = observer(function ForumScreen() {
       mediaUrl: "",
       mediaType: "none",
     });
+    setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
   }
 
   function handleLeavePostComposer() {
@@ -224,6 +229,7 @@ const ForumScreen = observer(function ForumScreen() {
 
     setCreatePostError(null);
     model.resetForumComposer();
+    setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
     setForumCurrentView("feed");
   }
 
@@ -238,6 +244,10 @@ const ForumScreen = observer(function ForumScreen() {
         return;
       }
 
+      setPostMediaPreview({
+        mediaUrl: asset.uri,
+        mediaType,
+      });
       setIsUploadingPostMedia(true);
       const uploadedMedia = await uploadForumMedia({
         asset,
@@ -254,6 +264,7 @@ const ForumScreen = observer(function ForumScreen() {
       setCreatePostError(error?.message || "Could not upload media.");
     } finally {
       setIsUploadingPostMedia(false);
+      setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
     }
   }
 
@@ -263,6 +274,7 @@ const ForumScreen = observer(function ForumScreen() {
       mediaUrl: "",
       mediaType: "none",
     });
+    setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
   }
 
   async function handleCreatePost() {
@@ -513,6 +525,8 @@ const ForumScreen = observer(function ForumScreen() {
           userPhotoUrl={model.user?.photoURL || ""}
           mediaUrl={model.forumComposer?.mediaUrl || ""}
           mediaType={model.forumComposer?.mediaType || "none"}
+          previewMediaUrl={postMediaPreview.mediaUrl}
+          previewMediaType={postMediaPreview.mediaType}
           isSubmitting={isCreatingPost}
           isUploadingMedia={isUploadingPostMedia}
           error={createPostError}

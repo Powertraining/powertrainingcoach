@@ -230,6 +230,8 @@ export default function PostView({
             <Text style={styles.title}>{post?.title}</Text>
             <Text style={styles.body}>{post?.body}</Text>
             <PostMedia
+              autoPlay
+              compact
               mediaUrl={post?.mediaUrl}
               mediaType={post?.mediaType}
             />
