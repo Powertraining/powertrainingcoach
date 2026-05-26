@@ -3,6 +3,7 @@ import {
   Easing,
   Keyboard,
   KeyboardAvoidingView,
+  Image,
   PanResponder,
   Pressable,
   Platform,
@@ -283,9 +284,35 @@ export function MyProfileView(props) {
 
         {isPersonalDetailsMode ? (
           <View style={styles.profileIdentity}>
-            <View style={styles.profileGradientCircle}>
-              <BlackGradient />
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              disabled={props.isSubmitting}
+              onPress={props.onProfilePhotoChange}
+              style={styles.profilePhotoButton}
+            >
+              {props.userPhotoUrl ? (
+                <Image
+                  source={{ uri: props.userPhotoUrl }}
+                  style={styles.profilePhoto}
+                />
+              ) : (
+                <View style={styles.profileGradientCircle}>
+                  <BlackGradient />
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              disabled={props.isSubmitting}
+              onPress={props.onProfilePhotoChange}
+              style={[
+                styles.profilePhotoAction,
+                props.isSubmitting ? styles.profilePhotoActionDisabled : null,
+              ]}
+            >
+              <Text style={styles.profilePhotoActionText}>
+                {props.isSubmitting ? "Uploading..." : "Change photo"}
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.profileEmail} numberOfLines={1}>
               {props.email || props.emailPlaceholder || ""}
             </Text>
@@ -559,14 +586,43 @@ const styles = StyleSheet.create({
     height: 24,
   },
   profileGradientCircle: {
+    flex: 1,
+  },
+  profilePhotoButton: {
     alignSelf: "center",
     aspectRatio: 1,
+    backgroundColor: "#1E1E1E",
+    borderColor: "rgba(255,255,255,0.16)",
     borderRadius: 999,
+    borderWidth: 1,
     marginTop: "10%",
     maxWidth: 150,
     minWidth: 112,
     overflow: "hidden",
     width: "34%",
+  },
+  profilePhoto: {
+    height: "100%",
+    width: "100%",
+  },
+  profilePhotoAction: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    justifyContent: "center",
+    marginTop: 14,
+    minHeight: 34,
+    paddingHorizontal: 18,
+  },
+  profilePhotoActionDisabled: {
+    opacity: 0.6,
+  },
+  profilePhotoActionText: {
+    color: "#141414",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
   },
   profileEmail: {
     color: "#C9B259",

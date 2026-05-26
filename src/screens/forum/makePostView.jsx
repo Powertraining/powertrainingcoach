@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SearchFiltersView from "./searchFiltersView.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
+import { PendingPostMedia } from "../../components/forumComponents/PostMedia.jsx";
 
 const COLORS = {
   panel: "#141414",
@@ -71,6 +72,9 @@ export default function MakePostView({
   titleValue = "",
   value = "",
   userPhotoUrl = "",
+  mediaUrl = "",
+  mediaType = "none",
+  isUploadingMedia = false,
   isSubmitting = false,
   error = null,
   selectedTags = [],
@@ -79,7 +83,7 @@ export default function MakePostView({
   onChangeText,
   onChangeTags,
   onPost,
-  onUploadImage,
+  onUploadMedia,
   onBack,
   onDiscard,
 }) {
@@ -96,7 +100,8 @@ export default function MakePostView({
   const tagsButtonLabel = normalizedSelectedTags.length > 0 ?
     `Tags (${normalizedSelectedTags.length})` :
     "Tags";
-  const isInteractionDisabled = isSubmitting || locked;
+  const isInteractionDisabled = isSubmitting || isUploadingMedia || locked;
+  const mediaButtonLabel = mediaUrl ? "Change" : "Media";
 
   useEffect(() => {
     reactiveModel.setForumTabBarHidden(true);
@@ -187,6 +192,11 @@ export default function MakePostView({
           editable={!isInteractionDisabled}
           selectionColor="#fff"
         />
+        <PendingPostMedia
+          mediaUrl={mediaUrl}
+          mediaType={mediaType}
+          isUploading={isUploadingMedia}
+        />
         <View style={styles.footer}>
           <TouchableOpacity
             style={styles.secondaryButton}
@@ -198,11 +208,11 @@ export default function MakePostView({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={onUploadImage}
+            onPress={onUploadMedia}
             disabled={isInteractionDisabled}
           >
             <GalleryIcon />
-            <Text style={styles.secondaryButtonText}>Image</Text>
+            <Text style={styles.secondaryButtonText}>{mediaButtonLabel}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.primaryButton, isSubmitting ? styles.disabledButton : null]}

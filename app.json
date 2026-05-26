@@ -45,7 +45,14 @@
       "typedRoutes": true
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Power Training Coach to choose profile photos and forum media from your library."
+        }
+      ],
+      "expo-video"
     ],
     "owner": "power-training"
   }
