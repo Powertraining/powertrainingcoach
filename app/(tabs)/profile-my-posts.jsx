@@ -67,6 +67,12 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
     selectedPostId === model.forumSelectedPost?.id ?
       model.getFlattenedForumComments().filter((comment) => comment?.isCoachVerified) :
       [];
+  const isCommentsLoading = Boolean(
+    selectedPostId &&
+      model.forumCommentsPromiseState?.promise &&
+      !model.forumCommentsPromiseState?.data &&
+      !model.forumCommentsPromiseState?.error
+  );
 
   if (!model.ready) {
     return (
@@ -392,6 +398,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          isCommentsLoading={isCommentsLoading}
           commentsLocked={!canUseForumActions}
           hideTabBar
           onBack={hidePostView}
@@ -427,6 +434,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          isCommentsLoading={isCommentsLoading}
           commentsLocked={!canUseForumActions}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}

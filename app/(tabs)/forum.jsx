@@ -129,6 +129,12 @@ const ForumScreen = observer(function ForumScreen() {
     (selectedPostId === model.forumSelectedPost?.id ? model.forumSelectedPost : null) ||
     model.forumFeed.find((post) => post?.id === selectedPostId) ||
     null;
+  const isCommentsLoading = Boolean(
+    selectedPostId &&
+      model.forumCommentsPromiseState?.promise &&
+      !model.forumCommentsPromiseState?.data &&
+      !model.forumCommentsPromiseState?.error
+  );
 
   async function handleRetry() {
     try {
@@ -494,6 +500,7 @@ const ForumScreen = observer(function ForumScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          isCommentsLoading={isCommentsLoading}
           commentsLocked={!canUseForumActions}
           hideTabBar
           onBack={hidePostView}
@@ -529,6 +536,7 @@ const ForumScreen = observer(function ForumScreen() {
           currentUserPhotoUrl={model.user?.photoURL || ""}
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
+          isCommentsLoading={isCommentsLoading}
           commentsLocked={!canUseForumActions}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}

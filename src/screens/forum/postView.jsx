@@ -27,6 +27,34 @@ const COLORS = {
   muted: "#9ca3af",
   error: "#fca5a5",
 };
+const COMMENT_SKELETONS = [0, 1, 2];
+
+function SkeletonBlock({ style }) {
+  return <View style={[styles.skeletonBlock, style]} />;
+}
+
+function CommentSkeleton({ index = 0 }) {
+  return (
+    <View style={styles.commentSkeleton}>
+      <SkeletonBlock style={styles.commentSkeletonAvatar} />
+      <View style={styles.commentSkeletonBody}>
+        <SkeletonBlock
+          style={[
+            styles.commentSkeletonAuthor,
+            index % 2 ? styles.commentSkeletonAuthorShort : null,
+          ]}
+        />
+        <SkeletonBlock style={styles.commentSkeletonLineLong} />
+        <SkeletonBlock
+          style={[
+            styles.commentSkeletonLine,
+            index % 2 ? styles.commentSkeletonLineShort : null,
+          ]}
+        />
+      </View>
+    </View>
+  );
+}
 
 export default function PostView({
   post,
@@ -38,6 +66,7 @@ export default function PostView({
   currentUserPhotoUrl = "",
   isSubmittingComment = false,
   isSubmittingReply = false,
+  isCommentsLoading = false,
   commentsLocked = false,
   hideTabBar = false,
   onBack,
@@ -293,13 +322,24 @@ export default function PostView({
                 ) : null}
               </Pressable>
               <View style={styles.commentsList}>
-                {comments.map((comment) => (
-                  <Comment
-                    key={comment.id}
-                    comment={comment}
-                    onPressReply={commentsLocked ? undefined : handlePressReply}
-                  />
-                ))}
+                {isCommentsLoading ? (
+                  <View style={styles.commentSkeletonList}>
+                    {COMMENT_SKELETONS.map((item) => (
+                      <CommentSkeleton
+                        key={`post-comment-skeleton-${item}`}
+                        index={item}
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  comments.map((comment) => (
+                    <Comment
+                      key={comment.id}
+                      comment={comment}
+                      onPressReply={commentsLocked ? undefined : handlePressReply}
+                    />
+                  ))
+                )}
               </View>
             </View>
           </ScrollView>
@@ -524,6 +564,51 @@ const styles = StyleSheet.create({
   },
   commentsList: {
     marginHorizontal: -24,
+  },
+  commentSkeletonList: {
+    paddingTop: 8,
+  },
+  commentSkeleton: {
+    borderBottomColor: "rgba(255,255,255,0.1)",
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  skeletonBlock: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderRadius: 999,
+  },
+  commentSkeletonAvatar: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+    height: 36,
+    width: 36,
+  },
+  commentSkeletonBody: {
+    flex: 1,
+    gap: 10,
+    minWidth: 0,
+    paddingTop: 2,
+  },
+  commentSkeletonAuthor: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    height: 13,
+    width: "38%",
+  },
+  commentSkeletonAuthorShort: {
+    width: "28%",
+  },
+  commentSkeletonLineLong: {
+    height: 12,
+    width: "88%",
+  },
+  commentSkeletonLine: {
+    height: 12,
+    width: "66%",
+  },
+  commentSkeletonLineShort: {
+    width: "48%",
   },
   commentComposer: {
     flexDirection: "row",
