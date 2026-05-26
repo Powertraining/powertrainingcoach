@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   currentLabel: {
-    color: "#ffffff",
+    color: GOLD,
     fontSize: 11,
     fontWeight: "900",
     lineHeight: 14,

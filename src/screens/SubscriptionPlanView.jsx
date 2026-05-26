@@ -107,6 +107,7 @@ function TrustBenefitIcon({ type }) {
 
 export default function SubscriptionPlanView({
   currentPlanKey = "",
+  isSubscribed = false,
   onBack,
   onCheckoutSuccess,
   returnTo = "",
@@ -206,6 +207,9 @@ export default function SubscriptionPlanView({
     selectedPlan?.isAvailable &&
     !selectedPlan?.isCurrentOrLowerPlan
   );
+  const headerPlanText = isSubscribed
+    ? "UPGRADE YOUR PLAN TO BETTER MATCH YOUR LONG TERM GOALS"
+    : "BECOME A MEMBER TO GENERATE YOUR PLAN";
 
   useEffect(() => {
     if (loadingPlans) {
@@ -285,7 +289,7 @@ export default function SubscriptionPlanView({
       >
         <View style={styles.headerBenefitsSection}>
           <SubscriptionCard
-            planName="BECOME A MEMBER TO GENERATE YOUR PLAN"
+            planName={headerPlanText}
             planLabelStyle={styles.subscriptionCardPlanLabel}
             showBackground={false}
             showActions={false}

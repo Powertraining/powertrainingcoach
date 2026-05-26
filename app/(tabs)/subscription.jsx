@@ -230,6 +230,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
       <View style={styles.container}>
         <SubscriptionPlanView
           currentPlanKey={model.getActiveSubscriptionLookupKey?.() || ""}
+          isSubscribed={model.isSubscribed?.() || false}
           onBack={handleBack}
           onCheckoutSuccess={handleCheckoutSuccess}
           returnTo={returnTo}
