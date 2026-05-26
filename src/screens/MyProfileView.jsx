@@ -301,18 +301,6 @@ export function MyProfileView(props) {
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
-              disabled={props.isSubmitting}
-              onPress={props.onProfilePhotoChange}
-              style={[
-                styles.profilePhotoAction,
-                props.isSubmitting ? styles.profilePhotoActionDisabled : null,
-              ]}
-            >
-              <Text style={styles.profilePhotoActionText}>
-                {props.isSubmitting ? "Uploading..." : "Change photo"}
-              </Text>
-            </TouchableOpacity>
             <Text style={styles.profileEmail} numberOfLines={1}>
               {props.email || props.emailPlaceholder || ""}
             </Text>
@@ -604,25 +592,6 @@ const styles = StyleSheet.create({
   profilePhoto: {
     height: "100%",
     width: "100%",
-  },
-  profilePhotoAction: {
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderRadius: 999,
-    justifyContent: "center",
-    marginTop: 14,
-    minHeight: 34,
-    paddingHorizontal: 18,
-  },
-  profilePhotoActionDisabled: {
-    opacity: 0.6,
-  },
-  profilePhotoActionText: {
-    color: "#141414",
-    fontSize: 12,
-    fontWeight: "800",
-    lineHeight: 16,
-    textTransform: "uppercase",
   },
   profileEmail: {
     color: "#C9B259",
