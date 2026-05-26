@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SearchFiltersView from "./searchFiltersView.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
+import { useVideoPlayer, VideoView } from "expo-video";
 
 const COLORS = {
   panel: "#141414",
@@ -53,17 +54,39 @@ function PlusIcon() {
   );
 }
 
+function VideoPosterPreview({ uri }) {
+  const player = useVideoPlayer(uri, (videoPlayer) => {
+    videoPlayer.loop = false;
+    videoPlayer.muted = true;
+  });
+
+  return (
+    <VideoView
+      allowsPictureInPicture={false}
+      contentFit="cover"
+      nativeControls={false}
+      player={player}
+      style={styles.mediaStatusImage}
+    />
+  );
+}
+
 function MediaButton({
   mediaUrl = "",
   mediaType = "none",
+  previewMediaUrl = "",
+  previewMediaType = "none",
   isUploading = false,
   isMenuVisible = false,
   disabled = false,
   onPress,
-  onChange,
+  onPickImage,
+  onPickVideo,
   onRemove,
 }) {
-  const hasMedia = Boolean(mediaUrl && mediaType !== "none");
+  const displayMediaUrl = previewMediaUrl || mediaUrl;
+  const displayMediaType = previewMediaUrl ? previewMediaType : mediaType;
+  const hasMedia = Boolean(displayMediaUrl && displayMediaType !== "none");
 
   return (
     <View style={styles.mediaButtonWrap}>
@@ -73,39 +96,58 @@ function MediaButton({
         disabled={disabled}
         style={[styles.mediaStatusPreview, disabled ? styles.mediaStatusPreviewDisabled : null]}
       >
-        {isUploading ? (
-          <ActivityIndicator color={COLORS.faint} size="small" />
-        ) : hasMedia && mediaType === "image" ? (
+        {hasMedia && displayMediaType === "image" ? (
           <Image
-            source={{ uri: mediaUrl }}
+            source={{ uri: displayMediaUrl }}
             resizeMode="cover"
             style={styles.mediaStatusImage}
           />
-        ) : hasMedia ? (
-          <Text style={styles.mediaStatusText}>VID</Text>
+        ) : hasMedia && displayMediaType === "video" ? (
+          <View style={styles.mediaStatusVideoWrap}>
+            <VideoPosterPreview uri={displayMediaUrl} />
+            <View style={styles.mediaStatusVideoBadge}>
+              <View style={styles.mediaStatusPlayIcon} />
+            </View>
+          </View>
+        ) : isUploading ? (
+          <ActivityIndicator color={COLORS.faint} size="small" />
         ) : (
           <GalleryIcon />
         )}
+        {isUploading && hasMedia ? (
+          <View style={styles.mediaStatusUploadingOverlay}>
+            <ActivityIndicator color={COLORS.text} size="small" />
+          </View>
+        ) : null}
       </TouchableOpacity>
-      {hasMedia && isMenuVisible ? (
+      {isMenuVisible ? (
         <View style={styles.mediaMenu}>
           <View style={styles.mediaMenuPointer} />
           <TouchableOpacity
             accessibilityRole="button"
-            onPress={onChange}
+            onPress={onPickImage}
             style={[styles.mediaMenuOption, styles.mediaMenuOptionPrimary]}
           >
             <Text style={[styles.mediaMenuOptionText, styles.mediaMenuOptionTextPrimary]}>
-              Change
+              Photo
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
-            onPress={onRemove}
+            onPress={onPickVideo}
             style={styles.mediaMenuOption}
           >
-            <Text style={styles.mediaMenuOptionText}>Remove</Text>
+            <Text style={styles.mediaMenuOptionText}>Video</Text>
           </TouchableOpacity>
+          {hasMedia ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onRemove}
+              style={styles.mediaMenuOption}
+            >
+              <Text style={styles.mediaMenuOptionText}>Remove</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -139,6 +181,8 @@ export default function MakePostView({
   userPhotoUrl = "",
   mediaUrl = "",
   mediaType = "none",
+  previewMediaUrl = "",
+  previewMediaType = "none",
   isUploadingMedia = false,
   isSubmitting = false,
   error = null,
@@ -148,7 +192,8 @@ export default function MakePostView({
   onChangeText,
   onChangeTags,
   onPost,
-  onUploadMedia,
+  onUploadImage,
+  onUploadVideo,
   onRemoveMedia,
   onBack,
   onDiscard,
@@ -196,17 +241,17 @@ export default function MakePostView({
       return;
     }
 
-    if (!hasMedia) {
-      onUploadMedia?.();
-      return;
-    }
-
     setIsMediaMenuVisible((isVisible) => !isVisible);
   }
 
-  function handleChangeMedia() {
+  function handlePickImage() {
     setIsMediaMenuVisible(false);
-    onUploadMedia?.();
+    onUploadImage?.();
+  }
+
+  function handlePickVideo() {
+    setIsMediaMenuVisible(false);
+    onUploadVideo?.();
   }
 
   function handleRemoveMedia() {
@@ -260,11 +305,14 @@ export default function MakePostView({
             <MediaButton
               mediaUrl={mediaUrl}
               mediaType={mediaType}
+              previewMediaUrl={previewMediaUrl}
+              previewMediaType={previewMediaType}
               isUploading={isUploadingMedia}
               isMenuVisible={isMediaMenuVisible}
               disabled={isUploadActionDisabled}
               onPress={handlePressMediaButton}
-              onChange={handleChangeMedia}
+              onPickImage={handlePickImage}
+              onPickVideo={handlePickVideo}
               onRemove={handleRemoveMedia}
             />
           </View>
@@ -422,6 +470,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     width: 40,
   },
+  mediaStatusUploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.42)",
+    justifyContent: "center",
+  },
   mediaStatusPreviewDisabled: {
     opacity: 0.62,
   },
@@ -429,11 +483,32 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
   },
-  mediaStatusText: {
-    color: COLORS.text,
-    fontSize: 10,
-    fontWeight: "900",
-    lineHeight: 13,
+  mediaStatusVideoWrap: {
+    height: "100%",
+    position: "relative",
+    width: "100%",
+  },
+  mediaStatusVideoBadge: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.54)",
+    borderRadius: 999,
+    height: 20,
+    justifyContent: "center",
+    left: 9,
+    position: "absolute",
+    top: 9,
+    width: 20,
+  },
+  mediaStatusPlayIcon: {
+    borderBottomColor: "transparent",
+    borderBottomWidth: 5,
+    borderLeftColor: COLORS.text,
+    borderLeftWidth: 7,
+    borderTopColor: "transparent",
+    borderTopWidth: 5,
+    height: 0,
+    marginLeft: 2,
+    width: 0,
   },
   mediaMenu: {
     backgroundColor: COLORS.panel,

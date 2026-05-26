@@ -11,7 +11,8 @@ import ForumView from "../../src/screens/forum/ForumView.jsx";
 import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
 import {
-  pickForumMedia,
+  pickForumImage,
+  pickForumVideo,
   uploadForumMedia,
 } from "../../src/services/utils/mediaUpload.js";
 
@@ -226,11 +227,12 @@ const ForumScreen = observer(function ForumScreen() {
     setForumCurrentView("feed");
   }
 
-  async function handleUploadMedia() {
+  async function handleUploadMedia(mediaType = "image") {
     setCreatePostError(null);
 
     try {
-      const asset = await pickForumMedia();
+      const asset =
+        mediaType === "video" ? await pickForumVideo() : await pickForumImage();
 
       if (!asset) {
         return;
@@ -239,6 +241,7 @@ const ForumScreen = observer(function ForumScreen() {
       setIsUploadingPostMedia(true);
       const uploadedMedia = await uploadForumMedia({
         asset,
+        mediaType,
         ownerId: model.user?.uid,
       });
 
@@ -518,7 +521,8 @@ const ForumScreen = observer(function ForumScreen() {
           onChangeText={handleComposeTextChange}
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
-          onUploadMedia={handleUploadMedia}
+          onUploadImage={() => handleUploadMedia("image")}
+          onUploadVideo={() => handleUploadMedia("video")}
           onRemoveMedia={handleRemoveMedia}
           onBack={handleLeavePostComposer}
           onDiscard={handleClearPostDraft}

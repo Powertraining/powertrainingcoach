@@ -12,7 +12,8 @@ import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
 import SavedPostsView from "../../src/screens/profile/SavedPostsView.jsx";
 import {
-  pickForumMedia,
+  pickForumImage,
+  pickForumVideo,
   uploadForumMedia,
 } from "../../src/services/utils/mediaUpload.js";
 
@@ -175,6 +176,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
       body: "",
       tags: [],
       topic: defaultDraft.topic,
+      mediaUrl: "",
+      mediaType: "none",
     });
   }
 
@@ -188,11 +191,12 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
     setCurrentView("list");
   }
 
-  async function handleUploadMedia() {
+  async function handleUploadMedia(mediaType = "image") {
     setCreatePostError(null);
 
     try {
-      const asset = await pickForumMedia();
+      const asset =
+        mediaType === "video" ? await pickForumVideo() : await pickForumImage();
 
       if (!asset) {
         return;
@@ -201,6 +205,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
       setIsUploadingPostMedia(true);
       const uploadedMedia = await uploadForumMedia({
         asset,
+        mediaType,
         ownerId: model.user?.uid,
       });
 
@@ -214,6 +219,14 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
     } finally {
       setIsUploadingPostMedia(false);
     }
+  }
+
+  function handleRemoveMedia() {
+    setCreatePostError(null);
+    model.updateForumComposer({
+      mediaUrl: "",
+      mediaType: "none",
+    });
   }
 
   async function handleCreatePost() {
@@ -406,7 +419,9 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           onChangeText={handleComposeTextChange}
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
-          onUploadMedia={handleUploadMedia}
+          onUploadImage={() => handleUploadMedia("image")}
+          onUploadVideo={() => handleUploadMedia("video")}
+          onRemoveMedia={handleRemoveMedia}
           onBack={handleLeavePostComposer}
           onDiscard={handleClearPostDraft}
         />
