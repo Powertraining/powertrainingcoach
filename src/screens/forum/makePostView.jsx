@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { Text, Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Text,
+  Image,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SearchFiltersView from "./searchFiltersView.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
-import { PendingPostMedia } from "../../components/forumComponents/PostMedia.jsx";
 
 const COLORS = {
   panel: "#141414",
@@ -46,6 +53,65 @@ function PlusIcon() {
   );
 }
 
+function MediaButton({
+  mediaUrl = "",
+  mediaType = "none",
+  isUploading = false,
+  isMenuVisible = false,
+  disabled = false,
+  onPress,
+  onChange,
+  onRemove,
+}) {
+  const hasMedia = Boolean(mediaUrl && mediaType !== "none");
+
+  return (
+    <View style={styles.mediaButtonWrap}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={onPress}
+        disabled={disabled}
+        style={[styles.mediaStatusPreview, disabled ? styles.mediaStatusPreviewDisabled : null]}
+      >
+        {isUploading ? (
+          <ActivityIndicator color={COLORS.faint} size="small" />
+        ) : hasMedia && mediaType === "image" ? (
+          <Image
+            source={{ uri: mediaUrl }}
+            resizeMode="cover"
+            style={styles.mediaStatusImage}
+          />
+        ) : hasMedia ? (
+          <Text style={styles.mediaStatusText}>VID</Text>
+        ) : (
+          <GalleryIcon />
+        )}
+      </TouchableOpacity>
+      {hasMedia && isMenuVisible ? (
+        <View style={styles.mediaMenu}>
+          <View style={styles.mediaMenuPointer} />
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={onChange}
+            style={[styles.mediaMenuOption, styles.mediaMenuOptionPrimary]}
+          >
+            <Text style={[styles.mediaMenuOptionText, styles.mediaMenuOptionTextPrimary]}>
+              Change
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={onRemove}
+            style={styles.mediaMenuOption}
+          >
+            <Text style={styles.mediaMenuOptionText}>Remove</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function LockedComposePreview({ avatarSource }) {
   return (
     <>
@@ -60,7 +126,6 @@ function LockedComposePreview({ avatarSource }) {
         <View style={styles.lockedBodyLineMedium} />
       </View>
       <View style={styles.footer}>
-        <View style={styles.lockedFooterButton} />
         <View style={styles.lockedFooterButton} />
         <View style={[styles.lockedFooterButton, styles.lockedFooterButtonPrimary]} />
       </View>
@@ -84,11 +149,13 @@ export default function MakePostView({
   onChangeTags,
   onPost,
   onUploadMedia,
+  onRemoveMedia,
   onBack,
   onDiscard,
 }) {
   const insets = useSafeAreaInsets();
   const [isTagsPickerVisible, setIsTagsPickerVisible] = useState(false);
+  const [isMediaMenuVisible, setIsMediaMenuVisible] = useState(false);
   const contentTopPadding = !locked && onBack ? 26 : Math.max(insets.top + 46, 70);
   const avatarSource =
     userPhotoUrl ?
@@ -100,8 +167,10 @@ export default function MakePostView({
   const tagsButtonLabel = normalizedSelectedTags.length > 0 ?
     `Tags (${normalizedSelectedTags.length})` :
     "Tags";
-  const isInteractionDisabled = isSubmitting || isUploadingMedia || locked;
-  const mediaButtonLabel = mediaUrl ? "Change" : "Media";
+  const isDraftEditingDisabled = isSubmitting || locked;
+  const isUploadActionDisabled = isSubmitting || isUploadingMedia || locked;
+  const isPostActionDisabled = isSubmitting || isUploadingMedia || locked;
+  const hasMedia = Boolean(mediaUrl && mediaType !== "none");
 
   useEffect(() => {
     reactiveModel.setForumTabBarHidden(true);
@@ -112,11 +181,37 @@ export default function MakePostView({
   }, []);
 
   function toggleTagsPicker() {
+    setIsMediaMenuVisible(false);
     setIsTagsPickerVisible((isVisible) => !isVisible);
   }
 
   function closeTagsPicker() {
     setIsTagsPickerVisible(false);
+  }
+
+  function handlePressMediaButton() {
+    closeTagsPicker();
+
+    if (isUploadActionDisabled) {
+      return;
+    }
+
+    if (!hasMedia) {
+      onUploadMedia?.();
+      return;
+    }
+
+    setIsMediaMenuVisible((isVisible) => !isVisible);
+  }
+
+  function handleChangeMedia() {
+    setIsMediaMenuVisible(false);
+    onUploadMedia?.();
+  }
+
+  function handleRemoveMedia() {
+    setIsMediaMenuVisible(false);
+    onRemoveMedia?.();
   }
 
   return (
@@ -143,23 +238,36 @@ export default function MakePostView({
           <>
         <View style={styles.header}>
           <Image source={avatarSource} style={styles.avatar} />
-          <TouchableOpacity
-            style={[
-              styles.tagContainer,
-              normalizedSelectedTags.length > 0 ? styles.tagContainerActive : null,
-            ]}
-            onPress={toggleTagsPicker}
-            disabled={isInteractionDisabled}
-          >
-            <Text
+          <View style={styles.headerControls}>
+            <TouchableOpacity
               style={[
-                styles.tagText,
-                normalizedSelectedTags.length > 0 ? styles.tagTextActive : null,
+                styles.tagContainer,
+                normalizedSelectedTags.length > 0 ? styles.tagContainerActive : null,
               ]}
+              onPress={toggleTagsPicker}
+              disabled={isDraftEditingDisabled}
             >
-              {tagsButtonLabel}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.tagText,
+                  normalizedSelectedTags.length > 0 ? styles.tagTextActive : null,
+                ]}
+              >
+                {tagsButtonLabel}
+              </Text>
+            </TouchableOpacity>
+            <MediaButton
+              mediaUrl={mediaUrl}
+              mediaType={mediaType}
+              isUploading={isUploadingMedia}
+              isMenuVisible={isMediaMenuVisible}
+              disabled={isUploadActionDisabled}
+              onPress={handlePressMediaButton}
+              onChange={handleChangeMedia}
+              onRemove={handleRemoveMedia}
+            />
+          </View>
         </View>
         <SearchFiltersView
           visible={isTagsPickerVisible}
@@ -177,7 +285,7 @@ export default function MakePostView({
           placeholderTextColor={COLORS.faint}
           value={titleValue}
           onChangeText={onChangeTitle}
-          editable={!isInteractionDisabled}
+          editable={!isDraftEditingDisabled}
           maxLength={140}
           returnKeyType="next"
           selectionColor="#fff"
@@ -189,13 +297,8 @@ export default function MakePostView({
           placeholderTextColor={COLORS.faint}
           value={value}
           onChangeText={onChangeText}
-          editable={!isInteractionDisabled}
+          editable={!isDraftEditingDisabled}
           selectionColor="#fff"
-        />
-        <PendingPostMedia
-          mediaUrl={mediaUrl}
-          mediaType={mediaType}
-          isUploading={isUploadingMedia}
         />
         <View style={styles.footer}>
           <TouchableOpacity
@@ -207,17 +310,9 @@ export default function MakePostView({
             <Text style={styles.secondaryButtonText}>Discard</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={onUploadMedia}
-            disabled={isInteractionDisabled}
-          >
-            <GalleryIcon />
-            <Text style={styles.secondaryButtonText}>{mediaButtonLabel}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.primaryButton, isSubmitting ? styles.disabledButton : null]}
+            style={[styles.primaryButton, isPostActionDisabled ? styles.disabledButton : null]}
             onPress={onPost}
-            disabled={isInteractionDisabled}
+            disabled={isPostActionDisabled}
           >
             <PlusIcon />
             <Text style={styles.primaryButtonText}>
@@ -273,6 +368,16 @@ const styles = StyleSheet.create({
     gap: 14,
     marginBottom: 28,
   },
+  headerControls: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "space-between",
+    minWidth: 0,
+    position: "relative",
+    zIndex: 5,
+  },
   avatar: {
     width: 40,
     height: 40,
@@ -287,7 +392,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     height: 40,
     justifyContent: "center",
-    maxWidth: "78%",
+    flexShrink: 1,
+    maxWidth: "100%",
     paddingHorizontal: 18,
   },
   tagContainerActive: {
@@ -300,6 +406,83 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
+  },
+  mediaButtonWrap: {
+    position: "relative",
+    zIndex: 8,
+  },
+  mediaStatusPreview: {
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: "center",
+    overflow: "hidden",
+    width: 40,
+  },
+  mediaStatusPreviewDisabled: {
+    opacity: 0.62,
+  },
+  mediaStatusImage: {
+    height: "100%",
+    width: "100%",
+  },
+  mediaStatusText: {
+    color: COLORS.text,
+    fontSize: 10,
+    fontWeight: "900",
+    lineHeight: 13,
+  },
+  mediaMenu: {
+    backgroundColor: COLORS.panel,
+    borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+    padding: 4,
+    position: "absolute",
+    right: 0,
+    top: 48,
+    width: 112,
+    zIndex: 20,
+  },
+  mediaMenuPointer: {
+    backgroundColor: COLORS.panel,
+    borderLeftColor: "rgba(255,255,255,0.2)",
+    borderTopColor: "rgba(255,255,255,0.2)",
+    borderLeftWidth: 1,
+    borderTopWidth: 1,
+    height: 12,
+    position: "absolute",
+    right: 14,
+    top: -7,
+    transform: [{ rotate: "45deg" }],
+    width: 12,
+  },
+  mediaMenuOption: {
+    alignItems: "center",
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 38,
+    paddingHorizontal: 8,
+  },
+  mediaMenuOptionPrimary: {
+    backgroundColor: COLORS.text,
+    borderColor: COLORS.text,
+  },
+  mediaMenuOptionText: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 17,
+  },
+  mediaMenuOptionTextPrimary: {
+    color: COLORS.panel,
   },
   tagTextActive: {
     color: COLORS.panel,
@@ -380,6 +563,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
+    zIndex: 1,
   },
   lockedFooterButton: {
     backgroundColor: "rgba(255,255,255,0.12)",

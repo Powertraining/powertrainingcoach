@@ -29,15 +29,14 @@ export default function PostCard({
   const { height } = useWindowDimensions();
   const isPostLiked = Boolean(post?.isLiked);
   const isPostSaved = Boolean(post?.isSaved);
-  const cardMinHeight = Math.round(height / 3);
-  const cardMaxHeight = Math.round(height * 0.75);
+  const hasMedia = Boolean(post?.mediaUrl && post?.mediaType !== "none");
+  const cardMinHeight = Math.round(height * (hasMedia ? 0.52 : 1 / 3));
 
   return (
     <View
       style={[
         styles.card,
         {
-          maxHeight: cardMaxHeight,
           minHeight: cardMinHeight,
         },
       ]}
@@ -68,7 +67,9 @@ export default function PostCard({
           <Text numberOfLines={2} style={styles.postTitle}>
             {post?.title}
           </Text>
-          <Text numberOfLines={5} style={styles.postContent}>{post?.body}</Text>
+          <Text numberOfLines={hasMedia ? 3 : 5} style={styles.postContent}>
+            {post?.body}
+          </Text>
           <PostMedia
             compact
             mediaUrl={post?.mediaUrl}

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 
@@ -24,6 +25,36 @@ function ForumVideo({ uri }) {
 }
 
 export default function PostMedia({ mediaUrl = "", mediaType = "none", compact = false }) {
+  const [imageAspectRatio, setImageAspectRatio] = useState(null);
+
+  useEffect(() => {
+    if (!mediaUrl || mediaType !== "image" || compact) {
+      setImageAspectRatio(null);
+      return;
+    }
+
+    let isMounted = true;
+    setImageAspectRatio(null);
+
+    Image.getSize(
+      mediaUrl,
+      (width, height) => {
+        if (isMounted && width > 0 && height > 0) {
+          setImageAspectRatio(width / height);
+        }
+      },
+      () => {
+        if (isMounted) {
+          setImageAspectRatio(null);
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+    };
+  }, [compact, mediaType, mediaUrl]);
+
   if (!mediaUrl || mediaType === "none") {
     return null;
   }
@@ -36,11 +67,14 @@ export default function PostMedia({ mediaUrl = "", mediaType = "none", compact =
     );
   }
 
+  const imageFrameStyle =
+    !compact && imageAspectRatio ? { aspectRatio: imageAspectRatio } : null;
+
   return (
-    <View style={[styles.frame, compact ? styles.compactFrame : null]}>
+    <View style={[styles.frame, compact ? styles.compactFrame : null, imageFrameStyle]}>
       <Image
         source={{ uri: mediaUrl }}
-        resizeMode="cover"
+        resizeMode={compact ? "cover" : "contain"}
         style={styles.media}
       />
     </View>
@@ -62,7 +96,7 @@ export function PendingPostMedia({ mediaUrl = "", mediaType = "none", isUploadin
 
   return (
     <View style={styles.pendingWrap}>
-      <PostMedia mediaUrl={mediaUrl} mediaType={mediaType} compact />
+      <PostMedia mediaUrl={mediaUrl} mediaType={mediaType} />
       <Text style={styles.attachedText}>
         {mediaType === "video" ? "Video attached" : "Image attached"}
       </Text>
@@ -83,7 +117,7 @@ const styles = StyleSheet.create({
   },
   compactFrame: {
     aspectRatio: 16 / 9,
-    marginTop: 0,
+    marginTop: 16,
   },
   pendingFrame: {
     alignItems: "center",

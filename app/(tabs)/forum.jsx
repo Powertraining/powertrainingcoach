@@ -211,6 +211,8 @@ const ForumScreen = observer(function ForumScreen() {
       body: "",
       tags: [],
       topic: defaultDraft.topic,
+      mediaUrl: "",
+      mediaType: "none",
     });
   }
 
@@ -250,6 +252,14 @@ const ForumScreen = observer(function ForumScreen() {
     } finally {
       setIsUploadingPostMedia(false);
     }
+  }
+
+  function handleRemoveMedia() {
+    setCreatePostError(null);
+    model.updateForumComposer({
+      mediaUrl: "",
+      mediaType: "none",
+    });
   }
 
   async function handleCreatePost() {
@@ -509,6 +519,7 @@ const ForumScreen = observer(function ForumScreen() {
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
           onUploadMedia={handleUploadMedia}
+          onRemoveMedia={handleRemoveMedia}
           onBack={handleLeavePostComposer}
           onDiscard={handleClearPostDraft}
         />
