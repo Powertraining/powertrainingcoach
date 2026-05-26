@@ -1285,8 +1285,13 @@ export const model = {
       );
     }
 
+    const requestedByUid = this.user?.uid || "";
     const prms = generatePlan(userInput).then((plan) => {
-      if (this.trainingPlanPromiseState.promise === prms) {
+      const isCurrentRequest = this.trainingPlanPromiseState.promise === prms;
+      const isSameUser =
+        requestedByUid ? this.user?.uid === requestedByUid : !this.user?.uid;
+
+      if (isCurrentRequest && isSameUser) {
         const createdAt = new Date().toISOString();
         this.archiveCurrentTrainingPlan?.(createdAt);
 
@@ -1309,7 +1314,7 @@ export const model = {
         this.activeSessionProgressByKey = {};
       }
 
-      return this.trainingPlanPromiseState.promise === prms ? this.trainingPlan : plan;
+      return isCurrentRequest && isSameUser ? this.trainingPlan : plan;
     });
 
     resolvePromise(prms, this.trainingPlanPromiseState);

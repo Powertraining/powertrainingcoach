@@ -103,11 +103,12 @@ const HomeScreen = observer(function HomeScreen() {
       return;
     }
 
-    subscriptionRefreshAttemptedRef.current = model.user.uid;
+    const refreshUid = model.user.uid;
+    subscriptionRefreshAttemptedRef.current = refreshUid;
 
     refreshSubscriptionStatus()
       .then((result) => {
-        if (!result?.refreshed) {
+        if (!result?.refreshed || model.user?.uid !== refreshUid) {
           return;
         }
 

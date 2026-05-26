@@ -18,6 +18,10 @@ import { normalizeStrengthAssessmentState } from "../utils/strengthAssessment.js
 import { normalizeTrainingCheckInState } from "../utils/trainingCheckIn.js";
 import { requiresEmailVerification } from "../utils/emailVerification.js";
 import { reload } from "../config/firebaseSdk.js";
+import {
+  buildClientPersistableUserData,
+  isSameAuthenticatedUser,
+} from "../utils/userPersistence.js";
 
 // To subscribe to the login/logout event
 import {
@@ -28,6 +32,7 @@ import {
 
 export function connectToPersistance(model, sideEffectWatcherFunction) {
   model.ready = false;
+  let authRequestSequence = 0;
 
   function normalizePersistedTrainingPlanHistory(value = [], questionnaire = {}) {
     if (!Array.isArray(value)) {
@@ -189,36 +194,26 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
   }
 
   async function saveToCloudACB() {
-    if (model.user && model.ready) {
-      // ADD ALL THE DATA WE WANT TO SAVE IN data
-      const data = {
-        questionnaire: model.questionnaire,
-        primaryCombatSport: model.primaryCombatSport,
-        sessionsPerWeek: model.sessionsPerWeek,
-        subscription: model.subscription,
-        subscriptionEndDate: model.subscriptionEndDate,
-        subscriptionStartDate: model.subscriptionStartDate,
-        subscriptionType: model.subscriptionType,
-        stripePriceLookupKey: model.stripePriceLookupKey,
-        trainingPlan: model.trainingPlan,
-        trainingPlanHistory: Array.isArray(model.trainingPlanHistory)
-          ? model.trainingPlanHistory
-          : [],
-        completedDays: Array.from(model.completedDays || []),
-        trainingPlanBatch: model.trainingPlanBatch,
-        completedWeeks: model.completedWeeks,
-        trainingPerformanceState: model.trainingPerformanceState,
-        strengthAssessmentState: model.strengthAssessmentState,
-        trainingCheckInState: model.trainingCheckInState,
-        activeSessionProgressByKey: model.activeSessionProgressByKey,
-        forumProfile: normalizeForumProfile(model.forumProfile),
-      };
+    const saveUid = model.user?.uid || "";
+
+    if (saveUid && model.ready) {
+      // Client saves only user-owned state. Subscription fields are synced by
+      // trusted server functions and are protected by Firestore rules.
+      const data = buildClientPersistableUserData(model);
       console.log('[firebaseModel.saveToCloudACB] Saving to Firestore:', {
         ...data,
         trainingPlan: data.trainingPlan ? 'exists' : 'null',
       });
       try {
-        const saveResult = await saveUserData(model.user.uid, data);
+        if (!isSameAuthenticatedUser(model, saveUid) || !model.ready) {
+          console.log(
+            "[firebaseModel.saveToCloudACB] Skipping stale save for previous user:",
+            saveUid
+          );
+          return;
+        }
+
+        const saveResult = await saveUserData(saveUid, data);
         if (!saveResult.success) {
           throw saveResult.error;
         }
@@ -236,6 +231,10 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
   sideEffectWatcherFunction(modelDataToCheckACB, saveToCloudACB);
 
   async function onAuthStateChangedACB(user) {
+    const authRequestId = authRequestSequence + 1;
+    authRequestSequence = authRequestId;
+    const isCurrentAuthRequest = () => authRequestSequence === authRequestId;
+
     console.log('[firebaseModel.onAuthStateChangedACB] Auth state changed, user:', user?.uid || null);
 
     model.ready = false;
@@ -249,6 +248,10 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
           error
         );
       }
+
+      if (!isCurrentAuthRequest()) {
+        return;
+      }
     }
 
     if (user && requiresEmailVerification(user)) {
@@ -258,6 +261,10 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.user = null;
       model.ready = true;
       await logout();
+      return;
+    }
+
+    if (!isCurrentAuthRequest()) {
       return;
     }
 
@@ -273,6 +280,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
 
       try {
         const result = await getUserData(user.uid);
+
+        if (!isCurrentAuthRequest()) {
+          return;
+        }
+
         if (!result?.success) {
           console.warn(
             "[firebaseModel.onAuthStateChangedACB] Firestore user data unavailable, using defaults:",
@@ -317,6 +329,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
           console.log('[firebaseModel.onAuthStateChangedACB] New user, initialized with defaults');
 
           const saveResult = await saveUserData(user.uid, defaultData);
+
+          if (!isCurrentAuthRequest()) {
+            return;
+          }
+
           if (!saveResult.success) {
             console.warn(
               "[firebaseModel.onAuthStateChangedACB] Could not create initial user document:",
@@ -325,10 +342,16 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
           }
         }
       } catch (error) {
+        if (!isCurrentAuthRequest()) {
+          return;
+        }
+
         console.warn('[firebaseModel.onAuthStateChangedACB] Unexpected error loading user data, using defaults:', error);
         applyPersistedUserData(createDefaultUserData());
       } finally {
-        model.ready = true;
+        if (isCurrentAuthRequest()) {
+          model.ready = true;
+        }
       }
     } else {
       // logged out -> reset to null

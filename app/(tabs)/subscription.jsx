@@ -94,6 +94,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
       return;
     }
 
+    const verificationUid = model.user.uid;
     handledSessionIdRef.current = sessionIdParam;
     setVerifyingSession(true);
     setSuccess(false);
@@ -101,6 +102,10 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
 
     verifyCheckoutSession(sessionIdParam)
       .then(async (verification) => {
+        if (model.user?.uid !== verificationUid) {
+          return;
+        }
+
         model.applySubscriptionState?.({
           subscription: verification.active,
           subscriptionEndDate: verification.subscriptionEndDate,
@@ -127,6 +132,10 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
             }
 
             await model.generateTrainingPlan?.(trainingPlanInput);
+            if (model.user?.uid !== verificationUid) {
+              return;
+            }
+
             router.replace("/(tabs)/overview");
             return;
           } catch (error) {
