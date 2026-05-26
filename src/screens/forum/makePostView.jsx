@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Text, Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SearchFiltersView from "./searchFiltersView.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
+import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
 
 const COLORS = {
   panel: "#141414",
@@ -96,6 +97,14 @@ export default function MakePostView({
     `Tags (${normalizedSelectedTags.length})` :
     "Tags";
   const isInteractionDisabled = isSubmitting || locked;
+
+  useEffect(() => {
+    reactiveModel.setForumTabBarHidden(true);
+
+    return () => {
+      reactiveModel.setForumTabBarHidden(false);
+    };
+  }, []);
 
   function toggleTagsPicker() {
     setIsTagsPickerVisible((isVisible) => !isVisible);
