@@ -39,6 +39,7 @@ export default function PostView({
   isSubmittingComment = false,
   isSubmittingReply = false,
   commentsLocked = false,
+  hideTabBar = false,
   onBack,
   onChangeCommentText,
   onCreateComment,
@@ -173,7 +174,7 @@ export default function PostView({
   }
 
   return (
-    <QuestionnaireShell hideTabBar={false}>
+    <QuestionnaireShell hideTabBar={hideTabBar}>
       <View style={styles.wrapper}>
         <View style={[styles.screenContent, isCommentEditorOpen ? styles.blurredContent : null]}>
           <TouchableOpacity style={styles.backButton} onPress={onBack}>

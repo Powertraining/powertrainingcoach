@@ -495,6 +495,7 @@ const ForumScreen = observer(function ForumScreen() {
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
           commentsLocked={!canUseForumActions}
+          hideTabBar
           onBack={hidePostView}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}

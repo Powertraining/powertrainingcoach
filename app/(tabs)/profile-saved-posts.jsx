@@ -275,6 +275,7 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
           isSubmittingComment={isCreatingComment}
           isSubmittingReply={isCreatingReply}
           commentsLocked={!canUseForumActions}
+          hideTabBar
           onBack={hidePostView}
           onChangeCommentText={setCommentDraft}
           onCreateComment={handleCreateComment}
