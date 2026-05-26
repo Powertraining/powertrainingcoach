@@ -7,6 +7,11 @@ const PERFORMANCE_TRACKING_STRATEGIES = Object.freeze({
 const VALID_PERFORMANCE_TRACKING_STRATEGIES = new Set(
   Object.values(PERFORMANCE_TRACKING_STRATEGIES)
 );
+const LEGACY_PERFORMANCE_TRACKING_STRATEGIES = Object.freeze({
+  percentage_top_set_check: PERFORMANCE_TRACKING_STRATEGIES.E1RM,
+  percentage_with_top_set: PERFORMANCE_TRACKING_STRATEGIES.E1RM,
+  percentage_with_top_set_check: PERFORMANCE_TRACKING_STRATEGIES.E1RM,
+});
 
 const RECENT_PERFORMANCE_LIMIT = 12;
 
@@ -494,6 +499,10 @@ function buildDefaultPrompt({
 }
 
 export function normalizePerformanceTrackingStrategy(value, fallback = "") {
+  if (LEGACY_PERFORMANCE_TRACKING_STRATEGIES[value]) {
+    return LEGACY_PERFORMANCE_TRACKING_STRATEGIES[value];
+  }
+
   return VALID_PERFORMANCE_TRACKING_STRATEGIES.has(value) ? value : fallback;
 }
 

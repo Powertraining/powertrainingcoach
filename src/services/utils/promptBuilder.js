@@ -97,6 +97,7 @@ ${phaseOverviewInstruction}
 - Every exercise must include "name", "sets", "reps", "notes", and "substitutionOptions".
 - Use "substitutionOptions" for comparable replacements the UI can swap in directly. Use an empty array when no substitute is needed.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
+- If "performanceTarget" is included, its "strategy" must be exactly one of "e1rm", "best_set", or "fixed_rpe".
 ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, include "endurancePrescription" with:
   - "modality": one of "running", "sprinting", "circuit_training", "heavy_bag", "swimming", "assault_bike", "rowing_ergometer", "skiing_ergometer", "arm_crank_machine", "bicycling", "versaclimber", "sport_specific"
   - "format": "steady_aerobic", "continuous_aerobic", "aerobic_intervals", "tempo_threshold", "long_hiit", "repeated_sprint_training", "sprint_interval_training", "repeated_sprint", "recovery", "circuit", or "sport_specific_conditioning"
@@ -105,7 +106,8 @@ ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, incl
 - For heavy bag endurance exercises, also include "heavyBagPrescription" with "target", "roundLength", "rest", "rounds" or "bouts", "sessionType", "technicalFocus", and "overloadConstraint" when fight-camp simulation is used.
 - For sprinting exercises, also include "sprintPrescription" with "target", "distanceMeters", "repsPerSet", "sets", "restBetweenReps", "restBetweenSets", and "stopRule".` : ""}
 ${includePercentageSchema ? `- On percentage-based primary lifts, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets".
-- Add "strengthAssessment" only when the lift includes a planned RPE-based 1RM estimation top set, 2-5RM test, or true 1RM event the app should log for future percentage updates.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
+- Add "strengthAssessment" only when the lift includes a planned RPE-based 1RM estimation top set, 2-5RM test, or true 1RM event the app should log for future percentage updates.
+- If "strengthAssessment" is included, its "method" must be exactly one of "rpe_based_1rm", "multi_rm", or "true_1rm".` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
 - Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based; never add "percentagePrescription" or "strengthAssessment" to those exercises.
 - When a field is not needed, omit it instead of filling it with placeholders.

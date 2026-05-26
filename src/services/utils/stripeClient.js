@@ -20,9 +20,12 @@ import {
 import {
   normalizeBoundedString,
   normalizeSafeReturnToPath,
+  normalizeStripeCheckoutSessionId,
 } from "./inputValidation.js";
 
 const AUTH_WAIT_TIMEOUT_MS = 4000;
+const INVALID_CHECKOUT_SESSION_MESSAGE =
+  "Stripe returned an invalid checkout session. Please try checkout again.";
 const TRUSTED_STRIPE_HOSTS = new Set([
   "billing.stripe.com",
   "checkout.stripe.com",
@@ -243,8 +246,14 @@ export async function createConsultationCheckoutSession(slotId, returnTo = "") {
  */
 export async function verifyConsultationCheckoutSession(sessionId) {
   try {
+    const normalizedSessionId = normalizeStripeCheckoutSessionId(sessionId);
+
+    if (!normalizedSessionId) {
+      throw new Error(INVALID_CHECKOUT_SESSION_MESSAGE);
+    }
+
     return await postStripeJson(STRIPE_VERIFY_CONSULTATION_CHECKOUT_ENDPOINT, {
-      sessionId: normalizeBoundedString(sessionId, 255),
+      sessionId: normalizedSessionId,
     });
   } catch (error) {
     console.error("Consultation checkout verification error:", error);
@@ -306,8 +315,14 @@ export async function listSubscriptionPlans() {
  */
 export async function verifyCheckoutSession(sessionId) {
   try {
+    const normalizedSessionId = normalizeStripeCheckoutSessionId(sessionId);
+
+    if (!normalizedSessionId) {
+      throw new Error(INVALID_CHECKOUT_SESSION_MESSAGE);
+    }
+
     return await postStripeJson(STRIPE_VERIFY_CHECKOUT_ENDPOINT, {
-      sessionId: normalizeBoundedString(sessionId, 255),
+      sessionId: normalizedSessionId,
     });
   } catch (error) {
     console.error("Checkout verification error:", error);
@@ -336,10 +351,10 @@ export async function refreshSubscriptionStatus() {
 export async function createPortalSession(sessionOrOptions) {
   try {
     const payload = typeof sessionOrOptions === "string" ?
-      { sessionId: normalizeBoundedString(sessionOrOptions, 255) } :
+      { sessionId: normalizeStripeCheckoutSessionId(sessionOrOptions) } :
       (sessionOrOptions || {});
     const sanitizedPayload = {
-      sessionId: normalizeBoundedString(payload.sessionId, 255),
+      sessionId: normalizeStripeCheckoutSessionId(payload.sessionId),
     };
 
     const data = await postStripeJson(STRIPE_PORTAL_ENDPOINT, sanitizedPayload);

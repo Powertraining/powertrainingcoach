@@ -36,6 +36,10 @@ const {
   normalizeStripeCheckoutSessionId,
   requirePlainObject,
 } = require("./inputValidation");
+const {
+  appendCheckoutSessionTemplate,
+  appendQueryParams,
+} = require("./stripeCheckoutUrls");
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -418,23 +422,6 @@ function normalizeBooleanFlag(value) {
   }
 
   return Boolean(value);
-}
-
-/**
- * @param {string} baseUrl
- * @param {object} params
- * @return {string}
- */
-function appendQueryParams(baseUrl, params) {
-  const url = new URL(baseUrl);
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value) {
-      url.searchParams.set(key, value);
-    }
-  });
-
-  return url.toString();
 }
 
 /**
@@ -1053,8 +1040,7 @@ function buildConsultationCheckoutUrls(returnTo, bookingId) {
   const safeReturnTo = getSafeReturnToPath(returnTo);
 
   return {
-    successUrl: appendQueryParams(CHECKOUT_SUCCESS_URL, {
-      session_id: "{CHECKOUT_SESSION_ID}",
+    successUrl: appendCheckoutSessionTemplate(CHECKOUT_SUCCESS_URL, {
       return_to: safeReturnTo,
       booking_id: bookingId,
       booking_kind: "consultation",
@@ -2658,8 +2644,7 @@ exports.createCheckoutSession = functions.https.onRequest(
           authUser,
         });
 
-        const successUrl = appendQueryParams(CHECKOUT_SUCCESS_URL, {
-          session_id: "{CHECKOUT_SESSION_ID}",
+        const successUrl = appendCheckoutSessionTemplate(CHECKOUT_SUCCESS_URL, {
           return_to: safeReturnTo,
         });
         const cancelUrl = appendQueryParams(CHECKOUT_CANCEL_URL, {
@@ -3423,12 +3408,16 @@ function sanitizeStrengthAssessment(strengthAssessment, fallbackLiftName = "") {
     throw new Error("Training plan strengthAssessment must be an object.");
   }
 
-  const method = normalizeStringValue(strengthAssessment.method);
-  const validMethods = new Set(["true_1rm", "multi_rm", "heavy_single"]);
+  const rawMethod = normalizeStringValue(strengthAssessment.method);
+  const methodAliases = {
+    heavy_single: "rpe_based_1rm",
+  };
+  const method = methodAliases[rawMethod] || rawMethod;
+  const validMethods = new Set(["true_1rm", "multi_rm", "rpe_based_1rm"]);
 
   if (!validMethods.has(method)) {
     throw new Error(
-        `Training plan strengthAssessment method "${method}" is invalid.`,
+        `Training plan strengthAssessment method "${rawMethod}" is invalid.`,
     );
   }
 
@@ -3453,12 +3442,18 @@ function sanitizePerformanceTarget(performanceTarget, fallbackLiftName = "") {
     throw new Error("Training plan performanceTarget must be an object.");
   }
 
-  const strategy = normalizeStringValue(performanceTarget.strategy);
+  const rawStrategy = normalizeStringValue(performanceTarget.strategy);
+  const strategyAliases = {
+    percentage_top_set_check: "e1rm",
+    percentage_with_top_set: "e1rm",
+    percentage_with_top_set_check: "e1rm",
+  };
+  const strategy = strategyAliases[rawStrategy] || rawStrategy;
   const validStrategies = new Set(["e1rm", "best_set", "fixed_rpe"]);
 
   if (!validStrategies.has(strategy)) {
     throw new Error(
-        `Training plan performanceTarget strategy "${strategy}" is invalid.`,
+        `Training plan performanceTarget strategy "${rawStrategy}" is invalid.`,
     );
   }
 
@@ -4072,6 +4067,10 @@ Follow these domain rules:
   pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based even
   when percentage loading is selected. Never add percentagePrescription or
   strengthAssessment to those exercises.
+- If performanceTarget is included, its strategy must be exactly one of
+  "e1rm", "best_set", or "fixed_rpe".
+- If strengthAssessment is included, its method must be exactly one of
+  "rpe_based_1rm", "multi_rm", or "true_1rm".
 - If max clean pull-up reps are not provided, do not assume the athlete
   qualifies for weighted pull-ups. Use trainingCapabilities.pullingWork
   conservatively: "no" means assisted pull-ups or lat pulldowns, "somewhat"

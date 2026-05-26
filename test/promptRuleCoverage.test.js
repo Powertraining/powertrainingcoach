@@ -23,6 +23,14 @@ test("training prompt embeds the key striking and percentage instruction rules",
   assert.match(prompt, /medicine-ball throws and plyometrics/i);
   assert.match(prompt, /3 x 5\+5/i);
   assert.match(prompt, /skip conventional deadlift-style main lifts/i);
+  assert.match(
+    prompt,
+    /"strategy" must be exactly one of "e1rm", "best_set", or "fixed_rpe"/i
+  );
+  assert.match(
+    prompt,
+    /"method" must be exactly one of "rpe_based_1rm", "multi_rm", or "true_1rm"/i
+  );
 });
 
 test("missed-session prompt embeds rescue priority rules", () => {
