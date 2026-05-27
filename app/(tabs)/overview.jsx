@@ -9,6 +9,7 @@ import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import { getWeekdayNameFromIndex } from "../../src/constants/weekdays.js";
 import {
+  getClosestActiveTrainingDay,
   getCurrentTrainingWeek,
   getTrainingDayPreferredWeekday,
 } from "../../src/services/utils/trainingPlan.js";
@@ -155,6 +156,27 @@ const OverviewScreen = observer(function OverviewScreen() {
 
   function handleClearSelectedDay() {
     setSelectedDayPointer(null);
+  }
+
+  function handleTestSession() {
+    const targetSession =
+      selectedDay ||
+      getClosestActiveTrainingDay(model.trainingPlan, model.completedDays) ||
+      model.getCurrentTrainingDay?.(model.completedDays);
+    const weekNumber = Number.parseInt(targetSession?.week, 10);
+    const dayNumber = Number.parseInt(targetSession?.day, 10);
+
+    if (!Number.isFinite(weekNumber) || !Number.isFinite(dayNumber)) {
+      return;
+    }
+
+    router.push({
+      pathname: "/(tabs)/active-session",
+      params: {
+        week: String(weekNumber),
+        day: String(dayNumber),
+      },
+    });
   }
 
   function getActiveSessionProgress(sessionKey) {
@@ -306,6 +328,7 @@ const OverviewScreen = observer(function OverviewScreen() {
         getActiveSessionProgress={getActiveSessionProgress}
         onActiveSessionProgressChange={handleActiveSessionProgressChange}
         onActiveSessionProgressClear={handleActiveSessionProgressClear}
+        onTestSession={handleTestSession}
         updatingPlan={updatingPlan}
       />
     </View>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import {
   Animated,
   Dimensions,
@@ -37,6 +38,12 @@ const HEADER_PROGRESS_RING_RADIUS = 22;
 const HEADER_PROGRESS_RING_STROKE = 5;
 const HEADER_PROGRESS_RING_CIRCUMFERENCE =
   2 * Math.PI * HEADER_PROGRESS_RING_RADIUS;
+const EXERCISE_RESULT_RING_SIZE = 65;
+const EXERCISE_RESULT_RING_CENTER = EXERCISE_RESULT_RING_SIZE / 2;
+const EXERCISE_RESULT_RING_RADIUS = 26;
+const EXERCISE_RESULT_RING_STROKE = 5;
+const EXERCISE_RESULT_RING_CIRCUMFERENCE =
+  2 * Math.PI * EXERCISE_RESULT_RING_RADIUS;
 const SESSION_SCREEN_MODES = Object.freeze({
   SECTION_INTRO: "sectionIntro",
   EXERCISE: "exercise",
@@ -784,6 +791,200 @@ function getSessionPhaseDetails(plan = {}, weekNumber = 1) {
   };
 }
 
+function ExerciseResultProgressRing({ completedSetCount = 0, totalSetCount = 0 }) {
+  const progressPercent =
+    totalSetCount > 0
+      ? Math.min(100, Math.round((completedSetCount / totalSetCount) * 100))
+      : 0;
+  const progressOffset =
+    EXERCISE_RESULT_RING_CIRCUMFERENCE -
+    EXERCISE_RESULT_RING_CIRCUMFERENCE * (progressPercent / 100);
+
+  return (
+    <View style={styles.resultsExerciseProgressRing}>
+      <Svg
+        width={EXERCISE_RESULT_RING_SIZE}
+        height={EXERCISE_RESULT_RING_SIZE}
+        viewBox={`0 0 ${EXERCISE_RESULT_RING_SIZE} ${EXERCISE_RESULT_RING_SIZE}`}
+      >
+        <Circle
+          cx={EXERCISE_RESULT_RING_CENTER}
+          cy={EXERCISE_RESULT_RING_CENTER}
+          r={EXERCISE_RESULT_RING_RADIUS}
+          fill="none"
+          stroke="#3f3f46"
+          strokeWidth={EXERCISE_RESULT_RING_STROKE}
+        />
+        <Circle
+          cx={EXERCISE_RESULT_RING_CENTER}
+          cy={EXERCISE_RESULT_RING_CENTER}
+          r={EXERCISE_RESULT_RING_RADIUS}
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={EXERCISE_RESULT_RING_STROKE}
+          strokeLinecap="round"
+          strokeDasharray={`${EXERCISE_RESULT_RING_CIRCUMFERENCE} ${EXERCISE_RESULT_RING_CIRCUMFERENCE}`}
+          strokeDashoffset={progressOffset}
+          rotation="-90"
+          originX={EXERCISE_RESULT_RING_CENTER}
+          originY={EXERCISE_RESULT_RING_CENTER}
+        />
+      </Svg>
+      <View style={styles.resultsExerciseProgressRingContent}>
+        <Text style={styles.resultsExerciseProgressRingText}>
+          {completedSetCount}/{totalSetCount}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function formatReportedResult(draft = {}) {
+  const parts = [];
+
+  if (draft.loadKg) {
+    parts.push(`${draft.loadKg} kg`);
+  }
+
+  if (draft.reps) {
+    parts.push(`${draft.reps} reps`);
+  }
+
+  if (draft.rpe) {
+    parts.push(`RPE ${draft.rpe}`);
+  }
+
+  Object.entries(draft.customValues || {}).forEach(([field, value]) => {
+    if (!value) {
+      return;
+    }
+
+    parts.push(`${field.replace(/_/g, " ")} ${value}`);
+  });
+
+  return parts.join(" · ");
+}
+
+function getReportedResultsForExercise(trackingDrafts = {}, exerciseIndex = 0) {
+  return Object.values(trackingDrafts)
+    .filter((draft) => draft?.exerciseIndex === exerciseIndex)
+    .sort((left, right) => (left.setIndex || 0) - (right.setIndex || 0))
+    .map((draft) => ({
+      setIndex: draft.setIndex || 0,
+      result: formatReportedResult(draft),
+    }))
+    .filter((entry) => entry.result);
+}
+
+function ActiveSessionResultsList({
+  sectionRuns = [],
+  completedStepKeys,
+  trackingDrafts = {},
+}) {
+  const router = useRouter();
+
+  if (!sectionRuns.length) {
+    return null;
+  }
+
+  const completedSteps =
+    completedStepKeys instanceof Set
+      ? completedStepKeys
+      : new Set(Array.isArray(completedStepKeys) ? completedStepKeys : []);
+
+  function openForumSearch(exercise = {}) {
+    const searchQuery = getExerciseDisplayName(exercise);
+
+    if (!searchQuery) {
+      return;
+    }
+
+    router.push({
+      pathname: "/(tabs)/forum",
+      params: { searchQuery },
+    });
+  }
+
+  return (
+    <ScrollView
+      nestedScrollEnabled
+      showsVerticalScrollIndicator={false}
+      style={styles.resultsScroller}
+      contentContainerStyle={styles.resultsBlock}
+    >
+      {sectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => (
+        <View
+          key={`results-${section}-${sectionIndex}`}
+          style={styles.resultsSection}
+        >
+          <Text style={styles.resultsSectionTitle}>{getSectionLabel(section)}</Text>
+          <View style={styles.resultsExerciseList}>
+            {sectionExercises.map(({ exercise, exerciseIndex }) => {
+              const recommendation = getExerciseRecommendationDisplay(exercise);
+              const prescription = getExercisePrescriptionDisplay(exercise);
+              const totalSetCount = parsePrescribedSetCount(exercise);
+              const completedSetCount = Array.from({ length: totalSetCount }).filter(
+                (_, setIndex) => completedSteps.has(getStepKey(exerciseIndex, setIndex))
+              ).length;
+              const reportedResults = getReportedResultsForExercise(
+                trackingDrafts,
+                exerciseIndex
+              );
+
+              return (
+                <View key={exerciseIndex} style={styles.resultsExerciseRow}>
+                  <ExerciseResultProgressRing
+                    completedSetCount={completedSetCount}
+                    totalSetCount={totalSetCount}
+                  />
+                  <TouchableOpacity
+                    style={styles.resultsExerciseForumButton}
+                    onPress={() => openForumSearch(exercise)}
+                  >
+                    <Text style={styles.resultsExerciseForumText}>Forum</Text>
+                  </TouchableOpacity>
+                  <View style={styles.resultsExerciseMain}>
+                    <Text style={styles.resultsExerciseName}>
+                      {getExerciseDisplayName(exercise)}
+                    </Text>
+                    {prescription ? (
+                      <Text style={styles.resultsExercisePrescription}>
+                        {prescription}
+                      </Text>
+                    ) : null}
+                    {reportedResults.length > 0 ? (
+                      <View style={styles.resultsReportedList}>
+                        {reportedResults.map(({ setIndex, result }) => (
+                          <Text
+                            key={`${exerciseIndex}-${setIndex}`}
+                            style={styles.resultsReportedText}
+                          >
+                            Set {setIndex + 1}: {result}
+                          </Text>
+                        ))}
+                      </View>
+                    ) : null}
+                    {recommendation.details ? (
+                      <Text style={styles.resultsExerciseDetails}>
+                        {recommendation.details}
+                      </Text>
+                    ) : null}
+                  </View>
+                  {recommendation.primary ? (
+                    <Text style={styles.resultsExercisePrimary}>
+                      {recommendation.primary}
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
 function getSetLoggingConfig(exercise = {}) {
   const performanceTarget = getExercisePerformanceTarget(exercise);
   const strengthAssessment = getExerciseStrengthAssessment(exercise);
@@ -1282,7 +1483,7 @@ export default function ActiveSessionView({
       ? Math.round((safeCompletedExerciseCount / safeTotalExerciseCount) * 100)
       : 0;
   const headerTitle = isSessionCompleteIntro
-    ? "Session complete"
+    ? "Session results"
     : showSectionIntro
       ? activeSectionLabel
       : activeExercise
@@ -1462,7 +1663,7 @@ export default function ActiveSessionView({
           onBack={handleExitSession}
         />
 
-        {showSectionIntro || isSessionCompleteIntro ? (
+        {isSessionCompleteIntro ? (
           <ActiveSessionSectionIntroView
             weekNumber={weekNumber}
             phaseLabel={phaseDetails.label}
@@ -1473,7 +1674,27 @@ export default function ActiveSessionView({
             exerciseCount={activeSectionRun?.exercises.length || 0}
             completedExerciseCount={completedExerciseCount}
             totalExerciseCount={normalizedExercises.length}
-            isSessionComplete={isSessionCompleteIntro}
+            isSessionComplete
+            hideIntroContent
+            onContinue={handleContinueIntro}
+          >
+            <ActiveSessionResultsList
+              sectionRuns={sectionRuns}
+              completedStepKeys={completedStepKeys}
+              trackingDrafts={trackingDrafts}
+            />
+          </ActiveSessionSectionIntroView>
+        ) : showSectionIntro ? (
+          <ActiveSessionSectionIntroView
+            weekNumber={weekNumber}
+            phaseLabel={phaseDetails.label}
+            phaseFocus={phaseDetails.focus}
+            sectionLabel={activeSectionLabel}
+            sectionIndex={Math.max(activeSectionRunIndex, 0)}
+            sectionCount={sectionRuns.length}
+            exerciseCount={activeSectionRun?.exercises.length || 0}
+            completedExerciseCount={completedExerciseCount}
+            totalExerciseCount={normalizedExercises.length}
             onContinue={handleContinueIntro}
           />
         ) : showExerciseStep ? (
@@ -1583,6 +1804,118 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "800",
     lineHeight: 11,
+    textAlign: "center",
+  },
+  resultsBlock: {
+    gap: 18,
+    paddingTop: 8,
+    paddingBottom: 18,
+  },
+  resultsScroller: {
+    alignSelf: "stretch",
+    flex: 1,
+  },
+  resultsSection: {
+    gap: 10,
+  },
+  resultsSectionTitle: {
+    color: "#9ca3af",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 15,
+    textTransform: "uppercase",
+  },
+  resultsExerciseList: {
+    gap: 10,
+  },
+  resultsExerciseRow: {
+    alignItems: "stretch",
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 22,
+    borderWidth: 1,
+    gap: 10,
+    justifyContent: "space-between",
+    minHeight: 150,
+    padding: 17,
+    position: "relative",
+  },
+  resultsExerciseMain: {
+    flex: 1,
+    gap: 6,
+    minWidth: 0,
+    paddingRight: 82,
+  },
+  resultsExerciseName: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 18,
+  },
+  resultsExercisePrescription: {
+    color: "#d1d5db",
+    fontSize: 14,
+    lineHeight: 17,
+  },
+  resultsReportedList: {
+    gap: 3,
+    paddingTop: 2,
+  },
+  resultsReportedText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 15,
+  },
+  resultsExerciseDetails: {
+    color: "#C9B259",
+    fontSize: 10,
+    fontWeight: "700",
+    lineHeight: 12,
+  },
+  resultsExercisePrimary: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "700",
+    lineHeight: 20,
+  },
+  resultsExerciseProgressRing: {
+    alignItems: "center",
+    height: EXERCISE_RESULT_RING_SIZE,
+    justifyContent: "center",
+    position: "absolute",
+    right: 12,
+    top: 12,
+    width: EXERCISE_RESULT_RING_SIZE,
+  },
+  resultsExerciseProgressRingContent: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resultsExerciseProgressRingText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 14,
+    textAlign: "center",
+  },
+  resultsExerciseForumButton: {
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 999,
+    height: 30,
+    justifyContent: "center",
+    position: "absolute",
+    right: 12,
+    top: 86,
+    width: 65,
+  },
+  resultsExerciseForumText: {
+    color: "#000",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 15,
     textAlign: "center",
   },
   exerciseCard: {

@@ -260,6 +260,7 @@ export default function ProgramOverviewView({
   getActiveSessionProgress,
   onActiveSessionProgressChange,
   onActiveSessionProgressClear,
+  onTestSession,
   updatingPlan = false,
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
@@ -815,6 +816,16 @@ export default function ProgramOverviewView({
           ) : null}
 
           <View style={styles.programDetailsFooter}>
+            {onTestSession ? (
+              <TouchableOpacity
+                style={styles.testSessionButton}
+                onPress={onTestSession}
+              >
+                <StandardText lines={1} style={styles.testSessionButtonText}>
+                  Test session
+                </StandardText>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
               style={styles.programDetailsFooterLink}
               onPress={() => setDetailsVisible(true)}
@@ -943,9 +954,26 @@ const styles = StyleSheet.create({
   programDetailsFooter: {
     alignItems: "center",
     alignSelf: "stretch",
+    gap: 14,
     marginBottom: 28,
     marginTop: "auto",
     paddingTop: 28,
+  },
+  testSessionButton: {
+    alignItems: "center",
+    alignSelf: "stretch",
+    backgroundColor: "#fff",
+    borderRadius: 120,
+    height: 44,
+    justifyContent: "center",
+    paddingHorizontal: 18,
+  },
+  testSessionButtonText: {
+    color: "#000",
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "center",
+    textTransform: "uppercase",
   },
   programDetailsFooterLink: {
     alignSelf: "center",

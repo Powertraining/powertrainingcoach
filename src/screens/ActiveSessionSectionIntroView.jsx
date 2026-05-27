@@ -21,6 +21,8 @@ export default function ActiveSessionSectionIntroView({
   completedExerciseCount = 0,
   totalExerciseCount = 0,
   isSessionComplete = false,
+  hideIntroContent = false,
+  children,
   onContinue,
 }) {
   const sectionNumber = sectionIndex + 1;
@@ -37,60 +39,65 @@ export default function ActiveSessionSectionIntroView({
 
   return (
     <View style={styles.sectionIntro}>
-      <View style={styles.sectionIntroContent}>
-        <View style={styles.sectionIntroRing}>
-          <Svg
-            width={SECTION_PROGRESS_RING_SIZE}
-            height={SECTION_PROGRESS_RING_SIZE}
-            viewBox={`0 0 ${SECTION_PROGRESS_RING_SIZE} ${SECTION_PROGRESS_RING_SIZE}`}
-          >
-            <Circle
-              cx={SECTION_PROGRESS_RING_CENTER}
-              cy={SECTION_PROGRESS_RING_CENTER}
-              r={SECTION_PROGRESS_RING_RADIUS}
-              fill="none"
-              stroke="#5f5f5f"
-              strokeWidth={SECTION_PROGRESS_RING_STROKE}
-            />
-            <Circle
-              cx={SECTION_PROGRESS_RING_CENTER}
-              cy={SECTION_PROGRESS_RING_CENTER}
-              r={SECTION_PROGRESS_RING_RADIUS}
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth={SECTION_PROGRESS_RING_STROKE}
-              strokeLinecap="round"
-              strokeDasharray={`${SECTION_PROGRESS_RING_CIRCUMFERENCE} ${SECTION_PROGRESS_RING_CIRCUMFERENCE}`}
-              strokeDashoffset={progressOffset}
-              rotation="-90"
-              originX={SECTION_PROGRESS_RING_CENTER}
-              originY={SECTION_PROGRESS_RING_CENTER}
-            />
-          </Svg>
-          <View style={styles.sectionIntroRingContent}>
-            <View style={styles.sectionIntroPhaseBlock}>
-              <Text style={styles.sectionIntroTitle}>
-                {isSessionComplete ? "Complete" : phaseLabel}
-              </Text>
-              <Text style={styles.sectionIntroWeekText}>Week {weekNumber}</Text>
+      {!hideIntroContent ? (
+        <View style={styles.sectionIntroContent}>
+          <View style={styles.sectionIntroRing}>
+            <Svg
+              width={SECTION_PROGRESS_RING_SIZE}
+              height={SECTION_PROGRESS_RING_SIZE}
+              viewBox={`0 0 ${SECTION_PROGRESS_RING_SIZE} ${SECTION_PROGRESS_RING_SIZE}`}
+            >
+              <Circle
+                cx={SECTION_PROGRESS_RING_CENTER}
+                cy={SECTION_PROGRESS_RING_CENTER}
+                r={SECTION_PROGRESS_RING_RADIUS}
+                fill="none"
+                stroke="#5f5f5f"
+                strokeWidth={SECTION_PROGRESS_RING_STROKE}
+              />
+              <Circle
+                cx={SECTION_PROGRESS_RING_CENTER}
+                cy={SECTION_PROGRESS_RING_CENTER}
+                r={SECTION_PROGRESS_RING_RADIUS}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={SECTION_PROGRESS_RING_STROKE}
+                strokeLinecap="round"
+                strokeDasharray={`${SECTION_PROGRESS_RING_CIRCUMFERENCE} ${SECTION_PROGRESS_RING_CIRCUMFERENCE}`}
+                strokeDashoffset={progressOffset}
+                rotation="-90"
+                originX={SECTION_PROGRESS_RING_CENTER}
+                originY={SECTION_PROGRESS_RING_CENTER}
+              />
+            </Svg>
+            <View style={styles.sectionIntroRingContent}>
+              <View style={styles.sectionIntroPhaseBlock}>
+                <Text style={styles.sectionIntroTitle}>
+                  {isSessionComplete ? "Complete" : phaseLabel}
+                </Text>
+                <Text style={styles.sectionIntroWeekText}>Week {weekNumber}</Text>
+              </View>
             </View>
           </View>
+          {phaseFocus ? (
+            <Text style={styles.sectionIntroPhaseText}>{phaseFocus}</Text>
+          ) : null}
+          {isSessionComplete ? (
+            <Text style={styles.sectionIntroDescription}>
+              Save this session and return to your plan.
+            </Text>
+          ) : exerciseCount > 0 ? (
+            <Text style={styles.sectionIntroDescription}>
+              {exerciseCount} exercise{exerciseCount === 1 ? "" : "s"} in this section.
+            </Text>
+          ) : null}
         </View>
-        {phaseFocus ? (
-          <Text style={styles.sectionIntroPhaseText}>{phaseFocus}</Text>
-        ) : null}
-        {isSessionComplete ? (
-          <Text style={styles.sectionIntroDescription}>
-            Save this session and return to your plan.
-          </Text>
-        ) : exerciseCount > 0 ? (
-          <Text style={styles.sectionIntroDescription}>
-            {exerciseCount} exercise{exerciseCount === 1 ? "" : "s"} in this section.
-          </Text>
-        ) : null}
-      </View>
+      ) : null}
+      {children}
       <View style={styles.sectionIntroFooter}>
-        <Text style={styles.sectionIntroStageLabel}>{stageLabel}</Text>
+        {hideIntroContent ? null : (
+          <Text style={styles.sectionIntroStageLabel}>{stageLabel}</Text>
+        )}
         <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
           <StandardText style={styles.nextButtonText}>Continue</StandardText>
         </TouchableOpacity>
