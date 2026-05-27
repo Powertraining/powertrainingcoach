@@ -26,12 +26,18 @@ test("client persistence payload only includes user-owned training and questionn
     strengthAssessmentState: { sessions: {} },
     trainingCheckInState: { lastCompletedBlock: 1 },
     activeSessionProgressByKey: { "1-1": { exerciseIndex: 2 } },
+    completedSessionProgressByKey: {
+      "1-1": { completedStepKeys: ["0:0"] },
+    },
     forumProfile: { likedPostIds: ["post-a"] },
   });
 
   assert.equal(payload.primaryCombatSport, "Boxing");
   assert.deepEqual(payload.completedDays, ["1-1", "1-2"]);
   assert.deepEqual(payload.trainingPlan, { weeks: [] });
+  assert.deepEqual(payload.completedSessionProgressByKey, {
+    "1-1": { completedStepKeys: ["0:0"] },
+  });
 
   for (const field of SERVER_MANAGED_USER_DATA_FIELDS) {
     assert.equal(Object.hasOwn(payload, field), false);

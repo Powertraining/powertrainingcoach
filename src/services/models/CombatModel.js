@@ -187,6 +187,7 @@ export const model = {
   strengthAssessmentState: createDefaultStrengthAssessmentState(),
   trainingCheckInState: createDefaultTrainingCheckInState(),
   activeSessionProgressByKey: {},
+  completedSessionProgressByKey: {},
 
   trainingPlanPromiseState: {},
 
@@ -1128,6 +1129,28 @@ export const model = {
     return this.strengthAssessmentState;
   },
 
+  saveCompletedSessionProgress(sessionKey, progress = {}) {
+    if (!sessionKey || !progress || typeof progress !== "object") {
+      return this.completedSessionProgressByKey || {};
+    }
+
+    this.completedSessionProgressByKey = {
+      ...(this.completedSessionProgressByKey || {}),
+      [sessionKey]: {
+        completedStepKeys: Array.isArray(progress.completedStepKeys)
+          ? progress.completedStepKeys
+          : [],
+        trackingDrafts:
+          progress.trackingDrafts && typeof progress.trackingDrafts === "object"
+            ? progress.trackingDrafts
+            : {},
+        completedAt: progress.completedAt || new Date().toISOString(),
+      },
+    };
+
+    return this.completedSessionProgressByKey;
+  },
+
   applySportLoadSettingToFollowingWeek() {
     if (!this.trainingPlan) {
       return null;
@@ -1320,6 +1343,7 @@ export const model = {
         );
         this.completedDays = [];
         this.activeSessionProgressByKey = {};
+        this.completedSessionProgressByKey = {};
       }
 
       return isCurrentRequest && isSameUser ? this.trainingPlan : plan;
@@ -1821,6 +1845,7 @@ export const model = {
     this.trainingPlan = null; // Clear current plan so new one can be generated
     this.completedDays = [];
     this.activeSessionProgressByKey = {};
+    this.completedSessionProgressByKey = {};
     this.questionnaire = mergeTrainingPreferences(this.questionnaire, {
       trainingPlanBatch: nextTrainingPlanBatch,
       pendingCycleReview: true,
@@ -1845,6 +1870,7 @@ export const model = {
     this.trainingPerformanceState = createDefaultTrainingPerformanceState();
     this.trainingCheckInState = createDefaultTrainingCheckInState();
     this.activeSessionProgressByKey = {};
+    this.completedSessionProgressByKey = {};
     console.log('[CombatModel.resetTrainingProgress] Progress reset');
   },
 

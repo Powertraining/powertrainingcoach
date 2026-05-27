@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Pressable, Modal, useWindowDimensions } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
@@ -86,11 +87,193 @@ const EXERCISE_SECTION_LABELS = Object.freeze({
     accessory: "Accessory",
 });
 const CARD_HORIZONTAL_PADDING = 28;
+const COMPLETED_EXERCISE_RING_SIZE = 65;
+const COMPLETED_EXERCISE_RING_CENTER = COMPLETED_EXERCISE_RING_SIZE / 2;
+const COMPLETED_EXERCISE_RING_RADIUS = 26;
+const COMPLETED_EXERCISE_RING_STROKE = 5;
+const COMPLETED_EXERCISE_RING_CIRCUMFERENCE =
+    2 * Math.PI * COMPLETED_EXERCISE_RING_RADIUS;
 
 function getExerciseSearchText(exercise = {}) {
     const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
 
     return ` ${safeExercise.name || ""} ${safeExercise.notes || ""} ${safeExercise.reps || ""} `.toLowerCase();
+}
+
+function parsePrescribedSetCount(exercise = {}) {
+    const parsedValue = Number.parseInt(exercise?.sets, 10);
+
+    if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+        return 1;
+    }
+
+    return Math.min(parsedValue, 12);
+}
+
+function CompletedExerciseProgressRing({ completedSetCount = 0, totalSetCount = 0 }) {
+    const progressPercent =
+        totalSetCount > 0
+            ? Math.min(100, Math.round((completedSetCount / totalSetCount) * 100))
+            : 0;
+    const progressOffset =
+        COMPLETED_EXERCISE_RING_CIRCUMFERENCE -
+        COMPLETED_EXERCISE_RING_CIRCUMFERENCE * (progressPercent / 100);
+
+    return (
+        <View style={styles.completedExerciseProgressRing}>
+            <Svg
+                width={COMPLETED_EXERCISE_RING_SIZE}
+                height={COMPLETED_EXERCISE_RING_SIZE}
+                viewBox={`0 0 ${COMPLETED_EXERCISE_RING_SIZE} ${COMPLETED_EXERCISE_RING_SIZE}`}
+            >
+                <Circle
+                    cx={COMPLETED_EXERCISE_RING_CENTER}
+                    cy={COMPLETED_EXERCISE_RING_CENTER}
+                    r={COMPLETED_EXERCISE_RING_RADIUS}
+                    fill="none"
+                    stroke="#3f3f46"
+                    strokeWidth={COMPLETED_EXERCISE_RING_STROKE}
+                />
+                <Circle
+                    cx={COMPLETED_EXERCISE_RING_CENTER}
+                    cy={COMPLETED_EXERCISE_RING_CENTER}
+                    r={COMPLETED_EXERCISE_RING_RADIUS}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth={COMPLETED_EXERCISE_RING_STROKE}
+                    strokeLinecap="round"
+                    strokeDasharray={`${COMPLETED_EXERCISE_RING_CIRCUMFERENCE} ${COMPLETED_EXERCISE_RING_CIRCUMFERENCE}`}
+                    strokeDashoffset={progressOffset}
+                    rotation="-90"
+                    originX={COMPLETED_EXERCISE_RING_CENTER}
+                    originY={COMPLETED_EXERCISE_RING_CENTER}
+                />
+            </Svg>
+            <View style={styles.completedExerciseProgressRingContent}>
+                <Text style={styles.completedExerciseProgressRingText}>
+                    {completedSetCount}/{totalSetCount}
+                </Text>
+            </View>
+        </View>
+    );
+}
+
+function formatReportedResult(result = {}) {
+    if (result.missedRep) {
+        return result.missedRepReasonLabel || "Missed rep logged";
+    }
+
+    const parts = [];
+
+    if (result.loadKg != null && result.loadKg !== "") {
+        parts.push(`${result.loadKg} kg`);
+    }
+
+    if (result.reps != null && result.reps !== "") {
+        parts.push(`${result.reps} reps`);
+    }
+
+    if (result.rpe != null && result.rpe !== "") {
+        parts.push(`RPE ${result.rpe}`);
+    }
+
+    Object.entries(result.customValues || {}).forEach(([field, value]) => {
+        if (value == null || value === "") {
+            return;
+        }
+
+        parts.push(`${field.replace(/_/g, " ")} ${value}`);
+    });
+
+    return parts.join(" · ");
+}
+
+function buildReportedResultsByExercise(...resultGroups) {
+    const resultsByExercise = new Map();
+
+    resultGroups.flat().forEach((result) => {
+        if (!Number.isInteger(result?.exerciseIndex) || result.exerciseIndex < 0) {
+            return;
+        }
+
+        const formattedResult = formatReportedResult(result);
+
+        if (!formattedResult) {
+            return;
+        }
+
+        const exerciseResults = resultsByExercise.get(result.exerciseIndex) || [];
+        exerciseResults.push({
+            setIndex: Number.isInteger(result.setIndex) && result.setIndex >= 0
+                ? result.setIndex
+                : 0,
+            result: formattedResult,
+        });
+        resultsByExercise.set(result.exerciseIndex, exerciseResults);
+    });
+
+    resultsByExercise.forEach((exerciseResults) => {
+        exerciseResults.sort((left, right) => left.setIndex - right.setIndex);
+    });
+
+    return resultsByExercise;
+}
+
+function formatReportedDraft(draft = {}) {
+    const parts = [];
+
+    if (draft.loadKg) {
+        parts.push(`${draft.loadKg} kg`);
+    }
+
+    if (draft.reps) {
+        parts.push(`${draft.reps} reps`);
+    }
+
+    if (draft.rpe) {
+        parts.push(`RPE ${draft.rpe}`);
+    }
+
+    Object.entries(draft.customValues || {}).forEach(([field, value]) => {
+        if (!value) {
+            return;
+        }
+
+        parts.push(`${field.replace(/_/g, " ")} ${value}`);
+    });
+
+    return parts.join(" · ");
+}
+
+function buildReportedDraftsByExercise(trackingDrafts = {}) {
+    const resultsByExercise = new Map();
+
+    Object.values(trackingDrafts || {}).forEach((draft) => {
+        if (!Number.isInteger(draft?.exerciseIndex) || draft.exerciseIndex < 0) {
+            return;
+        }
+
+        const formattedResult = formatReportedDraft(draft);
+
+        if (!formattedResult) {
+            return;
+        }
+
+        const exerciseResults = resultsByExercise.get(draft.exerciseIndex) || [];
+        exerciseResults.push({
+            setIndex: Number.isInteger(draft.setIndex) && draft.setIndex >= 0
+                ? draft.setIndex
+                : 0,
+            result: formattedResult,
+        });
+        resultsByExercise.set(draft.exerciseIndex, exerciseResults);
+    });
+
+    resultsByExercise.forEach((exerciseResults) => {
+        exerciseResults.sort((left, right) => left.setIndex - right.setIndex);
+    });
+
+    return resultsByExercise;
 }
 
 function getExerciseDisplayName(exercise = {}) {
@@ -661,6 +844,8 @@ export default function DayDetailView({
     rescueMode = "",
     adjustmentSummary = "",
     exercises = [],
+    isSessionComplete = false,
+    completedSessionProgress = null,
     initialPerformanceResults = [],
     initialAssessmentResults = [],
     strengthAssessmentSummary = null,
@@ -771,6 +956,33 @@ export default function DayDetailView({
         (Array.isArray(initialPerformanceResults) ? initialPerformanceResults : [])
             .filter((result) => Number.isInteger(result?.exerciseIndex))
             .map((result) => [result.exerciseIndex, result])
+    );
+    const reportedResultsByExercise = useMemo(
+        () => {
+            const savedResults = buildReportedResultsByExercise(
+                Array.isArray(initialPerformanceResults) ? initialPerformanceResults : [],
+                Array.isArray(initialAssessmentResults) ? initialAssessmentResults : []
+            );
+            const draftResults = buildReportedDraftsByExercise(
+                completedSessionProgress?.trackingDrafts
+            );
+
+            draftResults.forEach((results, exerciseIndex) => {
+                savedResults.set(exerciseIndex, results);
+            });
+
+            return savedResults;
+        },
+        [completedSessionProgress, initialAssessmentResults, initialPerformanceResults]
+    );
+    const completedSessionStepKeys = useMemo(
+        () =>
+            new Set(
+                Array.isArray(completedSessionProgress?.completedStepKeys)
+                    ? completedSessionProgress.completedStepKeys
+                    : []
+            ),
+        [completedSessionProgress]
     );
     const strengthReferenceOneRepMaxByLift = useMemo(
         () =>
@@ -1046,6 +1258,15 @@ export default function DayDetailView({
                                             const hasExerciseTips = Boolean(ex.notes);
                                             const showActionRail =
                                                 isHighlighted;
+                                            const totalSetCount = parsePrescribedSetCount(ex);
+                                            const completedSetCount =
+                                                completedSessionStepKeys.size > 0
+                                                    ? Array.from({ length: totalSetCount }).filter((_, setIndex) =>
+                                                        completedSessionStepKeys.has(`${exerciseIndex}:${setIndex}`)
+                                                    ).length
+                                                    : totalSetCount;
+                                            const reportedResults =
+                                                reportedResultsByExercise.get(exerciseIndex) || [];
 
                                             return (
                                                 <TouchableOpacity
@@ -1076,7 +1297,12 @@ export default function DayDetailView({
                                                                     handleTabTouchStart(event);
                                                                 }}
                                                             >
-                                                                {canSwapExercise || hasExerciseTips ? (
+                                                                {isSessionComplete ? (
+                                                                    <CompletedExerciseProgressRing
+                                                                        completedSetCount={completedSetCount}
+                                                                        totalSetCount={totalSetCount}
+                                                                    />
+                                                                ) : canSwapExercise || hasExerciseTips ? (
                                                                     <View style={styles.tabButtonActionIconRow}>
                                                                         {canSwapExercise ? (
                                                                             <TouchableOpacity
@@ -1161,6 +1387,19 @@ export default function DayDetailView({
                                                                 >
                                                                     {getExercisePrescriptionDisplay(ex)}
                                                                 </StandardText>
+                                                                {reportedResults.length > 0 ? (
+                                                                    <View style={styles.tabButtonReportedList}>
+                                                                        {reportedResults.map(({ setIndex, result }) => (
+                                                                            <StandardText
+                                                                                key={`${exerciseIndex}-${setIndex}`}
+                                                                                style={styles.tabButtonReportedText}
+                                                                                lines={1}
+                                                                            >
+                                                                                Set {setIndex + 1}: {result}
+                                                                            </StandardText>
+                                                                        ))}
+                                                                    </View>
+                                                                ) : null}
                                                                 {recommendation.primary ? (
                                                                     <StandardText
                                                                         style={styles.tabButtonRecommendationPrimary}
@@ -1937,6 +2176,24 @@ const styles = StyleSheet.create({
         gap: 5,
         justifyContent: 'center',
     },
+    completedExerciseProgressRing: {
+        alignItems: "center",
+        height: COMPLETED_EXERCISE_RING_SIZE,
+        justifyContent: "center",
+        width: COMPLETED_EXERCISE_RING_SIZE,
+    },
+    completedExerciseProgressRingContent: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    completedExerciseProgressRingText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "800",
+        lineHeight: 14,
+        textAlign: "center",
+    },
     tabButtonActionButton: {
         alignItems: 'center',
         borderRadius: 999,
@@ -1986,6 +2243,16 @@ const styles = StyleSheet.create({
     tabButtonText: { flexDirection: 'column', gap: 4},
     tabButtonName: { fontSize: 15, fontWeight: '700', color: 'white', marginBottom: 5, lineHeight: 18 },
     tabButtonSets: { fontSize: 14, color: "#d1d5db", lineHeight: 17 },
+    tabButtonReportedList: {
+        gap: 2,
+        paddingTop: 1,
+    },
+    tabButtonReportedText: {
+        color: "#fff",
+        fontSize: 11,
+        fontWeight: "700",
+        lineHeight: 13,
+    },
     tabButtonRecommendationPrimary: { fontSize: 17, fontWeight: '700', lineHeight: 20 },
     tabButtonRecommendationDetails: {
         color: '#C9B259',

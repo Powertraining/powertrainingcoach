@@ -55,6 +55,17 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     () => model.getStrengthAssessmentSummary?.() || null,
     [model, model.strengthAssessmentState]
   );
+  const sessionKey =
+    Number.isFinite(weekNumber) && Number.isFinite(dayNumber)
+      ? `${weekNumber}-${dayNumber}`
+      : "";
+  const isSessionComplete =
+    Boolean(sessionKey) &&
+    Array.isArray(model.completedDays) &&
+    model.completedDays.includes(sessionKey);
+  const completedSessionProgress = sessionKey
+    ? model.completedSessionProgressByKey?.[sessionKey]
+    : null;
 
   // Compute total days for progress tracking
   const totalDays = useMemo(() => {
@@ -143,6 +154,22 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     });
 
     const key = `${selectedDay.week}-${selectedDay.day}`;
+    if (!model.completedSessionProgressByKey?.[key]) {
+      model.saveCompletedSessionProgress?.(key, {
+        completedStepKeys: selectedDay.exercises.flatMap((exercise, exerciseIndex) => {
+          const parsedSetCount = Number.parseInt(exercise?.sets, 10);
+          const setCount =
+            Number.isFinite(parsedSetCount) && parsedSetCount > 0
+              ? Math.min(parsedSetCount, 12)
+              : 1;
+
+          return Array.from({ length: setCount }).map(
+            (_, setIndex) => `${exerciseIndex}:${setIndex}`
+          );
+        }),
+        trackingDrafts: {},
+      });
+    }
 
     // Get current completed days
     const currentCompleted = Array.isArray(model.completedDays)
@@ -195,6 +222,8 @@ const DayDetailScreen = observer(function DayDetailScreen() {
         status={selectedDay.status}
         rescueMode={selectedDay.rescueMode}
         adjustmentSummary={selectedDay.adjustmentSummary}
+        isSessionComplete={isSessionComplete}
+        completedSessionProgress={completedSessionProgress}
         initialPerformanceResults={sessionPerformanceResults}
         initialAssessmentResults={sessionAssessmentResults}
         strengthAssessmentSummary={strengthAssessmentSummary}

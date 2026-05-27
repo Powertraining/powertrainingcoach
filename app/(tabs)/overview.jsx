@@ -185,6 +185,30 @@ const OverviewScreen = observer(function OverviewScreen() {
       : null;
   }
 
+  function buildCompletedStepKeysForExercises(exercises = []) {
+    return (Array.isArray(exercises) ? exercises : []).flatMap((exercise, exerciseIndex) => {
+      const parsedSetCount = Number.parseInt(exercise?.sets, 10);
+      const setCount =
+        Number.isFinite(parsedSetCount) && parsedSetCount > 0
+          ? Math.min(parsedSetCount, 12)
+          : 1;
+
+      return Array.from({ length: setCount }).map(
+        (_, setIndex) => `${exerciseIndex}:${setIndex}`
+      );
+    });
+  }
+
+  function getCompletedSessionProgress(sessionKey) {
+    return sessionKey
+      ? model.completedSessionProgressByKey?.[sessionKey]
+      : null;
+  }
+
+  function handleCompletedSessionProgressSave(sessionKey, progress) {
+    model.saveCompletedSessionProgress?.(sessionKey, progress);
+  }
+
   function handleActiveSessionProgressChange(sessionKey, progress) {
     if (!sessionKey || !progress) {
       return;
@@ -259,6 +283,13 @@ const OverviewScreen = observer(function OverviewScreen() {
     });
 
     const key = `${selectedDay.week}-${selectedDay.day}`;
+    if (!model.completedSessionProgressByKey?.[key]) {
+      model.saveCompletedSessionProgress?.(key, {
+        completedStepKeys: buildCompletedStepKeysForExercises(selectedDay.exercises),
+        trackingDrafts: {},
+      });
+    }
+
     const currentCompleted = Array.isArray(model.completedDays)
       ? new Set(model.completedDays)
       : new Set();
@@ -328,6 +359,8 @@ const OverviewScreen = observer(function OverviewScreen() {
         getActiveSessionProgress={getActiveSessionProgress}
         onActiveSessionProgressChange={handleActiveSessionProgressChange}
         onActiveSessionProgressClear={handleActiveSessionProgressClear}
+        getCompletedSessionProgress={getCompletedSessionProgress}
+        onCompletedSessionProgressSave={handleCompletedSessionProgressSave}
         onTestSession={handleTestSession}
         updatingPlan={updatingPlan}
       />

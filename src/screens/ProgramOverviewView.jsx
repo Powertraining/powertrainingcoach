@@ -123,6 +123,12 @@ function buildSessionSteps(exercises = []) {
   );
 }
 
+function buildCompletedStepKeysForExercises(exercises = []) {
+  return buildSessionSteps(exercises).map(
+    (step) => `${step.exerciseIndex}:${step.setIndex}`
+  );
+}
+
 function getSessionActionSummary(day = {}, progress = {}) {
   const steps = buildSessionSteps(day?.exercises);
   const completedStepKeys = new Set(
@@ -260,6 +266,8 @@ export default function ProgramOverviewView({
   getActiveSessionProgress,
   onActiveSessionProgressChange,
   onActiveSessionProgressClear,
+  onCompletedSessionProgressSave,
+  getCompletedSessionProgress,
   onTestSession,
   updatingPlan = false,
 }) {
@@ -401,6 +409,9 @@ export default function ProgramOverviewView({
     : "";
   const selectedDaySessionProgress = selectedDayCompletionKey
     ? getActiveSessionProgress?.(selectedDayCompletionKey)
+    : null;
+  const selectedDayCompletedSessionProgress = selectedDayCompletionKey
+    ? getCompletedSessionProgress?.(selectedDayCompletionKey)
     : null;
   const selectedDayHasStartedSession =
     hasStartedSessionProgress(selectedDaySessionProgress);
@@ -554,7 +565,13 @@ export default function ProgramOverviewView({
           onActiveSessionProgressChange?.(activeSessionKey, progress)
         }
         onBack={() => setActiveSessionDay(null)}
-        onFinish={(trackedResults) => {
+        onFinish={(trackedResults, completedProgress = {}) => {
+          onCompletedSessionProgressSave?.(activeSessionKey, {
+            completedStepKeys:
+              completedProgress.completedStepKeys ||
+              buildCompletedStepKeysForExercises(activeSessionDay.exercises),
+            trackingDrafts: completedProgress.trackingDrafts || {},
+          });
           onActiveSessionProgressClear?.(activeSessionKey);
           onFinishDay?.(trackedResults);
           setActiveSessionDay(null);
@@ -794,6 +811,8 @@ export default function ProgramOverviewView({
                 status={detailSelectedDay.status}
                 rescueMode={detailSelectedDay.rescueMode}
                 adjustmentSummary={detailSelectedDay.adjustmentSummary}
+                isSessionComplete={selectedArchivedDay ? false : selectedDayIsComplete}
+                completedSessionProgress={selectedDayCompletedSessionProgress}
                 initialPerformanceResults={
                   selectedArchivedDay ? [] : selectedDayPerformanceResults
                 }

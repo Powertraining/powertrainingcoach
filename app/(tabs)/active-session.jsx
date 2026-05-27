@@ -122,7 +122,14 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
     model.activeSessionProgressByKey = remainingProgress;
   }
 
-  function handleFinish(trackedResults = []) {
+  function handleFinish(trackedResults = [], completedProgress = {}) {
+    if (sessionProgressKey) {
+      model.saveCompletedSessionProgress?.(sessionProgressKey, {
+        completedStepKeys: completedProgress.completedStepKeys || [],
+        trackingDrafts: completedProgress.trackingDrafts || {},
+      });
+    }
+
     clearSessionProgress();
 
     model.saveTrainingPerformanceResults?.({

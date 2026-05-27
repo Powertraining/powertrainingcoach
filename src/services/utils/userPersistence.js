@@ -32,6 +32,7 @@ export function buildClientPersistableUserData(model = {}) {
     strengthAssessmentState: model.strengthAssessmentState,
     trainingCheckInState: model.trainingCheckInState,
     activeSessionProgressByKey: model.activeSessionProgressByKey,
+    completedSessionProgressByKey: model.completedSessionProgressByKey,
     forumProfile: normalizeForumProfile(model.forumProfile),
   };
 }

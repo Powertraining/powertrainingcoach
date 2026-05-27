@@ -139,6 +139,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       typeof persistedData.activeSessionProgressByKey === "object"
         ? persistedData.activeSessionProgressByKey
         : {};
+    model.completedSessionProgressByKey =
+      persistedData.completedSessionProgressByKey &&
+      typeof persistedData.completedSessionProgressByKey === "object"
+        ? persistedData.completedSessionProgressByKey
+        : {};
     model.forumProfile = normalizeForumProfile(persistedData.forumProfile);
     if (typeof model.resetForumRuntimeState === "function") {
       model.resetForumRuntimeState();
@@ -174,6 +179,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.strengthAssessmentState,
       model.trainingCheckInState,
       model.activeSessionProgressByKey,
+      model.completedSessionProgressByKey,
       model.forumProfile,
     ];
     console.log('[firebaseModel.modelDataToCheckACB] Tracked data:', {
@@ -373,6 +379,8 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.trainingPerformanceState = normalizeTrainingPerformanceState();
       model.strengthAssessmentState = normalizeStrengthAssessmentState();
       model.trainingCheckInState = normalizeTrainingCheckInState();
+      model.activeSessionProgressByKey = {};
+      model.completedSessionProgressByKey = {};
       model.forumProfile = normalizeForumProfile();
       if (typeof model.resetForumRuntimeState === "function") {
         model.resetForumRuntimeState();

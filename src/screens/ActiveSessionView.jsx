@@ -1640,7 +1640,10 @@ export default function ActiveSessionView({
 
   function handleContinueIntro() {
     if (isSessionCompleteIntro) {
-      onFinish?.(getTrackedResultsFromDrafts(trackingDrafts));
+      onFinish?.(getTrackedResultsFromDrafts(trackingDrafts), {
+        completedStepKeys: Array.from(completedStepKeys),
+        trackingDrafts,
+      });
       return;
     }
 
