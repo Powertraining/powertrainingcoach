@@ -123,7 +123,7 @@ export function getProgramCountdownStatus({ questionnaire, plan }) {
     return {
       hasEventDate: false,
       hasProgramEndDate: true,
-      text: `${programDays} ${programDays === 1 ? "day" : "days"} until this program ends`,
+      text: `${programDays} ${programDays === 1 ? "DAY" : "DAYS"} LEFT OF PROGRAM`,
       progress: getElapsedProgress(programStartDate, programEndDate),
     };
   }

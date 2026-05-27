@@ -856,6 +856,7 @@ export default function DayDetailView({
     onMissed,
     onSwapEditorVisibilityChange,
     updatingPlan = false,
+    showRescheduledNotice = true,
     exerciseListHorizontalBleed = CARD_HORIZONTAL_PADDING,
 }) {
     const router = useRouter();
@@ -1200,7 +1201,7 @@ export default function DayDetailView({
                                 <Text style={styles.skippedStatusMeta}>Mode: {rescueMode.replace(/_/g, " ")}</Text>
                             ) : null}
                         </View>
-                    ) : isRescheduled ? (
+                    ) : showRescheduledNotice && isRescheduled ? (
                         <View
                             style={[
                                 styles.adjustmentBox,

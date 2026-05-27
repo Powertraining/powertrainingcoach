@@ -839,41 +839,88 @@ function ExerciseResultProgressRing({ completedSetCount = 0, totalSetCount = 0 }
   );
 }
 
-function formatReportedResult(draft = {}) {
+function parseTrackedNumber(value) {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const parsedValue = Number.parseFloat(String(value).replace(",", "."));
+
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
+function formatAverageNumber(value) {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  return Number.isInteger(value)
+    ? String(value)
+    : String(Math.round(value * 10) / 10);
+}
+
+function getAverageTrackedValue(values = []) {
+  const numericValues = values
+    .map(parseTrackedNumber)
+    .filter((value) => Number.isFinite(value));
+
+  if (!numericValues.length) {
+    return "";
+  }
+
+  const average =
+    numericValues.reduce((total, value) => total + value, 0) /
+    numericValues.length;
+
+  return formatAverageNumber(average);
+}
+
+function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex = 0) {
+  const drafts = Object.values(trackingDrafts)
+    .filter((draft) => draft?.exerciseIndex === exerciseIndex)
+    .sort((left, right) => (left.setIndex || 0) - (right.setIndex || 0));
   const parts = [];
+  const averageLoadKg = getAverageTrackedValue(
+    drafts.map((draft) => draft.loadKg)
+  );
+  const averageReps = getAverageTrackedValue(
+    drafts.map((draft) => draft.reps)
+  );
+  const averageRpe = getAverageTrackedValue(
+    drafts.map((draft) => draft.rpe)
+  );
+  const customFieldIds = Array.from(
+    new Set(
+      drafts.flatMap((draft) => Object.keys(draft.customValues || {}))
+    )
+  );
 
-  if (draft.loadKg) {
-    parts.push(`${draft.loadKg} kg`);
+  if (averageLoadKg) {
+    parts.push(`${averageLoadKg} kg`);
   }
 
-  if (draft.reps) {
-    parts.push(`${draft.reps} reps`);
+  if (averageReps) {
+    parts.push(`${averageReps} reps`);
   }
 
-  if (draft.rpe) {
-    parts.push(`RPE ${draft.rpe}`);
+  if (averageRpe) {
+    parts.push(`RPE ${averageRpe}`);
   }
 
-  Object.entries(draft.customValues || {}).forEach(([field, value]) => {
-    if (!value) {
-      return;
+  customFieldIds.forEach((fieldId) => {
+    const fieldValues = drafts
+      .map((draft) => draft.customValues?.[fieldId])
+      .filter(Boolean);
+    const averageValue = getAverageTrackedValue(fieldValues);
+
+    if (averageValue) {
+      parts.push(`${fieldId.replace(/_/g, " ")} ${averageValue}`);
+    } else if (fieldValues.length === 1) {
+      parts.push(`${fieldId.replace(/_/g, " ")} ${fieldValues[0]}`);
     }
-
-    parts.push(`${field.replace(/_/g, " ")} ${value}`);
   });
 
   return parts.join(" · ");
-}
-
-function getReportedResultsForExercise(trackingDrafts = {}, exerciseIndex = 0) {
-  return Object.values(trackingDrafts)
-    .filter((draft) => draft?.exerciseIndex === exerciseIndex)
-    .sort((left, right) => (left.setIndex || 0) - (right.setIndex || 0))
-    .map((draft) => ({
-      setIndex: draft.setIndex || 0,
-      result: formatReportedResult(draft),
-    }))
-    .filter((entry) => entry.result);
 }
 
 function ActiveSessionResultsList({
@@ -926,7 +973,7 @@ function ActiveSessionResultsList({
               const completedSetCount = Array.from({ length: totalSetCount }).filter(
                 (_, setIndex) => completedSteps.has(getStepKey(exerciseIndex, setIndex))
               ).length;
-              const reportedResults = getReportedResultsForExercise(
+              const reportedResultSummary = getReportedResultSummaryForExercise(
                 trackingDrafts,
                 exerciseIndex
               );
@@ -952,17 +999,10 @@ function ActiveSessionResultsList({
                         {prescription}
                       </Text>
                     ) : null}
-                    {reportedResults.length > 0 ? (
-                      <View style={styles.resultsReportedList}>
-                        {reportedResults.map(({ setIndex, result }) => (
-                          <Text
-                            key={`${exerciseIndex}-${setIndex}`}
-                            style={styles.resultsReportedText}
-                          >
-                            Set {setIndex + 1}: {result}
-                          </Text>
-                        ))}
-                      </View>
+                    {reportedResultSummary ? (
+                      <Text style={styles.resultsReportedText}>
+                        {reportedResultSummary}
+                      </Text>
                     ) : null}
                     {recommendation.details ? (
                       <Text style={styles.resultsExerciseDetails}>
@@ -1465,22 +1505,22 @@ export default function ActiveSessionView({
     sessionScreenMode === SESSION_SCREEN_MODES.SECTION_INTRO && activeExercise;
   const showExerciseStep =
     sessionScreenMode === SESSION_SCREEN_MODES.EXERCISE && activeExercise;
-  const completedExerciseCount = normalizedExercises.filter((exercise, exerciseIndex) =>
-    Array.from({ length: parsePrescribedSetCount(exercise) }).every((_, setIndex) =>
-      completedStepKeys.has(getStepKey(exerciseIndex, setIndex))
-    )
-  ).length;
-  const safeCompletedExerciseCount = Number.isFinite(completedExerciseCount)
-    ? completedExerciseCount
-    : 0;
+  const traversedStepCount = isSessionCompleteIntro
+    ? sessionSteps.length
+    : resolvedActiveStepIndex;
+  const traversedExerciseCount = isSessionCompleteIntro
+    ? normalizedExercises.length
+    : Math.max(0, activeStep?.exerciseIndex || 0);
   const safeTotalExerciseCount = Number.isFinite(normalizedExercises.length)
     ? normalizedExercises.length
     : 0;
-  const exerciseProgressText =
-    `${safeCompletedExerciseCount} of ${safeTotalExerciseCount}`;
-  const exerciseProgressPercent =
-    safeTotalExerciseCount > 0
-      ? Math.round((safeCompletedExerciseCount / safeTotalExerciseCount) * 100)
+  const sessionProgressText = `${Math.min(
+    traversedExerciseCount,
+    safeTotalExerciseCount
+  )} of ${safeTotalExerciseCount}`;
+  const sessionProgressPercent =
+    sessionSteps.length > 0
+      ? Math.round((traversedStepCount / sessionSteps.length) * 100)
       : 0;
   const headerTitle = isSessionCompleteIntro
     ? "Session results"
@@ -1490,9 +1530,9 @@ export default function ActiveSessionView({
         ? getExerciseDisplayName(activeExercise)
         : "";
   const headerProgressText = isSessionCompleteIntro
-    ? exerciseProgressText
+    ? `${safeTotalExerciseCount} of ${safeTotalExerciseCount}`
     : showSectionIntro
-      ? exerciseProgressText
+      ? sessionProgressText
       : activeStep
         ? `${activeStep.exerciseIndex + 1} of ${normalizedExercises.length}`
         : "";
@@ -1661,7 +1701,7 @@ export default function ActiveSessionView({
         <ActiveSessionHeader
           title={headerTitle}
           progressText={headerProgressText}
-          progressPercent={exerciseProgressPercent}
+          progressPercent={sessionProgressPercent}
           showProgressRing={showExerciseStep}
           onBack={handleExitSession}
         />
@@ -1675,7 +1715,10 @@ export default function ActiveSessionView({
             sectionIndex={Math.max(activeSectionRunIndex, 0)}
             sectionCount={sectionRuns.length}
             exerciseCount={activeSectionRun?.exercises.length || 0}
-            completedExerciseCount={completedExerciseCount}
+            completedExerciseCount={Math.min(
+              traversedExerciseCount,
+              normalizedExercises.length
+            )}
             totalExerciseCount={normalizedExercises.length}
             isSessionComplete
             hideIntroContent
@@ -1696,7 +1739,10 @@ export default function ActiveSessionView({
             sectionIndex={Math.max(activeSectionRunIndex, 0)}
             sectionCount={sectionRuns.length}
             exerciseCount={activeSectionRun?.exercises.length || 0}
-            completedExerciseCount={completedExerciseCount}
+            completedExerciseCount={Math.min(
+              traversedExerciseCount,
+              normalizedExercises.length
+            )}
             totalExerciseCount={normalizedExercises.length}
             onContinue={handleContinueIntro}
           />
@@ -1860,15 +1906,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 17,
   },
-  resultsReportedList: {
-    gap: 3,
-    paddingTop: 2,
-  },
   resultsReportedText: {
     color: "#fff",
     fontSize: 12,
     fontWeight: "700",
     lineHeight: 15,
+    paddingTop: 2,
   },
   resultsExerciseDetails: {
     color: "#C9B259",

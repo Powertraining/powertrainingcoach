@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
-import { Image, Text, View, TouchableOpacity, ScrollView, StyleSheet, Pressable } from "react-native";
+import { Text, View, TouchableOpacity, ScrollView, StyleSheet, Pressable } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
 import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
 import DayDetailView from "./DayDetailView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
-import checkIcon from "../assets/icons/check.png";
 import { getWeekdayNameFromIndex } from "../constants/weekdays.js";
 import {
   getCurrentTrainingPhase,
@@ -26,6 +26,12 @@ import {
 const WEEK_SCHEDULE_ITEM_WIDTH = 56;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
+const HEADER_SESSION_RING_SIZE = 76;
+const HEADER_SESSION_RING_CENTER = HEADER_SESSION_RING_SIZE / 2;
+const HEADER_SESSION_RING_RADIUS = 30;
+const HEADER_SESSION_RING_STROKE = 6;
+const HEADER_SESSION_RING_CIRCUMFERENCE =
+  2 * Math.PI * HEADER_SESSION_RING_RADIUS;
 const SKELETON_WEEK_SLOTS = Object.freeze(Array.from({ length: 8 }));
 const SKELETON_DAY_CONTAINERS = Object.freeze([
   { height: 92 },
@@ -179,6 +185,54 @@ function SkeletonDayDetailPreview() {
   );
 }
 
+function HeaderSessionProgressRing({ progressPercent = 0 }) {
+  const safeProgressPercent = Math.max(
+    0,
+    Math.min(100, Number.isFinite(progressPercent) ? progressPercent : 0)
+  );
+  const progressOffset =
+    HEADER_SESSION_RING_CIRCUMFERENCE -
+    HEADER_SESSION_RING_CIRCUMFERENCE * (safeProgressPercent / 100);
+
+  return (
+    <View style={styles.headerSessionProgressRing}>
+      <Svg
+        width={HEADER_SESSION_RING_SIZE}
+        height={HEADER_SESSION_RING_SIZE}
+        viewBox={`0 0 ${HEADER_SESSION_RING_SIZE} ${HEADER_SESSION_RING_SIZE}`}
+      >
+        <Circle
+          cx={HEADER_SESSION_RING_CENTER}
+          cy={HEADER_SESSION_RING_CENTER}
+          r={HEADER_SESSION_RING_RADIUS}
+          fill="none"
+          stroke="#3f3f46"
+          strokeWidth={HEADER_SESSION_RING_STROKE}
+        />
+        <Circle
+          cx={HEADER_SESSION_RING_CENTER}
+          cy={HEADER_SESSION_RING_CENTER}
+          r={HEADER_SESSION_RING_RADIUS}
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={HEADER_SESSION_RING_STROKE}
+          strokeLinecap="round"
+          strokeDasharray={`${HEADER_SESSION_RING_CIRCUMFERENCE} ${HEADER_SESSION_RING_CIRCUMFERENCE}`}
+          strokeDashoffset={progressOffset}
+          rotation="-90"
+          originX={HEADER_SESSION_RING_CENTER}
+          originY={HEADER_SESSION_RING_CENTER}
+        />
+      </Svg>
+      <View style={styles.headerSessionProgressRingContent}>
+        <Text style={styles.headerSessionProgressRingText}>
+          {safeProgressPercent}%
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 function ProgramOverviewSkeleton() {
   return (
     <QuestionnaireShell hideTabBar={false}>
@@ -273,6 +327,7 @@ export default function ProgramOverviewView({
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
+  const [rescheduleInfoVisible, setRescheduleInfoVisible] = useState(false);
   const [completeConfirmVisible, setCompleteConfirmVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
   const [selectedArchivedDay, setSelectedArchivedDay] = useState(null);
@@ -449,6 +504,68 @@ export default function ProgramOverviewView({
     showPushedBackSessionStatus ||
     showRestSessionStatus ||
     showFutureSessionStatus;
+  const showRescheduleInfoButton =
+    Boolean(detailSelectedDay) &&
+    !selectedRestSlot &&
+    detailSelectedDay.status === "rescheduled";
+  const rescheduleInfoSummary =
+    detailSelectedDay?.adjustmentSummary ||
+    "This session was moved after a missed slot.";
+  const rescheduleInfoMode = detailSelectedDay?.rescueMode
+    ? detailSelectedDay.rescueMode.replace(/_/g, " ")
+    : "";
+  const selectedDaySessionSteps = buildSessionSteps(activeSelectedDay?.exercises);
+  const selectedDayCompletedStepKeys = new Set(
+    Array.isArray(selectedDayCompletedSessionProgress?.completedStepKeys)
+      ? selectedDayCompletedSessionProgress.completedStepKeys
+      : []
+  );
+  const selectedDayCompletedStepCount =
+    selectedDaySessionSteps.length > 0 && selectedDayCompletedStepKeys.size > 0
+      ? selectedDaySessionSteps.filter((step) =>
+          selectedDayCompletedStepKeys.has(`${step.exerciseIndex}:${step.setIndex}`)
+        ).length
+      : selectedDayIsComplete
+        ? selectedDaySessionSteps.length
+        : 0;
+  const completedSessionProgressPercent =
+    selectedDaySessionSteps.length > 0
+      ? Math.round(
+          (selectedDayCompletedStepCount / selectedDaySessionSteps.length) * 100
+        )
+      : selectedDayIsComplete
+        ? 100
+        : 0;
+  const nextTrainingSlot = currentWeekSchedule.find((slot) => {
+    if (!slot.trainingDay || slot.isArchived || !(slot.date instanceof Date)) {
+      return false;
+    }
+
+    if (slot.date <= today) {
+      return false;
+    }
+
+    const slotKey = `${slot.weekNumber}-${slot.trainingDay.day}`;
+    return (
+      !completedDayEntries.includes(slotKey) &&
+      slot.trainingDay.status !== "skipped"
+    );
+  });
+  const nextSessionDayCount = nextTrainingSlot
+    ? Math.max(
+        0,
+        Math.ceil(
+          (startOfLocalDay(nextTrainingSlot.date) - startOfLocalDay(today)) /
+            (24 * 60 * 60 * 1000)
+        )
+      )
+    : null;
+  const nextSessionText =
+    Number.isFinite(nextSessionDayCount)
+      ? nextSessionDayCount === 1
+        ? "Next session in 1 day"
+        : `Next session in ${nextSessionDayCount} days`
+      : "Next session coming up";
   const sessionActionSummary = getSessionActionSummary(
     activeSelectedDay,
     selectedDaySessionProgress
@@ -531,6 +648,14 @@ export default function ProgramOverviewView({
 
   function closePushBackConfirm() {
     setPushBackConfirmVisible(false);
+  }
+
+  function openRescheduleInfo() {
+    setRescheduleInfoVisible(true);
+  }
+
+  function closeRescheduleInfo() {
+    setRescheduleInfoVisible(false);
   }
 
   function confirmPushBack() {
@@ -671,16 +796,19 @@ export default function ProgramOverviewView({
             >
               {showCompletedSessionStatus ? (
                 <View style={styles.headerCompletedStatus}>
-                  <View style={styles.headerCompletedIconBadge}>
-                    <Image
-                      source={checkIcon}
-                      style={styles.headerCompletedIcon}
-                      resizeMode="contain"
+                  <View style={styles.headerCompletedCopy}>
+                    <StandardText style={styles.headerCompletedTitle}>
+                      Session complete.
+                    </StandardText>
+                    <StandardText style={styles.headerCompletedSubtitle}>
+                      {nextSessionText}
+                    </StandardText>
+                  </View>
+                  <View style={styles.headerCompletedRingSlot}>
+                    <HeaderSessionProgressRing
+                      progressPercent={completedSessionProgressPercent}
                     />
                   </View>
-                  <StandardText style={styles.headerCompletedText}>
-                    Session is complete.
-                  </StandardText>
                 </View>
               ) : null}
               {showRestSessionStatus ? (
@@ -830,6 +958,7 @@ export default function ProgramOverviewView({
                 onMissed={selectedArchivedDay ? undefined : onMissedDay}
                 onSwapEditorVisibilityChange={setSwapEditorVisible}
                 updatingPlan={selectedArchivedDay ? true : updatingPlan}
+                showRescheduledNotice={false}
               />
             </View>
           ) : null}
@@ -856,6 +985,38 @@ export default function ProgramOverviewView({
           </View>
         </View>
       </ScrollView>
+      {showRescheduleInfoButton ? (
+        <TouchableOpacity
+          accessibilityLabel="Show rescheduled session information"
+          accessibilityRole="button"
+          onPress={openRescheduleInfo}
+          style={styles.rescheduleInfoButton}
+        >
+          <Svg
+            width={24}
+            height={24}
+            viewBox="0 0 24 24"
+            style={styles.rescheduleInfoButtonIcon}
+          >
+            <Path
+              d="M6.5 5.5 12 12l-5.5 6.5"
+              fill="none"
+              stroke="#ffffff"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.4}
+            />
+            <Path
+              d="M12.5 5.5 18 12l-5.5 6.5"
+              fill="none"
+              stroke="#ffffff"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.4}
+            />
+          </Svg>
+        </TouchableOpacity>
+      ) : null}
       <WhiteBottomMenu
         visible={detailsVisible}
         onDismiss={() => setDetailsVisible(false)}
@@ -894,6 +1055,21 @@ export default function ProgramOverviewView({
               </View>
             ))}
           </ScrollView>
+        }
+      />
+      <WhiteBottomMenu
+        visible={rescheduleInfoVisible}
+        onDismiss={closeRescheduleInfo}
+        title="Rescheduled session"
+        description={rescheduleInfoSummary}
+        buttonText="Close"
+        onButtonPress={closeRescheduleInfo}
+        content={
+          rescheduleInfoMode ? (
+            <StandardText style={styles.rescheduleInfoMeta} textColor="#525252">
+              Mode: {rescheduleInfoMode}
+            </StandardText>
+          ) : null
         }
       />
       <WhiteBottomMenu
@@ -1004,6 +1180,35 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
   },
+  rescheduleInfoButton: {
+    alignItems: "center",
+    backgroundColor: "#1E1E1E",
+    borderColor: "#585858",
+    borderWidth: 1,
+    borderRadius: 120,
+    bottom: 100,
+    elevation: 10,
+    height: 48,
+    justifyContent: "center",
+    overflow: "hidden",
+    position: "absolute",
+    right: 30,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    width: 48,
+    zIndex: 10,
+  },
+  rescheduleInfoButtonIcon: {
+    marginLeft: 1,
+  },
+  rescheduleInfoMeta: {
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 18,
+    textTransform: "capitalize",
+  },
   headerActionPanel: {
     alignSelf: "stretch",
     alignItems: "center",
@@ -1013,12 +1218,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     marginHorizontal: -28,
     marginTop: 56,
+    minHeight: 124,
     paddingHorizontal: 24,
     paddingVertical: 24,
+    justifyContent: "center",
   },
   headerActionPanelEmpty: {
-    marginTop: 14,
-    paddingVertical: 0,
+    marginTop: 56,
   },
   headerActionArea: {
     alignSelf: "center",
@@ -1044,30 +1250,52 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   headerCompletedStatus: {
-    minHeight: 46,
+    minHeight: 76,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
+    justifyContent: "space-between",
+    gap: 18,
+    width: "100%",
   },
-  headerCompletedIconBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#fff",
+  headerCompletedCopy: {
+    gap: 6,
+    minWidth: 0,
+    width: "50%",
+  },
+  headerCompletedRingSlot: {
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
+    width: "50%",
   },
-  headerCompletedIcon: {
-    width: 18,
-    height: 18,
-    tintColor: "#000",
-  },
-  headerCompletedText: {
+  headerCompletedTitle: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: 18,
+    fontWeight: "800",
+    lineHeight: 22,
+  },
+  headerCompletedSubtitle: {
+    color: "#9ca3af",
+    fontSize: 13,
     fontWeight: "700",
+    lineHeight: 16,
+  },
+  headerSessionProgressRing: {
+    alignItems: "center",
+    flexShrink: 0,
+    height: HEADER_SESSION_RING_SIZE,
+    justifyContent: "center",
+    width: HEADER_SESSION_RING_SIZE,
+  },
+  headerSessionProgressRingContent: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerSessionProgressRingText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 16,
     textAlign: "center",
   },
   restSessionContent: {
