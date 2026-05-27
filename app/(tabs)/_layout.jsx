@@ -102,6 +102,16 @@ const FULL_SCREEN_ROUTES = new Set([
   "/subscription",
   "/(tabs)/subscription",
 ]);
+const GLOBAL_HIDDEN_TAB_ROUTES = new Set([
+  "/",
+  "/index",
+  "/(tabs)",
+  "/(tabs)/index",
+  "/forum",
+  "/(tabs)/forum",
+  "/active-session",
+  "/(tabs)/active-session",
+]);
 
 function getTabBarBottomOffset(bottomInset) {
   return Math.max(Math.round(bottomInset / 2), 12);
@@ -116,7 +126,7 @@ function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
     return true;
   }
 
-  return Boolean(requestedHidden);
+  return Boolean(requestedHidden) && GLOBAL_HIDDEN_TAB_ROUTES.has(pathname);
 }
 
 function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {

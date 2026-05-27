@@ -855,13 +855,18 @@ export default function ProgramOverviewView({
                     >
                       <StandardText
                         style={styles.weekScheduleLabel}
-                        textColor={isToday ? "#000" : "#fff"}
+                        textColor="#fff"
                       >
                         {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
                       </StandardText>
                     </TouchableOpacity>
                   </View>
-                  <StandardText style={styles.weekScheduleDate}>
+                  <StandardText
+                    style={[
+                      styles.weekScheduleDate,
+                      isToday && styles.weekScheduleTodayDate,
+                    ]}
+                  >
                     {weekday.slice(0, 3)}
                     {"\n"}
                     {date.getDate()}
@@ -1546,18 +1551,15 @@ const styles = StyleSheet.create({
     gap: 2,
     borderColor: "#585858",
     borderWidth: 1,
-    borderStyle: "dashed",
+    borderStyle: "solid",
   },
   weekScheduleTrainingDay: {
     backgroundColor: "#1E1E1E",
-    borderStyle: "solid",
   },
   weekScheduleArchivedDay: {
     opacity: 0.62,
   },
   weekScheduleToday: {
-    backgroundColor: "#fff",
-    borderColor: "#fff",
     borderStyle: "solid",
   },
   weekScheduleSelectedDay: {
@@ -1576,6 +1578,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
+  },
+  weekScheduleTodayDate: {
+    color: "#C9B259",
   },
   skeletonBlock: {
     backgroundColor: "#242424",

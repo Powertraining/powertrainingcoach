@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useVideoPlayer, VideoView } from "expo-video";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
-import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
 
 const COLORS = {
   panel: "#141414",
@@ -108,14 +107,6 @@ export default function ExerciseAnalysisRequestView({
   const formEditingDisabled = isSubmitting;
   const videoActionDisabled = isSubmitting || isUploadingVideo;
   const sendDisabled = isSubmitting || isUploadingVideo || !videoUrl;
-
-  useEffect(() => {
-    reactiveModel.setForumTabBarHidden(true);
-
-    return () => {
-      reactiveModel.setForumTabBarHidden(false);
-    };
-  }, []);
 
   return (
     <View style={styles.screen}>
