@@ -12,6 +12,7 @@ import InputFormView from "../../src/screens/InputFormView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
+import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
@@ -34,6 +35,7 @@ const HomeScreen = observer(function HomeScreen() {
   const [inputActiveStep, setInputActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [pushingBackSession, setPushingBackSession] = useState(false);
+  const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [error, setError] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
 
@@ -339,6 +341,27 @@ const HomeScreen = observer(function HomeScreen() {
     }
   }
 
+  function openPushBackConfirm() {
+    if (pushingBackSession) {
+      return;
+    }
+
+    setPushBackConfirmVisible(true);
+  }
+
+  function closePushBackConfirm() {
+    if (pushingBackSession) {
+      return;
+    }
+
+    setPushBackConfirmVisible(false);
+  }
+
+  async function confirmPushBackCurrentSession() {
+    setPushBackConfirmVisible(false);
+    await pushBackCurrentSession();
+  }
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -379,7 +402,7 @@ const HomeScreen = observer(function HomeScreen() {
         isPushingBackSession={pushingBackSession}
         onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
         onStartSession={openCurrentSession}
-        onPushBackSession={pushBackCurrentSession}
+        onPushBackSession={openPushBackConfirm}
         onAdjustPlan={() => router.push("/(tabs)/profile-plan-adjustments")}
         onMyPosts={() => router.push("/(tabs)/profile-my-posts")}
       />
@@ -430,7 +453,23 @@ const HomeScreen = observer(function HomeScreen() {
 
   const render = renderByStep[step];
 
-  return <View style={styles.container}>{render ? render() : null}</View>;
+  return (
+    <View style={styles.container}>
+      {render ? render() : null}
+      <WhiteBottomMenu
+        visible={pushBackConfirmVisible}
+        onDismiss={closePushBackConfirm}
+        title="Push back session?"
+        description="This moves the session forward and updates the plan around the missed slot."
+        buttonText={pushingBackSession ? "Updating..." : "Yes, push back"}
+        buttonDisabled={pushingBackSession}
+        onButtonPress={confirmPushBackCurrentSession}
+        secondaryButtonText="Cancel"
+        secondaryButtonDisabled={pushingBackSession}
+        onSecondaryButtonPress={closePushBackConfirm}
+      />
+    </View>
+  );
 });
 
 export default HomeScreen;

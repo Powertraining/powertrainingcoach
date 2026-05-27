@@ -98,11 +98,14 @@ function StartSessionCard({
                     <StandardText style={styles.sessionScheduleText}>
                         {scheduleText}
                     </StandardText>
-                    <View style={styles.startSessionButton}>
+                    <TouchableOpacity
+                        style={styles.startSessionButton}
+                        onPress={onPress}
+                    >
                         <StandardText style={styles.startSessionButtonText}>
                             {hasStartedSession ? "Continue" : "Start"}
                         </StandardText>
-                    </View>
+                    </TouchableOpacity>
                 </>
             }
             actionElement={
@@ -144,7 +147,6 @@ function StartSessionCard({
                     </View>
                 </View>
             }
-            onPress={onPress}
             wide
         />
     );
@@ -198,15 +200,18 @@ function NoSessionCard({
             actionElement={
                 nextSession ? (
                     <View style={styles.recoveryActionLane}>
-                        <View style={[styles.startSessionButton, styles.recoveryActionButton]}>
+                        <TouchableOpacity
+                            style={[styles.startSessionButton, styles.recoveryActionButton]}
+                            onPress={nextSession && !isPushingBack ? onPushBack : undefined}
+                            disabled={isPushingBack}
+                        >
                             <StandardText style={styles.startSessionButtonText}>
                                 {isPushingBack ? "Updating..." : "Push back"}
                             </StandardText>
-                        </View>
+                        </TouchableOpacity>
                     </View>
                 ) : null
             }
-            onPress={nextSession && !isPushingBack ? onPushBack : undefined}
             obscureContent={obscureContent}
             wide
         />
