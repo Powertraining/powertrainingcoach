@@ -9,10 +9,17 @@ import PaymentSuccessView from "../../src/screens/PaymentSuccessView.jsx";
 import MessageView from "../../src/screens/MessageView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import BlackGradient from "../../src/components/colorComponents/BlackGradient.jsx";
 import { verifyCheckoutSession } from "../../src/services/utils/stripeClient.js";
 import {
   normalizeStripeCheckoutSessionId,
 } from "../../src/services/utils/inputValidation.js";
+import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
+import {
+  getParamValue,
+  getSafeReturnToPath,
+} from "../../src/services/utils/navigation.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 const INVALID_CHECKOUT_SESSION_MESSAGE =
   "Stripe returned an invalid checkout session. Please try checkout again.";
@@ -30,26 +37,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
   const [verifyingSession, setVerifyingSession] = useState(false);
   const [generatingPlan, setGeneratingPlan] = useState(false);
 
-  function getParamValue(value) {
-    return Array.isArray(value) ? value[0] : value;
-  }
-
-  function getSafeReturnToPath() {
-    const rawReturnTo =
-      getParamValue(params.return_to) || getParamValue(params.returnTo) || "";
-
-    if (
-      typeof rawReturnTo !== "string" ||
-      !rawReturnTo.startsWith("/") ||
-      rawReturnTo.startsWith("//")
-    ) {
-      return "";
-    }
-
-    return rawReturnTo;
-  }
-
-  const returnTo = getSafeReturnToPath();
+  const returnTo = getSafeReturnToPath(params);
 
   function clearPendingPlanGenerationFlag() {
     const savedQuestionnaire =
@@ -153,8 +141,26 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
               );
             }
 
-            await model.generateTrainingPlan?.(trainingPlanInput);
+            const generatedPlan = await model.generateTrainingPlan?.(trainingPlanInput);
             if (model.user?.uid !== verificationUid) {
+              return;
+            }
+
+            const currentTrainingDay =
+              getClosestActiveTrainingDay(generatedPlan || model.trainingPlan, []) ||
+              model.getCurrentTrainingDay?.([]);
+            const weekNumber = Number.parseInt(currentTrainingDay?.week, 10);
+            const dayNumber = Number.parseInt(currentTrainingDay?.day, 10);
+
+            if (Number.isFinite(weekNumber) && Number.isFinite(dayNumber)) {
+              router.replace({
+                pathname: "/(tabs)/overview",
+                params: {
+                  week: String(weekNumber),
+                  day: String(dayNumber),
+                  returnTo: "/(tabs)",
+                },
+              });
               return;
             }
 
@@ -200,6 +206,8 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
       });
   }, [model, model.ready, model.user, params, returnTo, router]);
 
+  useAndroidBackHandler(handleBack, [returnTo, router]);
+
   if (!model.ready) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -224,7 +232,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
       return;
     }
 
-    router.back();
+    router.replace("/(tabs)");
   }
 
   function handleContinue() {
@@ -238,7 +246,16 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     setCustomerId("");
   }
 
-  if (verifyingSession || generatingPlan) {
+  if (generatingPlan) {
+    return (
+      <View style={[styles.container, styles.planGenerationContainer]}>
+        <BlackGradient />
+        <LoadingView label="Generating" />
+      </View>
+    );
+  }
+
+  if (verifyingSession) {
     return (
       <View style={[styles.container, styles.centered]}>
         <LoadingView />
@@ -287,5 +304,8 @@ const styles = StyleSheet.create({
   centered: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  planGenerationContainer: {
+    overflow: "hidden",
   },
 });

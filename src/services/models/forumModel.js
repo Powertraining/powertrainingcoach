@@ -4,6 +4,8 @@ import {
 } from "../utils/inputValidation.js";
 
 export const DEFAULT_FORUM_TOPIC = "general";
+export const ANALYSIS_FORUM_TAG = "analysis";
+export const ANALYSIS_FORUM_EXERCISE_ID_PREFIX = "analysis-slot-";
 export const DEFAULT_FORUM_SORT_BY = "recent";
 export const DEFAULT_FORUM_FEED_LIMIT = 25;
 export const DEFAULT_FORUM_COMMENT_LIMIT = 50;
@@ -36,6 +38,22 @@ function normalizeString(value, maxLength = Number.POSITIVE_INFINITY) {
   }
 
   return normalizedValue.slice(0, maxLength);
+}
+
+export function getAnalysisForumExerciseId(slot) {
+  const normalizedSlot = normalizeString(slot, 12).replace(/[^0-9]/g, "");
+
+  return normalizedSlot ? `${ANALYSIS_FORUM_EXERCISE_ID_PREFIX}${normalizedSlot}` : "";
+}
+
+export function getAnalysisForumSlotFromExerciseId(exerciseId) {
+  const normalizedExerciseId = normalizeString(exerciseId, 128);
+
+  if (!normalizedExerciseId.startsWith(ANALYSIS_FORUM_EXERCISE_ID_PREFIX)) {
+    return "";
+  }
+
+  return normalizedExerciseId.slice(ANALYSIS_FORUM_EXERCISE_ID_PREFIX.length);
 }
 
 function normalizeNonNegativeInteger(value) {

@@ -28,17 +28,16 @@ const PERCENTAGE_REFERENCE_BUTTONS = Object.freeze({
     label: "Estimate from 2-5 reps",
     mediaText: "2-5RM",
   },
-  rpe_based_1rm: {
-    label: "Estimate from RPE-based heavy single",
-    mediaText: "RPE 8-9",
-  },
 });
 
 const PERCENTAGE_REFERENCE_DISPLAY_ORDER = Object.freeze([
-  "rpe_based_1rm",
   "multi_rm",
   "true_1rm",
 ]);
+
+const TITLE_BLOCK_HEIGHT = 196;
+const SECTION_TOP_PADDING = 52;
+const OPTIONS_BOTTOM_CLEARANCE = 132;
 
 export default function LiftIntensityMethodView({
   value,
@@ -54,7 +53,7 @@ export default function LiftIntensityMethodView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={230}>Lift intensity method</TitleText>
+      <TitleText height={TITLE_BLOCK_HEIGHT}>Lift intensity method</TitleText>
       <ScrollView
         style={styles.optionsScroll}
         contentContainerStyle={styles.contentSlot}
@@ -129,7 +128,7 @@ export default function LiftIntensityMethodView({
 const styles = StyleSheet.create({
   section: {
     justifyContent: "flex-start",
-    paddingTop: 78,
+    paddingTop: SECTION_TOP_PADDING,
   },
   optionsScroll: {
     alignSelf: "stretch",
@@ -138,7 +137,7 @@ const styles = StyleSheet.create({
   contentSlot: {
     gap: 14,
     justifyContent: "flex-start",
-    paddingBottom: 8,
+    paddingBottom: OPTIONS_BOTTOM_CLEARANCE,
   },
   optionButton: {
     backgroundColor: "#141414",

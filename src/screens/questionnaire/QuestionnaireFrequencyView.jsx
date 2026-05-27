@@ -11,13 +11,13 @@ const THUMB_SIZE = 24;
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick, onClose }) {
     const [sliderWidth, setSliderWidth] = useState(0);
-    const [dragValue, setDragValue] = useState(value);
+    const [dragValue, setDragValue] = useState(value ?? MIN_SESSIONS);
     const activeValue = Math.round(dragValue);
     const sliderProgress = (dragValue - MIN_SESSIONS) / (MAX_SESSIONS - MIN_SESSIONS);
     const thumbLeft = sliderWidth ? sliderProgress * (sliderWidth - THUMB_SIZE) : 0;
 
     useEffect(() => {
-        setDragValue(value);
+        setDragValue(value ?? MIN_SESSIONS);
     }, [value]);
 
     const markers = [];
@@ -49,7 +49,7 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
         if (shouldCommit) {
             const roundedValue = Math.round(rawValue);
             setDragValue(roundedValue);
-            onChange(roundedValue);
+            onChange?.(roundedValue);
             return;
         }
 
@@ -95,7 +95,7 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                                 accessibilityValue={{
                                     min: MIN_SESSIONS,
                                     max: MAX_SESSIONS,
-                                    now: Math.round(dragValue),
+                                    now: activeValue,
                                 }}
                                 {...sliderPanResponder.panHandlers}
                             />

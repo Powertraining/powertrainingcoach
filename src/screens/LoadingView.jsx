@@ -1,20 +1,27 @@
-import { View, Image } from "react-native";
-import loadingGif from "../assets/Loading.gif";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-export default function LoadingView() {
-    return (
-        <View>
-            <Image source={loadingGif} style={{ width: 100, height: 100 }} />
-        </View>
-    );
+export default function LoadingView({ label = "" }) {
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="rgba(255, 255, 255, 0.72)" />
+      {label ? <Text style={styles.label}>{label}</Text> : null}
+    </View>
+  );
 }
 
-// import loadingGif from "../assets/Loading.gif";
-// // source image: https://lottiefiles.com/free-animation/loading-animation-blue-VNMY2Tu4UQ
-// export default function LoadingView() {
-//     return (
-//         <div className="loading-overlay">
-//             <img src={loadingGif} alt="Loading..." className="loading-gif" />
-//         </div>
-//     );
-// }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  label: {
+    marginTop: 14,
+    color: "#ffffff",
+    fontFamily: "BebasNeue",
+    fontSize: 20,
+    lineHeight: 22,
+  },
+});

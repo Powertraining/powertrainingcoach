@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
@@ -14,10 +14,12 @@ import {
   getTrainingDayPreferredWeekday,
 } from "../../src/services/utils/trainingPlan.js";
 import { getProgramOverviewToday } from "../../src/services/utils/programOverview.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 const OverviewScreen = observer(function OverviewScreen() {
   const model = reactiveModel;
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   const plan = model.trainingPlan;
   const [completedDays, setCompletedDays] = useState(new Set());
@@ -25,6 +27,11 @@ const OverviewScreen = observer(function OverviewScreen() {
   const [selectedDayPointer, setSelectedDayPointer] = useState(null);
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const lastAutoSelectedDayRef = useRef("");
+  const lastRouteSelectedDayRef = useRef("");
+
+  function getParamValue(value) {
+    return Array.isArray(value) ? value[0] : value;
+  }
 
   // Sync completed days from model
   useEffect(() => {
@@ -51,6 +58,13 @@ const OverviewScreen = observer(function OverviewScreen() {
     () => model.getPendingTrainingCheckIn?.() || null,
     [completedDays, model, model.completedDays, model.questionnaire, model.strengthAssessmentState, model.trainingCheckInState, plan]
   );
+  const routeWeekNumber = Number.parseInt(getParamValue(params.week), 10);
+  const routeDayNumber = Number.parseInt(getParamValue(params.day), 10);
+  const initialScrollToTopKey =
+    Number.isFinite(routeWeekNumber) && Number.isFinite(routeDayNumber)
+      ? `${routeWeekNumber}-${routeDayNumber}`
+      : "";
+
   const selectedDay = useMemo(() => {
     if (!plan || !selectedDayPointer) return null;
 
@@ -74,7 +88,45 @@ const OverviewScreen = observer(function OverviewScreen() {
   }, [plan, selectedDayPointer]);
 
   useEffect(() => {
+    const routeDayKey = `${routeWeekNumber}-${routeDayNumber}`;
+
+    if (
+      !plan ||
+      !Number.isFinite(routeWeekNumber) ||
+      !Number.isFinite(routeDayNumber) ||
+      lastRouteSelectedDayRef.current === routeDayKey
+    ) {
+      return;
+    }
+
+    const week = plan.weeks?.find(
+      (candidateWeek) => candidateWeek.week === routeWeekNumber
+    );
+    const day = week?.days?.find(
+      (candidateDay) => candidateDay.day === routeDayNumber
+    );
+
+    if (!week || !day) {
+      return;
+    }
+
+    lastRouteSelectedDayRef.current = routeDayKey;
+    setSelectedDayPointer({ week: routeWeekNumber, day: routeDayNumber });
+  }, [plan, routeDayNumber, routeWeekNumber]);
+
+  useEffect(() => {
     if (!plan || selectedDayPointer) {
+      return;
+    }
+
+    const routeWeek = plan.weeks?.find(
+      (candidateWeek) => candidateWeek.week === routeWeekNumber
+    );
+    const routeDay = routeWeek?.days?.find(
+      (candidateDay) => candidateDay.day === routeDayNumber
+    );
+
+    if (routeWeek && routeDay) {
       return;
     }
 
@@ -101,7 +153,7 @@ const OverviewScreen = observer(function OverviewScreen() {
 
     lastAutoSelectedDayRef.current = todayDateKey;
     setSelectedDayPointer({ week: currentWeek.week, day: todayTrainingDay.day });
-  }, [completedDays, plan, selectedDayPointer]);
+  }, [completedDays, plan, routeDayNumber, routeWeekNumber, selectedDayPointer]);
   const selectedDayAssessmentResults = useMemo(
     () =>
       selectedDay
@@ -123,6 +175,15 @@ const OverviewScreen = observer(function OverviewScreen() {
   const totalDays = useMemo(() => {
     return model.getTrackableTrainingDayCount?.() || 0;
   }, [model, plan]);
+
+  useAndroidBackHandler(() => {
+    if (selectedDayPointer) {
+      handleClearSelectedDay();
+      return;
+    }
+
+    return false;
+  }, [selectedDayPointer]);
 
   if (!model.ready) {
     return (
@@ -175,6 +236,7 @@ const OverviewScreen = observer(function OverviewScreen() {
       params: {
         week: String(weekNumber),
         day: String(dayNumber),
+        returnTo: "/(tabs)/overview",
       },
     });
   }
@@ -363,6 +425,7 @@ const OverviewScreen = observer(function OverviewScreen() {
         onCompletedSessionProgressSave={handleCompletedSessionProgressSave}
         onTestSession={handleTestSession}
         updatingPlan={updatingPlan}
+        initialScrollToTopKey={initialScrollToTopKey}
       />
     </View>
   );

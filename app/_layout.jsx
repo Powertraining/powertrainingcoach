@@ -45,11 +45,7 @@ const RootLayout = observer(function RootLayout() {
     };
   }, [model]);
 
-  const isGeneratingPlan =
-    model.trainingPlanPromiseState?.promise &&
-    !model.trainingPlanPromiseState?.data &&
-    !model.trainingPlanPromiseState?.error;
-  const isLoading = !model.ready || isGeneratingPlan;
+  const isLoading = !model.ready;
 
   if (!fontsLoaded) {
     return null;
@@ -116,6 +112,6 @@ const styles = StyleSheet.create({
     zIndex: 100,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    backgroundColor: "rgba(0, 0, 0, 0.58)",
   },
 });

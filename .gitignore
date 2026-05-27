@@ -12,6 +12,7 @@ out/
 
 # Expo
 .expo/
+.expo-export-check/
 expo-env.d.ts
 
 # Firebase

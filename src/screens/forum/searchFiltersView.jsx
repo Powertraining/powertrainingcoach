@@ -1,6 +1,9 @@
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../constants/combatSports.js";
-import { FORUM_TOPIC_SUGGESTIONS } from "../../services/models/forumModel.js";
+import {
+  ANALYSIS_FORUM_TAG,
+  FORUM_TOPIC_SUGGESTIONS,
+} from "../../services/models/forumModel.js";
 
 const COLORS = {
   panel: "#141414",
@@ -57,6 +60,7 @@ export default function SearchFiltersView({
   visible = false,
   filters = {},
   showSortOptions = true,
+  showAnalysisTopic = false,
   style,
   contentHorizontalInset = 20,
   onClose,
@@ -67,9 +71,15 @@ export default function SearchFiltersView({
   const selectedTopics = getSelectedTopics(filters);
   const selectedTopicSet = new Set(selectedTopics);
   const selectedSortBy = filters?.sortBy || "recent";
-  const topicOptions = FORUM_TOPIC_SUGGESTIONS.filter(
-    (topic) => topic !== "general" && !SPORT_TOPICS.has(topic)
-  );
+  const topicOptions = [
+    ...(showAnalysisTopic ? [ANALYSIS_FORUM_TAG] : []),
+    ...FORUM_TOPIC_SUGGESTIONS.filter(
+      (topic) =>
+        topic !== "general" &&
+        topic !== ANALYSIS_FORUM_TAG &&
+        !SPORT_TOPICS.has(topic)
+    ),
+  ];
 
   function toggleTopic(topic) {
     const nextTopicSet = new Set(selectedTopics);

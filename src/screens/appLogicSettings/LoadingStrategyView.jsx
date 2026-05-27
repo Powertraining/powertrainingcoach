@@ -1,7 +1,10 @@
 import { Image, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { LOADING_STRATEGY_OPTIONS } from "../../constants/appLogicSettings.js";
+import {
+  APP_LOGIC_SETTINGS_DEFAULTS,
+  LOADING_STRATEGY_OPTIONS,
+} from "../../constants/appLogicSettings.js";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import TitleText from "../../components/textComponents/TitleText.jsx";
 
@@ -12,10 +15,22 @@ function getActiveIndex(value) {
     (option) => option.value === value
   );
 
-  return foundIndex >= 0 ? foundIndex : 0;
+  if (foundIndex >= 0) {
+    return foundIndex;
+  }
+
+  const defaultIndex = LOADING_STRATEGY_OPTIONS.findIndex(
+    (option) => option.value === APP_LOGIC_SETTINGS_DEFAULTS.loadingStrategy
+  );
+
+  return defaultIndex >= 0 ? defaultIndex : 0;
 }
 
 function getLoadingBarWidths(value) {
+  if (!value) {
+    return ["0%", "0%", "0%"];
+  }
+
   if (value === "flat_loading") {
     return ["0%", "76%", "0%"];
   }
@@ -109,9 +124,13 @@ export default function LoadingStrategyView({ value, onChange }) {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const activeIndex = getActiveIndex(value);
-  const activeOption = LOADING_STRATEGY_OPTIONS[activeIndex];
+  const activeOption = activeIndex >= 0 ? LOADING_STRATEGY_OPTIONS[activeIndex] : null;
 
   function moveSelection(direction) {
+    if (!LOADING_STRATEGY_OPTIONS.length) {
+      return;
+    }
+
     const nextIndex =
       (activeIndex + direction + LOADING_STRATEGY_OPTIONS.length) %
       LOADING_STRATEGY_OPTIONS.length;
@@ -133,15 +152,17 @@ export default function LoadingStrategyView({ value, onChange }) {
         Loading strategy
       </TitleText>
 
-      <LoadingVisual value={activeOption?.value} />
+      <View style={styles.selectionArea}>
+        <LoadingVisual value={activeOption?.value} />
 
-      <StandardText style={styles.optionText} textColor="#ffffff" center>
-        {activeOption?.label}
-      </StandardText>
+        <StandardText style={styles.optionText} textColor="#ffffff" center>
+          {activeOption?.label}
+        </StandardText>
 
-      <StandardText style={styles.descriptionText} textColor="#C9B259" center>
-        {activeOption?.description}
-      </StandardText>
+        <StandardText style={styles.descriptionText} textColor="#C9B259" center>
+          {activeOption?.description}
+        </StandardText>
+      </View>
 
       <View style={styles.buttonsRow}>
         <Pressable
@@ -198,6 +219,9 @@ const styles = StyleSheet.create({
     gap: 20,
     marginTop: 36,
     width: 250,
+  },
+  selectionArea: {
+    alignItems: "center",
   },
   loadingBlockSlot: {
     alignItems: "center",

@@ -13,9 +13,12 @@ import LoadingView from "../../src/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
+import BlackGradient from "../../src/components/colorComponents/BlackGradient.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
+import { getParamValue } from "../../src/services/utils/navigation.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 const STEPS = Object.freeze({
   START: "start",
@@ -31,17 +34,13 @@ const HomeScreen = observer(function HomeScreen() {
 
   const [step, setStep] = useState(STEPS.START);
   const [questionnaireResumeStep, setQuestionnaireResumeStep] = useState(STEPS.Q_SPORT);
-  const [questionnaireDraft, setQuestionnaireDraft] = useState(() => model.questionnaire || {});
+  const [questionnaireDraft, setQuestionnaireDraft] = useState({});
   const [inputActiveStep, setInputActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [pushingBackSession, setPushingBackSession] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [error, setError] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
-
-  function getParamValue(value) {
-    return Array.isArray(value) ? value[0] : value;
-  }
 
   function getSafeResumeStep() {
     const resume = getParamValue(params.resume);
@@ -72,7 +71,7 @@ const HomeScreen = observer(function HomeScreen() {
   function resetQuestionnaireProgress() {
     setStep(STEPS.START);
     setQuestionnaireResumeStep(STEPS.Q_SPORT);
-    setQuestionnaireDraft(model.questionnaire || {});
+    setQuestionnaireDraft({});
     setInputActiveStep(0);
   }
 
@@ -128,6 +127,14 @@ const HomeScreen = observer(function HomeScreen() {
       });
   }, [model, model.ready, model.user, router]);
 
+  useEffect(() => {
+    model.setPlanGenerationTabBarHidden?.(loading);
+
+    return () => {
+      model.setPlanGenerationTabBarHidden?.(false);
+    };
+  }, [loading, model]);
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -166,6 +173,20 @@ const HomeScreen = observer(function HomeScreen() {
     setStep(STEPS.START);
   }
 
+  useAndroidBackHandler(() => {
+    if (pushBackConfirmVisible) {
+      closePushBackConfirm();
+      return;
+    }
+
+    if (step === STEPS.Q_SPORT || step === STEPS.Q_FREQ) {
+      goBack();
+      return;
+    }
+
+    return false;
+  }, [pushBackConfirmVisible, step, inputActiveStep]);
+
   function buildQuestionnairePayload(input, pendingPlanGeneration) {
     return {
       ...input,
@@ -185,13 +206,32 @@ const HomeScreen = observer(function HomeScreen() {
     try {
       const normalizedQuestionnaire =
         model.buildTrainingPlanInput?.(questionnaire) || questionnaire;
-      await model.generateTrainingPlan?.(normalizedQuestionnaire);
+      const generatedPlan = await model.generateTrainingPlan?.(normalizedQuestionnaire);
       model.setQuestionnaire?.({
         ...questionnaire,
         pendingPlanGeneration: false,
         pendingCycleReview: false,
       });
       resetQuestionnaireProgress();
+
+      const currentTrainingDay =
+        getClosestActiveTrainingDay(generatedPlan || model.trainingPlan, []) ||
+        model.getCurrentTrainingDay?.([]);
+      const weekNumber = Number.parseInt(currentTrainingDay?.week, 10);
+      const dayNumber = Number.parseInt(currentTrainingDay?.day, 10);
+
+      if (Number.isFinite(weekNumber) && Number.isFinite(dayNumber)) {
+        router.replace({
+          pathname: "/(tabs)/overview",
+          params: {
+            week: String(weekNumber),
+            day: String(dayNumber),
+            returnTo: "/(tabs)",
+          },
+        });
+        return;
+      }
+
       router.replace("/(tabs)/overview");
     } catch (e) {
       console.error("Error generating training plan:", e);
@@ -316,6 +356,7 @@ const HomeScreen = observer(function HomeScreen() {
       params: {
         week: String(currentSession.week),
         day: String(currentSession.day),
+        returnTo: "/(tabs)",
       },
     });
   }
@@ -364,8 +405,9 @@ const HomeScreen = observer(function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <LoadingView />
+      <View style={[styles.container, styles.planGenerationContainer]}>
+        <BlackGradient />
+        <LoadingView label="Generating" />
       </View>
     );
   }
@@ -403,17 +445,31 @@ const HomeScreen = observer(function HomeScreen() {
         onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
         onStartSession={openCurrentSession}
         onPushBackSession={openPushBackConfirm}
-        onAdjustPlan={() => router.push("/(tabs)/profile-plan-adjustments")}
-        onMyPosts={() => router.push("/(tabs)/profile-my-posts")}
+        onAdjustPlan={() =>
+          router.push({
+            pathname: "/(tabs)/profile-plan-adjustments",
+            params: { returnTo: "/(tabs)" },
+          })
+        }
+        onMyPosts={() =>
+          router.push({
+            pathname: "/(tabs)/profile-my-posts",
+            params: { returnTo: "/(tabs)" },
+          })
+        }
       />
     ),
 
     [STEPS.Q_SPORT]: () => (
       <QuestionnaireSportView
         options={PRIMARY_COMBAT_SPORT_OPTIONS}
-        value={model.primaryCombatSport}
+        value={questionnaireDraft?.primaryCombatSport ?? null}
         onChange={(sport) => {
           model.primaryCombatSport = sport;
+          setQuestionnaireDraft((currentDraft) => ({
+            ...currentDraft,
+            primaryCombatSport: sport,
+          }));
         }}
         onBack={goBack}
         onClose={closeQuestionnaire}
@@ -423,9 +479,14 @@ const HomeScreen = observer(function HomeScreen() {
 
     [STEPS.Q_FREQ]: () => (
       <QuestionnaireFrequencyView
-        value={model.sessionsPerWeek}
+        value={questionnaireDraft?.sessionsPerWeek ?? 1}
         onChange={(freq) => {
           model.sessionsPerWeek = freq;
+          setQuestionnaireDraft((currentDraft) => ({
+            ...currentDraft,
+            sessionsPerWeek: freq,
+            daysPerWeek: freq,
+          }));
         }}
         onBack={goBack}
         onClose={closeQuestionnaire}
@@ -439,7 +500,6 @@ const HomeScreen = observer(function HomeScreen() {
         onBack={goBack}
         initialValues={{
           ...questionnaireDraft,
-          daysPerWeek: model.sessionsPerWeek,
         }}
         initialActiveStep={inputActiveStep}
         onActiveStepChange={setInputActiveStep}
@@ -477,5 +537,8 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  planGenerationContainer: {
+    overflow: "hidden",
   },
 });

@@ -15,6 +15,7 @@ import {
   pickForumVideo,
   uploadForumMedia,
 } from "../../src/services/utils/mediaUpload.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 function buildForumReturnTo(pathname, params) {
   if (typeof pathname !== "string" || !pathname.startsWith("/")) {
@@ -66,6 +67,7 @@ const ForumScreen = observer(function ForumScreen() {
   const [isCreatingReply, setIsCreatingReply] = useState(false);
   const [createReplyError, setCreateReplyError] = useState(null);
   const [isSearchFiltersVisible, setIsSearchFiltersVisible] = useState(false);
+  const [canTagAnalysisPosts, setCanTagAnalysisPosts] = useState(false);
 
   useEffect(() => {
     if (!model.ready || !model.user || model.forumFeed.length > 0) {
@@ -76,6 +78,34 @@ const ForumScreen = observer(function ForumScreen() {
       console.warn("Could not load the forum feed:", error);
     });
   }, [model, model.forumFeed.length, model.ready, model.user]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    if (!model.ready || !model.user) {
+      setCanTagAnalysisPosts(false);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    model.getForumAuthorMeta()
+      .then((authorMeta) => {
+        if (isActive) {
+          setCanTagAnalysisPosts(Boolean(authorMeta?.isCoachVerified));
+        }
+      })
+      .catch((error) => {
+        console.warn("Could not load forum author role:", error);
+        if (isActive) {
+          setCanTagAnalysisPosts(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [model, model.ready, model.user]);
 
   useEffect(() => {
     const routeSearchQuery =
@@ -198,7 +228,11 @@ const ForumScreen = observer(function ForumScreen() {
     const normalizedTags = Array.isArray(tags) ?
       tags
         .map((tag) => String(tag ?? "").trim().toLowerCase())
-        .filter((tag) => tag && tag !== "coach") :
+        .filter((tag) =>
+          tag &&
+          tag !== "coach" &&
+          (canTagAnalysisPosts || tag !== "analysis")
+        ) :
       [];
 
     model.updateForumComposer({
@@ -472,6 +506,37 @@ const ForumScreen = observer(function ForumScreen() {
     await handleForumFilterChange({ topics: [normalizedTopic], topic: "all" });
   }
 
+  useAndroidBackHandler(() => {
+    if (isCoachResponseVisible || isCommentsVisible) {
+      hideForumOverlay();
+      return;
+    }
+
+    if (isSearchFiltersVisible) {
+      hideSearchFiltersView();
+      return;
+    }
+
+    if (currentView === "compose" || currentView === "composeLocked") {
+      handleLeavePostComposer();
+      return;
+    }
+
+    if (currentView === "post") {
+      hidePostView();
+      return;
+    }
+
+    return false;
+  }, [
+    currentView,
+    isCoachResponseVisible,
+    isCommentsVisible,
+    isCreatingPost,
+    isSearchFiltersVisible,
+    isUploadingPostMedia,
+  ]);
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -531,6 +596,7 @@ const ForumScreen = observer(function ForumScreen() {
           isUploadingMedia={isUploadingPostMedia}
           error={createPostError}
           selectedTags={model.forumComposer?.tags || []}
+          allowAnalysisTag={canTagAnalysisPosts}
           onChangeTitle={handleComposeTitleChange}
           onChangeText={handleComposeTextChange}
           onChangeTags={handleComposeTagsChange}

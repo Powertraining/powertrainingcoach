@@ -13,7 +13,7 @@ function clamp(value, min, max) {
 
 function getFillRatioFromValue(value) {
   const index = INTENSITY_VALUES.indexOf(value);
-  return index >= 0 ? 0.3 + index * 0.3 : 0.6;
+  return index >= 0 ? 0.3 + index * 0.3 : 0.3;
 }
 
 function getValueFromFillRatio(fillRatio) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
@@ -10,10 +10,14 @@ import CoachResponseView from "../../src/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/forum/commentsView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
 import SavedPostsView from "../../src/screens/profile/SavedPostsView.jsx";
+import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
   const model = reactiveModel;
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const returnTo = getSafeReturnToPath(params, "/(tabs)/profile");
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [currentView, setCurrentView] = useState("list");
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,6 +75,20 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
       !model.forumCommentsPromiseState?.error
   );
 
+  useAndroidBackHandler(() => {
+    if (isCoachResponseVisible || isCommentsVisible) {
+      hideForumOverlay();
+      return;
+    }
+
+    if (currentView === "post") {
+      hidePostView();
+      return;
+    }
+
+    backToProfile();
+  }, [currentView, isCoachResponseVisible, isCommentsVisible, returnTo, router]);
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -89,7 +107,7 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
   }
 
   function backToProfile() {
-    router.push("/(tabs)/profile");
+    router.replace(returnTo);
   }
 
   async function reloadSavedPosts(filterOverrides = {}) {

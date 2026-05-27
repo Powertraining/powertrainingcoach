@@ -7,12 +7,15 @@ import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import DayDetailView from "../../src/screens/DayDetailView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 const DayDetailScreen = observer(function DayDetailScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
   const [updatingPlan, setUpdatingPlan] = useState(false);
+  const returnTo = getSafeReturnToPath(params, "/(tabs)/overview");
 
   const weekNumber = parseInt(params.week, 10);
   const dayNumber = parseInt(params.day, 10);
@@ -82,6 +85,8 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     }
   }, [model.questionnaire, model.ready, model.user, plan, selectedDay, router]);
 
+  useAndroidBackHandler(handleBack, [returnTo, router]);
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -101,7 +106,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
   }
 
   function handleBack() {
-    router.back();
+    router.replace(returnTo);
   }
 
   function handleReplaceExercise(exerciseIndex, substitutionId) {

@@ -192,7 +192,11 @@ export default function DateSelector({
     setSelectedYear(nextDate.year);
     setSelectedMonth(nextDate.month);
     setSelectedDay(nextDate.day);
-    const nextDateValue = formatDate(nextDate.year, nextDate.month, nextDate.day);
+    const nextDateValue = formatDateParts(
+      nextDate.year,
+      nextDate.month,
+      nextDate.day
+    );
 
     if (nextDateValue !== String(value).trim()) {
       onChange?.(nextDateValue);

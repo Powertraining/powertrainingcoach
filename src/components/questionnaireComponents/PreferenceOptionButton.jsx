@@ -8,6 +8,7 @@ export default function PreferenceOptionButton({
   onPress,
   imageSource,
   imageStyle,
+  icon,
   mediaText,
   selectedButtonStyle,
   buttonStyle,
@@ -35,7 +36,11 @@ export default function PreferenceOptionButton({
       ]}
     >
       <View style={[styles.content, stacked ? styles.contentStacked : null]}>
-        {imageSource ? (
+        {icon ? (
+          <View style={[styles.iconSlot, stacked ? styles.iconSlotStacked : null]}>
+            {icon}
+          </View>
+        ) : imageSource ? (
           <Image
             source={imageSource}
             style={[
@@ -144,6 +149,12 @@ const styles = StyleSheet.create({
     width: 42,
   },
   imageStacked: {
+    marginBottom: 0,
+  },
+  iconSlot: {
+    marginBottom: 18,
+  },
+  iconSlotStacked: {
     marginBottom: 0,
   },
   mediaText: {

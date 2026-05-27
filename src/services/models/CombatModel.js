@@ -31,6 +31,7 @@ import {
 } from "./dbService.js";
 import {
   appendForumReply,
+  ANALYSIS_FORUM_TAG,
   applyForumFilters,
   buildForumCommentPayload,
   buildForumPostPayload,
@@ -196,14 +197,17 @@ export const model = {
   forumComposer: createDefaultForumComposer(),
   forumFeed: [],
   myForumPosts: [],
+  forumAnalysisPosts: [],
   savedForumPosts: [],
   forumSelectedPost: null,
   forumComments: [],
   forumOverlayVisible: false,
   forumTabBarHidden: false,
+  planGenerationTabBarHidden: false,
   forumOverlayDismissCount: 0,
   forumFeedPromiseState: {},
   myForumPostsPromiseState: {},
+  forumAnalysisPostsPromiseState: {},
   savedForumPostsPromiseState: {},
   forumSelectedPostPromiseState: {},
   forumCommentsPromiseState: {},
@@ -344,14 +348,17 @@ export const model = {
     this.forumComposer = createDefaultForumComposer();
     this.forumFeed = [];
     this.myForumPosts = [];
+    this.forumAnalysisPosts = [];
     this.savedForumPosts = [];
     this.forumSelectedPost = null;
     this.forumComments = [];
     this.forumOverlayVisible = false;
     this.forumTabBarHidden = false;
+    this.planGenerationTabBarHidden = false;
     this.forumOverlayDismissCount = 0;
     this.forumFeedPromiseState = {};
     this.myForumPostsPromiseState = {};
+    this.forumAnalysisPostsPromiseState = {};
     this.savedForumPostsPromiseState = {};
     this.forumSelectedPostPromiseState = {};
     this.forumCommentsPromiseState = {};
@@ -369,6 +376,10 @@ export const model = {
 
   setForumTabBarHidden(value) {
     this.forumTabBarHidden = Boolean(value);
+  },
+
+  setPlanGenerationTabBarHidden(value) {
+    this.planGenerationTabBarHidden = Boolean(value);
   },
 
   requestForumOverlayDismiss() {
@@ -417,6 +428,7 @@ export const model = {
 
     this.forumFeed = this.forumFeed.map(applyPatch);
     this.myForumPosts = this.myForumPosts.map(applyPatch);
+    this.forumAnalysisPosts = this.forumAnalysisPosts.map(applyPatch);
     this.savedForumPosts = this.savedForumPosts.map(applyPatch);
     this.forumSelectedPost = applyPatch(this.forumSelectedPost);
   },
@@ -444,6 +456,9 @@ export const model = {
       normalizeForumPost(post, normalizedProfile)
     );
     this.myForumPosts = this.myForumPosts.map((post) =>
+      normalizeForumPost(post, normalizedProfile)
+    );
+    this.forumAnalysisPosts = this.forumAnalysisPosts.map((post) =>
       normalizeForumPost(post, normalizedProfile)
     );
     this.savedForumPosts = this.savedForumPosts.map((post) =>
@@ -512,7 +527,7 @@ export const model = {
         result.data,
         nextFilters,
         this.getNormalizedForumProfile()
-      );
+      ).filter((post) => !post.tags.includes(ANALYSIS_FORUM_TAG));
 
       this.forumFeed = normalizedPosts;
       return normalizedPosts;
@@ -582,6 +597,29 @@ export const model = {
     });
 
     resolvePromise(prms, this.myForumPostsPromiseState);
+    return prms;
+  },
+
+  async loadMyAnalysisForumPosts() {
+    this.assertForumAuthenticated();
+
+    const prms = getForumPosts({
+      limitCount: 100,
+    }).then((result) => {
+      if (!result.success) {
+        throw result.error || new Error("Could not load your analysis posts.");
+      }
+
+      const analysisPosts = result.data
+        .filter((post) => post?.authorId === this.user?.uid)
+        .map((post) => normalizeForumPost(post, this.getNormalizedForumProfile()))
+        .filter((post) => post.tags.includes(ANALYSIS_FORUM_TAG));
+
+      this.forumAnalysisPosts = analysisPosts;
+      return analysisPosts;
+    });
+
+    resolvePromise(prms, this.forumAnalysisPostsPromiseState);
     return prms;
   },
 
@@ -678,6 +716,12 @@ export const model = {
       0,
       this.forumFilters.limit || 25
     );
+    if (normalizedPost.tags.includes(ANALYSIS_FORUM_TAG)) {
+      this.forumAnalysisPosts = [normalizedPost, ...this.forumAnalysisPosts].slice(
+        0,
+        100
+      );
+    }
     this.forumSelectedPost = normalizedPost;
     this.forumComments = [];
     this.resetForumComposer();

@@ -6,24 +6,30 @@ import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
     CONFIDENCE_STEP_KEYS,
-    DELOAD_STRATEGY_STEP_INDEX,
-    DESIRED_TRAINING_STEP_INDEX,
-    EVENT_DESCRIPTION_STEP_INDEX,
     getTrainingPreferencesSectionCount,
-    INJURIES_STEP_INDEX,
-    LIFT_INTENSITY_METHOD_STEP_INDEX,
-    TRAINING_PHASE_STEP_INDEX,
+    getTrainingPreferencesStepKey,
 } from "./TrainingPreferencesFields.jsx";
 
 import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
+import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
 
 function getEventDescription(value = "") {
     const match = /Description:\s*([^;]+)/i.exec(String(value));
     return match ? match[1].trim() : "";
 }
+
+function hasInitialValue(source, key) {
+    return Object.prototype.hasOwnProperty.call(source ?? {}, key);
+}
+
+function getNullableInitialValue(source, formState, key) {
+    return hasInitialValue(source, key) ? formState[key] : null;
+}
+
+const CONFIDENCE_STEP_KEY_VALUES = new Set(Object.values(CONFIDENCE_STEP_KEYS));
 
 export default function InputFormView({
     onSubmit,
@@ -44,6 +50,50 @@ export default function InputFormView({
 
         return {
             ...formState,
+            experience: getNullableInitialValue(initialValues, formState, "experience"),
+            desiredTraining: getNullableInitialValue(initialValues, formState, "desiredTraining"),
+            preferredEnduranceModalities: hasInitialValue(
+                initialValues,
+                "preferredEnduranceModalities"
+            )
+                ? formState.preferredEnduranceModalities
+                : [],
+            enduranceSessionsPerWeek: getNullableInitialValue(
+                initialValues,
+                formState,
+                "enduranceSessionsPerWeek"
+            ) ?? 1,
+            preferredEnduranceFormat: getNullableInitialValue(
+                initialValues,
+                formState,
+                "preferredEnduranceFormat"
+            ),
+            sessionDuration: getNullableInitialValue(
+                initialValues,
+                formState,
+                "sessionDuration"
+            ) ?? "15_min",
+            equipment: getNullableInitialValue(initialValues, formState, "equipment"),
+            trainingPhase: getNullableInitialValue(initialValues, formState, "trainingPhase"),
+            combatTrainingIntensity: getNullableInitialValue(
+                initialValues,
+                formState,
+                "combatTrainingIntensity"
+            ) ?? "light",
+            liftIntensityMethod: getNullableInitialValue(
+                initialValues,
+                formState,
+                "liftIntensityMethod"
+            ),
+            percentageReferenceMethod: getNullableInitialValue(
+                initialValues,
+                formState,
+                "percentageReferenceMethod"
+            ),
+            deloadStrategy: getNullableInitialValue(initialValues, formState, "deloadStrategy"),
+            loadingStrategy:
+                getNullableInitialValue(initialValues, formState, "loadingStrategy") ??
+                formState.loadingStrategy,
             trainingCapabilities: {
                 ...formState.trainingCapabilities,
                 compoundLifts: initialValues?.trainingCapabilities?.compoundLifts ?? null,
@@ -61,20 +111,26 @@ export default function InputFormView({
     });
     const [activeStep, setActiveStep] = useState(initialActiveStep);
     const [isEventDescriptionEditorOpen, setIsEventDescriptionEditorOpen] = useState(false);
+    const [isEnduranceMethodsInfoOpen, setIsEnduranceMethodsInfoOpen] = useState(false);
     const sectionCount = getTrainingPreferencesSectionCount(trainingPreferences);
-    const activeConfidenceKey = CONFIDENCE_STEP_KEYS[activeStep];
+    const activeStepKey = getTrainingPreferencesStepKey(trainingPreferences, activeStep);
+    const activeConfidenceKey = CONFIDENCE_STEP_KEY_VALUES.has(activeStepKey)
+        ? activeStepKey
+        : "";
     const confidenceStepSelected = Boolean(
         activeConfidenceKey &&
         trainingPreferences.trainingCapabilities?.[activeConfidenceKey]
     );
-    const isDesiredTrainingStep = activeStep === DESIRED_TRAINING_STEP_INDEX;
+    const isDesiredTrainingStep = activeStepKey === "desiredTraining";
     const desiredTrainingStepSelected = Boolean(trainingPreferences.desiredTraining);
-    const isTrainingPhaseStep = activeStep === TRAINING_PHASE_STEP_INDEX;
+    const isTrainingPhaseStep = activeStepKey === "trainingPhase";
     const trainingPhaseStepSelected = Boolean(trainingPreferences.trainingPhase);
-    const isEventDescriptionStep = activeStep === EVENT_DESCRIPTION_STEP_INDEX;
-    const isInjuriesStep = activeStep === INJURIES_STEP_INDEX;
-    const isLiftIntensityMethodStep = activeStep === LIFT_INTENSITY_METHOD_STEP_INDEX;
-    const isDeloadStrategyStep = activeStep === DELOAD_STRATEGY_STEP_INDEX;
+    const isEventDescriptionStep = activeStepKey === "eventDescription";
+    const isInjuriesStep = activeStepKey === "injuries";
+    const isEnduranceCircuitGoalStep = activeStepKey === "enduranceCircuitGoal";
+    const isEnduranceStyleStep = activeStepKey === "enduranceStyle";
+    const isLiftIntensityMethodStep = activeStepKey === "liftIntensityMethod";
+    const isDeloadStrategyStep = activeStepKey === "deloadStrategy";
     const liftIntensityMethodStepSelected = Boolean(trainingPreferences.liftIntensityMethod);
     const deloadStrategyStepSelected = Boolean(trainingPreferences.deloadStrategy);
     const eventDescriptionStepSelected = Boolean(
@@ -98,6 +154,7 @@ export default function InputFormView({
 
     useEffect(() => {
         setActiveStep(initialActiveStep);
+        setIsEnduranceMethodsInfoOpen(false);
         onActiveStepChange?.(initialActiveStep);
     }, [initialActiveStep]);
 
@@ -131,6 +188,7 @@ export default function InputFormView({
 
     function handleContinue() {
         setIsEventDescriptionEditorOpen(false);
+        setIsEnduranceMethodsInfoOpen(false);
 
         if (activeStep >= sectionCount - 1) {
             handleSubmit();
@@ -142,6 +200,7 @@ export default function InputFormView({
 
     function handleStepBack() {
         setIsEventDescriptionEditorOpen(false);
+        setIsEnduranceMethodsInfoOpen(false);
 
         if (activeStep === 0) {
             onBack?.();
@@ -150,6 +209,14 @@ export default function InputFormView({
 
         updateActiveStep((currentStep) => currentStep - 1);
     }
+
+    useAndroidBackHandler(handleStepBack, [
+        activeStep,
+        isEventDescriptionEditorOpen,
+        isEnduranceMethodsInfoOpen,
+        onBack,
+        sectionCount,
+    ]);
 
     function handleEventDescriptionSkip() {
         setIsEventDescriptionEditorOpen(false);
@@ -164,10 +231,20 @@ export default function InputFormView({
         handleContinue();
     }
 
+    function handleEnduranceCircuitGoalSkip() {
+        updateTrainingPreferences((currentPreferences) => ({
+            ...currentPreferences,
+            circuitTrainingGoalInput: "",
+        }));
+        handleContinue();
+    }
+
     return (
         <QuestionnaireShell
             onClose={onClose}
-            topBackgroundColor={isInjuriesStep ? "#141414" : null}
+            topBackgroundColor={
+                isInjuriesStep || isEnduranceCircuitGoalStep ? "#141414" : null
+            }
         >
             {isEventDescriptionEditorOpen ? (
                 <View pointerEvents="none" style={styles.eventEditorDimLayer} />
@@ -175,7 +252,10 @@ export default function InputFormView({
             <View
                 style={[
                     styles.center,
-                    isLiftIntensityMethodStep || isDeloadStrategyStep
+                    isEnduranceStyleStep ||
+                    isEnduranceCircuitGoalStep ||
+                    isLiftIntensityMethodStep ||
+                    isDeloadStrategyStep
                         ? styles.centerFullHeight
                         : null,
                     isEventDescriptionEditorOpen ? styles.centerAboveDimLayer : null,
@@ -206,6 +286,9 @@ export default function InputFormView({
                             activeStep={activeStep}
                             onEventDescriptionSkip={handleEventDescriptionSkip}
                             onEventDescriptionEditorChange={setIsEventDescriptionEditorOpen}
+                            onEnduranceMethodsInfoVisibilityChange={setIsEnduranceMethodsInfoOpen}
+                            onEnduranceCircuitGoalContinue={handleContinue}
+                            onEnduranceCircuitGoalSkip={handleEnduranceCircuitGoalSkip}
                             onInjuriesContinue={handleContinue}
                             onInjuriesSkip={handleInjuriesSkip}
                         />
@@ -213,7 +296,7 @@ export default function InputFormView({
                     </View>
                 </View>
             </View>
-            {!isEventDescriptionEditorOpen && !isInjuriesStep ? (
+            {!isEventDescriptionEditorOpen && !isEnduranceMethodsInfoOpen && !isInjuriesStep && !isEnduranceCircuitGoalStep ? (
                 <QuestionnaireBottomActionButton
                     layout={requiresSelection ? "single" : "stacked"}
                     canContinue={canContinue}

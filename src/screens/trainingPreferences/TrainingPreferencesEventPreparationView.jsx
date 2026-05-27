@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  Dimensions,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -10,6 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import DateSelector from "../../components/questionnaireComponents/DateSelector.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
@@ -23,6 +25,10 @@ const CONTINUE_BUTTON_TOP_OFFSET = 80;
 const DESCRIPTION_CARD_HEIGHT = 104;
 const DATE_SELECTOR_HEIGHT = 70 * 3;
 const SECTION_TOP_PADDING = 180;
+const DESCRIPTION_EDITOR_CARD_HEIGHT = 224;
+const DESCRIPTION_EDITOR_ACTIONS_HEIGHT = 44;
+const DESCRIPTION_EDITOR_ACTIONS_GAP = 10;
+const DESCRIPTION_EDITOR_TOP_OFFSET = 72;
 
 function getInitialDate(value = "") {
   return parseEventPreparation(value).date;
@@ -39,11 +45,30 @@ export default function TrainingPreferencesEventPreparationView({
   onSkip,
   onEditorVisibilityChange,
 }) {
+  const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
+  const physicalScreenHeight = Dimensions.get("screen").height;
   const [eventDate, setEventDate] = useState(() => getInitialDate(value));
   const [eventDescription, setEventDescription] = useState(() => getInitialDescription(value));
+  const [draftEventDescription, setDraftEventDescription] = useState(() =>
+    getInitialDescription(value)
+  );
   const [isDetailsEditing, setIsDetailsEditing] = useState(false);
   const [helperBottom, setHelperBottom] = useState(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const cancelPressPendingRef = useRef(false);
+  const isDetailsEditingRef = useRef(false);
+  const overlayHeight =
+    Math.max(screenHeight, physicalScreenHeight) + SECTION_TOP_PADDING + keyboardHeight;
+  const editorSafeTopPadding = Math.max(insets.top + 20, 32);
+  const editorContentHeight =
+    DESCRIPTION_EDITOR_CARD_HEIGHT +
+    DESCRIPTION_EDITOR_ACTIONS_GAP +
+    DESCRIPTION_EDITOR_ACTIONS_HEIGHT;
+  const editorLayerHeight = Math.max(
+    screenHeight / 2,
+    editorContentHeight + editorSafeTopPadding + 24
+  );
   const continueButtonTop =
     screenHeight - SECTION_TOP_PADDING - CONTINUE_BUTTON_TOP_OFFSET;
   const centeredContentHeight =
@@ -55,8 +80,39 @@ export default function TrainingPreferencesEventPreparationView({
 
   useEffect(() => {
     setEventDate(getInitialDate(value));
-    setEventDescription(getInitialDescription(value));
-  }, [value]);
+    const nextDescription = getInitialDescription(value);
+    setEventDescription(nextDescription);
+
+    if (!isDetailsEditing) {
+      setDraftEventDescription(nextDescription);
+    }
+  }, [isDetailsEditing, value]);
+
+  useEffect(() => {
+    isDetailsEditingRef.current = isDetailsEditing;
+  }, [isDetailsEditing]);
+
+  useEffect(() => {
+    const keyboardShowEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const keyboardHideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSubscription = Keyboard.addListener(keyboardShowEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates?.height || 0);
+    });
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+      setKeyboardHeight(0);
+
+      if (isDetailsEditingRef.current) {
+        saveDetailsEditor();
+      }
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [draftEventDescription, eventDate]);
 
   function updateDate(nextDate) {
     setEventDate(nextDate);
@@ -69,14 +125,30 @@ export default function TrainingPreferencesEventPreparationView({
   }
 
   function openDetailsEditor() {
+    setDraftEventDescription(eventDescription);
     setIsDetailsEditing(true);
     onEditorVisibilityChange?.(true);
   }
 
-  function closeDetailsEditor() {
+  function saveDetailsEditor() {
+    if (cancelPressPendingRef.current) {
+      return;
+    }
+
+    isDetailsEditingRef.current = false;
     Keyboard.dismiss();
+    updateDetails(draftEventDescription);
     setIsDetailsEditing(false);
     onEditorVisibilityChange?.(false);
+  }
+
+  function cancelDetailsEditor() {
+    isDetailsEditingRef.current = false;
+    Keyboard.dismiss();
+    setDraftEventDescription(eventDescription);
+    setIsDetailsEditing(false);
+    onEditorVisibilityChange?.(false);
+    cancelPressPendingRef.current = false;
   }
 
   return (
@@ -88,7 +160,7 @@ export default function TrainingPreferencesEventPreparationView({
               pointerEvents="none"
               style={[
                 styles.fullScreenBlurLayer,
-                { height: screenHeight + SECTION_TOP_PADDING },
+                { height: overlayHeight },
               ]}
             />
           ) : null}
@@ -157,10 +229,10 @@ export default function TrainingPreferencesEventPreparationView({
 
           {isDetailsEditing ? (
             <Pressable
-              onPress={closeDetailsEditor}
+              onPress={saveDetailsEditor}
               style={[
                 styles.editorDimLayer,
-                { height: screenHeight + SECTION_TOP_PADDING },
+                { height: overlayHeight },
               ]}
             />
           ) : null}
@@ -172,27 +244,54 @@ export default function TrainingPreferencesEventPreparationView({
               style={[
                 styles.editorLayer,
                 {
-                  height: Math.max(screenHeight / 2, 260),
-                  paddingTop: 0,
+                  height: editorLayerHeight,
+                  paddingTop: editorSafeTopPadding,
+                  top: DESCRIPTION_EDITOR_TOP_OFFSET,
                 },
               ]}
             >
               <View style={styles.editorCard}>
-                <View style={styles.eventDetailsContent}>
+                <View style={styles.editorContent}>
                   <StandardText style={styles.inputLabel}>
                     Event details
                   </StandardText>
                   <TextInput
                     autoFocus
-                    value={eventDescription}
-                    onChangeText={updateDetails}
-                    onBlur={closeDetailsEditor}
+                    value={draftEventDescription}
+                    onChangeText={setDraftEventDescription}
                     placeholder="Name, location, type..."
                     placeholderTextColor="#9ca3af"
                     multiline
+                    returnKeyType="done"
+                    selectionColor="#ffffff"
                     style={styles.descriptionInput}
                   />
                 </View>
+              </View>
+              <View style={styles.editorActions}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={saveDetailsEditor}
+                  style={({ pressed }) => [
+                    styles.editorSaveButton,
+                    pressed ? styles.editorButtonPressed : null,
+                  ]}
+                >
+                  <Text style={styles.editorSaveButtonText}>Save</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPressIn={() => {
+                    cancelPressPendingRef.current = true;
+                  }}
+                  onPress={cancelDetailsEditor}
+                  style={({ pressed }) => [
+                    styles.editorCancelButton,
+                    pressed ? styles.editorButtonPressed : null,
+                  ]}
+                >
+                  <Text style={styles.editorCancelButtonText}>Cancel</Text>
+                </Pressable>
               </View>
             </KeyboardAvoidingView>
           ) : null}
@@ -333,9 +432,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 17,
     marginTop: 4,
-    minHeight: 48,
+    minHeight: 144,
     padding: 0,
     textAlignVertical: "top",
+  },
+  editorContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   editorDimLayer: {
     backgroundColor: "rgba(0,0,0,0.48)",
@@ -361,12 +466,50 @@ const styles = StyleSheet.create({
     borderColor: "#1E1E1E",
     borderRadius: 20,
     borderWidth: 2,
-    minHeight: 112,
+    minHeight: DESCRIPTION_EDITOR_CARD_HEIGHT,
     overflow: "hidden",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 18,
     elevation: 12,
+  },
+  editorActions: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-start",
+    marginTop: 10,
+  },
+  editorSaveButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: DESCRIPTION_EDITOR_ACTIONS_HEIGHT,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  editorCancelButton: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: DESCRIPTION_EDITOR_ACTIONS_HEIGHT,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  editorButtonPressed: {
+    opacity: 0.76,
+  },
+  editorSaveButtonText: {
+    color: "#141414",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  editorCancelButtonText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
   },
 });

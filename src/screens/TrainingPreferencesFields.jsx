@@ -37,17 +37,12 @@ function shouldShowEnduranceMethods(values = {}) {
   );
 }
 
-export function getTrainingPreferencesSectionCount(values = {}) {
-  const resolvedValues = getTrainingPreferencesFormState(values);
-  const enduranceSectionCount = shouldShowEnduranceMethods(resolvedValues)
-    ? 2
-    : 0;
+function hasOwnValue(source, key) {
+  return Object.prototype.hasOwnProperty.call(source ?? {}, key);
+}
 
-  return (
-    BASE_TRAINING_PREFERENCES_SECTION_COUNT +
-    APP_LOGIC_SECTION_COUNT +
-    enduranceSectionCount
-  );
+export function getTrainingPreferencesSectionCount(values = {}) {
+  return getTrainingPreferencesStepKeys(values).length;
 }
 
 const CAPABILITY_CONFIDENCE_GROUPS = [
@@ -169,6 +164,67 @@ const CAPABILITY_CONFIDENCE_GROUPS = [
   },
 ];
 
+const NULLABLE_FORM_KEYS = Object.freeze([
+  "experience",
+  "desiredTraining",
+  "enduranceSessionsPerWeek",
+  "preferredEnduranceFormat",
+  "circuitTrainingPrimaryPriority",
+  "sessionDuration",
+  "trainingPhase",
+  "combatTrainingIntensity",
+  "liftIntensityMethod",
+  "percentageReferenceMethod",
+  "deloadStrategy",
+  "loadingStrategy",
+]);
+
+function preserveExplicitEmptyValues(normalizedValues, sourceValues = {}) {
+  const nextValues = NULLABLE_FORM_KEYS.reduce(
+    (nextValues, key) => {
+      if (
+        Object.prototype.hasOwnProperty.call(sourceValues ?? {}, key) &&
+        sourceValues[key] == null
+      ) {
+        nextValues[key] = sourceValues[key];
+      }
+
+      return nextValues;
+    },
+    { ...normalizedValues }
+  );
+
+  if (
+    sourceValues?.trainingCapabilities &&
+    typeof sourceValues.trainingCapabilities === "object"
+  ) {
+    nextValues.trainingCapabilities = {
+      ...normalizedValues.trainingCapabilities,
+    };
+
+    Object.keys(sourceValues.trainingCapabilities).forEach((key) => {
+      if (sourceValues.trainingCapabilities[key] == null) {
+        nextValues.trainingCapabilities[key] = null;
+      }
+    });
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      sourceValues ?? {},
+      "circuitTrainingSecondaryPriorities"
+    )
+  ) {
+    nextValues.circuitTrainingSecondaryPriorities = Array.isArray(
+      sourceValues.circuitTrainingSecondaryPriorities
+    )
+      ? sourceValues.circuitTrainingSecondaryPriorities
+      : [];
+  }
+
+  return nextValues;
+}
+
 export const CONFIDENCE_STEP_KEYS = Object.freeze({
   2: "compoundLifts",
   3: "singleLegLifts",
@@ -182,6 +238,83 @@ export const CONFIDENCE_STEP_KEYS = Object.freeze({
   13: "heavyBag",
 });
 
+export function getTrainingPreferencesStepKeys(values = {}) {
+  const resolvedValues = preserveExplicitEmptyValues(
+    getTrainingPreferencesFormState(values),
+    values
+  );
+  const enduranceSetupValues = {
+    ...resolvedValues,
+    circuitTrainingPrimaryPriority: hasOwnValue(
+      values,
+      "circuitTrainingPrimaryPriority"
+    )
+      ? values.circuitTrainingPrimaryPriority
+      : null,
+    circuitTrainingSecondaryPriorities: hasOwnValue(
+      values,
+      "circuitTrainingSecondaryPriorities"
+    )
+      ? values.circuitTrainingSecondaryPriorities
+      : [],
+  };
+  const keys = ["experience"];
+
+  CAPABILITY_CONFIDENCE_GROUPS.forEach((group) => {
+    keys.push(`intro:${group.category}`);
+    group.pages.forEach((page) => {
+      keys.push(page.key);
+    });
+  });
+
+  keys.push("desiredTraining");
+
+  if (shouldShowEnduranceMethods(resolvedValues)) {
+    keys.push("enduranceMethods", "enduranceDays", "enduranceStyle");
+
+    if (
+      Array.isArray(resolvedValues.preferredEnduranceModalities) &&
+      resolvedValues.preferredEnduranceModalities.includes("circuit_training")
+    ) {
+      keys.push("enduranceCircuitGoal", "enduranceCircuitFocus");
+    }
+
+    if (
+      Array.isArray(resolvedValues.preferredEnduranceModalities) &&
+      resolvedValues.preferredEnduranceModalities.includes("heavy_bag")
+    ) {
+      keys.push("enduranceHeavyBagFocus");
+    }
+
+    if (
+      Array.isArray(resolvedValues.preferredEnduranceModalities) &&
+      resolvedValues.preferredEnduranceModalities.includes("sprinting")
+    ) {
+      keys.push("enduranceSprintingFocus");
+    }
+  }
+
+  keys.push(
+    "sessionDuration",
+    "equipment",
+    "trainingPhase",
+    "eventDescription",
+    "eventDate",
+    "injuries",
+    "combatTrainingIntensity",
+    "liftIntensityMethod",
+    "deloadStrategy",
+    "loadingStrategy",
+    "preferredWeekdays"
+  );
+
+  return keys;
+}
+
+export function getTrainingPreferencesStepKey(values = {}, activeStep = 0) {
+  return getTrainingPreferencesStepKeys(values)[activeStep] || "";
+}
+
 export default function TrainingPreferencesFields({
   title,
   description,
@@ -192,10 +325,16 @@ export default function TrainingPreferencesFields({
   activeStep,
   onEventDescriptionSkip,
   onEventDescriptionEditorChange,
+  onEnduranceMethodsInfoVisibilityChange,
+  onEnduranceCircuitGoalContinue,
+  onEnduranceCircuitGoalSkip,
   onInjuriesContinue,
   onInjuriesSkip,
 }) {
-  const resolvedValues = getTrainingPreferencesFormState(values);
+  const resolvedValues = preserveExplicitEmptyValues(
+    getTrainingPreferencesFormState(values),
+    values
+  );
   const hasLiftIntensityMethod = Object.prototype.hasOwnProperty.call(
     values ?? {},
     "liftIntensityMethod"
@@ -286,35 +425,45 @@ export default function TrainingPreferencesFields({
           updateFields({
             desiredTraining: sectionValue,
             preferredEnduranceModalities:
-              sectionValue === "strength_power"
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
                 ? []
                 : resolvedValues.preferredEnduranceModalities,
             enduranceSessionsPerWeek:
-              sectionValue === "strength_power"
-                ? 1
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
+                ? null
                 : resolvedValues.enduranceSessionsPerWeek,
             preferredEnduranceFormat:
-              sectionValue === "strength_power"
-                ? "low_intensity_aerobic"
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
+                ? null
                 : resolvedValues.preferredEnduranceFormat,
             circuitTrainingGoalInput:
-              sectionValue === "strength_power"
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
                 ? ""
                 : resolvedValues.circuitTrainingGoalInput,
             circuitTrainingPrimaryPriority:
-              sectionValue === "strength_power"
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
                 ? ""
                 : resolvedValues.circuitTrainingPrimaryPriority,
             circuitTrainingSecondaryPriorities:
-              sectionValue === "strength_power"
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
                 ? []
                 : resolvedValues.circuitTrainingSecondaryPriorities,
             heavyBagEnduranceTarget:
-              sectionValue === "strength_power"
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
                 ? ""
                 : resolvedValues.heavyBagEnduranceTarget,
             sprintingTarget:
-              sectionValue === "strength_power" ? "" : resolvedValues.sprintingTarget,
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
+                ? ""
+                : resolvedValues.sprintingTarget,
           })
         }
       />
@@ -327,14 +476,68 @@ export default function TrainingPreferencesFields({
               onChange={(sectionValue) =>
                 updateField("preferredEnduranceModalities", sectionValue)
               }
+              onInfoVisibilityChange={onEnduranceMethodsInfoVisibilityChange}
             />
           ),
           () => (
             <TrainingPreferencesEnduranceSetupView
+              mode="days"
               values={resolvedValues}
               onChange={updateFields}
             />
           ),
+          () => (
+            <TrainingPreferencesEnduranceSetupView
+              mode="style"
+              values={resolvedValues}
+              onChange={updateFields}
+            />
+          ),
+          ...(Array.isArray(resolvedValues.preferredEnduranceModalities) &&
+          resolvedValues.preferredEnduranceModalities.includes("circuit_training")
+            ? [
+                () => (
+                  <TrainingPreferencesEnduranceSetupView
+                    mode="circuitGoal"
+                    values={resolvedValues}
+                    onChange={updateFields}
+                    onContinue={onEnduranceCircuitGoalContinue}
+                    onSkip={onEnduranceCircuitGoalSkip}
+                  />
+                ),
+                () => (
+                  <TrainingPreferencesEnduranceSetupView
+                    mode="circuitFocus"
+                    values={resolvedValues}
+                    onChange={updateFields}
+                  />
+                ),
+              ]
+            : []),
+          ...(Array.isArray(resolvedValues.preferredEnduranceModalities) &&
+          resolvedValues.preferredEnduranceModalities.includes("heavy_bag")
+            ? [
+                () => (
+                  <TrainingPreferencesEnduranceSetupView
+                    mode="heavyBagFocus"
+                    values={resolvedValues}
+                    onChange={updateFields}
+                  />
+                ),
+              ]
+            : []),
+          ...(Array.isArray(resolvedValues.preferredEnduranceModalities) &&
+          resolvedValues.preferredEnduranceModalities.includes("sprinting")
+            ? [
+                () => (
+                  <TrainingPreferencesEnduranceSetupView
+                    mode="sprintingFocus"
+                    values={resolvedValues}
+                    onChange={updateFields}
+                  />
+                ),
+              ]
+            : []),
         ]
       : []),
     () => (

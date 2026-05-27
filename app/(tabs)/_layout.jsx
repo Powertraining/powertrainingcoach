@@ -50,6 +50,12 @@ function getActiveTabName(pathname) {
     pathname === "/(tabs)/profile" ||
     pathname === "/profile-subscription-details" ||
     pathname === "/(tabs)/profile-subscription-details" ||
+    pathname === "/profile-exercise-analysis" ||
+    pathname === "/(tabs)/profile-exercise-analysis" ||
+    pathname === "/profile-exercise-analyses" ||
+    pathname === "/(tabs)/profile-exercise-analyses" ||
+    pathname === "/profile-exercise-analysis-post" ||
+    pathname === "/(tabs)/profile-exercise-analysis-post" ||
     pathname === "/profile-personal-details" ||
     pathname === "/(tabs)/profile-personal-details" ||
     pathname === "/profile-plan-adjustments" ||
@@ -75,6 +81,12 @@ const PROFILE_SECONDARY_ROUTES = new Set([
   "/(tabs)/profile-personal-details",
   "/profile-subscription-details",
   "/(tabs)/profile-subscription-details",
+  "/profile-exercise-analysis",
+  "/(tabs)/profile-exercise-analysis",
+  "/profile-exercise-analyses",
+  "/(tabs)/profile-exercise-analyses",
+  "/profile-exercise-analysis-post",
+  "/(tabs)/profile-exercise-analysis-post",
   "/profile-plan-adjustments",
   "/(tabs)/profile-plan-adjustments",
   "/profile-event-preparation",
@@ -173,7 +185,11 @@ const TabsLayout = observer(function TabsLayout() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const activeTabName = getActiveTabName(pathname);
-  const isTabBarHidden = shouldHideTabBar(pathname, activeTabName, model.forumTabBarHidden);
+  const isTabBarHidden = shouldHideTabBar(
+    pathname,
+    activeTabName,
+    model.forumTabBarHidden || model.planGenerationTabBarHidden
+  );
   const tabBarBottomOffset = getTabBarBottomOffset(insets.bottom);
 
   function buildProtectedReturnTo() {
@@ -302,6 +318,24 @@ const TabsLayout = observer(function TabsLayout() {
         />
         <Tabs.Screen
           name="profile-subscription-details"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-exercise-analysis"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-exercise-analyses"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile-exercise-analysis-post"
           options={{
             href: null,
           }}

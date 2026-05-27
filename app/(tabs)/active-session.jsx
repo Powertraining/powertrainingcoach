@@ -7,11 +7,14 @@ import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import ActiveSessionView from "../../src/screens/ActiveSessionView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 const ActiveSessionScreen = observer(function ActiveSessionScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
+  const returnTo = getSafeReturnToPath(params, "/(tabs)/overview");
 
   const weekNumber = Number.parseInt(params.week, 10);
   const dayNumber = Number.parseInt(params.day, 10);
@@ -72,6 +75,8 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
     }, [model])
   );
 
+  useAndroidBackHandler(handleBack, [model, returnTo, router]);
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -95,7 +100,7 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
 
   function handleBack() {
     model.setForumTabBarHidden?.(false);
-    router.back();
+    router.replace(returnTo);
   }
 
   function saveSessionProgress(progress) {

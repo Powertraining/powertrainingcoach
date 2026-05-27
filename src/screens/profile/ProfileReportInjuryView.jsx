@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Dimensions,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +18,7 @@ import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.
 import { parseInjuryReport } from "../../services/utils/profileFields.js";
 
 const INJURY_CONTAINER_HEIGHT = 252;
+const INJURY_EDITOR_HEIGHT = 504;
 
 export default function ProfileReportInjuryView({
   value,
@@ -25,11 +27,15 @@ export default function ProfileReportInjuryView({
   onSaveChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
+  const physicalScreenHeight = Dimensions.get("screen").height;
   const initialInjuryReport = useMemo(() => parseInjuryReport(value), [value]);
   const [injuryReport, setInjuryReport] = useState(initialInjuryReport);
   const [draftInjuryReport, setDraftInjuryReport] = useState(initialInjuryReport);
   const [isEditorVisible, setIsEditorVisible] = useState(false);
   const [clearConfirmVisible, setClearConfirmVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const isEditorVisibleRef = useRef(false);
+  const overlayHeight = Math.max(screenHeight, physicalScreenHeight) + keyboardHeight;
   const hasInjuryReport = Boolean(injuryReport);
 
   useEffect(() => {
@@ -37,12 +43,39 @@ export default function ProfileReportInjuryView({
     setDraftInjuryReport(initialInjuryReport);
   }, [initialInjuryReport]);
 
+  useEffect(() => {
+    isEditorVisibleRef.current = isEditorVisible;
+  }, [isEditorVisible]);
+
+  useEffect(() => {
+    const keyboardShowEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const keyboardHideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSubscription = Keyboard.addListener(keyboardShowEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates?.height || 0);
+    });
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+      setKeyboardHeight(0);
+
+      if (isEditorVisibleRef.current) {
+        saveEditor();
+      }
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [draftInjuryReport]);
+
   function openEditor() {
     setDraftInjuryReport(injuryReport);
     setIsEditorVisible(true);
   }
 
   function closeEditor() {
+    isEditorVisibleRef.current = false;
     Keyboard.dismiss();
     setDraftInjuryReport(injuryReport);
     setIsEditorVisible(false);
@@ -50,6 +83,7 @@ export default function ProfileReportInjuryView({
 
   function saveEditor() {
     const nextInjuryReport = draftInjuryReport.trim();
+    isEditorVisibleRef.current = false;
     setInjuryReport(nextInjuryReport);
     setDraftInjuryReport(nextInjuryReport);
     onChange?.(nextInjuryReport);
@@ -153,14 +187,17 @@ export default function ProfileReportInjuryView({
 
       {isEditorVisible ? (
         <>
-          <Pressable onPress={closeEditor} style={styles.editorDimLayer} />
+          <Pressable
+            onPress={saveEditor}
+            style={[styles.editorDimLayer, { height: overlayHeight }]}
+          />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             pointerEvents="box-none"
             style={[
               styles.injuryEditorLayer,
               {
-                height: Math.max(screenHeight / 2, 260),
+                height: Math.max(screenHeight / 2, INJURY_EDITOR_HEIGHT + 64),
               },
             ]}
           >
@@ -176,7 +213,6 @@ export default function ProfileReportInjuryView({
                   scrollEnabled
                   autoFocus
                   editable={!isSubmitting}
-                  onSubmitEditing={closeEditor}
                   returnKeyType="done"
                   selectionColor="#ffffff"
                   style={styles.injuryEditorInput}
@@ -353,7 +389,6 @@ const styles = StyleSheet.create({
   },
   editorDimLayer: {
     backgroundColor: "rgba(0,0,0,0.58)",
-    bottom: -420,
     left: -24,
     position: "absolute",
     right: -24,
@@ -376,7 +411,7 @@ const styles = StyleSheet.create({
     borderColor: "#1E1E1E",
     borderRadius: 20,
     borderWidth: 2,
-    height: INJURY_CONTAINER_HEIGHT,
+    height: INJURY_EDITOR_HEIGHT,
     overflow: "hidden",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 10 },

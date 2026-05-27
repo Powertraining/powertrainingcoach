@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
-  Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -12,34 +13,45 @@ import TitleText from "../../components/textComponents/TitleText.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
 import { ENDURANCE_MODALITY_OPTIONS } from "../../constants/trainingPreferences.js";
 
-const ENDURANCE_METHOD_IMAGES = Object.freeze({
-  assault_bike: require("../../assets/icons/sports/assult Bike.png"),
-  bicycling: require("../../assets/icons/sports/bike.png"),
-  circuit_training: require("../../assets/icons/sports/curcuitTraining.png"),
-  heavy_bag: require("../../assets/icons/sports/heavyBag.png"),
-  rowing_ergometer: require("../../assets/icons/sports/rower.png"),
-  running: require("../../assets/icons/sports/running.png"),
-  sprinting: require("../../assets/icons/sports/running.png"),
-  sport_specific: require("../../assets/icons/sport.png"),
-  swimming: require("../../assets/icons/sports/stamina.png"),
-});
-
-const ENDURANCE_METHOD_TEXT = Object.freeze({
-  arm_crank_machine: "Arm",
-  skiing_ergometer: "Ski",
-  versaclimber: "VC",
+const ENDURANCE_METHOD_ICONS = Object.freeze({
+  arm_crank_machine: "arm-flex",
+  assault_bike: "bike-fast",
+  bicycling: "bicycle",
+  circuit_training: "clipboard-pulse",
+  heavy_bag: "boxing-glove",
+  rowing_ergometer: "rowing",
+  running: "run",
+  skiing_ergometer: "ski",
+  sprinting: "run-fast",
+  sport_specific: "target",
+  swimming: "swim",
+  versaclimber: "stairs-up",
 });
 
 export default function TrainingPreferencesEnduranceMethodsView({
   value = [],
   onChange,
+  onInfoVisibilityChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
   const [activeInfoValue, setActiveInfoValue] = useState(null);
+  const didLongPressRef = useRef(false);
   const selectedValues = Array.isArray(value) ? value : [];
   const activeInfoOption = ENDURANCE_MODALITY_OPTIONS.find(
     (option) => option.value === activeInfoValue
   );
+  const activeInfoIconName =
+    activeInfoOption && (ENDURANCE_METHOD_ICONS[activeInfoOption.value] || "timer");
+  const isActiveInfoSelected =
+    activeInfoOption && selectedValues.includes(activeInfoOption.value);
+
+  useEffect(() => {
+    onInfoVisibilityChange?.(Boolean(activeInfoOption));
+
+    return () => {
+      onInfoVisibilityChange?.(false);
+    };
+  }, [activeInfoOption, onInfoVisibilityChange]);
 
   function toggleMethod(methodValue) {
     const nextValues = selectedValues.includes(methodValue)
@@ -49,62 +61,140 @@ export default function TrainingPreferencesEnduranceMethodsView({
     onChange?.(nextValues);
   }
 
+  function closeInfo() {
+    setActiveInfoValue(null);
+  }
+
+  function selectActiveInfoMethod() {
+    if (!activeInfoOption) {
+      return;
+    }
+
+    if (!selectedValues.includes(activeInfoOption.value)) {
+      onChange?.([...selectedValues, activeInfoOption.value]);
+    }
+
+    closeInfo();
+  }
+
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={118}>Endurance Methods</TitleText>
-      <StandardText style={styles.helperText} textColor="#C9B259" center>
-        Optional. Pick the tools you prefer, or leave this open so the coach can
-        choose around your week.
-      </StandardText>
+      <ScrollView
+        scrollEnabled={!activeInfoOption}
+        showsVerticalScrollIndicator={false}
+        style={activeInfoOption ? styles.blurredContent : null}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <TitleText height={118}>Endurance Methods</TitleText>
+        <StandardText style={styles.helperText} textColor="#C9B259" center>
+          Optional. Pick the tools you prefer, or leave this open so the coach can
+          choose around your week.
+        </StandardText>
+        <View style={styles.infoHint}>
+          <MaterialCommunityIcons
+            name="gesture-tap-hold"
+            size={15}
+            color="#9CA3AF"
+          />
+          <Text style={styles.infoHintText}>
+            Tap to select. Hold any method for details.
+          </Text>
+        </View>
 
-      <View style={styles.grid}>
-        {ENDURANCE_MODALITY_OPTIONS.map((option) => {
-          const isSelected = selectedValues.includes(option.value);
-          const imageSource = ENDURANCE_METHOD_IMAGES[option.value];
-          const mediaText = ENDURANCE_METHOD_TEXT[option.value];
+        <View style={styles.grid}>
+          {ENDURANCE_MODALITY_OPTIONS.map((option) => {
+            const isSelected = selectedValues.includes(option.value);
+            const iconName = ENDURANCE_METHOD_ICONS[option.value] || "timer";
 
-          return (
-            <Pressable
-              key={option.value}
-              onPress={() => toggleMethod(option.value)}
-              style={({ pressed }) => [
-                styles.option,
-                isSelected && styles.optionSelected,
-                pressed && styles.optionPressed,
-              ]}
-            >
+            return (
               <Pressable
-                hitSlop={8}
-                onPress={(event) => {
-                  event.stopPropagation();
-                  setActiveInfoValue((currentValue) =>
-                    currentValue === option.value ? null : option.value
-                  );
+                key={option.value}
+                onPress={() => {
+                  if (didLongPressRef.current) {
+                    didLongPressRef.current = false;
+                    return;
+                  }
+
+                  toggleMethod(option.value);
                 }}
-                style={styles.infoButton}
+                onLongPress={() => {
+                  didLongPressRef.current = true;
+                  setActiveInfoValue(option.value);
+                }}
+                delayLongPress={240}
+                style={({ pressed }) => [
+                  styles.option,
+                  isSelected && styles.optionSelected,
+                  pressed && styles.optionPressed,
+                ]}
               >
-                <Text style={styles.infoButtonText}>?</Text>
-              </Pressable>
-              {imageSource ? (
-                <Image
-                  source={imageSource}
-                  style={styles.optionImage}
-                  resizeMode="contain"
+                <MaterialCommunityIcons
+                  name={iconName}
+                  size={38}
+                  color="#ffffff"
+                  style={styles.optionIcon}
                 />
-              ) : (
-                <Text style={styles.mediaText}>{mediaText}</Text>
-              )}
-              <Text style={styles.optionLabel}>{option.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+                <Text style={styles.optionLabel}>{option.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
 
       {activeInfoOption ? (
-        <View style={styles.infoPanel}>
-          <Text style={styles.infoTitle}>{activeInfoOption.label}</Text>
-          <Text style={styles.infoText}>{activeInfoOption.description}</Text>
-        </View>
+        <>
+          <Pressable
+            onPress={closeInfo}
+            style={[
+              styles.dimLayer,
+              { height: screenHeight * 2, top: -screenHeight / 2 },
+            ]}
+          />
+          <View
+            pointerEvents="box-none"
+            style={[
+              styles.infoOverlay,
+              { minHeight: screenHeight },
+            ]}
+          >
+            <View style={styles.infoCardRegion}>
+              <View style={styles.infoCard}>
+                <MaterialCommunityIcons
+                  name={activeInfoIconName}
+                  size={42}
+                  color="#ffffff"
+                  style={styles.infoCardIcon}
+                />
+                <Text style={styles.infoTitle}>{activeInfoOption.label}</Text>
+              </View>
+            </View>
+            <View style={styles.infoBottomContent}>
+              <Text style={styles.infoText}>{activeInfoOption.description}</Text>
+              <View style={styles.infoActions}>
+                <Pressable
+                  onPress={selectActiveInfoMethod}
+                  style={({ pressed }) => [
+                    styles.infoSelectButton,
+                    pressed ? styles.infoActionPressed : null,
+                  ]}
+                >
+                  <Text style={styles.infoSelectButtonText}>
+                    {isActiveInfoSelected ? "Selected" : "Select"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={closeInfo}
+                  style={({ pressed }) => [
+                    styles.infoCloseButton,
+                    pressed ? styles.infoActionPressed : null,
+                  ]}
+                >
+                  <Text style={styles.infoCloseButtonText}>Close</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </>
       ) : null}
     </View>
   );
@@ -112,16 +202,39 @@ export default function TrainingPreferencesEnduranceMethodsView({
 
 const styles = StyleSheet.create({
   section: {
-    justifyContent: "center",
     paddingHorizontal: 8,
+    position: "relative",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingBottom: 32,
+    paddingTop: 88,
+  },
+  blurredContent: {
+    opacity: 0.42,
+    filter: [{ blur: 4 }],
   },
   helperText: {
     alignSelf: "center",
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 18,
+    marginBottom: 8,
     maxWidth: 330,
     paddingHorizontal: 18,
+  },
+  infoHint: {
+    alignItems: "center",
+    alignSelf: "center",
+    flexDirection: "row",
+    gap: 5,
+    marginBottom: 16,
+  },
+  infoHintText: {
+    color: "#9CA3AF",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 15,
   },
   grid: {
     flexDirection: "row",
@@ -137,8 +250,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 112,
+    paddingBottom: 12,
     paddingHorizontal: 8,
-    paddingVertical: 12,
+    paddingTop: 12,
     position: "relative",
     width: "30%",
   },
@@ -148,15 +262,7 @@ const styles = StyleSheet.create({
   optionPressed: {
     opacity: 0.78,
   },
-  optionImage: {
-    height: 36,
-    marginBottom: 12,
-    width: 36,
-  },
-  mediaText: {
-    color: "#ffffff",
-    fontSize: 22,
-    fontWeight: "800",
+  optionIcon: {
     marginBottom: 12,
   },
   optionLabel: {
@@ -166,41 +272,108 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     textAlign: "center",
   },
-  infoButton: {
-    alignItems: "center",
-    borderColor: "rgba(255,255,255,0.5)",
-    borderRadius: 9,
-    borderWidth: 1,
-    height: 18,
-    justifyContent: "center",
+  dimLayer: {
+    backgroundColor: "rgba(0,0,0,0.48)",
+    left: 0,
     position: "absolute",
-    right: 6,
-    top: 6,
-    width: 18,
+    right: 0,
+    zIndex: 10,
   },
-  infoButtonText: {
-    color: "#ffffff",
-    fontSize: 11,
-    fontWeight: "800",
-    lineHeight: 14,
+  infoOverlay: {
+    alignItems: "center",
+    justifyContent: "space-between",
+    left: 0,
+    paddingBottom: 36,
+    paddingHorizontal: 20,
+    paddingTop: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 11,
   },
-  infoPanel: {
-    alignSelf: "center",
-    marginTop: 16,
-    maxWidth: 340,
-    minHeight: 82,
+  infoCardRegion: {
+    alignItems: "center",
+    height: "50%",
+    justifyContent: "center",
+    width: "100%",
+  },
+  infoCard: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderColor: "#ffffff",
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 118,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    width: "30%",
+    minWidth: 112,
+    maxWidth: 132,
+    elevation: 12,
+  },
+  infoCardIcon: {
+    marginBottom: 12,
   },
   infoTitle: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "800",
-    marginBottom: 4,
+    lineHeight: 18,
     textAlign: "center",
   },
   infoText: {
     color: "#E5E7EB",
     fontSize: 13,
     lineHeight: 18,
+    maxWidth: 340,
     textAlign: "center",
+  },
+  infoBottomContent: {
+    alignItems: "center",
+    alignSelf: "stretch",
+  },
+  infoActions: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    marginTop: 14,
+  },
+  infoSelectButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 34,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  infoCloseButton: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 34,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  infoActionPressed: {
+    opacity: 0.72,
+  },
+  infoSelectButtonText: {
+    color: "#141414",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  infoCloseButtonText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
   },
 });

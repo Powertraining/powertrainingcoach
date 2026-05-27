@@ -1,9 +1,57 @@
+import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useVideoPlayer, VideoView } from "expo-video";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
+import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 
 const ANALYSIS_SLOTS = ["1", "2", "3", "4"];
+
+function AnalysisVideoPreview({ uri }) {
+  const player = useVideoPlayer(uri, (videoPlayer) => {
+    videoPlayer.loop = false;
+    videoPlayer.muted = true;
+  });
+
+  return (
+    <VideoView
+      allowsPictureInPicture={false}
+      contentFit="cover"
+      nativeControls={false}
+      player={player}
+      pointerEvents="none"
+      style={styles.analysisVideoPreview}
+    />
+  );
+}
+
+function AnalysisSlotContent({ post }) {
+  if (post?.mediaUrl && post?.mediaType === "video") {
+    return (
+      <View style={styles.analysisPreviewWrap}>
+        <AnalysisVideoPreview uri={post.mediaUrl} />
+        <View style={styles.analysisPreviewOverlay}>
+          <View style={styles.analysisPlayIcon} />
+        </View>
+        {post.title ? (
+          <View style={styles.analysisTitleScrim}>
+            <Text numberOfLines={1} style={styles.analysisTitleText}>
+              {post.title}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.plusIcon}>
+      <View style={styles.plusIconHorizontal} />
+      <View style={styles.plusIconVertical} />
+    </View>
+  );
+}
 
 export default function SubscriptionDetailsView({
   planName = "No Plan",
@@ -14,8 +62,34 @@ export default function SubscriptionDetailsView({
   onBack,
   onChangePaymentMethod,
   onCancelSubscription,
+  onPressAnalysisSlot,
+  analysisPostsBySlot = {},
+  analysesLeftThisMonth = 4,
+  onShowAllAnalyses,
 }) {
   const insets = useSafeAreaInsets();
+  const [cancelConfirmVisible, setCancelConfirmVisible] = useState(false);
+
+  function openCancelConfirm() {
+    if (isSubmitting) {
+      return;
+    }
+
+    setCancelConfirmVisible(true);
+  }
+
+  function closeCancelConfirm() {
+    if (isSubmitting) {
+      return;
+    }
+
+    setCancelConfirmVisible(false);
+  }
+
+  function confirmCancelSubscription() {
+    setCancelConfirmVisible(false);
+    onCancelSubscription?.();
+  }
 
   return (
     <View style={styles.screen}>
@@ -47,19 +121,38 @@ export default function SubscriptionDetailsView({
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Analyses</Text>
+            <Text style={styles.analysisCounterText}>
+              {`${analysesLeftThisMonth}/4 analyses left this month`}
+            </Text>
             <View style={styles.sectionDivider} />
           </View>
 
           <View style={styles.analysisRow}>
             {ANALYSIS_SLOTS.map((slot) => (
-              <TouchableOpacity key={slot} style={styles.analysisButton}>
-                <Text style={styles.analysisButtonText}>+</Text>
+              <TouchableOpacity
+                key={slot}
+                onPress={() => onPressAnalysisSlot?.(slot, analysisPostsBySlot?.[slot] || null)}
+                disabled={isSubmitting}
+                style={[
+                  styles.analysisButton,
+                  analysisPostsBySlot?.[slot] ? styles.analysisButtonFilled : null,
+                  isSubmitting ? styles.analysisButtonDisabled : null,
+                ]}
+              >
+                <AnalysisSlotContent post={analysisPostsBySlot?.[slot] || null} />
               </TouchableOpacity>
             ))}
           </View>
+          <TouchableOpacity
+            onPress={onShowAllAnalyses}
+            disabled={isSubmitting}
+            style={[styles.showAllButton, isSubmitting ? styles.optionRowDisabled : null]}
+          >
+            <Text style={styles.showAllButtonText}>Show all</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
+        <View style={[styles.section, styles.optionsSection]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Options</Text>
             <View style={styles.sectionDivider} />
@@ -69,17 +162,17 @@ export default function SubscriptionDetailsView({
             <TouchableOpacity
               onPress={onChangePaymentMethod}
               disabled={isSubmitting}
-              style={styles.optionRow}
+              style={[styles.optionRow, isSubmitting ? styles.optionRowDisabled : null]}
             >
               <Text style={styles.optionRowText}>Change payment method</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={onCancelSubscription}
+              onPress={openCancelConfirm}
               disabled={isSubmitting}
-              style={styles.optionRow}
+              style={[styles.optionRow, isSubmitting ? styles.optionRowDisabled : null]}
             >
-              <Text style={styles.optionRowText}>Cancel</Text>
+              <Text style={styles.optionRowText}>Cancel plan</Text>
             </TouchableOpacity>
           </View>
 
@@ -90,6 +183,18 @@ export default function SubscriptionDetailsView({
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
+      <WhiteBottomMenu
+        visible={cancelConfirmVisible}
+        onDismiss={closeCancelConfirm}
+        title="Cancel plan?"
+        description="Are you sure you want to cancel your current plan?"
+        buttonText={isSubmitting ? "Opening..." : "Yes, cancel plan"}
+        buttonDisabled={isSubmitting}
+        onButtonPress={confirmCancelSubscription}
+        secondaryButtonText="Keep plan"
+        secondaryButtonDisabled={isSubmitting}
+        onSecondaryButtonPress={closeCancelConfirm}
+      />
     </View>
   );
 }
@@ -147,6 +252,9 @@ const styles = StyleSheet.create({
   section: {
     gap: 14,
   },
+  optionsSection: {
+    marginTop: "auto",
+  },
   sectionHeader: {
     alignItems: "center",
     gap: 8,
@@ -156,6 +264,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900",
     lineHeight: 23,
+    textAlign: "center",
+  },
+  analysisCounterText: {
+    color: "#9ca3af",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
     textAlign: "center",
   },
   sectionDivider: {
@@ -168,6 +283,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
   },
+  showAllButton: {
+    alignSelf: "center",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.22)",
+    borderRadius: 999,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 32,
+    paddingHorizontal: 16,
+  },
+  showAllButtonText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "900",
+    lineHeight: 16,
+    textTransform: "uppercase",
+  },
   analysisButton: {
     alignItems: "center",
     backgroundColor: "#141414",
@@ -175,35 +307,106 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 2,
     flex: 1,
-    height: 200,
+    height: 100,
     justifyContent: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
+    overflow: "hidden",
   },
-  analysisButtonText: {
-    color: "#8E8E8E",
-    fontSize: 48,
+  analysisButtonFilled: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  analysisButtonDisabled: {
+    opacity: 0.55,
+  },
+  plusIcon: {
+    height: 28,
+    position: "relative",
+    width: 28,
+  },
+  plusIconHorizontal: {
+    backgroundColor: "#8E8E8E",
+    borderRadius: 999,
+    height: 4,
+    left: 3,
+    position: "absolute",
+    top: 12,
+    width: 22,
+  },
+  plusIconVertical: {
+    backgroundColor: "#8E8E8E",
+    borderRadius: 999,
+    height: 22,
+    left: 12,
+    position: "absolute",
+    top: 3,
+    width: 4,
+  },
+  analysisPreviewWrap: {
+    height: "100%",
+    position: "relative",
+    width: "100%",
+  },
+  analysisVideoPreview: {
+    height: "100%",
+    width: "100%",
+  },
+  analysisPreviewOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.16)",
+    justifyContent: "center",
+  },
+  analysisPlayIcon: {
+    borderBottomColor: "transparent",
+    borderBottomWidth: 9,
+    borderLeftColor: "#ffffff",
+    borderLeftWidth: 14,
+    borderTopColor: "transparent",
+    borderTopWidth: 9,
+    height: 0,
+    marginLeft: 3,
+    width: 0,
+  },
+  analysisTitleScrim: {
+    backgroundColor: "rgba(0,0,0,0.62)",
+    bottom: 0,
+    left: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    position: "absolute",
+    right: 0,
+  },
+  analysisTitleText: {
+    color: "#ffffff",
+    fontSize: 10,
     fontWeight: "900",
-    lineHeight: 54,
+    lineHeight: 13,
   },
   optionRows: {
     gap: 10,
   },
   optionRow: {
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderRadius: 4,
-    minHeight: 50,
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 24,
+    borderWidth: 2,
     justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    minHeight: 52,
+    paddingHorizontal: 18,
+    paddingVertical: 13,
   },
   optionRowText: {
     color: "#ffffff",
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "900",
     lineHeight: 18,
     textAlign: "center",
+  },
+  optionRowDisabled: {
+    opacity: 0.55,
   },
   nextBillingText: {
     color: "#9ca3af",

@@ -36,6 +36,8 @@ function TrainingPreferencesInjuriesView({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const contentBottomOffset =
     keyboardHeight > 0 ? keyboardHeight : CLOSED_KEYBOARD_BOTTOM_OFFSET;
+  const canContinue =
+    Boolean(String(draftMessage || "").trim()) || userMessages.length > 0;
 
   const commitDraftMessage = useCallback(() => {
     const nextMessage = draftMessage.trim();
@@ -110,8 +112,12 @@ function TrainingPreferencesInjuriesView({
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
+            disabled={!canContinue}
             onPress={handleContinue}
-            style={styles.continueButton}
+            style={[
+              styles.continueButton,
+              !canContinue ? styles.continueButtonDisabled : null,
+            ]}
           >
             <StandardText style={styles.continueButtonText}>Continue</StandardText>
           </TouchableOpacity>
@@ -370,6 +376,9 @@ const styles = StyleSheet.create({
     height: 34,
     justifyContent: "center",
     paddingHorizontal: 16,
+  },
+  continueButtonDisabled: {
+    opacity: 0.28,
   },
   continueButtonText: {
     color: "#000000",

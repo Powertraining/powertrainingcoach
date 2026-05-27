@@ -97,7 +97,7 @@ export const DELOAD_STRATEGY_OPTIONS = Object.freeze([
 
 export const LOADING_STRATEGY_OPTIONS = Object.freeze([
   {
-    label: "Flat Loading",
+    label: "Balanced",
     value: "flat_loading",
     description: "Basic and repeatable. Recommended for beginners.",
   },

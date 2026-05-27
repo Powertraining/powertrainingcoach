@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text, View, TouchableOpacity, ScrollView, StyleSheet, Pressable } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import StandardText from "../components/textComponents/StandardText.jsx";
@@ -22,6 +22,7 @@ import {
   getProgramOverviewToday,
   isSameCalendarDay,
 } from "../services/utils/programOverview.js";
+import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
 
 const WEEK_SCHEDULE_ITEM_WIDTH = 56;
 const WEEK_SCHEDULE_TODAY_OFFSET =
@@ -324,6 +325,7 @@ export default function ProgramOverviewView({
   getCompletedSessionProgress,
   onTestSession,
   updatingPlan = false,
+  initialScrollToTopKey = "",
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
@@ -334,8 +336,76 @@ export default function ProgramOverviewView({
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
   const [selectedTrainingSlotKey, setSelectedTrainingSlotKey] = useState("");
   const [swapEditorVisible, setSwapEditorVisible] = useState(false);
+  const overviewScrollRef = useRef(null);
   const weekScheduleScrollRef = useRef(null);
+  const lastInitialScrollToTopKeyRef = useRef("");
+  const initialScrollToTopPassesRemainingRef = useRef(0);
   const lastWeekScheduleScrollDateRef = useRef("");
+
+  useEffect(() => {
+    if (
+      !initialScrollToTopKey ||
+      lastInitialScrollToTopKeyRef.current === initialScrollToTopKey
+    ) {
+      return;
+    }
+
+    lastInitialScrollToTopKeyRef.current = initialScrollToTopKey;
+    initialScrollToTopPassesRemainingRef.current = 2;
+    requestAnimationFrame(scrollOverviewToTop);
+  }, [initialScrollToTopKey]);
+
+  useAndroidBackHandler(() => {
+    if (swapEditorVisible) {
+      return false;
+    }
+
+    if (detailsVisible) {
+      setDetailsVisible(false);
+      return;
+    }
+
+    if (rescheduleInfoVisible) {
+      closeRescheduleInfo();
+      return;
+    }
+
+    if (pushBackConfirmVisible) {
+      closePushBackConfirm();
+      return;
+    }
+
+    if (completeConfirmVisible) {
+      closeCompleteConfirm();
+      return;
+    }
+
+    if (activeSessionDay) {
+      setActiveSessionDay(null);
+      return;
+    }
+
+    if (selectedArchivedDay) {
+      setSelectedArchivedDay(null);
+      return;
+    }
+
+    if (selectedDay) {
+      onClearSelectedDay?.();
+      return;
+    }
+
+    return false;
+  }, [
+    activeSessionDay,
+    completeConfirmVisible,
+    detailsVisible,
+    pushBackConfirmVisible,
+    rescheduleInfoVisible,
+    selectedArchivedDay,
+    selectedDay,
+    swapEditorVisible,
+  ]);
 
   if (!plan) {
     return <ProgramOverviewSkeleton />;
@@ -571,6 +641,18 @@ export default function ProgramOverviewView({
     selectedDaySessionProgress
   );
 
+  function scrollOverviewToTop() {
+    overviewScrollRef.current?.scrollTo?.({
+      x: 0,
+      y: 0,
+      animated: false,
+    });
+
+    if (initialScrollToTopPassesRemainingRef.current > 0) {
+      initialScrollToTopPassesRemainingRef.current -= 1;
+    }
+  }
+
   function scrollWeekScheduleToToday() {
     if (lastWeekScheduleScrollDateRef.current === todayDateKey) {
       return;
@@ -708,8 +790,14 @@ export default function ProgramOverviewView({
   return (
     <QuestionnaireShell hideTabBar={false}>
       <ScrollView
+        ref={overviewScrollRef}
         style={swapEditorVisible ? styles.blurredContent : null}
         contentContainerStyle={styles.center}
+        onContentSizeChange={() => {
+          if (initialScrollToTopPassesRemainingRef.current > 0) {
+            scrollOverviewToTop();
+          }
+        }}
       >
         <View style={styles.header}>
           <StandardText style={styles.headerDate}>{currentDateLabel}</StandardText>

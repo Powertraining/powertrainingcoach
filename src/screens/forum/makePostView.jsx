@@ -214,6 +214,7 @@ export default function MakePostView({
   onRemoveMedia,
   allowImageUpload = true,
   allowVideoUpload = true,
+  allowAnalysisTag = false,
   onBack,
   onDiscard,
 }) {
@@ -342,6 +343,7 @@ export default function MakePostView({
           visible={isTagsPickerVisible}
           filters={{ topics: normalizedSelectedTags }}
           showSortOptions={false}
+          showAnalysisTopic={allowAnalysisTag}
           contentHorizontalInset={0}
           style={styles.tagsPicker}
           onClose={closeTagsPicker}

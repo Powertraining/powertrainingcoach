@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
@@ -18,6 +18,8 @@ import {
   pickProfileImage,
   uploadProfileImage,
 } from "../../src/services/utils/mediaUpload.js";
+import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
+import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 function getSyncedTrainingPreferences(questionnaire = {}, sessionsPerWeek = 3) {
   const resolvedSessionsPerWeek = Number.parseInt(sessionsPerWeek, 10) || 3;
@@ -38,6 +40,8 @@ function getSyncedTrainingPreferences(questionnaire = {}, sessionsPerWeek = 3) {
 export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) {
   const model = reactiveModel;
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const returnTo = getSafeReturnToPath(params, "/(tabs)/profile");
 
   const user = model?.user || {};
 
@@ -125,6 +129,14 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       username,
     ]
   );
+
+  useAndroidBackHandler(() => {
+    if (mode === "main") {
+      return false;
+    }
+
+    backToProfileACB();
+  }, [mode, returnTo, router]);
 
   if (!model.ready) {
     return (
@@ -284,7 +296,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
 
   function backToProfileACB() {
     resetUnsavedChangesACB();
-    router.push("/(tabs)/profile");
+    router.replace(returnTo);
   }
 
   async function logoutACB() {

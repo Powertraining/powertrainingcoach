@@ -1,23 +1,89 @@
+import { useEffect, useState } from "react";
 import {
+  Image,
+  Keyboard,
   Pressable,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
+  PanResponder,
   useWindowDimensions,
 } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import TitleText from "../../components/textComponents/TitleText.jsx";
 import StandardText from "../../components/textComponents/StandardText.jsx";
+import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
 import {
   CIRCUIT_GOAL_EXAMPLES,
   CIRCUIT_PRIORITY_OPTIONS,
   ENDURANCE_FORMAT_OPTIONS,
-  ENDURANCE_SESSION_COUNT_OPTIONS,
   HEAVY_BAG_ENDURANCE_TARGET_OPTIONS,
   SPRINTING_TARGET_OPTIONS,
 } from "../../constants/trainingPreferences.js";
+
+const ENDURANCE_FORMAT_DETAILS = Object.freeze({
+  low_intensity_aerobic:
+    "Easy steady work for base fitness and recovery. Usually the safest default.",
+  aerobic_intervals:
+    "Repeated moderate efforts with controlled rest. Good when steady work feels too flat.",
+  high_intensity_intervals:
+    "Hard intervals for repeat output. Best used sparingly around combat training.",
+  sport_specific_conditioning:
+    "Conditioning that stays close to your sport, rounds, or competition demands.",
+});
+
+const MIN_ENDURANCE_DAYS = 1;
+const MAX_ENDURANCE_DAYS = 7;
+const ENDURANCE_THUMB_SIZE = 24;
+const NURSE_ICON = require("../../assets/icons/nurse.png");
+const ARROW_TEXT_ICON = require("../../assets/icons/arrowText.png");
+const CLOSED_KEYBOARD_BOTTOM_OFFSET = 18;
+const CIRCUIT_BOT_MESSAGES = Object.freeze([
+  "What should circuit training help with?",
+  "Write what usually fades first in rounds, sparring, or hard training.",
+  "Some examples:",
+]);
+const CIRCUIT_FOCUS_SHORT_LABELS = Object.freeze({
+  local_muscular_endurance: "Local endurance",
+  repeated_high_effort_capacity: "Repeat efforts",
+  whole_body_work_capacity: "Work capacity",
+  sport_specific_fatigue_resistance: "Sport fatigue",
+  aerobic_recovery_between_bursts: "Recovery",
+  grip_endurance: "Grip",
+  neck_endurance: "Neck",
+  trunk_endurance: "Trunk",
+  shoulder_endurance: "Shoulders",
+  leg_endurance: "Legs",
+});
+const CIRCUIT_FOCUS_ICONS = Object.freeze({
+  local_muscular_endurance: "arm-flex",
+  repeated_high_effort_capacity: "repeat",
+  whole_body_work_capacity: "run-fast",
+  sport_specific_fatigue_resistance: "boxing-glove",
+  aerobic_recovery_between_bursts: "heart-pulse",
+  grip_endurance: "hand-back-left",
+  neck_endurance: "head",
+  trunk_endurance: "human-handsup",
+  shoulder_endurance: "weight-lifter",
+  leg_endurance: "shoe-print",
+});
+const SPRINTING_TARGET_ICONS = Object.freeze({
+  speed_explosiveness: "run-fast",
+  repeat_bursts: "repeat",
+  hard_conditioning: "fire",
+});
+const HEAVY_BAG_TARGET_ICONS = Object.freeze({
+  aerobic_bag_work: "heart-pulse",
+  tempo_sustained_conditioning: "timer-sand",
+  repeated_burst_bag_work: "repeat",
+  local_upper_body_endurance: "arm-flex",
+  sport_specific_fight_camp_simulation: "boxing-glove",
+});
 
 function ChoiceChip({ label, isSelected, onPress }) {
   return (
@@ -36,12 +102,119 @@ function ChoiceChip({ label, isSelected, onPress }) {
   );
 }
 
-function OptionGroup({ title, options, value, onChange, multi = false }) {
+function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
+  const [sliderWidth, setSliderWidth] = useState(0);
+  const [dragValue, setDragValue] = useState(value ?? MIN_ENDURANCE_DAYS);
+  const activeValue = Math.round(dragValue);
+  const sliderProgress =
+    (dragValue - MIN_ENDURANCE_DAYS) / (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS);
+  const thumbLeft = sliderWidth
+    ? sliderProgress * (sliderWidth - ENDURANCE_THUMB_SIZE)
+    : 0;
+
+  useEffect(() => {
+    setDragValue(value ?? MIN_ENDURANCE_DAYS);
+  }, [value]);
+
+  function updateValueFromTouch(locationX, shouldCommit = false) {
+    if (!sliderWidth) {
+      return;
+    }
+
+    const clampedX = Math.min(Math.max(locationX, 0), sliderWidth);
+    const rawValue =
+      MIN_ENDURANCE_DAYS +
+      (clampedX / sliderWidth) * (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS);
+
+    if (shouldCommit) {
+      const roundedValue = Math.round(rawValue);
+      setDragValue(roundedValue);
+      onChange?.(roundedValue);
+      return;
+    }
+
+    setDragValue(rawValue);
+  }
+
+  const sliderPanResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (event) => {
+      updateValueFromTouch(event.nativeEvent.locationX);
+    },
+    onPanResponderMove: (event) => {
+      updateValueFromTouch(event.nativeEvent.locationX);
+    },
+    onPanResponderRelease: (event) => {
+      updateValueFromTouch(event.nativeEvent.locationX, true);
+    },
+    onPanResponderTerminate: (event) => {
+      updateValueFromTouch(event.nativeEvent.locationX, true);
+    },
+  });
+
+  return (
+    <View style={styles.sliderSection}>
+      <View style={styles.sliderNumbers}>
+        {Array.from({ length: MAX_ENDURANCE_DAYS }, (_, index) => {
+          const dayCount = index + 1;
+          const isActive = activeValue === dayCount;
+
+          return (
+            <View key={dayCount} style={styles.sliderNumberSlot}>
+              <StandardText
+                style={[
+                  styles.sliderNumber,
+                  isActive ? styles.sliderNumberActive : null,
+                ]}
+              >
+                {dayCount}
+              </StandardText>
+            </View>
+          );
+        })}
+      </View>
+
+      <View
+        style={styles.sliderShell}
+        onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
+      >
+        <View
+          style={styles.sliderTouchArea}
+          accessibilityRole="adjustable"
+          accessibilityValue={{
+            min: MIN_ENDURANCE_DAYS,
+            max: MAX_ENDURANCE_DAYS,
+            now: activeValue,
+          }}
+          {...sliderPanResponder.panHandlers}
+        />
+        <View style={styles.sliderTrack}>
+          <View
+            style={[
+              styles.sliderTrackFill,
+              { width: `${sliderProgress * 100}%` },
+            ]}
+          />
+        </View>
+        <View pointerEvents="none" style={[styles.sliderThumb, { left: thumbLeft }]} />
+      </View>
+
+      <View style={styles.sliderLabels}>
+        <StandardText style={styles.sliderLabel}>Beginner / busy</StandardText>
+        <StandardText style={styles.sliderLabel}>Experienced</StandardText>
+      </View>
+    </View>
+  );
+}
+
+function OptionGroup({ title, hint, options, value, onChange, multi = false }) {
   const selectedValues = Array.isArray(value) ? value : [];
 
   return (
     <View style={styles.group}>
-      <Text style={styles.groupTitle}>{title}</Text>
+      {title ? <Text style={styles.groupTitle}>{title}</Text> : null}
+      {hint ? <Text style={styles.groupHint}>{hint}</Text> : null}
       <View style={styles.chipRow}>
         {options.map((option) => {
           const isSelected = multi
@@ -73,18 +246,121 @@ function OptionGroup({ title, options, value, onChange, multi = false }) {
   );
 }
 
+function CompactFocusGrid({
+  options,
+  value,
+  onChange,
+  shortLabels = {},
+  icons = {},
+  multi = false,
+}) {
+  const selectedValues = multi
+    ? Array.isArray(value)
+      ? value
+      : []
+    : [];
+  const hasSelection = multi ? selectedValues.length > 0 : Boolean(value);
+
+  return (
+    <View style={styles.circuitFocusGrid}>
+      {options.map((option) => {
+        const isSelected = multi
+          ? selectedValues.includes(option.value)
+          : value === option.value;
+        const isDimmed = !multi && hasSelection && !isSelected;
+
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => {
+              if (!multi) {
+                onChange?.(isSelected ? null : option.value);
+                return;
+              }
+
+              onChange?.(
+                isSelected
+                  ? selectedValues.filter((entry) => entry !== option.value)
+                  : [...selectedValues, option.value]
+              );
+            }}
+            style={({ pressed }) => [
+              styles.circuitFocusOption,
+              isSelected ? styles.circuitFocusOptionSelected : null,
+              isDimmed ? styles.circuitFocusOptionDimmed : null,
+              pressed ? styles.optionPressed : null,
+            ]}
+          >
+            {icons[option.value] ? (
+              <MaterialCommunityIcons
+                name={icons[option.value]}
+                size={20}
+                color={isDimmed ? "#777777" : "#C9B259"}
+                style={styles.circuitFocusOptionIcon}
+              />
+            ) : null}
+            <Text
+              style={[
+                styles.circuitFocusOptionText,
+                isSelected ? styles.circuitFocusOptionTextSelected : null,
+              ]}
+            >
+              {shortLabels[option.value] || option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function LargeOptionGrid({ options, value, onChange, icons = {} }) {
+  return (
+    <View style={styles.largeOptionGrid}>
+      {options.map((option) => {
+        const isSelected = value === option.value;
+
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange?.(isSelected ? "" : option.value)}
+            style={({ pressed }) => [
+              styles.largeOptionBorder,
+              isSelected ? styles.largeOptionBorderSelected : null,
+              pressed ? styles.optionPressed : null,
+            ]}
+          >
+            <View style={styles.largeOptionFace}>
+              {icons[option.value] ? (
+                <MaterialCommunityIcons
+                  name={icons[option.value]}
+                  size={30}
+                  color={isSelected ? "#ffffff" : "#C9B259"}
+                  style={styles.largeOptionIcon}
+                />
+              ) : null}
+              <Text style={styles.largeOptionText}>{option.label}</Text>
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function TrainingPreferencesEnduranceSetupView({
+  mode = "days",
   values,
   onChange,
+  onContinue,
+  onSkip,
 }) {
   const { height: screenHeight } = useWindowDimensions();
-  const selectedModalities = Array.isArray(values?.preferredEnduranceModalities)
-    ? values.preferredEnduranceModalities
-    : [];
-  const showCircuitDetails = selectedModalities.includes("circuit_training");
-  const showHeavyBagDetails = selectedModalities.includes("heavy_bag");
-  const showSprintingDetails = selectedModalities.includes("sprinting");
-
+  const [draftMessage, setDraftMessage] = useState("");
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [circuitMessages, setCircuitMessages] = useState(() =>
+    values?.circuitTrainingGoalInput ? [values.circuitTrainingGoalInput] : []
+  );
   function updateField(field, value) {
     onChange?.({
       ...values,
@@ -92,117 +368,346 @@ export default function TrainingPreferencesEnduranceSetupView({
     });
   }
 
+  function updateFields(nextFields) {
+    onChange?.({
+      ...values,
+      ...nextFields,
+    });
+  }
+
+  function commitCircuitMessage(message = draftMessage) {
+    const nextMessage = String(message || "").trim();
+
+    if (!nextMessage) {
+      return false;
+    }
+
+    const nextMessages = [...circuitMessages, nextMessage];
+    setCircuitMessages(nextMessages);
+    setDraftMessage("");
+    updateField("circuitTrainingGoalInput", nextMessages.join(", "));
+    return true;
+  }
+
+  function addCircuitExampleToDraft(example) {
+    const trimmedExample = String(example || "").trim().replace(/[.?!]+$/u, "");
+
+    if (!trimmedExample) {
+      return;
+    }
+
+    setDraftMessage((currentDraft) => {
+      const currentText = String(currentDraft || "").trimEnd();
+      const prefix = currentText ? `${currentText} ` : "";
+
+      return `${prefix}${trimmedExample}. `;
+    });
+  }
+
+  function continueCircuitGoal() {
+    commitCircuitMessage();
+    onContinue?.();
+  }
+
+  useEffect(() => {
+    if (mode !== "circuitGoal") {
+      return undefined;
+    }
+
+    const keyboardShowEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const keyboardHideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSubscription = Keyboard.addListener(keyboardShowEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates?.height || 0);
+    });
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [mode]);
+
+  if (mode === "days") {
+    return (
+      <View style={[styles.daysSection, { minHeight: screenHeight }]}>
+        <TitleText height={130}>Endurance days</TitleText>
+        <StandardText style={styles.helperText} center>
+          Choose the fewest endurance sessions you want scheduled each week.
+        </StandardText>
+        <StandardText style={styles.daysWarningText} textColor="#C9B259" center>
+          3+ days needs solid recovery and low enough sport load.
+        </StandardText>
+        <View style={styles.daysContent}>
+          <EnduranceDaysSlider
+            value={values?.enduranceSessionsPerWeek ?? MIN_ENDURANCE_DAYS}
+            onChange={(nextValue) =>
+              updateField("enduranceSessionsPerWeek", nextValue)
+            }
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (mode === "circuitGoal") {
+    const contentBottomOffset =
+      keyboardHeight > 0 ? keyboardHeight : CLOSED_KEYBOARD_BOTTOM_OFFSET;
+    const canContinueCircuitGoal =
+      Boolean(String(draftMessage || "").trim()) || circuitMessages.length > 0;
+
+    return (
+      <View style={[styles.chatSection, { height: screenHeight }]}>
+        <View style={styles.topChatHeader}>
+          <View style={styles.botAvatar}>
+            <Image source={NURSE_ICON} style={styles.botAvatarImage} resizeMode="contain" />
+          </View>
+          <View style={styles.chatHeaderCopy}>
+            <StandardText style={styles.chatName}>Coach intake</StandardText>
+            <StandardText style={styles.chatStatus}>Circuit goal</StandardText>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity accessibilityRole="button" onPress={onSkip} style={styles.skipButton}>
+              <StandardText style={styles.skipButtonText}>Skip &gt;</StandardText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              disabled={!canContinueCircuitGoal}
+              onPress={continueCircuitGoal}
+              style={[
+                styles.continueButton,
+                !canContinueCircuitGoal ? styles.continueButtonDisabled : null,
+              ]}
+            >
+              <StandardText style={styles.continueButtonText}>Continue</StandardText>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.chatContentSlot, { bottom: contentBottomOffset }]}>
+          <View style={styles.chatFeed}>
+            <ScrollView
+              style={styles.chatScroll}
+              contentContainerStyle={styles.messages}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.timestampPill}>
+                <StandardText style={styles.timestampText}>Today</StandardText>
+              </View>
+
+              {CIRCUIT_BOT_MESSAGES.map((message, index) => (
+                <View key={`circuit-bot-message-${index}`} style={styles.messageRow}>
+                  {index === CIRCUIT_BOT_MESSAGES.length - 1 ? (
+                    <View style={styles.botIcon}>
+                      <Image source={NURSE_ICON} style={styles.botIconImage} resizeMode="contain" />
+                    </View>
+                  ) : (
+                    <View style={styles.botIconSpacer} />
+                  )}
+                  <View style={styles.messageBubble}>
+                    <StandardText style={styles.messageText} textColor="#000000">
+                      {message}
+                    </StandardText>
+                  </View>
+                </View>
+              ))}
+
+              <View style={styles.exampleBubbleWrap}>
+                {CIRCUIT_GOAL_EXAMPLES.slice(0, 6).map((example) => (
+                  <Pressable
+                    key={example}
+                    onPress={() => addCircuitExampleToDraft(example)}
+                    style={({ pressed }) => [
+                      styles.exampleReplyButton,
+                      pressed ? styles.optionPressed : null,
+                    ]}
+                  >
+                    <StandardText style={styles.exampleReplyText}>{example}</StandardText>
+                  </Pressable>
+                ))}
+              </View>
+
+              {circuitMessages.length ? (
+                <View style={styles.userMessages}>
+                  {circuitMessages.map((message, index) => (
+                    <View key={`user-circuit-message-${index}`} style={styles.userMessageRow}>
+                      <View style={styles.userMessageBubble}>
+                        <StandardText style={styles.userMessageText} textColor="#ffffff">
+                          {message}
+                        </StandardText>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.emptyReplyHint}>
+                  <StandardText style={styles.emptyReplyText}>
+                    No circuit goal added yet
+                  </StandardText>
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={styles.inputWrap}>
+              <TextInput
+                placeholder="Type what fades first..."
+                placeholderTextColor="#8E8E8E"
+                value={draftMessage}
+                onChangeText={setDraftMessage}
+                multiline
+                numberOfLines={3}
+                style={styles.chatTextarea}
+              />
+              <TouchableOpacity style={styles.sendButton} onPress={() => commitCircuitMessage()}>
+                <Image source={ARROW_TEXT_ICON} style={styles.sendIcon} resizeMode="contain" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  if (mode === "circuitFocus") {
+    return (
+      <View style={[styles.section, { minHeight: screenHeight }]}>
+        <TitleText height={130}>Circuit focus</TitleText>
+        <StandardText style={styles.helperText} textColor="#C9B259" center>
+          Pick the main quality your circuit sessions should target.
+        </StandardText>
+        <View style={styles.circuitFocusContent}>
+          <CompactFocusGrid
+            options={CIRCUIT_PRIORITY_OPTIONS}
+            value={[
+              values?.circuitTrainingPrimaryPriority,
+              ...(Array.isArray(values?.circuitTrainingSecondaryPriorities)
+                ? values.circuitTrainingSecondaryPriorities
+                : []),
+            ].filter(Boolean)}
+            shortLabels={CIRCUIT_FOCUS_SHORT_LABELS}
+            icons={CIRCUIT_FOCUS_ICONS}
+            multi
+            onChange={(nextValues) => {
+              const selectedValues = Array.isArray(nextValues) ? nextValues : [];
+
+              updateFields({
+                circuitTrainingPrimaryPriority: selectedValues[0] || null,
+                circuitTrainingSecondaryPriorities: selectedValues.slice(1),
+              });
+            }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (mode === "heavyBagFocus") {
+    return (
+      <View style={[styles.section, { minHeight: screenHeight }]}>
+        <TitleText height={118}>Heavy bag focus</TitleText>
+        <StandardText style={styles.heavyBagHelperText} textColor="#C9B259" center>
+          Pick what your bag conditioning should mainly train.
+        </StandardText>
+        <View style={styles.heavyBagOptionContent}>
+          <LargeOptionGrid
+            options={HEAVY_BAG_ENDURANCE_TARGET_OPTIONS}
+            value={values?.heavyBagEnduranceTarget}
+            icons={HEAVY_BAG_TARGET_ICONS}
+            onChange={(nextValue) => updateField("heavyBagEnduranceTarget", nextValue)}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (mode === "sprintingFocus") {
+    return (
+      <View style={[styles.section, { minHeight: screenHeight }]}>
+        <TitleText height={130}>Sprinting focus</TitleText>
+        <StandardText style={styles.helperText} center>
+          Pick what sprint sessions should mainly train.
+        </StandardText>
+        <View style={styles.sprintingOptions}>
+          {SPRINTING_TARGET_OPTIONS.map((option) => {
+            const isSelected = values?.sprintingTarget === option.value;
+
+            return (
+              <PreferenceOptionButton
+                key={option.value}
+                isSelected={isSelected}
+                label={option.label}
+                icon={
+                  <MaterialCommunityIcons
+                    name={SPRINTING_TARGET_ICONS[option.value]}
+                    size={34}
+                    color={isSelected ? "#ffffff" : "#C9B259"}
+                  />
+                }
+                stacked
+                buttonStyle={styles.sprintingOptionButton}
+                labelStyle={styles.sprintingOptionLabel}
+                onPress={() =>
+                  updateField("sprintingTarget", isSelected ? null : option.value)
+                }
+              />
+            );
+          })}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={112}>Endurance Setup</TitleText>
+      <TitleText height={130}>Endurance style</TitleText>
       <StandardText style={styles.helperText} textColor="#C9B259" center>
-        Start with the lowest dose that solves the conditioning problem. The
-        plan will still protect sparring, lifting, and recovery.
+        Pick the type of endurance work you want the plan to favor when possible.
       </StandardText>
 
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <OptionGroup
-          title="Sessions per week"
-          options={ENDURANCE_SESSION_COUNT_OPTIONS}
-          value={values?.enduranceSessionsPerWeek}
-          onChange={(nextValue) =>
-            updateField("enduranceSessionsPerWeek", nextValue || 1)
-          }
-        />
-
-        {values?.enduranceSessionsPerWeek >= 3 ? (
-          <Text style={styles.warningText}>
-            Higher endurance frequency only fits when combat load and recovery
-            truly allow it.
-          </Text>
-        ) : null}
-
-        <OptionGroup
-          title="Preferred structure"
-          options={ENDURANCE_FORMAT_OPTIONS}
-          value={values?.preferredEnduranceFormat}
-          onChange={(nextValue) =>
-            updateField("preferredEnduranceFormat", nextValue)
-          }
-        />
-
-        {showCircuitDetails ? (
-          <View style={styles.group}>
-            <Text style={styles.groupTitle}>Circuit goal</Text>
-            <Text style={styles.groupHint}>
-              Describe what fades first and what you want to improve.
-            </Text>
-            <TextInput
-              value={values?.circuitTrainingGoalInput}
-              onChangeText={(nextValue) =>
-                updateField("circuitTrainingGoalInput", nextValue)
-              }
-              multiline
-              numberOfLines={3}
-              placeholder="Example: my shoulders burn out late in rounds"
-              placeholderTextColor="#9CA3AF"
-              style={styles.textarea}
-            />
-            <View style={styles.exampleRow}>
-              {CIRCUIT_GOAL_EXAMPLES.map((example) => (
-                <ChoiceChip
-                  key={example}
-                  label={example}
-                  isSelected={values?.circuitTrainingGoalInput === example}
-                  onPress={() => updateField("circuitTrainingGoalInput", example)}
-                />
-              ))}
-            </View>
-            <OptionGroup
-              title="Primary circuit priority"
-              options={CIRCUIT_PRIORITY_OPTIONS}
-              value={values?.circuitTrainingPrimaryPriority}
-              onChange={(nextValue) =>
-                updateField("circuitTrainingPrimaryPriority", nextValue)
+        <View style={styles.styleOptions}>
+          {ENDURANCE_FORMAT_OPTIONS.map((option) => (
+            <PreferenceOptionButton
+              key={option.value}
+              isSelected={values?.preferredEnduranceFormat === option.value}
+              label={option.label}
+              description={ENDURANCE_FORMAT_DETAILS[option.value]}
+              buttonStyle={styles.styleOptionButton}
+              selectedButtonStyle={styles.styleOptionButtonSelected}
+              labelStyle={styles.styleOptionLabel}
+              descriptionStyle={styles.styleOptionDescription}
+              onPress={() =>
+                updateField(
+                  "preferredEnduranceFormat",
+                  values?.preferredEnduranceFormat === option.value
+                    ? null
+                    : option.value
+                )
               }
             />
-            <OptionGroup
-              title="Secondary priorities"
-              options={CIRCUIT_PRIORITY_OPTIONS}
-              value={values?.circuitTrainingSecondaryPriorities}
-              onChange={(nextValue) =>
-                updateField("circuitTrainingSecondaryPriorities", nextValue)
-              }
-              multi
-            />
-          </View>
-        ) : null}
-
-        {showHeavyBagDetails ? (
-          <OptionGroup
-            title="Heavy bag endurance target"
-            options={HEAVY_BAG_ENDURANCE_TARGET_OPTIONS}
-            value={values?.heavyBagEnduranceTarget}
-            onChange={(nextValue) =>
-              updateField("heavyBagEnduranceTarget", nextValue)
-            }
-          />
-        ) : null}
-
-        {showSprintingDetails ? (
-          <OptionGroup
-            title="Sprinting target"
-            options={SPRINTING_TARGET_OPTIONS}
-            value={values?.sprintingTarget}
-            onChange={(nextValue) => updateField("sprintingTarget", nextValue)}
-          />
-        ) : null}
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  daysSection: {
+    justifyContent: "flex-start",
+    paddingTop: 88,
+  },
   section: {
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingTop: 88,
   },
   helperText: {
     alignSelf: "center",
@@ -212,10 +717,249 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     paddingHorizontal: 24,
   },
+  heavyBagHelperText: {
+    alignSelf: "center",
+    fontSize: 14,
+    lineHeight: 20,
+    maxWidth: 340,
+    paddingHorizontal: 24,
+  },
+  daysWarningText: {
+    alignSelf: "center",
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: -4,
+    maxWidth: 320,
+    paddingHorizontal: 24,
+  },
+  scroll: {
+    flex: 1,
+  },
   scrollContent: {
     gap: 14,
+    paddingBottom: 156,
+    paddingHorizontal: 12,
+  },
+  daysContent: {
+    flex: 1,
+    justifyContent: "center",
     paddingBottom: 120,
-    paddingHorizontal: 6,
+  },
+  sliderSection: {
+    alignSelf: "center",
+    maxWidth: 340,
+    width: "82%",
+  },
+  sliderNumbers: {
+    alignSelf: "center",
+    flexDirection: "row",
+    height: 42,
+    justifyContent: "space-between",
+    marginBottom: 6,
+    paddingHorizontal: ENDURANCE_THUMB_SIZE / 2,
+    width: "100%",
+  },
+  sliderNumberSlot: {
+    alignItems: "center",
+    height: "100%",
+    justifyContent: "flex-end",
+    width: ENDURANCE_THUMB_SIZE,
+  },
+  sliderNumber: {
+    color: "#585858",
+    fontSize: 16,
+    lineHeight: 18,
+    textAlign: "center",
+  },
+  sliderNumberActive: {
+    color: "#ffffff",
+    fontSize: 24,
+    lineHeight: 28,
+  },
+  sliderShell: {
+    height: 64,
+    position: "relative",
+    width: "100%",
+  },
+  sliderTouchArea: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
+  },
+  sliderTrack: {
+    backgroundColor: "#2A2A2A",
+    borderRadius: 999,
+    height: 12,
+    left: ENDURANCE_THUMB_SIZE / 2,
+    overflow: "hidden",
+    position: "absolute",
+    right: ENDURANCE_THUMB_SIZE / 2,
+    top: 24,
+  },
+  sliderTrackFill: {
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    height: "100%",
+  },
+  sliderThumb: {
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    height: ENDURANCE_THUMB_SIZE,
+    position: "absolute",
+    top: 18,
+    width: ENDURANCE_THUMB_SIZE,
+    zIndex: 1,
+  },
+  sliderLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 2,
+    paddingHorizontal: ENDURANCE_THUMB_SIZE / 2,
+  },
+  sliderLabel: {
+    color: "#7A7A7A",
+    fontSize: 16,
+    lineHeight: 18,
+  },
+  styleOptions: {
+    gap: 16,
+  },
+  styleOptionButton: {
+    borderRadius: 20,
+    height: 124,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  styleOptionButtonSelected: {
+    borderColor: "#ffffff",
+    borderStyle: "solid",
+  },
+  styleOptionLabel: {
+    bottom: "auto",
+    fontSize: 14,
+    lineHeight: 18,
+    position: "relative",
+  },
+  styleOptionDescription: {
+    color: "#8E8E8E",
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 6,
+  },
+  sprintingOptions: {
+    gap: 16,
+    marginTop: 56,
+  },
+  sprintingOptionButton: {
+    minHeight: 118,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  sprintingOptionLabel: {
+    color: "#ffffff",
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  circuitFocusContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingBottom: 120,
+  },
+  circuitFocusGrid: {
+    alignSelf: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "flex-start",
+    maxWidth: 340,
+    width: "100%",
+  },
+  circuitFocusOption: {
+    alignItems: "center",
+    backgroundColor: "#121212",
+    borderColor: "#2D2D2D",
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 6,
+    justifyContent: "center",
+    minHeight: 82,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    width: "30%",
+  },
+  circuitFocusOptionSelected: {
+    borderColor: "#ffffff",
+  },
+  circuitFocusOptionDimmed: {
+    backgroundColor: "#0B0B0B",
+    borderColor: "#171717",
+    opacity: 0.42,
+  },
+  circuitFocusOptionIcon: {
+    marginBottom: 1,
+  },
+  circuitFocusOptionText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 15,
+    textAlign: "center",
+  },
+  circuitFocusOptionTextSelected: {
+    color: "#ffffff",
+  },
+  largeOptionContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingBottom: 120,
+  },
+  heavyBagOptionContent: {
+    flex: 1,
+    justifyContent: "flex-start",
+    paddingBottom: 120,
+    paddingTop: 64,
+  },
+  largeOptionGrid: {
+    alignSelf: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 15,
+    justifyContent: "flex-start",
+    width: 280,
+  },
+  largeOptionBorder: {
+    backgroundColor: "#303030",
+    borderRadius: 30,
+    height: 138.2,
+    paddingBottom: 12,
+    paddingLeft: 1.2,
+    paddingRight: 1.2,
+    paddingTop: 1.2,
+    width: 127.4,
+  },
+  largeOptionBorderSelected: {
+    height: 127.4,
+    paddingBottom: 1.2,
+    transform: [{ translateY: 10.8 }],
+  },
+  largeOptionFace: {
+    alignItems: "center",
+    backgroundColor: "#0D0D0D",
+    borderRadius: 28.8,
+    gap: 8,
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  largeOptionIcon: {
+    marginBottom: 1,
+  },
+  largeOptionText: {
+    color: "#ffffff",
+    fontFamily: "BebasNeue",
+    fontSize: 18,
+    lineHeight: 21,
+    textAlign: "center",
   },
   group: {
     gap: 8,
@@ -258,6 +1002,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#C9B259",
     borderColor: "#ffffff",
   },
+  optionPressed: {
+    opacity: 0.78,
+  },
   chipPressed: {
     opacity: 0.78,
   },
@@ -287,5 +1034,230 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     textAlign: "center",
+  },
+  chatSection: {
+    paddingTop: 108,
+    position: "relative",
+  },
+  topChatHeader: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderBottomColor: "#1E1E1E",
+    borderBottomWidth: 2,
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 58,
+    paddingHorizontal: 28,
+    width: "100%",
+  },
+  botAvatar: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    height: 38,
+    justifyContent: "center",
+    width: 38,
+  },
+  botAvatarImage: {
+    height: 27,
+    width: 27,
+  },
+  chatHeaderCopy: {
+    gap: 2,
+  },
+  chatName: {
+    color: "#ffffff",
+    fontSize: 16,
+  },
+  chatStatus: {
+    color: "#C9B259",
+    fontSize: 12,
+  },
+  headerActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+    marginLeft: "auto",
+  },
+  skipButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+  },
+  skipButtonText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
+  },
+  continueButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    height: 34,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  continueButtonDisabled: {
+    opacity: 0.28,
+  },
+  continueButtonText: {
+    color: "#000000",
+    fontSize: 14,
+  },
+  chatContentSlot: {
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 166,
+  },
+  chatFeed: {
+    alignSelf: "center",
+    flex: 1,
+    gap: 12,
+    width: "84%",
+  },
+  chatScroll: {
+    flex: 1,
+  },
+  messages: {
+    flexGrow: 1,
+    gap: 4,
+    justifyContent: "flex-end",
+    paddingBottom: 4,
+  },
+  timestampPill: {
+    alignSelf: "center",
+    backgroundColor: "#242424",
+    borderRadius: 999,
+    marginBottom: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  timestampText: {
+    color: "#8E8E8E",
+    fontSize: 11,
+  },
+  messageRow: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    gap: 10,
+  },
+  botIcon: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    height: 34,
+    justifyContent: "center",
+    marginBottom: 2,
+    width: 34,
+  },
+  botIconSpacer: {
+    height: 34,
+    width: 34,
+  },
+  botIconImage: {
+    height: 24,
+    width: 24,
+  },
+  messageBubble: {
+    backgroundColor: "#C9B259",
+    borderRadius: 22,
+    maxWidth: "76%",
+    paddingHorizontal: 15,
+    paddingVertical: 11,
+  },
+  messageText: {
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  exampleBubbleWrap: {
+    alignItems: "flex-start",
+    gap: 6,
+    marginLeft: 44,
+    marginTop: 10,
+  },
+  exampleReplyButton: {
+    backgroundColor: "#242424",
+    borderColor: "#3A3A3A",
+    borderRadius: 999,
+    borderWidth: 1,
+    maxWidth: "86%",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  exampleReplyText: {
+    color: "#D1D5DB",
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  userMessages: {
+    gap: 4,
+    marginTop: 14,
+  },
+  userMessageRow: {
+    alignItems: "flex-end",
+  },
+  userMessageBubble: {
+    backgroundColor: "#2F2F2F",
+    borderRadius: 22,
+    maxWidth: "78%",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  userMessageText: {
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  emptyReplyHint: {
+    alignSelf: "flex-end",
+    borderColor: "#2A2A2A",
+    borderRadius: 18,
+    borderStyle: "dashed",
+    borderWidth: 1,
+    marginTop: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  emptyReplyText: {
+    color: "#6F6F6F",
+    fontSize: 13,
+  },
+  inputWrap: {
+    backgroundColor: "#1B1B1B",
+    borderColor: "#2A2A2A",
+    borderRadius: 28,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 58,
+    position: "relative",
+  },
+  chatTextarea: {
+    color: "#ffffff",
+    fontSize: 16,
+    maxHeight: 110,
+    minHeight: 58,
+    paddingLeft: 16,
+    paddingRight: 58,
+    paddingVertical: 10,
+    textAlign: "left",
+    textAlignVertical: "center",
+  },
+  sendButton: {
+    alignItems: "center",
+    backgroundColor: "#C9B259",
+    borderRadius: 999,
+    height: 38,
+    justifyContent: "center",
+    position: "absolute",
+    right: 10,
+    width: 38,
+  },
+  sendIcon: {
+    height: 20,
+    tintColor: "#000000",
+    width: 20,
   },
 });
