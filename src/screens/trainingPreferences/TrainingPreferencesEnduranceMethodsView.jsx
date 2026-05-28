@@ -4,6 +4,8 @@ import {
   useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
+  Animated,
+  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -26,6 +28,126 @@ const ENDURANCE_METHOD_ICONS = Object.freeze({
   swimming: "swim",
   versaclimber: "stairs-up",
 });
+const GOLD_RAY_ANGLES = Object.freeze([0, 45, 90, 135, 180, 225, 270, 315]);
+
+function EnduranceMethodOption({
+  iconName,
+  isSelected,
+  label,
+  onLongPress,
+  onPress,
+}) {
+  const selectedProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
+  const pressProgress = useRef(new Animated.Value(0)).current;
+  const burstProgress = useRef(new Animated.Value(0)).current;
+  const wasSelectedRef = useRef(isSelected);
+
+  useEffect(() => {
+    Animated.timing(selectedProgress, {
+      toValue: isSelected ? 1 : 0,
+      duration: isSelected ? 160 : 120,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+
+    if (isSelected && !wasSelectedRef.current) {
+      burstProgress.setValue(0);
+      Animated.timing(burstProgress, {
+        toValue: 1,
+        duration: 280,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }
+
+    wasSelectedRef.current = isSelected;
+  }, [burstProgress, isSelected, selectedProgress]);
+
+  function animatePress(toValue) {
+    Animated.timing(pressProgress, {
+      toValue,
+      duration: toValue ? 70 : 110,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }
+
+  const optionLiftStyle = {
+    opacity: pressProgress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 0.78],
+    }),
+    transform: [
+      {
+        translateY: selectedProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -7],
+        }),
+      },
+      {
+        scale: selectedProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 1.025],
+        }),
+      },
+    ],
+  };
+  const burstStyle = {
+    opacity: burstProgress.interpolate({
+      inputRange: [0, 0.18, 1],
+      outputRange: [0, 0.95, 0],
+    }),
+    transform: [
+      {
+        scale: burstProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.35, 1.28],
+        }),
+      },
+    ],
+  };
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onPressIn={() => animatePress(1)}
+      onPressOut={() => animatePress(0)}
+      delayLongPress={240}
+      style={styles.optionPressable}
+    >
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.goldBurst, burstStyle]}
+      >
+        {GOLD_RAY_ANGLES.map((angle) => (
+          <View
+            key={`gold-ray-${angle}`}
+            style={[
+              styles.goldRay,
+              { transform: [{ rotate: `${angle}deg` }, { translateY: -48 }] },
+            ]}
+          />
+        ))}
+      </Animated.View>
+      <Animated.View
+        style={[
+          styles.option,
+          isSelected ? styles.optionSelected : null,
+          optionLiftStyle,
+        ]}
+      >
+        <MaterialCommunityIcons
+          name={iconName}
+          size={38}
+          color="#ffffff"
+          style={styles.optionIcon}
+        />
+        <IBMPlexText style={styles.optionLabel}>{label}</IBMPlexText>
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 export default function TrainingPreferencesEnduranceMethodsView({
   value = [],
@@ -35,6 +157,7 @@ export default function TrainingPreferencesEnduranceMethodsView({
   const { height: screenHeight } = useWindowDimensions();
   const [activeInfoValue, setActiveInfoValue] = useState(null);
   const didLongPressRef = useRef(false);
+  const infoCardProgress = useRef(new Animated.Value(0)).current;
   const selectedValues = Array.isArray(value) ? value : [];
   const activeInfoOption = ENDURANCE_MODALITY_OPTIONS.find(
     (option) => option.value === activeInfoValue
@@ -51,6 +174,20 @@ export default function TrainingPreferencesEnduranceMethodsView({
       onInfoVisibilityChange?.(false);
     };
   }, [activeInfoOption, onInfoVisibilityChange]);
+
+  useEffect(() => {
+    if (!activeInfoOption) {
+      infoCardProgress.setValue(0);
+      return;
+    }
+
+    Animated.timing(infoCardProgress, {
+      toValue: 1,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [activeInfoOption, infoCardProgress]);
 
   function toggleMethod(methodValue) {
     const nextValues = selectedValues.includes(methodValue)
@@ -106,8 +243,11 @@ export default function TrainingPreferencesEnduranceMethodsView({
             const iconName = ENDURANCE_METHOD_ICONS[option.value] || "timer";
 
             return (
-              <Pressable
+              <EnduranceMethodOption
                 key={option.value}
+                iconName={iconName}
+                isSelected={isSelected}
+                label={option.label}
                 onPress={() => {
                   if (didLongPressRef.current) {
                     didLongPressRef.current = false;
@@ -120,21 +260,7 @@ export default function TrainingPreferencesEnduranceMethodsView({
                   didLongPressRef.current = true;
                   setActiveInfoValue(option.value);
                 }}
-                delayLongPress={240}
-                style={({ pressed }) => [
-                  styles.option,
-                  isSelected && styles.optionSelected,
-                  pressed && styles.optionPressed,
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name={iconName}
-                  size={38}
-                  color="#ffffff"
-                  style={styles.optionIcon}
-                />
-                <IBMPlexText style={styles.optionLabel}>{option.label}</IBMPlexText>
-              </Pressable>
+              />
             );
           })}
         </View>
@@ -157,7 +283,29 @@ export default function TrainingPreferencesEnduranceMethodsView({
             ]}
           >
             <View style={styles.infoCardRegion}>
-              <View style={styles.infoCard}>
+              <Animated.View
+                style={[
+                  styles.infoCard,
+                  isActiveInfoSelected ? styles.infoCardSelected : null,
+                  {
+                    opacity: infoCardProgress,
+                    transform: [
+                      {
+                        translateY: infoCardProgress.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [34, -8],
+                        }),
+                      },
+                      {
+                        scale: infoCardProgress.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.96, 1],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
                 <MaterialCommunityIcons
                   name={activeInfoIconName}
                   size={42}
@@ -165,7 +313,7 @@ export default function TrainingPreferencesEnduranceMethodsView({
                   style={styles.infoCardIcon}
                 />
                 <IBMPlexText style={styles.infoTitle}>{activeInfoOption.label}</IBMPlexText>
-              </View>
+              </Animated.View>
             </View>
             <View style={styles.infoBottomContent}>
               <IBMPlexText style={styles.infoText}>{activeInfoOption.description}</IBMPlexText>
@@ -240,6 +388,11 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: "center",
   },
+  optionPressable: {
+    overflow: "visible",
+    position: "relative",
+    width: "30%",
+  },
   option: {
     alignItems: "center",
     backgroundColor: "#121212",
@@ -252,13 +405,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingTop: 12,
     position: "relative",
-    width: "30%",
+    width: "100%",
   },
   optionSelected: {
     borderColor: "#C9B259",
-  },
-  optionPressed: {
-    opacity: 0.78,
+    shadowColor: "#C9B259",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 8,
   },
   optionIcon: {
     marginBottom: 12,
@@ -268,6 +423,27 @@ const styles = StyleSheet.create({
     fontSize: 12, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
+  },
+  goldBurst: {
+    alignItems: "center",
+    bottom: -14,
+    justifyContent: "center",
+    left: -14,
+    position: "absolute",
+    right: -14,
+    top: -14,
+    zIndex: 0,
+  },
+  goldRay: {
+    backgroundColor: "#F2C94C",
+    borderRadius: 2,
+    height: 32,
+    left: "50%",
+    marginLeft: -1.5,
+    marginTop: -16,
+    position: "absolute",
+    top: "50%",
+    width: 3,
   },
   dimLayer: {
     backgroundColor: "rgba(0,0,0,0.48)",
@@ -297,7 +473,7 @@ const styles = StyleSheet.create({
   infoCard: {
     alignItems: "center",
     backgroundColor: "#141414",
-    borderColor: "#ffffff",
+    borderColor: "#2D2D2D",
     borderRadius: 8,
     borderWidth: 1,
     justifyContent: "center",
@@ -313,6 +489,11 @@ const styles = StyleSheet.create({
     minWidth: 112,
     maxWidth: 132,
     elevation: 12,
+  },
+  infoCardSelected: {
+    borderColor: "#C9B259",
+    shadowColor: "#C9B259",
+    shadowOpacity: 0.26,
   },
   infoCardIcon: {
     marginBottom: 12,
