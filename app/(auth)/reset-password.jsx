@@ -1,32 +1,19 @@
 import {
   useState } from "react";
 import {
-  ActivityIndicator,
   StyleSheet,
-  TouchableOpacity,
+  TextInput,
   View,
 } from "react-native";
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import SignFormInput from "../../src/components/authComponents/SignFormInput.jsx";
+import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
+import { getFriendlyErrorMessage } from "../../src/services/utils/errorMessages.js";
 
 function getParamValue(value) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function mapResetPasswordError(errorCode) {
-  switch (errorCode) {
-    case "auth/invalid-email":
-      return "Enter a valid e-mail address.";
-    case "auth/missing-email":
-      return "Enter the e-mail address for your account.";
-    case "auth/too-many-requests":
-      return "Too many attempts. Please wait a moment and try again.";
-    default:
-      return "We could not send the reset link right now. Please try again.";
-  }
 }
 
 const RESET_PASSWORD_SUCCESS_MESSAGE =
@@ -47,6 +34,10 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleBackPress() {
+    if (isSubmitting) {
+      return;
+    }
+
     if (source === "auth") {
       router.replace("/(auth)/auth");
       return;
@@ -86,7 +77,10 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
         return;
       }
 
-      const nextMessage = mapResetPasswordError(submitError.message);
+      const nextMessage = getFriendlyErrorMessage(
+        submitError,
+        "We could not send the reset link right now. Please try again."
+      );
       setError(nextMessage);
       model.showError?.(nextMessage);
     } finally {
@@ -96,18 +90,24 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
 
   return (
     <View style={styles.container}>
-      <IBMPlexText titleBlock height={200}>Reset Password</IBMPlexText>
-      <IBMPlexText defaultWhite center={true} style={styles.description}>
-        Enter the e-mail address you use to sign in and we will send you a reset
-        link.
-      </IBMPlexText>
-
-      <SignFormInput
-        text="E-mail"
-        image="user"
-        inputProps={{
-          value: email,
-          onChangeText: (value) => {
+      <WhiteBottomMenu
+        visible
+        title="Reset password"
+        description="Enter your account e-mail and we will send a reset link."
+        onDismiss={handleBackPress}
+        buttonText={isSubmitting ? "Sending..." : "Send reset link"}
+        buttonDisabled={isSubmitting}
+        onButtonPress={handleSubmitPress}
+        secondaryButtonText="Back to sign in"
+        secondaryButtonDisabled={isSubmitting}
+        onSecondaryButtonPress={handleBackPress}
+        sheetStyle={styles.sheet}
+        contentStyle={styles.sheetContent}
+        bottomPadding={10}
+      >
+        <TextInput
+          value={email}
+          onChangeText={(value) => {
             setEmail(value);
             if (error) {
               setError(null);
@@ -115,46 +115,27 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
             if (successMessage) {
               setSuccessMessage(null);
             }
-          },
-          keyboardType: "email-address",
-          autoCapitalize: "none",
-          editable: !isSubmitting,
-        }}
-      />
+          }}
+          placeholder="E-mail"
+          placeholderTextColor="#777777"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          editable={!isSubmitting}
+          style={styles.emailInput}
+        />
 
-      <TouchableOpacity
-        style={[styles.primaryButton, isSubmitting ? styles.buttonDisabled : null]}
-        onPress={handleSubmitPress}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? (
-          <ActivityIndicator color="#000" />
-        ) : (
-          <IBMPlexText defaultWhite textColor="#000" fontSize={22}>
-            Send reset link
+        {successMessage ? (
+          <IBMPlexText style={styles.successText}>
+            {successMessage}
           </IBMPlexText>
-        )}
-      </TouchableOpacity>
+        ) : null}
 
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={handleBackPress}
-        disabled={isSubmitting}
-      >
-        <IBMPlexText defaultWhite center={true}>Back to sign in</IBMPlexText>
-      </TouchableOpacity>
-
-      {successMessage ? (
-        <IBMPlexText defaultWhite center={true} style={styles.successText}>
-          {successMessage}
-        </IBMPlexText>
-      ) : null}
-
-      {error ? (
-        <IBMPlexText defaultWhite center={true} style={styles.errorText}>
-          {error}
-        </IBMPlexText>
-      ) : null}
+        {error ? (
+          <IBMPlexText style={styles.errorText}>
+            {error}
+          </IBMPlexText>
+        ) : null}
+      </WhiteBottomMenu>
     </View>
   );
 });
@@ -165,34 +146,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  description: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-    fontSize: 20,
+  sheet: {
+    gap: 10,
+    paddingTop: 8,
   },
-  primaryButton: {
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 120,
-    height: 70,
-    justifyContent: "center",
-    marginHorizontal: 20,
-    marginBottom: 12,
+  sheetContent: {
+    gap: 8,
   },
-  secondaryButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    minHeight: 40,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
+  emailInput: {
+    backgroundColor: "#f7f7f7",
+    borderColor: "#dedede",
+    borderRadius: 16,
+    borderWidth: 1,
+    color: "#141414",
+    fontSize: 16,
+    minHeight: 50,
+    paddingHorizontal: 16,
   },
   successText: {
-    color: "#4ADE80",
-    marginHorizontal: 20,
+    color: "#047857",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
   },
   errorText: {
-    marginHorizontal: 20,
+    color: "#b91c1c",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
   },
 });

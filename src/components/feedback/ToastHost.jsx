@@ -10,11 +10,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 import { colors, fonts, shadows } from "../../theme/colors.js";
 
-const TOAST_DURATION_MS = 2000;
+const TOAST_DURATION_MS = 5000;
+const HIDDEN_TRANSLATE_Y = -180;
 
 const ToastHost = observer(function ToastHost({ model }) {
   const insets = useSafeAreaInsets();
-  const translateY = useRef(new Animated.Value(-96)).current;
+  const translateY = useRef(new Animated.Value(HIDDEN_TRANSLATE_Y)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const toast = model?.appToast;
   const [renderedToast, setRenderedToast] = useState(null);
@@ -23,7 +24,7 @@ const ToastHost = observer(function ToastHost({ model }) {
     if (!toast?.message) {
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: -96,
+          toValue: HIDDEN_TRANSLATE_Y,
           duration: 180,
           useNativeDriver: true,
         }),
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   toast: {
-    alignItems: "center",
+    alignItems: "flex-start",
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
     maxWidth: 520,
     minHeight: 48,
     paddingHorizontal: 14,
-    paddingVertical: 11,
+    paddingVertical: 12,
     width: "100%",
     ...shadows.large,
   },
@@ -122,6 +123,7 @@ const styles = StyleSheet.create({
   statusDot: {
     borderRadius: 5,
     height: 10,
+    marginTop: 5,
     width: 10,
   },
   errorDot: {
@@ -133,6 +135,7 @@ const styles = StyleSheet.create({
   message: {
     color: colors.textPrimary,
     flex: 1,
+    flexWrap: "wrap",
     fontFamily: fonts.bodySemiBold,
     fontSize: 14,
     lineHeight: 19,

@@ -8,9 +8,9 @@ import {
   Easing,
   View,
   StyleSheet,
-  Image,
   Pressable,
 } from "react-native";
+import Svg, { Path, Rect } from "react-native-svg";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
@@ -19,7 +19,50 @@ import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const TAB_BAR_ANIMATION_DURATION = 220;
 
-function TabIcon({ source, size, focused, label }) {
+function HomeNavIcon({ size, color }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 182 177" fill="none">
+      <Path d="M97 0H104C147.078 0 182 34.9218 182 78V157C182 168.046 173.046 177 162 177H117C105.954 177 97 168.046 97 157V0Z" fill={color} />
+      <Path d="M85 0H78C34.9218 0 0 34.9218 0 78V157C0 168.046 8.95431 177 20 177H65C76.0457 177 85 168.046 85 157V0Z" fill={color} />
+    </Svg>
+  );
+}
+
+function PlanNavIcon({ size, color }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 562 562" fill="none">
+      <Rect x="432.829" y="59.2859" width="98.2751" height="98.2747" rx="49.1374" transform="rotate(44.8952 432.829 59.2859)" fill={color} />
+      <Path d="M254.457 130.3C252.104 127.946 252.104 124.131 254.457 121.778C277.989 98.2464 316.141 98.2463 339.673 121.778L478.174 260.279C480.527 262.632 480.527 266.447 478.174 268.8C454.642 292.332 416.489 292.332 392.958 268.8L254.457 130.3Z" fill={color} />
+      <Path d="M228.267 225.633C226.256 227.644 222.996 227.644 220.985 225.633C200.876 205.524 200.876 172.921 220.985 152.812L235.101 138.696C237.891 135.905 242.415 135.905 245.206 138.696L266.77 160.26C274.19 167.68 274.19 179.71 266.77 187.13L228.267 225.633Z" fill={color} />
+      <Path d="M504.268 164.623C506.279 162.612 509.539 162.612 511.55 164.623C531.659 184.732 531.659 217.336 511.55 237.445L497.434 251.56C494.644 254.351 490.12 254.351 487.329 251.56L465.765 229.996C458.345 222.576 458.345 210.546 465.765 203.126L504.268 164.623Z" fill={color} />
+      <Path d="M326.89 248.663C334.701 240.853 347.364 240.853 355.174 248.663L377.265 270.754C383.139 276.628 383.139 286.152 377.265 292.026L313.51 355.781C289.978 379.313 251.826 379.313 228.294 355.781C225.941 353.428 225.941 349.613 228.294 347.259L326.89 248.663Z" fill={color} />
+      <Path d="M272.894 194.668C280.704 186.857 293.368 186.857 301.178 194.668L319.763 213.252C327.573 221.063 327.573 233.726 319.763 241.536L136.359 424.94C112.828 448.471 74.6754 448.471 51.1437 424.94C48.7905 422.586 48.7905 418.771 51.1437 416.418L272.894 194.668Z" fill={color} />
+    </Svg>
+  );
+}
+
+function ForumNavIcon({ size, color }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 252 182" fill="none">
+      <Path d="M234.653 182C244.234 182 252 174.234 252 164.653C252 127.289 221.711 97 184.347 97H117.5C94.0279 97 75 116.028 75 139.5C75 162.972 94.0279 182 117.5 182H234.653Z" fill={color} />
+      <Path d="M134.5 85C157.972 85 177 65.9721 177 42.5C177 19.0279 157.972 0 134.5 0H67.6531C30.2893 0 0 30.2893 0 67.6531C0 77.2335 7.76649 85 17.3469 85H134.5Z" fill={color} />
+    </Svg>
+  );
+}
+
+function ProfileNavIcon({ size, color }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 263 176" fill="none">
+      <Rect x="82" width="98.2751" height="98.2747" rx="49.1374" fill={color} />
+      <Path d="M6.02565 175.591C2.69777 175.591 0 172.894 0 169.566C0 136.287 26.9778 109.309 60.2566 109.309L256.126 109.309C259.454 109.309 262.152 112.007 262.152 115.335C262.152 148.613 235.174 175.591 201.895 175.591L6.02565 175.591Z" fill={color} />
+    </Svg>
+  );
+}
+
+function TabIcon({ icon: Icon, size, iconSize, focused, label }) {
+  const iconColor = focused ? "#fff" : "#000";
+  const visualSize = iconSize ?? size;
+
   return (
     <View style={styles.tabIcon}>
       <View
@@ -28,14 +71,7 @@ function TabIcon({ source, size, focused, label }) {
           focused ? styles.tabIconContentActive : styles.tabIconContentInactive,
         ]}
       >
-        <Image
-          source={source}
-          style={[
-            styles.tabIconImage,
-            { width: size, height: size },
-            focused ? styles.tabIconImageActive : styles.tabIconImageInactive,
-          ]}
-        />
+        <Icon size={visualSize} color={iconColor} />
         {focused ? (
           <IBMPlexText numberOfLines={1} style={styles.tabIconLabel}>
             {label}
@@ -388,8 +424,9 @@ const TabsLayout = observer(function TabsLayout() {
             title: "Home",
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
-                source={require("../../src/assets/icons/home.png")}
+                icon={HomeNavIcon}
                 size={size}
+                iconSize={24}
                 focused={focused}
                 label="Home"
               />
@@ -402,8 +439,9 @@ const TabsLayout = observer(function TabsLayout() {
             title: "Plan",
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
-                source={require("../../src/assets/icons/sport.png")}
+                icon={PlanNavIcon}
                 size={size}
+                iconSize={38}
                 focused={focused}
                 label="Plan"
               />
@@ -416,8 +454,9 @@ const TabsLayout = observer(function TabsLayout() {
             title: "Forum",
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
-                source={require("../../src/assets/icons/conversation.png")}
+                icon={ForumNavIcon}
                 size={size}
+                iconSize={33}
                 focused={focused}
                 label="Forum"
               />
@@ -430,8 +469,9 @@ const TabsLayout = observer(function TabsLayout() {
             title: "Profile",
             tabBarIcon: ({ size, focused }) => (
               <TabIcon
-                source={require("../../src/assets/icons/user.png")}
+                icon={ProfileNavIcon}
                 size={size}
+                iconSize={36}
                 focused={focused}
                 label="Profile"
               />
@@ -596,20 +636,11 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 18,
   },
-  tabIconImage: {
-    resizeMode: "contain",
-  },
   tabIconLabel: {
     color: "#fff",
     fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 24,
     letterSpacing: 0.8,
     flexShrink: 1,
-  },
-  tabIconImageActive: {
-    tintColor: "#fff",
-  },
-  tabIconImageInactive: {
-    tintColor: "#000",
   },
 });

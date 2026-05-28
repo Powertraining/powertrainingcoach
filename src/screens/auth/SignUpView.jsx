@@ -1,4 +1,5 @@
-import { StyleSheet, View, TouchableOpacity } from "react-native";
+import { StyleSheet, View } from "react-native";
+import AuthBrandHeader from "../../components/authComponents/AuthBrandHeader.jsx";
 import SignFormInput from "../../components/authComponents/SignFormInput.jsx";
 import GoogleButtonComponent from "../../components/authComponents/GoogleButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
@@ -6,9 +7,7 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export function SignUpView(props) {
   return (
     <View style={{ flex: 1 }}>
-      <IBMPlexText titleBlock height={190} numberOfLines={1} adjustsFontSizeToFit>
-        POWERTRAINING
-      </IBMPlexText>
+      <AuthBrandHeader />
 
       <View style={styles.formContent}>
         <SignFormInput
@@ -56,7 +55,8 @@ export function SignUpView(props) {
 const styles = StyleSheet.create({
   formContent: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingTop: 44,
   },
 });
 

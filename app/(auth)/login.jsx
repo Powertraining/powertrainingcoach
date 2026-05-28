@@ -35,14 +35,17 @@ const LoginScreen = observer(function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [verificationMessage, setVerificationMessage] = useState(null);
-  const [canResendVerification, setCanResendVerification] = useState(false);
-  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetPasswordVisible, setResetPasswordVisible] = useState(false);
+  const [resetPasswordEmail, setResetPasswordEmail] = useState("");
+  const [resetPasswordError, setResetPasswordError] = useState(null);
+  const [resetPasswordSuccessMessage, setResetPasswordSuccessMessage] = useState(null);
+  const [isResetPasswordSubmitting, setIsResetPasswordSubmitting] = useState(false);
   const returnTo = getSafeReturnToPath(params);
   const genericLoginError =
     "Unable to sign in. Check your details, verification status, or reset your password.";
-  const genericVerificationMessage =
-    "If this account needs verification, a verification e-mail is on its way.";
+  const resetPasswordSuccessText =
+    "If that account exists, a password reset link is on its way.";
 
   function identifierChangeACB(value) {
     setIdentifier(value);
@@ -55,7 +58,6 @@ const LoginScreen = observer(function LoginScreen() {
   async function submitACB() {
     setError(null);
     setVerificationMessage(null);
-    setCanResendVerification(false);
     setIsSubmitting(true);
 
     try {
@@ -65,7 +67,6 @@ const LoginScreen = observer(function LoginScreen() {
       console.error(e);
       setError(genericLoginError);
       model.showError?.(genericLoginError);
-      setCanResendVerification(true);
       setIsSubmitting(false);
     }
   }
@@ -73,7 +74,6 @@ const LoginScreen = observer(function LoginScreen() {
   async function submitGoogleACB() {
     setError(null);
     setVerificationMessage(null);
-    setCanResendVerification(false);
     setIsSubmitting(true);
 
     try {
@@ -101,47 +101,61 @@ const LoginScreen = observer(function LoginScreen() {
   }
 
   function handleForgotPasswordPress() {
-    const normalizedIdentifier = identifier.trim();
-    const nextParams = {
-      source: "login",
-      ...(normalizedIdentifier ? { email: normalizedIdentifier } : {}),
-      ...(returnTo ? { returnTo } : {}),
-    };
-
-    router.push({
-      pathname: "/(auth)/reset-password",
-      params: nextParams,
-    });
+    setResetPasswordEmail(identifier.trim());
+    setResetPasswordError(null);
+    setResetPasswordSuccessMessage(null);
+    setResetPasswordVisible(true);
   }
 
-  async function handleResendVerificationPress() {
-    const normalizedIdentifier = identifier.trim();
+  function handleResetPasswordDismiss() {
+    if (isResetPasswordSubmitting) {
+      return;
+    }
 
-    if (!normalizedIdentifier || !password) {
-      const message = "Enter your e-mail and password first.";
-      setError(message);
+    setResetPasswordVisible(false);
+  }
+
+  function handleResetPasswordEmailChange(value) {
+    setResetPasswordEmail(value);
+    setResetPasswordError(null);
+    setResetPasswordSuccessMessage(null);
+  }
+
+  async function handleResetPasswordSubmit() {
+    const normalizedEmail = resetPasswordEmail.trim();
+
+    if (!normalizedEmail) {
+      const message = "Enter the e-mail address for your account.";
+      setResetPasswordError(message);
       model.showError?.(message);
       return;
     }
 
-    setError(null);
-    setVerificationMessage(null);
-    setIsResendingVerification(true);
+    setResetPasswordError(null);
+    setResetPasswordSuccessMessage(null);
+    setIsResetPasswordSubmitting(true);
 
     try {
-      await model.submitEmailVerificationResend(
-        normalizedIdentifier,
-        password
+      await model.submitPasswordReset(normalizedEmail);
+      setResetPasswordEmail(normalizedEmail);
+      setResetPasswordSuccessMessage(resetPasswordSuccessText);
+      model.showSuccess?.(resetPasswordSuccessText);
+    } catch (resetError) {
+      if (resetError?.message === "auth/user-not-found") {
+        setResetPasswordEmail(normalizedEmail);
+        setResetPasswordSuccessMessage(resetPasswordSuccessText);
+        model.showSuccess?.(resetPasswordSuccessText);
+        return;
+      }
+
+      const message = getFriendlyErrorMessage(
+        resetError,
+        "We could not send the reset link right now. Please try again."
       );
-      setVerificationMessage(genericVerificationMessage);
-      model.showSuccess?.(genericVerificationMessage);
-    } catch (e) {
-      console.error(e);
-      setVerificationMessage(genericVerificationMessage);
-      model.showSuccess?.(genericVerificationMessage);
+      setResetPasswordError(message);
+      model.showError?.(message);
     } finally {
-      setCanResendVerification(false);
-      setIsResendingVerification(false);
+      setIsResetPasswordSubmitting(false);
     }
   }
 
@@ -158,15 +172,20 @@ const LoginScreen = observer(function LoginScreen() {
       isSubmitting={isSubmitting}
       error={error}
       verificationMessage={verificationMessage}
-      canResendVerification={canResendVerification}
-      isResendingVerification={isResendingVerification}
       onIdentifierChange={identifierChangeACB}
       onPasswordChange={passwordChangeACB}
       onSubmit={submitACB}
       onSubmitGoogle={submitGoogleACB}
       onForgotPasswordPress={handleForgotPasswordPress}
-      onResendVerificationPress={handleResendVerificationPress}
       onSignupPress={handleSignupPress}
+      resetPasswordVisible={resetPasswordVisible}
+      resetPasswordEmail={resetPasswordEmail}
+      resetPasswordError={resetPasswordError}
+      resetPasswordSuccessMessage={resetPasswordSuccessMessage}
+      isResetPasswordSubmitting={isResetPasswordSubmitting}
+      onResetPasswordDismiss={handleResetPasswordDismiss}
+      onResetPasswordEmailChange={handleResetPasswordEmailChange}
+      onResetPasswordSubmit={handleResetPasswordSubmit}
     />
   );
 });

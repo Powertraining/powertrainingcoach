@@ -1,14 +1,14 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, TextInput } from "react-native";
+import AuthBrandHeader from "../../components/authComponents/AuthBrandHeader.jsx";
 import SignFormInput from "../../components/authComponents/SignFormInput.jsx";
 import GoogleButtonComponent from "../../components/authComponents/GoogleButton.jsx";
+import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 export function LoginView(props) {
   return (
     <View style={{ flex: 1 }}>
-      <IBMPlexText titleBlock height={190} numberOfLines={1} adjustsFontSizeToFit>
-        POWERTRAINING
-      </IBMPlexText>
+      <AuthBrandHeader />
 
       <View style={styles.formContent}>
         <SignFormInput
@@ -45,20 +45,46 @@ export function LoginView(props) {
         {props.verificationMessage ? (
           <IBMPlexText defaultWhite center={true}>{props.verificationMessage}</IBMPlexText>
         ) : null}
-        {props.canResendVerification ? (
-          <TouchableOpacity
-            style={styles.resendVerificationButton}
-            onPress={props.onResendVerificationPress}
-            disabled={props.isSubmitting || props.isResendingVerification}
-          >
-            <IBMPlexText defaultWhite center={true}>
-              {props.isResendingVerification
-                ? "Sending verification e-mail..."
-                : "Resend verification e-mail"}
-            </IBMPlexText>
-          </TouchableOpacity>
-        ) : null}
       </View>
+
+      <WhiteBottomMenu
+        visible={Boolean(props.resetPasswordVisible)}
+        title="Reset password"
+        description="Enter your account e-mail and we will send a reset link."
+        onDismiss={props.onResetPasswordDismiss}
+        buttonText={props.isResetPasswordSubmitting ? "Sending..." : "Send reset link"}
+        buttonDisabled={props.isResetPasswordSubmitting}
+        onButtonPress={props.onResetPasswordSubmit}
+        secondaryButtonText="Back to sign in"
+        secondaryButtonDisabled={props.isResetPasswordSubmitting}
+        onSecondaryButtonPress={props.onResetPasswordDismiss}
+        sheetStyle={styles.resetSheet}
+        contentStyle={styles.resetSheetContent}
+        bottomPadding={10}
+      >
+        <TextInput
+          value={props.resetPasswordEmail}
+          onChangeText={props.onResetPasswordEmailChange}
+          placeholder="E-mail"
+          placeholderTextColor="#777777"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          editable={!props.isResetPasswordSubmitting}
+          style={styles.resetEmailInput}
+        />
+
+        {props.resetPasswordSuccessMessage ? (
+          <IBMPlexText style={styles.resetSuccessText}>
+            {props.resetPasswordSuccessMessage}
+          </IBMPlexText>
+        ) : null}
+
+        {props.resetPasswordError ? (
+          <IBMPlexText style={styles.resetErrorText}>
+            {props.resetPasswordError}
+          </IBMPlexText>
+        ) : null}
+      </WhiteBottomMenu>
     </View>
   );
 }
@@ -66,16 +92,41 @@ export function LoginView(props) {
 const styles = StyleSheet.create({
   formContent: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingTop: 44,
   },
   forgotPasswordButton: {
     width: "100%",
     marginBottom: 15,
   },
-  resendVerificationButton: {
-    width: "100%",
-    marginTop: 4,
-    marginBottom: 15,
+  resetSheet: {
+    gap: 10,
+    paddingTop: 8,
+  },
+  resetSheetContent: {
+    gap: 8,
+  },
+  resetEmailInput: {
+    backgroundColor: "#f7f7f7",
+    borderColor: "#dedede",
+    borderRadius: 16,
+    borderWidth: 1,
+    color: "#141414",
+    fontSize: 16,
+    minHeight: 50,
+    paddingHorizontal: 16,
+  },
+  resetSuccessText: {
+    color: "#047857",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
+  },
+  resetErrorText: {
+    color: "#b91c1c",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
   },
 });
 
