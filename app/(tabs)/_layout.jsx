@@ -2,7 +2,9 @@ import {
   Tabs,
   Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
+import { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   View,
   StyleSheet,
   Image,
@@ -14,7 +16,7 @@ import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 function TabIcon({ source, size, focused, label }) {
   return (
-    <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+    <View style={styles.tabIcon}>
       <View
         style={[
           styles.tabIconContent,
@@ -137,14 +139,66 @@ function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
 }
 
 function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {
+  const pillTranslateX = useRef(new Animated.Value(0)).current;
+  const pillWidth = useRef(new Animated.Value(0)).current;
+  const pillLayoutsRef = useRef({});
+  const pillInitializedRef = useRef(false);
+  const [layoutRevision, setLayoutRevision] = useState(0);
+
+  const visibleRoutes = state.routes.filter((route) => VISIBLE_TAB_ROUTES.has(route.name));
+
+  function animatePillTo(tabName, animated = true) {
+    const activeLayout = pillLayoutsRef.current[tabName];
+
+    if (!activeLayout) {
+      return;
+    }
+
+    if (!pillInitializedRef.current || !animated) {
+      pillTranslateX.setValue(activeLayout.x);
+      pillWidth.setValue(activeLayout.width);
+      pillInitializedRef.current = true;
+      return;
+    }
+
+    Animated.parallel([
+      Animated.timing(pillTranslateX, {
+        toValue: activeLayout.x,
+        duration: 50,
+        useNativeDriver: false,
+      }),
+      Animated.timing(pillWidth, {
+        toValue: activeLayout.width,
+        duration: 1,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }
+
+  useEffect(() => {
+    if (!activeTabName) {
+      return;
+    }
+
+    animatePillTo(activeTabName);
+  }, [activeTabName, layoutRevision]);
+
   if (hidden) {
     return null;
   }
 
-  const visibleRoutes = state.routes.filter((route) => VISIBLE_TAB_ROUTES.has(route.name));
-
   return (
     <View style={[styles.customTabBar, { bottom: bottomOffset }]}>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.tabBarActivePill,
+          {
+            transform: [{ translateX: pillTranslateX }],
+            width: pillWidth,
+          },
+        ]}
+      />
       {visibleRoutes.map((route) => {
         const options = descriptors[route.key]?.options ?? {};
         const focused = activeTabName === route.name;
@@ -157,6 +211,7 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
           });
 
           if (!focused && !event.defaultPrevented) {
+            animatePillTo(route.name);
             navigation.navigate(route.name, route.params);
           }
         }
@@ -177,6 +232,17 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
+            onLayout={(event) => {
+              const { x, width } = event.nativeEvent.layout;
+              const previousLayout = pillLayoutsRef.current[route.name];
+
+              if (previousLayout?.x === x && previousLayout?.width === width) {
+                return;
+              }
+
+              pillLayoutsRef.current[route.name] = { x, width };
+              setLayoutRevision((revision) => revision + 1);
+            }}
             style={[
               styles.tabBarButton,
               focused ? styles.tabBarButtonActive : styles.tabBarButtonInactive,
@@ -435,6 +501,15 @@ const styles = StyleSheet.create({
     zIndex: 10,
     marginBottom: 5,
   },
+  tabBarActivePill: {
+    position: "absolute",
+    top: 6,
+    bottom: 6,
+    left: 0,
+    backgroundColor: "#000",
+    borderRadius: 120,
+    zIndex: 0,
+  },
   tabBarDisabledOverlay: {
     backgroundColor: "rgba(0, 0, 0, 0.72)",
     height: 70,
@@ -449,6 +524,7 @@ const styles = StyleSheet.create({
     borderRadius: 120,
     overflow: "hidden",
     flex: 1,
+    zIndex: 1,
   },
   tabBarButtonInactive: {
     flex: 1,
@@ -460,9 +536,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     borderRadius: 120,
-  },
-  tabIconActive: {
-    backgroundColor: "#000",
   },
   tabIconContent: {
     flex: 1,
