@@ -34,7 +34,7 @@ import {
 } from "../services/utils/programOverview.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-const WEEK_SCHEDULE_ITEM_WIDTH = 56;
+const WEEK_SCHEDULE_ITEM_WIDTH = 58;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
 const HEADER_SESSION_RING_SIZE = 76;
@@ -1641,7 +1641,7 @@ const styles = StyleSheet.create({
   },
   weekSchedule: {
     flexDirection: "row",
-    gap: 8,
+    gap: 0,
     paddingHorizontal: 28,
   },
   weekScheduleScroller: {
