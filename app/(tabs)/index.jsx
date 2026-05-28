@@ -283,9 +283,9 @@ const HomeScreen = observer(function HomeScreen() {
       router.replace("/(tabs)/overview");
     } catch (e) {
       console.error("Error generating training plan:", e);
-      setError(
-        e.message || "Could not generate your personalized training plan."
-      );
+      const message = e.message || "Could not generate your personalized training plan.";
+      setError(message);
+      model.showError?.(e, "Could not generate your personalized training plan. Please try again.");
       setStep(STEPS.INPUT);
     } finally {
       setLoading(false);
@@ -425,6 +425,7 @@ const HomeScreen = observer(function HomeScreen() {
       });
     } catch (error) {
       console.error("Could not update missed session logic:", error);
+      model.showError?.(error, "Could not push this session back. Please try again.");
     } finally {
       setPushingBackSession(false);
     }

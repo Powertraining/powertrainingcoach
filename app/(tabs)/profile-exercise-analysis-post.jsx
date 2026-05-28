@@ -36,7 +36,9 @@ const ProfileExerciseAnalysisPostScreen = observer(function ProfileExerciseAnaly
     setLoadError(null);
     model.loadForumPostThread(postId).catch((error) => {
       console.warn(`Could not load exercise analysis post ${postId}:`, error);
-      setLoadError(error?.message || "Could not load the exercise analysis.");
+      const message = error?.message || "Could not load the exercise analysis.";
+      setLoadError(message);
+      model.showError?.(error, "Could not load the exercise analysis. Please try again.");
     });
   }, [model, model.ready, model.user, postId]);
 
@@ -99,7 +101,9 @@ const ProfileExerciseAnalysisPostScreen = observer(function ProfileExerciseAnaly
       setCommentDraft("");
     } catch (error) {
       console.warn("Could not add exercise analysis comment:", error);
-      setCommentError(error?.message || "Could not send the reply.");
+      const message = error?.message || "Could not send the reply.";
+      setCommentError(message);
+      model.showError?.(error, "Could not send the reply. Please try again.");
     } finally {
       setIsCreatingComment(false);
     }
