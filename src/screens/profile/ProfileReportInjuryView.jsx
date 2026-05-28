@@ -17,6 +17,7 @@ import {
 } from "react-native";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
+import FadeInFromBottomView from "../../components/navigation/FadeInFromBottomView.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import { parseInjuryReport } from "../../services/utils/profileFields.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
@@ -117,67 +118,73 @@ export default function ProfileReportInjuryView({
   return (
     <View style={[styles.section, { minHeight: Math.max(screenHeight - 180, 420) }]}>
       <View style={[styles.form, isEditorVisible ? styles.blurredContent : null]}>
-        <View style={styles.currentInjuryCard}>
-          <BlackGradient />
-          <View style={styles.currentInjuryContent}>
-            <IBMPlexText style={styles.currentInjuryEyebrow}>Current injury report</IBMPlexText>
-            <IBMPlexText
-              numberOfLines={2}
-              ellipsizeMode="tail"
-              style={styles.currentInjuryTitle}
-            >
-              {hasInjuryReport ? injuryReport : "No injury reported"}
-            </IBMPlexText>
-            <IBMPlexText numberOfLines={1} style={styles.currentInjuryMeta}>
-              {hasInjuryReport
-                ? "Injuries and limitations saved"
-                : "There isn't any injury report saved yet"}
-            </IBMPlexText>
-          </View>
-        </View>
-
-        <View style={styles.rowsStack}>
-          <Pressable
-            onPress={openEditor}
-            style={({ pressed }) => [
-              styles.detailRow,
-              styles.injuryDetailRow,
-              pressed ? styles.detailRowPressed : null,
-            ]}
-          >
-            <View style={[styles.detailRowHeader, styles.injuryDetailRowHeader]}>
-              <View style={styles.detailRowCopy}>
-                <IBMPlexText style={styles.detailRowTitle}>Injury details</IBMPlexText>
-                <ScrollView
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator={false}
-                  style={styles.injuryDetailScroll}
-                  contentContainerStyle={styles.injuryDetailScrollContent}
-                >
-                  <IBMPlexText style={styles.detailRowText}>
-                    {injuryReport || "No injuries or limitations added"}
-                  </IBMPlexText>
-                </ScrollView>
-              </View>
-              <IBMPlexText style={[styles.detailRowAction, styles.injuryDetailRowAction]}>
-                Edit &gt;
+        <FadeInFromBottomView delay={50}>
+          <View style={styles.currentInjuryCard}>
+            <BlackGradient />
+            <View style={styles.currentInjuryContent}>
+              <IBMPlexText style={styles.currentInjuryEyebrow}>Current injury report</IBMPlexText>
+              <IBMPlexText
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={styles.currentInjuryTitle}
+              >
+                {hasInjuryReport ? injuryReport : "No injury reported"}
+              </IBMPlexText>
+              <IBMPlexText numberOfLines={1} style={styles.currentInjuryMeta}>
+                {hasInjuryReport
+                  ? "Injuries and limitations saved"
+                  : "There isn't any injury report saved yet"}
               </IBMPlexText>
             </View>
-          </Pressable>
+          </View>
+        </FadeInFromBottomView>
 
-          <Pressable
-            onPress={openClearConfirm}
-            disabled={isSubmitting || !hasInjuryReport}
-            style={({ pressed }) => [
-              styles.clearInjuryButton,
-              pressed ? styles.clearInjuryButtonPressed : null,
-              isSubmitting || !hasInjuryReport
-                ? styles.clearInjuryButtonDisabled
-                : null,
-            ]}
-          >
-            <IBMPlexText style={styles.clearInjuryButtonText}>Clear injury</IBMPlexText>
-          </Pressable>
+        <View style={styles.rowsStack}>
+          <FadeInFromBottomView delay={110}>
+            <Pressable
+              onPress={openEditor}
+              style={({ pressed }) => [
+                styles.detailRow,
+                styles.injuryDetailRow,
+                pressed ? styles.detailRowPressed : null,
+              ]}
+            >
+              <View style={[styles.detailRowHeader, styles.injuryDetailRowHeader]}>
+                <View style={styles.detailRowCopy}>
+                  <IBMPlexText style={styles.detailRowTitle}>Injury details</IBMPlexText>
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={false}
+                    style={styles.injuryDetailScroll}
+                    contentContainerStyle={styles.injuryDetailScrollContent}
+                  >
+                    <IBMPlexText style={styles.detailRowText}>
+                      {injuryReport || "No injuries or limitations added"}
+                    </IBMPlexText>
+                  </ScrollView>
+                </View>
+                <IBMPlexText style={[styles.detailRowAction, styles.injuryDetailRowAction]}>
+                  Edit &gt;
+                </IBMPlexText>
+              </View>
+            </Pressable>
+          </FadeInFromBottomView>
+
+          <FadeInFromBottomView delay={170}>
+            <Pressable
+              onPress={openClearConfirm}
+              disabled={isSubmitting || !hasInjuryReport}
+              style={({ pressed }) => [
+                styles.clearInjuryButton,
+                pressed ? styles.clearInjuryButtonPressed : null,
+                isSubmitting || !hasInjuryReport
+                  ? styles.clearInjuryButtonDisabled
+                  : null,
+              ]}
+            >
+              <IBMPlexText style={styles.clearInjuryButtonText}>Clear injury</IBMPlexText>
+            </Pressable>
+          </FadeInFromBottomView>
         </View>
       </View>
 

@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 
 import SubscriptionDetailsView from "../../src/screens/profile/SubscriptionDetailsView.jsx";
+import ExpandingRouteView from "../../src/components/navigation/ExpandingRouteView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { getAnalysisForumSlotFromExerciseId } from "../../src/services/models/forumModel.js";
 import {
@@ -160,20 +161,22 @@ const ProfileSubscriptionDetailsScreen = observer(function ProfileSubscriptionDe
   }
 
   return (
-    <SubscriptionDetailsView
-      planName={planName}
-      subscribedText={subscribedText}
-      nextBillingText={nextBillingText}
-      isSubmitting={isSubmitting}
-      error={error}
-      onBack={backToProfile}
-      onChangePaymentMethod={openBillingPortal}
-      onCancelSubscription={openBillingPortal}
-      onPressAnalysisSlot={openExerciseAnalysisForm}
-      analysisPostsBySlot={analysisPostsBySlot}
-      analysesLeftThisMonth={analysesLeftThisMonth}
-      onShowAllAnalyses={openExerciseAnalysisArchive}
-    />
+    <ExpandingRouteView routeKey="profile-subscription-details">
+      <SubscriptionDetailsView
+        planName={planName}
+        subscribedText={subscribedText}
+        nextBillingText={nextBillingText}
+        isSubmitting={isSubmitting}
+        error={error}
+        onBack={backToProfile}
+        onChangePaymentMethod={openBillingPortal}
+        onCancelSubscription={openBillingPortal}
+        onPressAnalysisSlot={openExerciseAnalysisForm}
+        analysisPostsBySlot={analysisPostsBySlot}
+        analysesLeftThisMonth={analysesLeftThisMonth}
+        onShowAllAnalyses={openExerciseAnalysisArchive}
+      />
+    </ExpandingRouteView>
   );
 });
 

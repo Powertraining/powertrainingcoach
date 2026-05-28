@@ -19,6 +19,7 @@ import {
 } from "react-native";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
+import FadeInFromBottomView from "../../components/navigation/FadeInFromBottomView.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import DateSelector from "../../components/questionnaireComponents/DateSelector.jsx";
 import { getTodayDateValue } from "../../services/utils/dateUtils.js";
@@ -169,87 +170,95 @@ export default function RegisterEventView({
           editingField === "description" ? styles.blurredContent : null,
         ]}
       >
-        <View style={styles.currentEventCard}>
-          <BlackGradient />
-          <View style={styles.currentEventContent}>
-            <IBMPlexText style={styles.currentEventEyebrow}>Current event</IBMPlexText>
-            <IBMPlexText
-              numberOfLines={2}
-              ellipsizeMode="tail"
-              style={styles.currentEventTitle}
-            >
-              {initialEvent.hasEvent
-                ? initialEvent.description || "Registered event"
-                : "No event registered"}
-            </IBMPlexText>
-            <IBMPlexText numberOfLines={1} style={styles.currentEventMeta}>
-              {initialEvent.hasEvent
-                ? initialEvent.date || "No date saved"
-                : "There isn't any event saved yet"}
-            </IBMPlexText>
-          </View>
-        </View>
-
-        <View style={styles.rowsStack}>
-          <Pressable
-            onPress={openDateEditor}
-            style={({ pressed }) => [
-              styles.detailRow,
-              pressed ? styles.detailRowPressed : null,
-            ]}
-          >
-            <View style={styles.detailRowHeader}>
-              <View style={styles.detailRowCopy}>
-                <IBMPlexText style={styles.detailRowTitle}>Event date</IBMPlexText>
-                <IBMPlexText numberOfLines={1} style={styles.detailRowText}>
-                  {eventDate || "No date selected"}
-                </IBMPlexText>
-              </View>
-              <IBMPlexText style={styles.detailRowAction}>Edit &gt;</IBMPlexText>
-            </View>
-          </Pressable>
-
-          <Pressable
-            onPress={openDescriptionEditor}
-            style={({ pressed }) => [
-              styles.detailRow,
-              styles.descriptionDetailRow,
-              pressed ? styles.detailRowPressed : null,
-            ]}
-          >
-            <View style={[styles.detailRowHeader, styles.descriptionDetailRowHeader]}>
-              <View style={styles.detailRowCopy}>
-                <IBMPlexText style={styles.detailRowTitle}>Description</IBMPlexText>
-                <ScrollView
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator={false}
-                  style={styles.descriptionDetailScroll}
-                  contentContainerStyle={styles.descriptionDetailScrollContent}
-                >
-                  <IBMPlexText style={styles.detailRowText}>
-                    {eventDescription || "No description added"}
-                  </IBMPlexText>
-                </ScrollView>
-              </View>
-              <IBMPlexText style={[styles.detailRowAction, styles.descriptionDetailRowAction]}>
-                Edit &gt;
+        <FadeInFromBottomView delay={50}>
+          <View style={styles.currentEventCard}>
+            <BlackGradient />
+            <View style={styles.currentEventContent}>
+              <IBMPlexText style={styles.currentEventEyebrow}>Current event</IBMPlexText>
+              <IBMPlexText
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={styles.currentEventTitle}
+              >
+                {initialEvent.hasEvent
+                  ? initialEvent.description || "Registered event"
+                  : "No event registered"}
+              </IBMPlexText>
+              <IBMPlexText numberOfLines={1} style={styles.currentEventMeta}>
+                {initialEvent.hasEvent
+                  ? initialEvent.date || "No date saved"
+                  : "There isn't any event saved yet"}
               </IBMPlexText>
             </View>
-          </Pressable>
+          </View>
+        </FadeInFromBottomView>
 
-          <Pressable
-            onPress={openClearConfirm}
-            disabled={isSubmitting || !initialEvent.hasEvent}
-            style={({ pressed }) => [
-              styles.clearEventButton,
-              pressed ? styles.clearEventButtonPressed : null,
-              isSubmitting || !initialEvent.hasEvent
-                ? styles.clearEventButtonDisabled
-                : null,
-            ]}
-          >
-            <IBMPlexText style={styles.clearEventButtonText}>Clear event</IBMPlexText>
-          </Pressable>
+        <View style={styles.rowsStack}>
+          <FadeInFromBottomView delay={110}>
+            <Pressable
+              onPress={openDateEditor}
+              style={({ pressed }) => [
+                styles.detailRow,
+                pressed ? styles.detailRowPressed : null,
+              ]}
+            >
+              <View style={styles.detailRowHeader}>
+                <View style={styles.detailRowCopy}>
+                  <IBMPlexText style={styles.detailRowTitle}>Event date</IBMPlexText>
+                  <IBMPlexText numberOfLines={1} style={styles.detailRowText}>
+                    {eventDate || "No date selected"}
+                  </IBMPlexText>
+                </View>
+                <IBMPlexText style={styles.detailRowAction}>Edit &gt;</IBMPlexText>
+              </View>
+            </Pressable>
+          </FadeInFromBottomView>
+
+          <FadeInFromBottomView delay={170}>
+            <Pressable
+              onPress={openDescriptionEditor}
+              style={({ pressed }) => [
+                styles.detailRow,
+                styles.descriptionDetailRow,
+                pressed ? styles.detailRowPressed : null,
+              ]}
+            >
+              <View style={[styles.detailRowHeader, styles.descriptionDetailRowHeader]}>
+                <View style={styles.detailRowCopy}>
+                  <IBMPlexText style={styles.detailRowTitle}>Description</IBMPlexText>
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={false}
+                    style={styles.descriptionDetailScroll}
+                    contentContainerStyle={styles.descriptionDetailScrollContent}
+                  >
+                    <IBMPlexText style={styles.detailRowText}>
+                      {eventDescription || "No description added"}
+                    </IBMPlexText>
+                  </ScrollView>
+                </View>
+                <IBMPlexText style={[styles.detailRowAction, styles.descriptionDetailRowAction]}>
+                  Edit &gt;
+                </IBMPlexText>
+              </View>
+            </Pressable>
+          </FadeInFromBottomView>
+
+          <FadeInFromBottomView delay={230}>
+            <Pressable
+              onPress={openClearConfirm}
+              disabled={isSubmitting || !initialEvent.hasEvent}
+              style={({ pressed }) => [
+                styles.clearEventButton,
+                pressed ? styles.clearEventButtonPressed : null,
+                isSubmitting || !initialEvent.hasEvent
+                  ? styles.clearEventButtonDisabled
+                  : null,
+              ]}
+            >
+              <IBMPlexText style={styles.clearEventButtonText}>Clear event</IBMPlexText>
+            </Pressable>
+          </FadeInFromBottomView>
         </View>
       </View>
 

@@ -14,6 +14,7 @@ import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import BlackGradient from "../components/colorComponents/BlackGradient.jsx";
+import FadeInFromBottomView from "../components/navigation/FadeInFromBottomView.jsx";
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
 import MembershipPlanOption from "../components/subscriptionComponents/MembershipPlanOption.jsx";
 import {
@@ -290,7 +291,7 @@ export default function SubscriptionPlanView({
           },
         ]}
       >
-        <View style={styles.headerBenefitsSection}>
+        <FadeInFromBottomView delay={40} style={styles.headerBenefitsSection}>
           <SubscriptionCard
             planName={headerPlanText}
             planLabelStyle={styles.subscriptionCardPlanLabel}
@@ -299,48 +300,55 @@ export default function SubscriptionPlanView({
             showBraces={false}
             isSubmitting={Boolean(loadingPlan)}
           />
-        </View>
+        </FadeInFromBottomView>
 
         <View style={styles.planSection}>
-          {visiblePlans.map((plan) => (
-            <MembershipPlanOption
-              key={plan.lookupKey}
-              title={plan.title}
-              price={plan.price}
-              badge={plan.badge}
-              current={plan.isCurrentPlan}
-              selected={selectedPlanKey === plan.lookupKey}
-              loading={loadingPlans}
-              disabled={
-                loadingPlans ||
-                Boolean(loadingPlan) ||
-                !plan.isAvailable ||
-                plan.isCurrentOrLowerPlan
-              }
-              onPress={() => {
-                if (
-                  !loadingPlans &&
-                  plan.isAvailable &&
-                  !plan.isCurrentOrLowerPlan
-                ) {
-                  setSelectedPlanKey((currentPlanKey) =>
-                    currentPlanKey === plan.lookupKey ? "" : plan.lookupKey
-                  );
+          {visiblePlans.map((plan, index) => (
+            <FadeInFromBottomView key={plan.lookupKey} delay={100 + index * 55}>
+              <MembershipPlanOption
+                title={plan.title}
+                price={plan.price}
+                badge={plan.badge}
+                current={plan.isCurrentPlan}
+                selected={selectedPlanKey === plan.lookupKey}
+                loading={loadingPlans}
+                disabled={
+                  loadingPlans ||
+                  Boolean(loadingPlan) ||
+                  !plan.isAvailable ||
+                  plan.isCurrentOrLowerPlan
                 }
-              }}
-            />
+                onPress={() => {
+                  if (
+                    !loadingPlans &&
+                    plan.isAvailable &&
+                    !plan.isCurrentOrLowerPlan
+                  ) {
+                    setSelectedPlanKey((currentPlanKey) =>
+                      currentPlanKey === plan.lookupKey ? "" : plan.lookupKey
+                    );
+                  }
+                }}
+              />
+            </FadeInFromBottomView>
           ))}
         </View>
 
         {!loadingPlans && !error && visiblePlans.length === 0 ? (
-          <IBMPlexText style={styles.statusCopy}>
-            No subscription plans are currently available.
-          </IBMPlexText>
+          <FadeInFromBottomView delay={280}>
+            <IBMPlexText style={styles.statusCopy}>
+              No subscription plans are currently available.
+            </IBMPlexText>
+          </FadeInFromBottomView>
         ) : null}
 
-        {error ? <IBMPlexText style={styles.error}>{error}</IBMPlexText> : null}
+        {error ? (
+          <FadeInFromBottomView delay={280}>
+            <IBMPlexText style={styles.error}>{error}</IBMPlexText>
+          </FadeInFromBottomView>
+        ) : null}
 
-        <View style={styles.trustRow}>
+        <FadeInFromBottomView delay={300} style={styles.trustRow}>
           {TRUST_ITEMS.map((item) => (
             <View key={item.label} style={styles.trustItem}>
               <View style={styles.trustIcon}>
@@ -354,7 +362,7 @@ export default function SubscriptionPlanView({
               </IBMPlexText>
             </View>
           ))}
-        </View>
+        </FadeInFromBottomView>
       </ScrollView>
 
       {showCheckoutBar ? (

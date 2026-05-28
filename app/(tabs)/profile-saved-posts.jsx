@@ -9,6 +9,7 @@ import { StyleSheet, View } from "react-native";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import ExpandingRouteView from "../../src/components/navigation/ExpandingRouteView.jsx";
 import CoachResponseView from "../../src/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/forum/commentsView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
@@ -272,7 +273,8 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ExpandingRouteView routeKey="profile-saved-posts">
+      <View style={styles.container}>
       {currentView === "list" ? (
         <SavedPostsView
           posts={model.savedForumPosts}
@@ -347,7 +349,8 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
           onCancelReply={resetReplyComposer}
         />
       ) : null}
-    </View>
+      </View>
+    </ExpandingRouteView>
   );
 });
 

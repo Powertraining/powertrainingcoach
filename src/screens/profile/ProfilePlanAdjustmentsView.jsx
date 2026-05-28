@@ -2,6 +2,7 @@ import { View, StyleSheet } from "react-native";
 
 import ProfileFrequencySelector from "../../components/profileComponents/ProfileFrequencySelector.jsx";
 import ProfileSportSelector from "../../components/profileComponents/ProfileSportSelector.jsx";
+import FadeInFromBottomView from "../../components/navigation/FadeInFromBottomView.jsx";
 import ProfileTrainingPreferencesFields, {
   CombatTrainingIntensityMeter,
   ProfileDeloadStrategyOptions,
@@ -13,7 +14,7 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function ProfilePlanAdjustmentsView(props) {
   return (
     <>
-      <View style={styles.heroHeader}>
+      <FadeInFromBottomView delay={40} style={styles.heroHeader}>
         <View style={styles.heroCopy}>
           <IBMPlexText style={styles.heroEyebrow}>Plan settings</IBMPlexText>
           <IBMPlexText style={styles.heroTitle}>Adjust Plan</IBMPlexText>
@@ -22,9 +23,9 @@ export default function ProfilePlanAdjustmentsView(props) {
             and progression logic.
           </IBMPlexText>
         </View>
-      </View>
+      </FadeInFromBottomView>
 
-      <View style={styles.planFields}>
+      <FadeInFromBottomView delay={90} style={styles.planFields}>
         <View style={styles.preferenceField}>
           <IBMPlexText style={styles.preferenceSummaryLabel}>Primary Sport</IBMPlexText>
           <ProfileSportSelector
@@ -41,9 +42,9 @@ export default function ProfilePlanAdjustmentsView(props) {
           onChange={props.onTrainingPreferencesChange}
           allowDeselect={false}
         />
-      </View>
+      </FadeInFromBottomView>
 
-      <View style={styles.inlineSection}>
+      <FadeInFromBottomView delay={140} style={styles.inlineSection}>
         <IBMPlexText style={styles.preferenceSummaryLabel}>Training Load</IBMPlexText>
         <View style={styles.preferenceBox}>
           <View style={styles.preferenceControl}>
@@ -86,9 +87,9 @@ export default function ProfilePlanAdjustmentsView(props) {
             />
           </View>
         </View>
-      </View>
+      </FadeInFromBottomView>
 
-      <View style={styles.inlineSection}>
+      <FadeInFromBottomView delay={190} style={styles.inlineSection}>
         <IBMPlexText style={styles.preferenceSummaryLabel}>Plan Structure</IBMPlexText>
         <View style={[styles.preferenceBox, styles.structureBox]}>
           <View style={styles.structureControl}>
@@ -121,9 +122,9 @@ export default function ProfilePlanAdjustmentsView(props) {
             />
           </View>
         </View>
-      </View>
+      </FadeInFromBottomView>
 
-      <View style={styles.inlineSection}>
+      <FadeInFromBottomView delay={240} style={styles.inlineSection}>
         <ProfileTrainingPreferencesFields
           sections="plan"
           hiddenPlanFields={[
@@ -139,7 +140,7 @@ export default function ProfilePlanAdjustmentsView(props) {
           onCombatIntensityDragChange={props.onCombatIntensityDragChange}
           allowDeselect={false}
         />
-      </View>
+      </FadeInFromBottomView>
     </>
   );
 }

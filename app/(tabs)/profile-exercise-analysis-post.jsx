@@ -9,6 +9,7 @@ import { StyleSheet, View } from "react-native";
 import ExerciseAnalysisPostView from "../../src/screens/profile/ExerciseAnalysisPostView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import ExpandingRouteView from "../../src/components/navigation/ExpandingRouteView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import {
   getParamValue,
@@ -113,18 +114,20 @@ const ProfileExerciseAnalysisPostScreen = observer(function ProfileExerciseAnaly
   }
 
   return (
-    <ExerciseAnalysisPostView
-      post={selectedPost}
-      comments={comments}
-      commentValue={commentDraft}
-      commentError={commentError || loadError}
-      isLoading={isLoading || isCommentsLoading}
-      isSubmittingComment={isCreatingComment}
-      currentUserId={model.user?.uid || ""}
-      onBack={goBack}
-      onChangeCommentText={setCommentDraft}
-      onCreateComment={handleCreateComment}
-    />
+    <ExpandingRouteView routeKey={`profile-exercise-analysis-post-${postId}`}>
+      <ExerciseAnalysisPostView
+        post={selectedPost}
+        comments={comments}
+        commentValue={commentDraft}
+        commentError={commentError || loadError}
+        isLoading={isLoading || isCommentsLoading}
+        isSubmittingComment={isCreatingComment}
+        currentUserId={model.user?.uid || ""}
+        onBack={goBack}
+        onChangeCommentText={setCommentDraft}
+        onCreateComment={handleCreateComment}
+      />
+    </ExpandingRouteView>
   );
 });
 

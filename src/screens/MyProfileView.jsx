@@ -21,11 +21,15 @@ import SubscriptionCard from "../components/profileComponents/SubscriptionCard.j
 import ProfileNavigationCard from "../components/profileComponents/ProfileNavigationCard.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import BlackGradient from "../components/colorComponents/BlackGradient.jsx";
+import ExpandingRouteView from "../components/navigation/ExpandingRouteView.jsx";
 import ProfilePersonalDetailsView from "./profile/ProfilePersonalDetailsView.jsx";
 import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx";
 import RegisterEventView from "./profile/RegisterEventView.jsx";
 import ProfileReportInjuryView from "./profile/ProfileReportInjuryView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+
+const FLOATING_ACTION_SLIDE_DISTANCE = 86;
+
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -48,14 +52,15 @@ export function MyProfileView(props) {
     (!isMainMode || props.canSave || props.isSubmitting);
   const showFloatingActions =
     isPlanAdjustmentsMode && (props.canSave || props.isSubmitting);
+  const shouldRenderFloatingActions = isPlanAdjustmentsMode;
   const shouldObscurePlanActions = !props.hasProgram;
 
   useEffect(
     function animateActionBarACB() {
       Animated.timing(actionBarProgress, {
         toValue: showFloatingActions ? 1 : 0,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
+        duration: showFloatingActions ? 230 : 180,
+        easing: showFloatingActions ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
         useNativeDriver: true,
       }).start();
     },
@@ -73,7 +78,7 @@ export function MyProfileView(props) {
 
   const actionBarTranslateY = actionBarProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [96, 0],
+    outputRange: [FLOATING_ACTION_SLIDE_DISTANCE, 0],
   });
   const actionBarOpacity = actionBarProgress.interpolate({
     inputRange: [0, 1],
@@ -165,7 +170,7 @@ export function MyProfileView(props) {
     props.onCancel?.();
   }
 
-  return (
+  const content = (
     <View style={styles.screen}>
       {!isMainMode ? (
         <TouchableOpacity
@@ -490,7 +495,7 @@ export function MyProfileView(props) {
         }
       />
 
-      {showFloatingActions ? (
+      {shouldRenderFloatingActions ? (
         <Animated.View
           pointerEvents={showFloatingActions ? "auto" : "none"}
           style={[
@@ -538,6 +543,16 @@ export function MyProfileView(props) {
       ) : null}
     </View>
   );
+
+  if (!isMainMode) {
+    return (
+      <ExpandingRouteView routeKey={mode}>
+        {content}
+      </ExpandingRouteView>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({

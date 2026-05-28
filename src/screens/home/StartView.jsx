@@ -98,6 +98,7 @@ function StartSessionCard({
         <ProfileNavigationCard
             title={title}
             description={subtitle}
+            onPress={onPress}
             copyChildren={
                 <>
                     <IBMPlexText defaultWhite style={styles.sessionScheduleText}>

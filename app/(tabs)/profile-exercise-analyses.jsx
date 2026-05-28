@@ -10,6 +10,7 @@ import { StyleSheet, View } from "react-native";
 import ExerciseAnalysisListView from "../../src/screens/profile/ExerciseAnalysisListView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import ExpandingRouteView from "../../src/components/navigation/ExpandingRouteView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
@@ -92,11 +93,13 @@ const ProfileExerciseAnalysesScreen = observer(function ProfileExerciseAnalysesS
   }
 
   return (
-    <ExerciseAnalysisListView
-      posts={posts}
-      onBack={goBack}
-      onPressPost={openPost}
-    />
+    <ExpandingRouteView routeKey="profile-exercise-analyses">
+      <ExerciseAnalysisListView
+        posts={posts}
+        onBack={goBack}
+        onPressPost={openPost}
+      />
+    </ExpandingRouteView>
   );
 });
 

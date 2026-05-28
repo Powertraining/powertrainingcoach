@@ -12,6 +12,7 @@ import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import ActiveSessionView from "../../src/screens/ActiveSessionView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import ExpandingRouteView from "../../src/components/navigation/ExpandingRouteView.jsx";
 import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
@@ -190,7 +191,7 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ExpandingRouteView routeKey={sessionProgressKey}>
       <ActiveSessionView
         plan={plan}
         weekNumber={selectedDay.week}
@@ -207,7 +208,7 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
         onBack={handleBack}
         onFinish={handleFinish}
       />
-    </View>
+    </ExpandingRouteView>
   );
 });
 

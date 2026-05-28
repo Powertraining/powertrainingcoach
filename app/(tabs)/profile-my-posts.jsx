@@ -9,6 +9,7 @@ import { StyleSheet, View } from "react-native";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import ExpandingRouteView from "../../src/components/navigation/ExpandingRouteView.jsx";
 import CoachResponseView from "../../src/screens/forum/coachResponseView.jsx";
 import CommentsView from "../../src/screens/forum/commentsView.jsx";
 import MakePostView from "../../src/screens/forum/makePostView.jsx";
@@ -464,7 +465,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ExpandingRouteView routeKey="profile-my-posts">
+      <View style={styles.container}>
       {currentView === "list" ? (
         <SavedPostsView
           posts={model.myForumPosts}
@@ -584,7 +586,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           onCancelReply={resetReplyComposer}
         />
       ) : null}
-    </View>
+      </View>
+    </ExpandingRouteView>
   );
 });
 

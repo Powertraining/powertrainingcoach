@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Easing,
   View,
   StyleSheet,
   Image,
@@ -14,6 +15,10 @@ import { useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const TAB_BAR_ANIMATION_DURATION = 220;
+
 function TabIcon({ source, size, focused, label }) {
   return (
     <View style={styles.tabIcon}>
@@ -141,14 +146,44 @@ function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
 function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {
   const pillTranslateX = useRef(new Animated.Value(0)).current;
   const pillWidth = useRef(new Animated.Value(0)).current;
-  const pillLayoutsRef = useRef({});
   const pillInitializedRef = useRef(false);
-  const [layoutRevision, setLayoutRevision] = useState(0);
+  const routeFlexAnimationsRef = useRef({});
+  const [tabBarWidth, setTabBarWidth] = useState(0);
 
   const visibleRoutes = state.routes.filter((route) => VISIBLE_TAB_ROUTES.has(route.name));
+  const visibleRouteNames = visibleRoutes.map((route) => route.name).join("|");
+
+  function getRouteFlexAnimation(routeName) {
+    if (!routeFlexAnimationsRef.current[routeName]) {
+      routeFlexAnimationsRef.current[routeName] = new Animated.Value(
+        activeTabName === routeName ? 3 : 1
+      );
+    }
+
+    return routeFlexAnimationsRef.current[routeName];
+  }
+
+  function getPillTarget(tabName) {
+    const activeIndex = visibleRoutes.findIndex((route) => route.name === tabName);
+    const innerWidth = Math.max(tabBarWidth - 12, 0);
+
+    if (activeIndex < 0 || innerWidth <= 0) {
+      return null;
+    }
+
+    const inactiveFlex = 1;
+    const activeFlex = 3;
+    const totalFlex = visibleRoutes.length - 1 + activeFlex;
+    const unitWidth = innerWidth / totalFlex;
+
+    return {
+      x: 6 + activeIndex * inactiveFlex * unitWidth,
+      width: activeFlex * unitWidth,
+    };
+  }
 
   function animatePillTo(tabName, animated = true) {
-    const activeLayout = pillLayoutsRef.current[tabName];
+    const activeLayout = getPillTarget(tabName);
 
     if (!activeLayout) {
       return;
@@ -164,12 +199,14 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     Animated.parallel([
       Animated.timing(pillTranslateX, {
         toValue: activeLayout.x,
-        duration: 50,
+        duration: TAB_BAR_ANIMATION_DURATION,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: false,
       }),
       Animated.timing(pillWidth, {
         toValue: activeLayout.width,
-        duration: 1,
+        duration: TAB_BAR_ANIMATION_DURATION,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: false,
       }),
     ]).start();
@@ -181,14 +218,39 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     }
 
     animatePillTo(activeTabName);
-  }, [activeTabName, layoutRevision]);
+  }, [activeTabName, tabBarWidth, visibleRouteNames]);
+
+  useEffect(() => {
+    if (!activeTabName) {
+      return;
+    }
+
+    Animated.parallel(
+      visibleRoutes.map((route) =>
+        Animated.timing(getRouteFlexAnimation(route.name), {
+          toValue: activeTabName === route.name ? 3 : 1,
+          duration: TAB_BAR_ANIMATION_DURATION,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        })
+      )
+    ).start();
+  }, [activeTabName, visibleRouteNames]);
 
   if (hidden) {
     return null;
   }
 
   return (
-    <View style={[styles.customTabBar, { bottom: bottomOffset }]}>
+    <View
+      onLayout={(event) => {
+        const { width } = event.nativeEvent.layout;
+        setTabBarWidth((previousWidth) =>
+          previousWidth === width ? previousWidth : width
+        );
+      }}
+      style={[styles.customTabBar, { bottom: bottomOffset }]}
+    >
       <Animated.View
         pointerEvents="none"
         style={[
@@ -224,7 +286,7 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
         }
 
         return (
-          <Pressable
+          <AnimatedPressable
             key={route.key}
             accessibilityRole="button"
             accessibilityState={focused ? { selected: true } : {}}
@@ -232,20 +294,9 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            onLayout={(event) => {
-              const { x, width } = event.nativeEvent.layout;
-              const previousLayout = pillLayoutsRef.current[route.name];
-
-              if (previousLayout?.x === x && previousLayout?.width === width) {
-                return;
-              }
-
-              pillLayoutsRef.current[route.name] = { x, width };
-              setLayoutRevision((revision) => revision + 1);
-            }}
             style={[
               styles.tabBarButton,
-              focused ? styles.tabBarButtonActive : styles.tabBarButtonInactive,
+              { flex: getRouteFlexAnimation(route.name) },
             ]}
           >
             {typeof options.tabBarIcon === "function"
@@ -255,7 +306,7 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
                   size: 24,
                 })
               : null}
-          </Pressable>
+          </AnimatedPressable>
         );
       })}
     </View>
@@ -523,14 +574,7 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 120,
     overflow: "hidden",
-    flex: 1,
     zIndex: 1,
-  },
-  tabBarButtonInactive: {
-    flex: 1,
-  },
-  tabBarButtonActive: {
-    flex: 3,
   },
   tabIcon: {
     flex: 1,

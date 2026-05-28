@@ -9,6 +9,7 @@ import { StyleSheet, View } from "react-native";
 import ExerciseAnalysisRequestView from "../../src/screens/profile/ExerciseAnalysisRequestView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
+import ExpandingRouteView from "../../src/components/navigation/ExpandingRouteView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import {
   ANALYSIS_FORUM_TAG,
@@ -218,24 +219,26 @@ const ProfileExerciseAnalysisScreen = observer(function ProfileExerciseAnalysisS
   }
 
   return (
-    <ExerciseAnalysisRequestView
-      exerciseName={model.forumComposer?.title || ""}
-      description={model.forumComposer?.body || ""}
-      videoUrl={
-        model.forumComposer?.mediaType === "video" ? model.forumComposer?.mediaUrl || "" : ""
-      }
-      previewVideoUrl={previewVideoUrl}
-      isUploadingVideo={isUploadingVideo}
-      isSubmitting={isSubmitting}
-      error={error}
-      onBack={goBack}
-      onChangeExerciseName={handleExerciseNameChange}
-      onChangeDescription={handleDescriptionChange}
-      onUploadVideo={handleUploadVideo}
-      onRemoveVideo={handleRemoveVideo}
-      onDiscard={handleDiscard}
-      onSend={handleSend}
-    />
+    <ExpandingRouteView routeKey={`profile-exercise-analysis-${analysisSlot}`}>
+      <ExerciseAnalysisRequestView
+        exerciseName={model.forumComposer?.title || ""}
+        description={model.forumComposer?.body || ""}
+        videoUrl={
+          model.forumComposer?.mediaType === "video" ? model.forumComposer?.mediaUrl || "" : ""
+        }
+        previewVideoUrl={previewVideoUrl}
+        isUploadingVideo={isUploadingVideo}
+        isSubmitting={isSubmitting}
+        error={error}
+        onBack={goBack}
+        onChangeExerciseName={handleExerciseNameChange}
+        onChangeDescription={handleDescriptionChange}
+        onUploadVideo={handleUploadVideo}
+        onRemoveVideo={handleRemoveVideo}
+        onDiscard={handleDiscard}
+        onSend={handleSend}
+      />
+    </ExpandingRouteView>
   );
 });
 

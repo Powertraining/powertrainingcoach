@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useVideoPlayer, VideoView } from "expo-video";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
+import FadeInFromBottomView from "../../components/navigation/FadeInFromBottomView.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ANALYSIS_SLOTS = ["1", "2", "3", "4"];
@@ -118,14 +119,14 @@ export default function SubscriptionDetailsView({
           },
         ]}
       >
-        <View style={styles.planHeader}>
+        <FadeInFromBottomView delay={40} style={styles.planHeader}>
           <IBMPlexText style={styles.planTitle}>{`{ ${planName} }`}</IBMPlexText>
           {subscribedText ? (
             <IBMPlexText style={styles.subscribedText}>{subscribedText}</IBMPlexText>
           ) : null}
-        </View>
+        </FadeInFromBottomView>
 
-        <View style={styles.section}>
+        <FadeInFromBottomView delay={100} style={styles.section}>
           <View style={styles.sectionHeader}>
             <IBMPlexText style={styles.sectionTitle}>Analyses</IBMPlexText>
             <IBMPlexText style={styles.analysisCounterText}>
@@ -157,9 +158,9 @@ export default function SubscriptionDetailsView({
           >
             <IBMPlexText style={styles.showAllButtonText}>Show all</IBMPlexText>
           </TouchableOpacity>
-        </View>
+        </FadeInFromBottomView>
 
-        <View style={[styles.section, styles.optionsSection]}>
+        <FadeInFromBottomView delay={160} style={[styles.section, styles.optionsSection]}>
           <View style={styles.sectionHeader}>
             <IBMPlexText style={styles.sectionTitle}>Options</IBMPlexText>
             <View style={styles.sectionDivider} />
@@ -186,9 +187,13 @@ export default function SubscriptionDetailsView({
           {nextBillingText ? (
             <IBMPlexText style={styles.nextBillingText}>{nextBillingText}</IBMPlexText>
           ) : null}
-        </View>
+        </FadeInFromBottomView>
 
-        {error ? <IBMPlexText style={styles.error}>{error}</IBMPlexText> : null}
+        {error ? (
+          <FadeInFromBottomView delay={220}>
+            <IBMPlexText style={styles.error}>{error}</IBMPlexText>
+          </FadeInFromBottomView>
+        ) : null}
       </ScrollView>
       <WhiteBottomMenu
         visible={cancelConfirmVisible}
