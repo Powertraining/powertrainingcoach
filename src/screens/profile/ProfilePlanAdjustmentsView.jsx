@@ -37,7 +37,11 @@ export default function ProfilePlanAdjustmentsView(props) {
         </View>
         <ProfileTrainingPreferencesFields
           sections="plan"
-          visiblePlanFields={["desiredTraining", "equipment", "trainingPhase"]}
+          visiblePlanFields={[
+            "desiredTraining",
+            "equipment",
+            "trainingPhase",
+          ]}
           values={props.trainingPreferences}
           onChange={props.onTrainingPreferencesChange}
           allowDeselect={false}
@@ -129,6 +133,7 @@ export default function ProfilePlanAdjustmentsView(props) {
           sections="plan"
           hiddenPlanFields={[
             "desiredTraining",
+            "endurancePreferences",
             "equipment",
             "trainingPhase",
             "combatTrainingIntensity",
@@ -140,6 +145,21 @@ export default function ProfilePlanAdjustmentsView(props) {
           onCombatIntensityDragChange={props.onCombatIntensityDragChange}
           allowDeselect={false}
         />
+      </FadeInFromBottomView>
+
+      <FadeInFromBottomView delay={290} style={styles.inlineSection}>
+        <IBMPlexText style={styles.preferenceSummaryLabel}>Endurance Training</IBMPlexText>
+        <View style={styles.preferenceBox}>
+          <ProfileTrainingPreferencesFields
+            sections="plan"
+            visiblePlanFields={["endurancePreferences"]}
+            values={props.trainingPreferences}
+            onChange={props.onTrainingPreferencesChange}
+            allowDeselect={false}
+            endurancePreferencesBare
+            endurancePreferencesLabel=""
+          />
+        </View>
       </FadeInFromBottomView>
     </>
   );

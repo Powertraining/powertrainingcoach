@@ -9,11 +9,17 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import {
+  CIRCUIT_PRIORITY_OPTIONS,
   DESIRED_TRAINING_OPTIONS,
+  ENDURANCE_FORMAT_OPTIONS,
+  ENDURANCE_MODALITY_OPTIONS,
   EQUIPMENT_OPTIONS,
   getTrainingPreferencesFormState,
+  HEAVY_BAG_ENDURANCE_TARGET_OPTIONS,
+  SPRINTING_TARGET_OPTIONS,
 } from "../constants/trainingPreferences.js";
 import {
   DELOAD_STRATEGY_OPTIONS,
@@ -23,6 +29,7 @@ import {
   TRAINING_PHASE_OPTIONS,
 } from "../constants/appLogicSettings.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
+import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const SESSION_DURATION_ITEM_WIDTH = 96;
 const SESSION_DURATION_ITEM_HEIGHT = 70;
@@ -60,6 +67,70 @@ const EQUIPMENT_LABELS = Object.freeze({
 const TRAINING_PHASE_LABELS = Object.freeze({
   off_camp: "Off camp",
   in_camp: "In camp",
+});
+
+const ENDURANCE_MODALITY_LABELS = Object.freeze({
+  rowing_ergometer: "Row",
+  skiing_ergometer: "Ski",
+  assault_bike: "Assault bike",
+  running: "Run",
+  sprinting: "Sprint",
+  bicycling: "Bike",
+  arm_crank_machine: "Arm crank",
+  versaclimber: "Climber",
+  swimming: "Swim",
+  heavy_bag: "Heavy bag",
+  circuit_training: "Circuit",
+  sport_specific: "Sport",
+});
+
+const ENDURANCE_METHOD_ICONS = Object.freeze({
+  arm_crank_machine: "arm-flex",
+  assault_bike: "bike-fast",
+  bicycling: "bicycle",
+  circuit_training: "clipboard-pulse",
+  heavy_bag: "boxing-glove",
+  rowing_ergometer: "rowing",
+  running: "run",
+  skiing_ergometer: "ski",
+  sprinting: "run-fast",
+  sport_specific: "target",
+  swimming: "swim",
+  versaclimber: "stairs-up",
+});
+
+const ENDURANCE_FORMAT_LABELS = Object.freeze({
+  low_intensity_aerobic: "Easy aerobic",
+  aerobic_intervals: "Aerobic intervals",
+  high_intensity_intervals: "Hard intervals",
+  sport_specific_conditioning: "Sport-specific",
+});
+
+const CIRCUIT_PRIORITY_LABELS = Object.freeze({
+  local_muscular_endurance: "Local endurance",
+  repeated_high_effort_capacity: "Repeat efforts",
+  whole_body_work_capacity: "Work capacity",
+  sport_specific_fatigue_resistance: "Sport fatigue",
+  aerobic_recovery_between_bursts: "Recovery",
+  grip_endurance: "Grip",
+  neck_endurance: "Neck",
+  trunk_endurance: "Trunk",
+  shoulder_endurance: "Shoulders",
+  leg_endurance: "Legs",
+});
+
+const HEAVY_BAG_TARGET_LABELS = Object.freeze({
+  aerobic_bag_work: "Aerobic bag",
+  tempo_sustained_conditioning: "Tempo",
+  repeated_burst_bag_work: "Repeat bursts",
+  local_upper_body_endurance: "Upper endurance",
+  sport_specific_fight_camp_simulation: "Fight camp",
+});
+
+const SPRINTING_TARGET_LABELS = Object.freeze({
+  speed_explosiveness: "Speed",
+  repeat_bursts: "Repeat bursts",
+  hard_conditioning: "Hard conditioning",
 });
 
 const COMBAT_INTENSITY_LABELS = Object.freeze({
@@ -642,8 +713,124 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
 function FieldPanel({ label, children, bare = false }) {
   return (
     <View style={styles.field}>
-      <IBMPlexText style={styles.label}>{label}</IBMPlexText>
+      {label ? <IBMPlexText style={styles.label}>{label}</IBMPlexText> : null}
       {bare ? children : <View style={styles.panel}>{children}</View>}
+    </View>
+  );
+}
+
+function shouldShowEnduranceFields(values = {}) {
+  return (
+    values?.desiredTraining === "endurance" ||
+    values?.desiredTraining === "strength_power_endurance"
+  );
+}
+
+function toggleArrayValue(values = [], value) {
+  const selectedValues = Array.isArray(values) ? values : [];
+
+  return selectedValues.includes(value)
+    ? selectedValues.filter((entry) => entry !== value)
+    : [...selectedValues, value];
+}
+
+function CompactChoiceGrid({
+  options,
+  value,
+  onChange,
+  multi = false,
+  labelMap,
+  iconMap,
+  minWidth = 96,
+  large = false,
+}) {
+  const selectedValues = Array.isArray(value) ? value : [];
+
+  return (
+    <View style={styles.compactChoiceGrid}>
+      {options.map((option) => {
+        const isSelected = multi
+          ? selectedValues.includes(option.value)
+          : value === option.value;
+
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => {
+              if (multi) {
+                onChange?.(toggleArrayValue(selectedValues, option.value));
+                return;
+              }
+
+              onChange?.(isSelected ? null : option.value);
+            }}
+            style={({ pressed }) => [
+              styles.compactChoice,
+              large ? styles.compactChoiceLarge : { minWidth },
+              isSelected ? styles.compactChoiceSelected : null,
+              pressed ? styles.compactChoicePressed : null,
+            ]}
+          >
+            {iconMap?.[option.value] ? (
+              <MaterialCommunityIcons
+                name={iconMap[option.value]}
+                size={large ? 26 : 18}
+                color={isSelected ? "#ffffff" : "#8E8E8E"}
+                style={large ? styles.compactChoiceIconLarge : styles.compactChoiceIcon}
+              />
+            ) : null}
+            <IBMPlexText
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              style={[
+                styles.compactChoiceText,
+                large ? styles.compactChoiceTextLarge : null,
+                isSelected ? styles.compactChoiceTextSelected : null,
+              ]}
+            >
+              {labelMap?.[option.value] ?? option.label}
+            </IBMPlexText>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function HorizontalChoiceSlider({ options, value, onChange, labelMap }) {
+  return (
+    <View style={styles.horizontalChoiceContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.horizontalChoiceContent}
+      >
+        {options.map((option) => {
+          const isSelected = value === option.value;
+
+          return (
+            <TouchableOpacity
+              key={option.value}
+              onPress={() => onChange?.(isSelected ? null : option.value)}
+              style={[
+                styles.horizontalChoiceOption,
+                isSelected ? styles.horizontalChoiceOptionSelected : null,
+              ]}
+            >
+              <IBMPlexText
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                style={[
+                  styles.horizontalChoiceText,
+                  isSelected ? styles.horizontalChoiceTextSelected : null,
+                ]}
+              >
+                {labelMap?.[option.value] ?? option.label}
+              </IBMPlexText>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -1230,6 +1417,8 @@ export default function ProfileTrainingPreferencesFields({
   onChange,
   onCombatIntensityDragChange,
   allowDeselect = true,
+  endurancePreferencesBare = false,
+  endurancePreferencesLabel = "Endurance preferences",
 }) {
   const safeValues = values && typeof values === "object" ? values : {};
   const resolvedValues = getTrainingPreferencesFormState(safeValues);
@@ -1261,6 +1450,61 @@ export default function ProfileTrainingPreferencesFields({
 
   function updateField(field, value) {
     updateFields({ [field]: value });
+  }
+
+  function updateDesiredTraining(value) {
+    const includesEndurance = shouldShowEnduranceFields({
+      desiredTraining: value,
+    });
+
+    updateFields({
+      desiredTraining: value,
+      preferredEnduranceModalities: includesEndurance
+        ? resolvedValues.preferredEnduranceModalities
+        : [],
+      enduranceSessionsPerWeek: includesEndurance
+        ? resolvedValues.enduranceSessionsPerWeek
+        : null,
+      preferredEnduranceFormat: includesEndurance
+        ? resolvedValues.preferredEnduranceFormat
+        : null,
+      circuitTrainingGoalInput: includesEndurance
+        ? resolvedValues.circuitTrainingGoalInput
+        : "",
+      circuitTrainingPrimaryPriority: includesEndurance
+        ? resolvedValues.circuitTrainingPrimaryPriority
+        : "",
+      circuitTrainingSecondaryPriorities: includesEndurance
+        ? resolvedValues.circuitTrainingSecondaryPriorities
+        : [],
+      heavyBagEnduranceTarget: includesEndurance
+        ? resolvedValues.heavyBagEnduranceTarget
+        : "",
+      sprintingTarget: includesEndurance ? resolvedValues.sprintingTarget : "",
+    });
+  }
+
+  function updateEnduranceModalities(nextModalities) {
+    const selectedModalities = Array.isArray(nextModalities) ? nextModalities : [];
+
+    updateFields({
+      preferredEnduranceModalities: selectedModalities,
+      circuitTrainingGoalInput: selectedModalities.includes("circuit_training")
+        ? resolvedValues.circuitTrainingGoalInput
+        : "",
+      circuitTrainingPrimaryPriority: selectedModalities.includes("circuit_training")
+        ? resolvedValues.circuitTrainingPrimaryPriority
+        : "",
+      circuitTrainingSecondaryPriorities: selectedModalities.includes("circuit_training")
+        ? resolvedValues.circuitTrainingSecondaryPriorities
+        : [],
+      heavyBagEnduranceTarget: selectedModalities.includes("heavy_bag")
+        ? resolvedValues.heavyBagEnduranceTarget
+        : "",
+      sprintingTarget: selectedModalities.includes("sprinting")
+        ? resolvedValues.sprintingTarget
+        : "",
+    });
   }
 
   function updatePreferredWeekday(index, value) {
@@ -1322,9 +1566,97 @@ export default function ProfileTrainingPreferencesFields({
             <FieldPanel label="Desired training" bare>
               <DesiredTrainingPills
                 value={resolvedValues.desiredTraining}
-                onChange={(value) => updateField("desiredTraining", value)}
+                onChange={updateDesiredTraining}
                 allowDeselect={allowDeselect}
               />
+            </FieldPanel>
+          ) : null}
+
+          {shouldShowPlanField("endurancePreferences") &&
+          shouldShowEnduranceFields(resolvedValues) ? (
+            <FieldPanel
+              label={endurancePreferencesLabel}
+              bare={endurancePreferencesBare}
+            >
+              <View style={styles.enduranceFields}>
+                <View style={styles.enduranceSubfield}>
+                  <IBMPlexText style={styles.enduranceSubfieldLabel}>Methods</IBMPlexText>
+                  <CompactChoiceGrid
+                    options={ENDURANCE_MODALITY_OPTIONS}
+                    value={resolvedValues.preferredEnduranceModalities}
+                    onChange={updateEnduranceModalities}
+                    labelMap={ENDURANCE_MODALITY_LABELS}
+                    iconMap={ENDURANCE_METHOD_ICONS}
+                    multi
+                    large
+                  />
+                </View>
+
+                <View style={styles.enduranceSubfield}>
+                  <IBMPlexText style={styles.enduranceSubfieldLabel}>Sessions per week</IBMPlexText>
+                  <ProfileFrequencySelector
+                    value={resolvedValues.enduranceSessionsPerWeek ?? 1}
+                    onChange={(value) => updateField("enduranceSessionsPerWeek", value)}
+                  />
+                </View>
+
+                <View style={styles.enduranceSubfield}>
+                  <IBMPlexText style={styles.enduranceSubfieldLabel}>Style</IBMPlexText>
+                  <HorizontalChoiceSlider
+                    options={ENDURANCE_FORMAT_OPTIONS}
+                    value={resolvedValues.preferredEnduranceFormat}
+                    onChange={(value) => updateField("preferredEnduranceFormat", value)}
+                    labelMap={ENDURANCE_FORMAT_LABELS}
+                  />
+                </View>
+
+                {resolvedValues.preferredEnduranceModalities.includes(
+                  "circuit_training"
+                ) ? (
+                  <View style={styles.enduranceSubfield}>
+                    <IBMPlexText style={styles.enduranceSubfieldLabel}>Circuit focus</IBMPlexText>
+                    <CompactChoiceGrid
+                      options={CIRCUIT_PRIORITY_OPTIONS}
+                      value={[
+                        resolvedValues.circuitTrainingPrimaryPriority,
+                        ...resolvedValues.circuitTrainingSecondaryPriorities,
+                      ].filter(Boolean)}
+                      onChange={(selectedValues) =>
+                        updateFields({
+                          circuitTrainingPrimaryPriority: selectedValues[0] || "",
+                          circuitTrainingSecondaryPriorities: selectedValues.slice(1),
+                        })
+                      }
+                      labelMap={CIRCUIT_PRIORITY_LABELS}
+                      multi
+                    />
+                  </View>
+                ) : null}
+
+                {resolvedValues.preferredEnduranceModalities.includes("heavy_bag") ? (
+                  <View style={styles.enduranceSubfield}>
+                    <IBMPlexText style={styles.enduranceSubfieldLabel}>Heavy bag focus</IBMPlexText>
+                    <CompactChoiceGrid
+                      options={HEAVY_BAG_ENDURANCE_TARGET_OPTIONS}
+                      value={resolvedValues.heavyBagEnduranceTarget}
+                      onChange={(value) => updateField("heavyBagEnduranceTarget", value)}
+                      labelMap={HEAVY_BAG_TARGET_LABELS}
+                    />
+                  </View>
+                ) : null}
+
+                {resolvedValues.preferredEnduranceModalities.includes("sprinting") ? (
+                  <View style={styles.enduranceSubfield}>
+                    <IBMPlexText style={styles.enduranceSubfieldLabel}>Sprinting focus</IBMPlexText>
+                    <CompactChoiceGrid
+                      options={SPRINTING_TARGET_OPTIONS}
+                      value={resolvedValues.sprintingTarget}
+                      onChange={(value) => updateField("sprintingTarget", value)}
+                      labelMap={SPRINTING_TARGET_LABELS}
+                    />
+                  </View>
+                ) : null}
+              </View>
             </FieldPanel>
           ) : null}
 
@@ -1568,6 +1900,100 @@ const styles = StyleSheet.create({
     backgroundColor: "#141414",
     borderWidth: 2,
     borderColor: "#1E1E1E",
+  },
+  enduranceFields: {
+    gap: 14,
+  },
+  enduranceSubfield: {
+    gap: 8,
+  },
+  enduranceSubfieldLabel: {
+    color: "#8E8E8E",
+    fontSize: 10, fontWeight: "800",
+    lineHeight: 13,
+    textTransform: "uppercase",
+  },
+  compactChoiceGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  compactChoice: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 12,
+    borderWidth: 2,
+    justifyContent: "center",
+    minHeight: 40,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  compactChoiceLarge: {
+    height: 74,
+    width: "31%",
+    minHeight: 74,
+    minWidth: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+  compactChoiceSelected: {
+    borderColor: "#C9B259",
+    borderWidth: 0.5,
+  },
+  compactChoicePressed: {
+    opacity: 0.78,
+  },
+  compactChoiceText: {
+    color: "#8E8E8E",
+    fontSize: 11, fontWeight: "700",
+    lineHeight: 14,
+    textAlign: "center",
+  },
+  compactChoiceTextLarge: {
+    fontSize: 12,
+    lineHeight: 15,
+  },
+  compactChoiceIcon: {
+    marginBottom: 4,
+  },
+  compactChoiceIconLarge: {
+    marginBottom: 8,
+  },
+  compactChoiceTextSelected: {
+    color: "#ffffff",
+  },
+  horizontalChoiceContainer: {
+    marginHorizontal: -12,
+  },
+  horizontalChoiceContent: {
+    gap: 8,
+    paddingHorizontal: 12,
+  },
+  horizontalChoiceOption: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 24,
+    borderWidth: 2,
+    height: 100,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    width: 118,
+  },
+  horizontalChoiceOptionSelected: {
+    borderColor: "#C9B259",
+    borderWidth: 0.5,
+  },
+  horizontalChoiceText: {
+    color: "#8E8E8E",
+    fontSize: 15, fontWeight: "700",
+    lineHeight: 18,
+    textAlign: "center",
+  },
+  horizontalChoiceTextSelected: {
+    color: "#ffffff",
   },
   desiredPills: {
     flexDirection: "row",
