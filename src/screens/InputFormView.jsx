@@ -161,10 +161,27 @@ export default function InputFormView({
                 undefined;
 
     useEffect(() => {
-        setActiveStep(initialActiveStep);
+        setActiveStep((currentStep) =>
+            currentStep === initialActiveStep ? currentStep : initialActiveStep
+        );
         setIsEnduranceMethodsInfoOpen(false);
-        onActiveStepChange?.(initialActiveStep);
     }, [initialActiveStep]);
+
+    useEffect(() => {
+        onDraftChange?.(trainingPreferences);
+    }, [trainingPreferences, onDraftChange]);
+
+    useEffect(() => {
+        onActiveStepChange?.(activeStep);
+    }, [activeStep, onActiveStepChange]);
+
+    useEffect(() => {
+        const maxStep = Math.max(sectionCount - 1, 0);
+
+        setActiveStep((currentStep) =>
+            currentStep > maxStep ? maxStep : currentStep
+        );
+    }, [sectionCount]);
 
     function updateTrainingPreferences(nextPreferencesOrUpdater) {
         setTrainingPreferences((currentPreferences) => {
@@ -173,7 +190,6 @@ export default function InputFormView({
                     ? nextPreferencesOrUpdater(currentPreferences)
                     : nextPreferencesOrUpdater;
 
-            onDraftChange?.(nextPreferences);
             return nextPreferences;
         });
     }
@@ -185,7 +201,6 @@ export default function InputFormView({
                     ? nextStepOrUpdater(currentStep)
                     : nextStepOrUpdater;
 
-            onActiveStepChange?.(nextStep);
             return nextStep;
         });
     }

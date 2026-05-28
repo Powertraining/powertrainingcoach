@@ -37,6 +37,22 @@ const STEPS = Object.freeze({
   INPUT: "input",
 });
 
+function getPlanGenerationErrorMessage(error) {
+  const message = error?.message || "";
+
+  if (/substitution option \d+ must be an object/i.test(message)) {
+    return (
+      "The generated plan had an invalid exercise substitution. Please try again."
+    );
+  }
+
+  if (/failed to generate training plan/i.test(message)) {
+    return "Could not generate your personalized training plan. Please try again.";
+  }
+
+  return message || "Could not generate your personalized training plan.";
+}
+
 function RightSlideQuestionnaireStep({ step, children }) {
   const { width } = useWindowDimensions();
   const translateX = useRef(new Animated.Value(width || 360)).current;
@@ -283,7 +299,7 @@ const HomeScreen = observer(function HomeScreen() {
       router.replace("/(tabs)/overview");
     } catch (e) {
       console.error("Error generating training plan:", e);
-      const message = e.message || "Could not generate your personalized training plan.";
+      const message = getPlanGenerationErrorMessage(e);
       setError(message);
       model.showError?.(e, "Could not generate your personalized training plan. Please try again.");
       setStep(STEPS.INPUT);
