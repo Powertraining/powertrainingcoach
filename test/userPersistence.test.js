@@ -35,6 +35,9 @@ test("client persistence payload only includes user-owned training and questionn
   assert.equal(payload.primaryCombatSport, "Boxing");
   assert.deepEqual(payload.completedDays, ["1-1", "1-2"]);
   assert.deepEqual(payload.trainingPlan, { weeks: [] });
+  assert.deepEqual(payload.activeSessionProgressByKey, {
+    "1-1": { exerciseIndex: 2 },
+  });
   assert.deepEqual(payload.completedSessionProgressByKey, {
     "1-1": { completedStepKeys: ["0:0"] },
   });

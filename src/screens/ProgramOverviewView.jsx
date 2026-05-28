@@ -185,6 +185,27 @@ function getSessionActionSummary(day = {}, progress = {}) {
   };
 }
 
+function getSessionProgressPercent(day = {}, progress = {}, isComplete = false) {
+  const steps = buildSessionSteps(day?.exercises);
+  const completedStepKeys = new Set(
+    Array.isArray(progress?.completedStepKeys) ? progress.completedStepKeys : []
+  );
+
+  if (steps.length === 0) {
+    return isComplete ? 100 : 0;
+  }
+
+  if (isComplete && completedStepKeys.size === 0) {
+    return 100;
+  }
+
+  const completedStepCount = steps.filter((step) =>
+    completedStepKeys.has(`${step.exerciseIndex}:${step.setIndex}`)
+  ).length;
+
+  return Math.round((completedStepCount / steps.length) * 100);
+}
+
 function SkeletonBlock({ style }) {
   return <View style={[styles.skeletonBlock, style]} />;
 }
@@ -676,6 +697,8 @@ export default function ProgramOverviewView({
     isSameCalendarDay(selectedTrainingSlot.date, today);
   const selectedTrainingSlotIsFuture =
     Boolean(selectedTrainingSlot) && selectedTrainingSlot.date > today;
+  const selectedTrainingSlotIsPast =
+    Boolean(selectedTrainingSlot) && selectedTrainingSlot.date < today;
   const selectedDayCompletionKey = activeSelectedDay
     ? `${activeSelectedDay.week}-${activeSelectedDay.day}`
     : "";
@@ -706,6 +729,12 @@ export default function ProgramOverviewView({
     selectedDayIsComplete &&
     !selectedRestSlot &&
     !selectedDayIsPushedBack;
+  const showPreviousSessionStatus =
+    Boolean(activeSelectedDay) &&
+    selectedTrainingSlotIsPast &&
+    !selectedDayIsComplete &&
+    !selectedRestSlot &&
+    !selectedDayIsPushedBack;
   const showPushedBackSessionStatus =
     Boolean(activeSelectedDay) && selectedDayIsPushedBack && !selectedRestSlot;
   const showRestSessionStatus = Boolean(selectedRestSlot);
@@ -715,12 +744,16 @@ export default function ProgramOverviewView({
   const showPushBackButton =
     (showTodayTrainingActions || showFutureTrainingPushBack) &&
     Boolean(onMissedDay);
-  const showHeaderActionContent =
+  const hasKnownHeaderActionContent =
     showStartButton ||
     showCompletedSessionStatus ||
+    showPreviousSessionStatus ||
     showPushedBackSessionStatus ||
     showRestSessionStatus ||
     showFutureSessionStatus;
+  const showFallbackSessionStatus = !hasKnownHeaderActionContent;
+  const showHeaderActionContent =
+    hasKnownHeaderActionContent || showFallbackSessionStatus;
   const showRescheduleInfoButton =
     Boolean(detailSelectedDay) &&
     !selectedRestSlot &&
@@ -731,28 +764,18 @@ export default function ProgramOverviewView({
   const rescheduleInfoMode = detailSelectedDay?.rescueMode
     ? detailSelectedDay.rescueMode.replace(/_/g, " ")
     : "";
-  const selectedDaySessionSteps = buildSessionSteps(activeSelectedDay?.exercises);
-  const selectedDayCompletedStepKeys = new Set(
-    Array.isArray(selectedDayCompletedSessionProgress?.completedStepKeys)
-      ? selectedDayCompletedSessionProgress.completedStepKeys
-      : []
-  );
-  const selectedDayCompletedStepCount =
-    selectedDaySessionSteps.length > 0 && selectedDayCompletedStepKeys.size > 0
-      ? selectedDaySessionSteps.filter((step) =>
-          selectedDayCompletedStepKeys.has(`${step.exerciseIndex}:${step.setIndex}`)
-        ).length
-      : selectedDayIsComplete
-        ? selectedDaySessionSteps.length
-        : 0;
   const completedSessionProgressPercent =
-    selectedDaySessionSteps.length > 0
-      ? Math.round(
-          (selectedDayCompletedStepCount / selectedDaySessionSteps.length) * 100
-        )
-      : selectedDayIsComplete
-        ? 100
-        : 0;
+    getSessionProgressPercent(
+      activeSelectedDay,
+      selectedDayCompletedSessionProgress,
+      selectedDayIsComplete
+    );
+  const activeSessionProgressPercent =
+    getSessionProgressPercent(activeSelectedDay, selectedDaySessionProgress);
+  const previousSessionProgressPercent =
+    selectedDayCompletedSessionProgress
+      ? completedSessionProgressPercent
+      : activeSessionProgressPercent;
   const nextTrainingSlot = currentWeekSchedule.find((slot) => {
     if (!slot.trainingDay || slot.isArchived || !(slot.date instanceof Date)) {
       return false;
@@ -1055,6 +1078,23 @@ export default function ProgramOverviewView({
                   </View>
                 </View>
               ) : null}
+              {showPreviousSessionStatus ? (
+                <View style={styles.headerCompletedStatus}>
+                  <View style={styles.headerCompletedCopy}>
+                    <IBMPlexText defaultWhite style={styles.headerCompletedTitle}>
+                      Previous session
+                    </IBMPlexText>
+                    <IBMPlexText defaultWhite style={styles.headerCompletedSubtitle}>
+                      Session progress
+                    </IBMPlexText>
+                  </View>
+                  <View style={styles.headerCompletedRingSlot}>
+                    <HeaderSessionProgressRing
+                      progressPercent={previousSessionProgressPercent}
+                    />
+                  </View>
+                </View>
+              ) : null}
               {showRestSessionStatus ? (
                 <View style={styles.restSessionContent}>
                   <IBMPlexText numberOfLines={1} style={styles.currentSessionTitle}>
@@ -1074,6 +1114,34 @@ export default function ProgramOverviewView({
                     Pushed back
                   </IBMPlexText>
                 </View>
+              ) : null}
+              {showFallbackSessionStatus ? (
+                activeSelectedDay ? (
+                  <View style={styles.headerCompletedStatus}>
+                    <View style={styles.headerCompletedCopy}>
+                      <IBMPlexText defaultWhite style={styles.headerCompletedTitle}>
+                        Session progress
+                      </IBMPlexText>
+                      <IBMPlexText defaultWhite style={styles.headerCompletedSubtitle}>
+                        Saved progress
+                      </IBMPlexText>
+                    </View>
+                    <View style={styles.headerCompletedRingSlot}>
+                      <HeaderSessionProgressRing
+                        progressPercent={previousSessionProgressPercent}
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.restSessionContent}>
+                    <IBMPlexText numberOfLines={1} style={styles.currentSessionTitle}>
+                      This session
+                    </IBMPlexText>
+                    <IBMPlexText defaultWhite lines={1} style={styles.restSessionText}>
+                      No session selected
+                    </IBMPlexText>
+                  </View>
+                )
               ) : null}
               {showFutureSessionStatus ? (
                 <View style={styles.restSessionContent}>
