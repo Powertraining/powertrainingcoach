@@ -1,11 +1,11 @@
-import { View, Text, TouchableOpacity } from "react-native";
-
+import { View, TouchableOpacity } from "react-native";
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 export default function ErrorView({ message, onRetry }) {
   return (
     <View>
-      <Text>{message}</Text>
+      <IBMPlexText>{message}</IBMPlexText>
       <TouchableOpacity onPress={onRetry}>
-        <Text>Try again</Text>
+        <IBMPlexText>Try again</IBMPlexText>
       </TouchableOpacity>
     </View>
   );

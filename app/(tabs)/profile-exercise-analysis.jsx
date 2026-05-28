@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState } from "react";
 import { observer } from "mobx-react-lite";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams,
+  useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import ExerciseAnalysisRequestView from "../../src/screens/profile/ExerciseAnalysisRequestView.jsx";

@@ -1,6 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef } from "react";
 import { observer } from "mobx-react-lite";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams,
+  useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";

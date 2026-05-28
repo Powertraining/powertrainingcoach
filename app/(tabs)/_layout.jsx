@@ -1,10 +1,17 @@
-import { Tabs, Redirect } from "expo-router";
+import {
+  Tabs,
+  Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
-import { View, Text, StyleSheet, Image, Pressable } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Image,
+  Pressable,
+} from "react-native";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
-
+import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 function TabIcon({ source, size, focused, label }) {
   return (
     <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
@@ -23,9 +30,9 @@ function TabIcon({ source, size, focused, label }) {
           ]}
         />
         {focused ? (
-          <Text numberOfLines={1} style={styles.tabIconLabel}>
+          <IBMPlexText numberOfLines={1} style={styles.tabIconLabel}>
             {label}
-          </Text>
+          </IBMPlexText>
         ) : null}
       </View>
     </View>
@@ -477,7 +484,7 @@ const styles = StyleSheet.create({
   },
   tabIconLabel: {
     color: "#fff",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 24,
     letterSpacing: 0.8,
     flexShrink: 1,

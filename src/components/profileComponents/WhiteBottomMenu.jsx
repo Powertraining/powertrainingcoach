@@ -1,4 +1,6 @@
-import { useMemo, useRef } from "react";
+import {
+  useMemo,
+  useRef } from "react";
 import {
   Animated,
   Easing,
@@ -6,11 +8,10 @@ import {
   PanResponder,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function WhiteBottomMenu({
   visible,
   onDismiss,
@@ -111,9 +112,9 @@ export default function WhiteBottomMenu({
             <View style={styles.handle} />
           </View>
 
-          <Text style={styles.title}>{title}</Text>
+          <IBMPlexText style={styles.title}>{title}</IBMPlexText>
           {description ? (
-            <Text style={styles.description}>{description}</Text>
+            <IBMPlexText style={styles.description}>{description}</IBMPlexText>
           ) : null}
 
           {resolvedContent ? (
@@ -130,9 +131,9 @@ export default function WhiteBottomMenu({
                 buttonStyle,
               ]}
             >
-              <Text style={[styles.buttonText, buttonTextStyle]}>
+              <IBMPlexText style={[styles.buttonText, buttonTextStyle]}>
                 {buttonText}
-              </Text>
+              </IBMPlexText>
             </Pressable>
           ) : null}
 
@@ -146,9 +147,9 @@ export default function WhiteBottomMenu({
                 secondaryButtonStyle,
               ]}
             >
-              <Text style={[styles.secondaryButtonText, secondaryButtonTextStyle]}>
+              <IBMPlexText style={[styles.secondaryButtonText, secondaryButtonTextStyle]}>
                 {secondaryButtonText}
-              </Text>
+              </IBMPlexText>
             </Pressable>
           ) : null}
         </Sheet>
@@ -203,14 +204,12 @@ sheet: {
   },
   title: {
     color: "#141414",
-    fontSize: 20,
-    fontWeight: "900",
+    fontSize: 20, fontWeight: "900",
     lineHeight: 25,
   },
   description: {
     color: "#5f5f5f",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 19,
   },
   content: {
@@ -231,8 +230,7 @@ sheet: {
   },
   buttonText: {
     color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: 13, fontWeight: "900",
     lineHeight: 17,
   },
   secondaryButton: {
@@ -245,8 +243,7 @@ sheet: {
   },
   secondaryButtonText: {
     color: "#525252",
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 17,
   },
 });

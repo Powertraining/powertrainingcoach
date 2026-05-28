@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState } from "react";
 import {
   ActivityIndicator,
-  Text,
   Image,
   StyleSheet,
   TextInput,
@@ -13,7 +14,7 @@ import SearchFiltersView from "./searchFiltersView.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
 import { useVideoPlayer, VideoView } from "expo-video";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   text: "#ffffff",
@@ -132,9 +133,9 @@ function MediaButton({
               onPress={onPickImage}
               style={[styles.mediaMenuOption, styles.mediaMenuOptionPrimary]}
             >
-              <Text style={[styles.mediaMenuOptionText, styles.mediaMenuOptionTextPrimary]}>
+              <IBMPlexText style={[styles.mediaMenuOptionText, styles.mediaMenuOptionTextPrimary]}>
                 Photo
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           ) : null}
           {showVideoOption ? (
@@ -146,14 +147,14 @@ function MediaButton({
                 !showImageOption ? styles.mediaMenuOptionPrimary : null,
               ]}
             >
-              <Text
+              <IBMPlexText
                 style={[
                   styles.mediaMenuOptionText,
                   !showImageOption ? styles.mediaMenuOptionTextPrimary : null,
                 ]}
               >
                 Video
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           ) : null}
           {hasMedia ? (
@@ -162,7 +163,7 @@ function MediaButton({
               onPress={onRemove}
               style={styles.mediaMenuOption}
             >
-              <Text style={styles.mediaMenuOptionText}>Remove</Text>
+              <IBMPlexText style={styles.mediaMenuOptionText}>Remove</IBMPlexText>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -287,7 +288,7 @@ export default function MakePostView({
           disabled={isSubmitting}
           style={styles.backButton}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
         </TouchableOpacity>
       ) : null}
       <View
@@ -312,7 +313,7 @@ export default function MakePostView({
               onPress={toggleTagsPicker}
               disabled={isDraftEditingDisabled}
             >
-              <Text
+              <IBMPlexText
                 numberOfLines={1}
                 style={[
                   styles.tagText,
@@ -320,7 +321,7 @@ export default function MakePostView({
                 ]}
               >
                 {tagsButtonLabel}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
             <MediaButton
               mediaUrl={mediaUrl}
@@ -378,7 +379,7 @@ export default function MakePostView({
             disabled={isSubmitting}
           >
             <TrashIcon />
-            <Text style={styles.secondaryButtonText}>Discard</Text>
+            <IBMPlexText style={styles.secondaryButtonText}>Discard</IBMPlexText>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.primaryButton, isPostActionDisabled ? styles.disabledButton : null]}
@@ -386,13 +387,13 @@ export default function MakePostView({
             disabled={isPostActionDisabled}
           >
             <PlusIcon />
-            <Text style={styles.primaryButtonText}>
+            <IBMPlexText style={styles.primaryButtonText}>
               {isSubmitting ? "Posting..." : "Post"}
-            </Text>
+            </IBMPlexText>
           </TouchableOpacity>
         </View>
         {error ? (
-          <Text style={styles.errorText}>{error}</Text>
+          <IBMPlexText style={styles.errorText}>{error}</IBMPlexText>
         ) : null}
           </>
         )}
@@ -401,15 +402,15 @@ export default function MakePostView({
         <View style={styles.lockedOverlay}>
           <View style={styles.lockedMessageCard}>
             <LockIcon size={24} />
-            <Text style={styles.lockedMessageTitle}>Posting is locked</Text>
-            <Text style={styles.lockedMessageText}>
+            <IBMPlexText style={styles.lockedMessageTitle}>Posting is locked</IBMPlexText>
+            <IBMPlexText style={styles.lockedMessageText}>
               Posting is available to subscribed members so coaches can keep up with discussions, give useful feedback, and maintain a safe training space.
-            </Text>
+            </IBMPlexText>
             <TouchableOpacity
               style={styles.lockedBackButton}
               onPress={onBack || onDiscard}
             >
-              <Text style={styles.lockedBackButtonText}>Go Back</Text>
+              <IBMPlexText style={styles.lockedBackButtonText}>Go Back</IBMPlexText>
             </TouchableOpacity>
           </View>
         </View>
@@ -473,8 +474,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -575,8 +575,7 @@ const styles = StyleSheet.create({
   },
   mediaMenuOptionText: {
     color: COLORS.text,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 17,
   },
   mediaMenuOptionTextPrimary: {
@@ -586,8 +585,9 @@ const styles = StyleSheet.create({
     color: COLORS.panel,
   },
   textInput: {
+    fontFamily: "IBMPlexSans_400Regular",
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 22,
     color: COLORS.faint,
     width: "100%",
@@ -599,6 +599,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "rgba(255,255,255,0.16)",
     color: COLORS.text,
+    fontFamily: "IBMPlexSans_700Bold",
     fontSize: 20,
     fontWeight: "900",
     lineHeight: 26,
@@ -687,8 +688,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -706,8 +706,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -822,8 +821,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: COLORS.error,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
     marginTop: 10,
   },
@@ -835,8 +833,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   lockedOverlay: {
@@ -854,8 +851,7 @@ const styles = StyleSheet.create({
   },
   lockedMessageTitle: {
     color: COLORS.text,
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 28, fontWeight: "700",
     lineHeight: 34,
     textAlign: "center",
   },
@@ -876,8 +872,7 @@ const styles = StyleSheet.create({
   },
   lockedBackButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

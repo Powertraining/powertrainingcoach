@@ -94,45 +94,41 @@ export const borderRadius = {
   full: 999,
 };
 
+export const fonts = {
+  display: "IBMPlexSans_600SemiBold",
+  body: "IBMPlexSans_400Regular",
+  bodyMedium: "IBMPlexSans_500Medium",
+  bodySemiBold: "IBMPlexSans_600SemiBold",
+  bodyBold: "IBMPlexSans_700Bold",
+};
+
 export const typography = {
   h1: {
+    fontFamily: fonts.display,
     fontSize: 38,
-    fontWeight: "700",
     lineHeight: 44,
   },
   h2: {
+    fontFamily: fonts.display,
     fontSize: 28,
-    fontWeight: "700",
     lineHeight: 34,
   },
-  h3: {
-    fontSize: 22,
-    fontWeight: "700",
+  h3: { fontSize: 22,
     lineHeight: 28,
   },
-  body: {
-    fontSize: 16,
-    fontWeight: "400",
+  body: { fontSize: 16,
     lineHeight: 24,
   },
-  bodySmall: {
-    fontSize: 14,
-    fontWeight: "400",
+  bodySmall: { fontSize: 14,
     lineHeight: 20,
   },
-  caption: {
-    fontSize: 12,
-    fontWeight: "400",
+  caption: { fontSize: 12,
     lineHeight: 16,
   },
-  button: {
-    fontSize: 16,
-    fontWeight: "600",
+  button: { fontSize: 16,
     lineHeight: 24,
   },
-  buttonLarge: {
-    fontSize: 18,
-    fontWeight: "600",
+  buttonLarge: { fontSize: 18,
     lineHeight: 26,
   },
 };
@@ -142,5 +138,6 @@ export default {
   shadows,
   spacing,
   borderRadius,
+  fonts,
   typography,
 };

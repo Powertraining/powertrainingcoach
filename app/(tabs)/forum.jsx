@@ -1,6 +1,12 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useState } from "react";
 import { observer } from "mobx-react-lite";
-import { Redirect, useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import { Redirect,
+  useLocalSearchParams,
+  usePathname,
+  useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";

@@ -1,7 +1,9 @@
 // npx expo install @react-native-picker/picker
 
-import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  useEffect,
+  useState } from "react";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
@@ -15,6 +17,7 @@ import {
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 
 function getEventDescription(value = "") {
     const match = /Description:\s*([^;]+)/i.exec(String(value));
@@ -265,16 +268,16 @@ export default function InputFormView({
                     <View style={styles.form}>
                         {/* {!subscription && (
                             <View style={styles.subscriptionAlert}>
-                                <Text style={styles.alertText}>📋 Subscription Required{"\n"}You need an active subscription to generate training plans.</Text>
+                                <IBMPlexText style={styles.alertText}>📋 Subscription Required{"\n"}You need an active subscription to generate training plans.</IBMPlexText>
                                 <TouchableOpacity onPress={handleSubmit} style={styles.subscribeButton}>
-                                    <Text style={styles.subscribeButtonText}>Subscribe & Generate</Text>
+                                    <IBMPlexText style={styles.subscribeButtonText}>Subscribe & Generate</IBMPlexText>
                                 </TouchableOpacity>
                             </View>
                         )}
 
                         {subscription && (
                             <View style={styles.subscriptionActive}>
-                                <Text style={styles.activeText}>✅ Subscription Active ({daysRemaining} days remaining)</Text>
+                                <IBMPlexText style={styles.activeText}>✅ Subscription Active ({daysRemaining} days remaining)</IBMPlexText>
                             </View>
                         )} */}
 

@@ -1,15 +1,15 @@
-import { StyleSheet, Text, View } from "react-native";
-
+import { StyleSheet, View } from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function MembershipBenefitItem({ title, description }) {
   return (
     <View style={styles.item}>
-      <Text numberOfLines={2} adjustsFontSizeToFit style={styles.title}>
+      <IBMPlexText numberOfLines={2} adjustsFontSizeToFit style={styles.title}>
         {title}
-      </Text>
+      </IBMPlexText>
       <View style={styles.underline} />
-      <Text numberOfLines={4} style={styles.description}>
+      <IBMPlexText numberOfLines={4} style={styles.description}>
         {description}
-      </Text>
+      </IBMPlexText>
     </View>
   );
 }
@@ -23,8 +23,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     lineHeight: 15,
     minHeight: 30,
     textAlign: "center",
@@ -36,8 +35,7 @@ const styles = StyleSheet.create({
   },
   description: {
     color: "rgba(255,255,255,0.72)",
-    fontSize: 9,
-    fontWeight: "700",
+    fontSize: 9, fontWeight: "700",
     lineHeight: 13,
     textAlign: "center",
   },

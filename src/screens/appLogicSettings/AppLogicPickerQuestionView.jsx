@@ -1,8 +1,7 @@
-import { Picker } from "@react-native-picker/picker";
-import { Text, StyleSheet, View, useWindowDimensions } from "react-native";
-
-import TitleText from "../../components/textComponents/TitleText.jsx";
-
+import {
+  Picker } from "@react-native-picker/picker";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 function OptionDescription({ options, value }) {
   const selectedOption = options.find((option) => option.value === value);
 
@@ -10,7 +9,7 @@ function OptionDescription({ options, value }) {
     return null;
   }
 
-  return <Text style={styles.helperText}>{selectedOption.description}</Text>;
+  return <IBMPlexText style={styles.helperText}>{selectedOption.description}</IBMPlexText>;
 }
 
 export default function AppLogicPickerQuestionView({
@@ -25,9 +24,9 @@ export default function AppLogicPickerQuestionView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={130}>{title}</TitleText>
+      <IBMPlexText titleBlock height={130}>{title}</IBMPlexText>
       <View style={styles.contentSlot}>
-        {helperText ? <Text style={styles.helperText}>{helperText}</Text> : null}
+        {helperText ? <IBMPlexText style={styles.helperText}>{helperText}</IBMPlexText> : null}
         <Picker
           selectedValue={value}
           onValueChange={onChange}
@@ -42,7 +41,7 @@ export default function AppLogicPickerQuestionView({
           ))}
         </Picker>
         <OptionDescription options={options} value={value} />
-        {footerText ? <Text style={styles.helperText}>{footerText}</Text> : null}
+        {footerText ? <IBMPlexText style={styles.helperText}>{footerText}</IBMPlexText> : null}
       </View>
     </View>
   );

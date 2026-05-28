@@ -1,13 +1,18 @@
-import { View, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
-
-import StandardText from "../../components/textComponents/StandardText.jsx";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
 import ProgramProgressRing from "../../components/homeComponents/ProgramProgressRing.jsx";
 import StartProgramPrompt from "../../components/homeComponents/StartProgramPrompt.jsx";
 import ProfileNavigationCard from "../../components/profileComponents/ProfileNavigationCard.jsx";
 import { getNormalizedWeekday } from "../../constants/weekdays.js";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const SESSION_PROGRESS_RING_SIZE = 84;
 const SESSION_PROGRESS_RING_CENTER = SESSION_PROGRESS_RING_SIZE / 2;
@@ -95,16 +100,16 @@ function StartSessionCard({
             description={subtitle}
             copyChildren={
                 <>
-                    <StandardText style={styles.sessionScheduleText}>
+                    <IBMPlexText defaultWhite style={styles.sessionScheduleText}>
                         {scheduleText}
-                    </StandardText>
+                    </IBMPlexText>
                     <TouchableOpacity
                         style={styles.startSessionButton}
                         onPress={onPress}
                     >
-                        <StandardText style={styles.startSessionButtonText}>
+                        <IBMPlexText defaultWhite style={styles.startSessionButtonText}>
                             {hasStartedSession ? "Continue" : "Start"}
-                        </StandardText>
+                        </IBMPlexText>
                     </TouchableOpacity>
                 </>
             }
@@ -140,9 +145,9 @@ function StartSessionCard({
                             />
                         </Svg>
                         <View style={styles.sessionProgressTextWrap}>
-                            <StandardText style={styles.sessionProgressText}>
+                            <IBMPlexText defaultWhite style={styles.sessionProgressText}>
                                 {progressPercent}%
-                            </StandardText>
+                            </IBMPlexText>
                         </View>
                     </View>
                 </View>
@@ -205,9 +210,9 @@ function NoSessionCard({
                             onPress={nextSession && !isPushingBack ? onPushBack : undefined}
                             disabled={isPushingBack}
                         >
-                            <StandardText style={styles.startSessionButtonText}>
+                            <IBMPlexText defaultWhite style={styles.startSessionButtonText}>
                                 {isPushingBack ? "Updating..." : "Push back"}
-                            </StandardText>
+                            </IBMPlexText>
                         </TouchableOpacity>
                     </View>
                 ) : null
@@ -333,9 +338,9 @@ export default function StartView({
                         </View>
                     </View>
                     <TouchableOpacity style={styles.testButton} onPress={onStart}>
-                        <StandardText textColor="#000" fontSize={18}>
+                        <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
                             Test questionnaire
-                        </StandardText>
+                        </IBMPlexText>
                     </TouchableOpacity>
                 </ScrollView>
             </Dotted>
@@ -442,8 +447,7 @@ const styles = StyleSheet.create({
     },
     sessionScheduleText: {
         color: "#ffffff",
-        fontSize: 12,
-        fontWeight: "800",
+        fontSize: 12, fontWeight: "800",
         lineHeight: 16,
         marginTop: 8,
         textTransform: "uppercase",
@@ -455,8 +459,7 @@ const styles = StyleSheet.create({
     },
     sessionProgressText: {
         color: "#ffffff",
-        fontSize: 15,
-        fontWeight: "800",
+        fontSize: 15, fontWeight: "800",
         lineHeight: 18,
     },
     startSessionButton: {
@@ -474,8 +477,7 @@ const styles = StyleSheet.create({
     },
     startSessionButtonText: {
         color: "#141414",
-        fontSize: 13,
-        fontWeight: "800",
+        fontSize: 13, fontWeight: "800",
         lineHeight: 16,
     },
 

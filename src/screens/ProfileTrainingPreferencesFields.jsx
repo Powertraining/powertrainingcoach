@@ -1,7 +1,6 @@
 import {
   Image,
   ScrollView,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -24,8 +23,7 @@ import {
   TRAINING_PHASE_OPTIONS,
 } from "../constants/appLogicSettings.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
-import StandardText from "../components/textComponents/StandardText.jsx";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const SESSION_DURATION_ITEM_WIDTH = 96;
 const SESSION_DURATION_ITEM_HEIGHT = 70;
 const LIFT_INTENSITY_CARD_WIDTH = 190;
@@ -176,13 +174,13 @@ function OptionCard({ label, isSelected, onPress, imageSource, stretch = false }
           resizeMode="contain"
         />
       ) : null}
-      <Text
+      <IBMPlexText
         numberOfLines={2}
         adjustsFontSizeToFit
         style={[styles.optionCardText, isSelected ? styles.optionCardTextSelected : null]}
       >
         {label}
-      </Text>
+      </IBMPlexText>
     </TouchableOpacity>
   );
 }
@@ -305,25 +303,25 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
                     !isSelected ? styles.durationTextDimmed : null,
                   ]}
                 >
-                  <StandardText
+                  <IBMPlexText defaultWhite
                     style={[
                       styles.durationNumberText,
                       isSelected ? styles.durationNumberTextSelected : null,
                     ]}
                   >
                     {minuteLabelParts.number}
-                  </StandardText>
-                  <StandardText
+                  </IBMPlexText>
+                  <IBMPlexText defaultWhite
                     style={[
                       styles.durationUnitText,
                       isSelected ? styles.durationUnitTextSelected : null,
                     ]}
                   >
                     {minuteLabelParts.unit}
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               ) : (
-                <StandardText
+                <IBMPlexText defaultWhite
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   style={[
@@ -332,7 +330,7 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
                   ]}
                 >
                   {option.label}
-                </StandardText>
+                </IBMPlexText>
               )}
             </View>
           );
@@ -385,7 +383,7 @@ function DesiredTrainingPills({ value, onChange, allowDeselect = true }) {
                 resizeMode="contain"
               />
             </View>
-            <Text
+            <IBMPlexText
               numberOfLines={1}
               adjustsFontSizeToFit
               style={[
@@ -394,7 +392,7 @@ function DesiredTrainingPills({ value, onChange, allowDeselect = true }) {
               ]}
             >
               {DESIRED_TRAINING_LABELS[option.value] ?? option.label}
-            </Text>
+            </IBMPlexText>
           </TouchableOpacity>
         );
       })}
@@ -444,7 +442,7 @@ function EquipmentPills({ value, onChange, allowDeselect = true }) {
                 resizeMode="contain"
               />
             </View>
-            <Text
+            <IBMPlexText
               numberOfLines={1}
               adjustsFontSizeToFit
               style={[
@@ -453,7 +451,7 @@ function EquipmentPills({ value, onChange, allowDeselect = true }) {
               ]}
             >
               {EQUIPMENT_LABELS[option.value] ?? option.label}
-            </Text>
+            </IBMPlexText>
           </TouchableOpacity>
         );
       })}
@@ -493,7 +491,7 @@ function TrainingPhasePills({ value, onChange, allowDeselect = true }) {
               isSelected ? styles.phasePillSelected : null,
             ]}
           >
-            <Text
+            <IBMPlexText
               numberOfLines={1}
               adjustsFontSizeToFit
               style={[
@@ -502,7 +500,7 @@ function TrainingPhasePills({ value, onChange, allowDeselect = true }) {
               ]}
             >
               {TRAINING_PHASE_LABELS[option.value] ?? option.label}
-            </Text>
+            </IBMPlexText>
           </TouchableOpacity>
         );
       })}
@@ -603,7 +601,7 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
           const isSelected = selectedValue === intensityValue;
 
           return (
-            <Text
+            <IBMPlexText
               key={intensityValue}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -613,7 +611,7 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
               ]}
             >
               {COMBAT_INTENSITY_LABELS[intensityValue]}
-            </Text>
+            </IBMPlexText>
           );
         })}
       </View>
@@ -624,7 +622,7 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
 function FieldPanel({ label, children, bare = false }) {
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <IBMPlexText style={styles.label}>{label}</IBMPlexText>
       {bare ? children : <View style={styles.panel}>{children}</View>}
     </View>
   );
@@ -705,7 +703,7 @@ function LiftIntensityOptions({
                 isSelected ? styles.liftIntensityCardSelected : null,
               ]}
             >
-              <Text
+              <IBMPlexText
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 style={[
@@ -714,9 +712,9 @@ function LiftIntensityOptions({
                 ]}
               >
                 {option.label}
-              </Text>
+              </IBMPlexText>
               {option.liftIntensityMethod === "rpe" ? (
-                <Text
+                <IBMPlexText
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   style={[
@@ -725,16 +723,16 @@ function LiftIntensityOptions({
                   ]}
                 >
                   Recommended
-                </Text>
+                </IBMPlexText>
               ) : null}
-              <Text
+              <IBMPlexText
                 style={[
                   styles.liftIntensityCardDescription,
                   isSelected ? styles.liftIntensityCardDescriptionSelected : null,
                 ]}
               >
                 {option.description}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           );
         })}
@@ -966,22 +964,22 @@ export function ProfileDeloadStrategyOptions({ value, onChange, compact = false 
                   ]}
                 >
                   <View style={styles.deloadMetricPair}>
-                    <Text
+                    <IBMPlexText
                       style={[
                         styles.deloadMetric,
                         repsChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
                       10r
-                    </Text>
-                    <Text
+                    </IBMPlexText>
+                    <IBMPlexText
                       style={[
                         styles.deloadMetric,
                         loadChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
                       10kg
-                    </Text>
+                    </IBMPlexText>
                   </View>
                   <Image
                     source={ARROW_IMAGE}
@@ -989,31 +987,31 @@ export function ProfileDeloadStrategyOptions({ value, onChange, compact = false 
                     resizeMode="contain"
                   />
                   <View style={styles.deloadMetricPair}>
-                    <Text
+                    <IBMPlexText
                       style={[
                         styles.deloadMetric,
                         repsChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
                       {content?.afterReps ?? "5r"}
-                    </Text>
-                    <Text
+                    </IBMPlexText>
+                    <IBMPlexText
                       style={[
                         styles.deloadMetric,
                         loadChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
                       {content?.afterWeight ?? "10kg"}
-                    </Text>
+                    </IBMPlexText>
                   </View>
                 </View>
-                <Text
+                <IBMPlexText
                   numberOfLines={2}
                   adjustsFontSizeToFit
                   style={styles.loadingStrategyText}
                 >
                   {content?.mediaText ?? option.label}
-                </Text>
+                </IBMPlexText>
               </View>
             );
           })}
@@ -1173,13 +1171,13 @@ export function ProfileLoadingStrategyOptions({ value, onChange, compact = false
                     />
                   ))}
                 </View>
-                <Text
+                <IBMPlexText
                   numberOfLines={2}
                   adjustsFontSizeToFit
                   style={styles.loadingStrategyText}
                 >
                   {option.label}
-                </Text>
+                </IBMPlexText>
               </View>
             );
           })}
@@ -1293,8 +1291,8 @@ export default function ProfileTrainingPreferencesFields({
     <View style={styles.section}>
       {(title || description) && (
         <View style={styles.header}>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
-          {description ? <Text style={styles.description}>{description}</Text> : null}
+          {title ? <IBMPlexText style={styles.title}>{title}</IBMPlexText> : null}
+          {description ? <IBMPlexText style={styles.description}>{description}</IBMPlexText> : null}
         </View>
       )}
 
@@ -1406,7 +1404,7 @@ export default function ProfileTrainingPreferencesFields({
                           pressed ? styles.weekdayButtonPressed : null,
                         ]}
                       >
-                        <Text
+                        <IBMPlexText
                           style={[
                             styles.weekdayAssignmentText,
                             isSelected ? styles.weekdayAssignmentTextSelected : null,
@@ -1414,8 +1412,8 @@ export default function ProfileTrainingPreferencesFields({
                           ]}
                         >
                           {isSelected ? `Day ${selectedIndex + 1}` : " "}
-                        </Text>
-                        <Text
+                        </IBMPlexText>
+                        <IBMPlexText
                           style={[
                             styles.weekdayButtonText,
                             isSelected ? styles.weekdayButtonTextSelected : null,
@@ -1423,7 +1421,7 @@ export default function ProfileTrainingPreferencesFields({
                           ]}
                         >
                           {option.label.slice(0, 3)}
-                        </Text>
+                        </IBMPlexText>
                       </Pressable>
 
                       {isMenuOpen ? (
@@ -1445,7 +1443,7 @@ export default function ProfileTrainingPreferencesFields({
                                   pressed ? styles.weekdayDropdownItemPressed : null,
                                 ]}
                               >
-                                <Text
+                                <IBMPlexText
                                   style={[
                                     styles.weekdayDropdownText,
                                     isCurrentAssignment
@@ -1454,7 +1452,7 @@ export default function ProfileTrainingPreferencesFields({
                                   ]}
                                 >
                                   Day {dayIndex + 1}
-                                </Text>
+                                </IBMPlexText>
                               </Pressable>
                             );
                           })}
@@ -1467,14 +1465,14 @@ export default function ProfileTrainingPreferencesFields({
                                 pressed ? styles.weekdayDropdownItemPressed : null,
                               ]}
                             >
-                              <Text
+                              <IBMPlexText
                                 style={[
                                   styles.weekdayDropdownText,
                                   styles.weekdayDropdownClearText,
                                 ]}
                               >
                                 Clear
-                              </Text>
+                              </IBMPlexText>
                             </Pressable>
                           ) : null}
                         </View>
@@ -1525,8 +1523,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#8E8E8E",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 15,
     textTransform: "uppercase",
   },
@@ -1540,8 +1537,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "#8E8E8E",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 15,
     textTransform: "uppercase",
   },
@@ -1600,8 +1596,7 @@ const styles = StyleSheet.create({
   },
   desiredPillText: {
     color: "#8E8E8E",
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     marginTop: 5,
     textAlign: "center",
   },
@@ -1655,8 +1650,7 @@ const styles = StyleSheet.create({
   },
   connectedPillText: {
     color: "#8E8E8E",
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     marginTop: 5,
     textAlign: "center",
   },
@@ -1695,8 +1689,7 @@ const styles = StyleSheet.create({
   },
   phasePillText: {
     color: "#8E8E8E",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     textAlign: "center",
     textTransform: "uppercase",
   },
@@ -1727,8 +1720,7 @@ const styles = StyleSheet.create({
   },
   liftIntensityCardTitle: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     textTransform: "uppercase",
   },
   liftIntensityCardTitleSelected: {
@@ -1736,8 +1728,7 @@ const styles = StyleSheet.create({
   },
   liftIntensityCardTag: {
     color: "#8E8E8E",
-    fontSize: 9,
-    fontWeight: "700",
+    fontSize: 9, fontWeight: "700",
     marginTop: 4,
     textTransform: "uppercase",
   },
@@ -1819,8 +1810,7 @@ const styles = StyleSheet.create({
   },
   loadingStrategyText: {
     color: "#8E8E8E",
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     lineHeight: 14,
     marginTop: 8,
     minHeight: 28,
@@ -1873,8 +1863,7 @@ const styles = StyleSheet.create({
   combatIntensityLabel: {
     color: "#6B6B6B",
     flex: 1,
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     textAlign: "center",
     textTransform: "uppercase",
   },
@@ -1957,8 +1946,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 4,
     color: "#000000",
-    fontSize: 11,
-    fontWeight: "800",
+    fontSize: 11, fontWeight: "800",
     lineHeight: 17,
     overflow: "hidden",
     textAlign: "center",
@@ -2010,8 +1998,7 @@ const styles = StyleSheet.create({
   },
   optionCardText: {
     color: "#8E8E8E",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     textAlign: "center",
   },
   optionCardTextSelected: {
@@ -2073,8 +2060,7 @@ const styles = StyleSheet.create({
   },
   weekdayButtonText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
   },
   weekdayButtonTextSelected: {
     color: "#000000",
@@ -2084,8 +2070,7 @@ const styles = StyleSheet.create({
   },
   weekdayAssignmentText: {
     color: "#ffffff",
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     lineHeight: 13,
     minHeight: 13,
     textAlign: "center",
@@ -2127,8 +2112,7 @@ const styles = StyleSheet.create({
   },
   weekdayDropdownText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
   },
   weekdayDropdownTextSelected: {
     color: "#000000",

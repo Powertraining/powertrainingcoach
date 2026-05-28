@@ -1,6 +1,12 @@
-import { useRef } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-
+import {
+  useRef } from "react";
+import {
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function EffortRatingInput({ value, onChangeText }) {
   const inputRef = useRef(null);
   const focusInput = () => {
@@ -15,9 +21,9 @@ export default function EffortRatingInput({ value, onChangeText }) {
       onPressIn={focusInput}
     >
       <View style={styles.cardInner}>
-        <Text style={styles.prompt} onPress={focusInput}>
+        <IBMPlexText style={styles.prompt} onPress={focusInput}>
           How hard did that feel?
-        </Text>
+        </IBMPlexText>
         <TouchableOpacity
           activeOpacity={1}
           style={styles.inputShell}
@@ -36,7 +42,7 @@ export default function EffortRatingInput({ value, onChangeText }) {
               textAlign="center"
               maxLength={2}
             />
-            <Text style={styles.suffix} onPress={focusInput}>/10</Text>
+            <IBMPlexText style={styles.suffix} onPress={focusInput}>/10</IBMPlexText>
           </View>
         </TouchableOpacity>
       </View>
@@ -66,8 +72,7 @@ const styles = StyleSheet.create({
   },
   prompt: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     textAlign: "center",
     lineHeight: 18,
   },
@@ -88,16 +93,14 @@ const styles = StyleSheet.create({
   input: {
     minWidth: 24,
     color: "#fff",
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 24, fontWeight: "700",
     lineHeight: 26,
     paddingVertical: 0,
     paddingHorizontal: 0,
   },
   suffix: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 14,
   },
 });

@@ -1,11 +1,18 @@
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PostCard from "../../components/forumComponents/PostCard.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   text: "#ffffff",
@@ -88,7 +95,7 @@ export default function SavedPostsView({
     <QuestionnaireShell hideTabBar={false}>
       <View style={styles.wrapper}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
         </TouchableOpacity>
         <ScrollView
           style={styles.scroll}
@@ -98,7 +105,7 @@ export default function SavedPostsView({
           ]}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
+            <IBMPlexText style={styles.title}>{title}</IBMPlexText>
           </View>
 
           <View style={styles.searchBar}>
@@ -131,16 +138,16 @@ export default function SavedPostsView({
             </View>
           ) : error ? (
             <View style={styles.state}>
-              <Text style={styles.errorText}>
+              <IBMPlexText style={styles.errorText}>
                 {error.message || errorText}
-              </Text>
+              </IBMPlexText>
               <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-                <Text style={styles.retryButtonText}>Try Again</Text>
+                <IBMPlexText style={styles.retryButtonText}>Try Again</IBMPlexText>
               </TouchableOpacity>
             </View>
           ) : posts.length === 0 ? (
             <View style={styles.state}>
-              <Text style={styles.emptyText}>{emptyText}</Text>
+              <IBMPlexText style={styles.emptyText}>{emptyText}</IBMPlexText>
             </View>
           ) : (
             <View style={styles.postsSection}>
@@ -212,14 +219,12 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 18,
   },
   title: {
     color: COLORS.text,
-    fontSize: 26,
-    fontWeight: "900",
+    fontSize: 26, fontWeight: "900",
     lineHeight: 32,
   },
   searchBar: {
@@ -247,8 +252,7 @@ const styles = StyleSheet.create({
   searchInput: {
     color: COLORS.text,
     flex: 1,
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 16, fontWeight: "700",
     height: "100%",
     lineHeight: 18,
     padding: 0,
@@ -354,15 +358,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: COLORS.muted,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 20,
     textAlign: "center",
   },
   errorText: {
     color: "#fca5a5",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 20,
     marginBottom: 14,
     textAlign: "center",
@@ -378,8 +380,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

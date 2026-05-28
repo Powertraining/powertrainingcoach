@@ -1,8 +1,7 @@
 import { TouchableOpacity, StyleSheet, View } from "react-native";
 
 import BlackGradient from "../colorComponents/BlackGradient.jsx";
-import StandardText from "../textComponents/StandardText.jsx";
-import TitleText from "../textComponents/TitleText.jsx";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
 export default function StartProgramPrompt({
     onStart,
@@ -15,7 +14,7 @@ export default function StartProgramPrompt({
     return (
         <>
             {hideTitle ? null : (
-                <TitleText height={titleHeight}>Lets start by creating your program</TitleText>
+                <IBMPlexText titleBlock height={titleHeight}>Lets start by creating your program</IBMPlexText>
             )}
             <View style={[styles.buttonShadow, buttonShadowStyle]}>
                 <TouchableOpacity
@@ -29,12 +28,12 @@ export default function StartProgramPrompt({
                                 styles.bigButton.borderRadius,
                         }}
                     />
-                    <StandardText
+                    <IBMPlexText defaultWhite
                         style={[styles.buttonText, circular && styles.circleButtonText]}
                         textColor="#fff"
                     >
                         {label}
-                    </StandardText>
+                    </IBMPlexText>
                 </TouchableOpacity>
             </View>
         </>

@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState } from "react";
 import {
   Dimensions,
   Keyboard,
@@ -6,7 +9,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   View,
   useWindowDimensions,
@@ -14,13 +16,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import DateSelector from "../../components/questionnaireComponents/DateSelector.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
 import {
   formatEventPreparation,
   parseEventPreparation,
 } from "../../services/utils/profileFields.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const CONTINUE_BUTTON_TOP_OFFSET = 80;
 const DESCRIPTION_CARD_HEIGHT = 104;
 const DATE_SELECTOR_HEIGHT = 70 * 3;
@@ -175,8 +175,8 @@ export default function TrainingPreferencesEventPreparationView({
                 : null
             }
           >
-            <TitleText height={130}>Do you have an upcoming event?</TitleText>
-            <StandardText
+            <IBMPlexText titleBlock height={130}>Do you have an upcoming event?</IBMPlexText>
+            <IBMPlexText defaultWhite
               style={styles.helperText}
               center
               onLayout={(event) => {
@@ -185,7 +185,7 @@ export default function TrainingPreferencesEventPreparationView({
               }}
             >
               An event could be a personal deadline, a competition, or anything else.
-            </StandardText>
+            </IBMPlexText>
             <View
               style={[
                 styles.contentSlot,
@@ -206,10 +206,10 @@ export default function TrainingPreferencesEventPreparationView({
                   ]}
                 >
                   <View style={styles.eventDetailsContent}>
-                    <StandardText style={styles.inputLabel}>
+                    <IBMPlexText defaultWhite style={styles.inputLabel}>
                       Describe the event
-                    </StandardText>
-                    <Text
+                    </IBMPlexText>
+                    <IBMPlexText
                       numberOfLines={2}
                       style={[
                         styles.descriptionPreview,
@@ -217,11 +217,11 @@ export default function TrainingPreferencesEventPreparationView({
                       ]}
                     >
                       {eventDescription || "Name, location, type..."}
-                    </Text>
+                    </IBMPlexText>
                   </View>
                 </Pressable>
                 <Pressable onPress={onSkip} style={styles.skipButton}>
-                  <Text style={styles.skipText}>Skip &gt;</Text>
+                  <IBMPlexText style={styles.skipText}>Skip &gt;</IBMPlexText>
                 </Pressable>
               </View>
             </View>
@@ -252,9 +252,9 @@ export default function TrainingPreferencesEventPreparationView({
             >
               <View style={styles.editorCard}>
                 <View style={styles.editorContent}>
-                  <StandardText style={styles.inputLabel}>
+                  <IBMPlexText defaultWhite style={styles.inputLabel}>
                     Event details
-                  </StandardText>
+                  </IBMPlexText>
                   <TextInput
                     autoFocus
                     value={draftEventDescription}
@@ -277,7 +277,7 @@ export default function TrainingPreferencesEventPreparationView({
                     pressed ? styles.editorButtonPressed : null,
                   ]}
                 >
-                  <Text style={styles.editorSaveButtonText}>Save</Text>
+                  <IBMPlexText style={styles.editorSaveButtonText}>Save</IBMPlexText>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -290,7 +290,7 @@ export default function TrainingPreferencesEventPreparationView({
                     pressed ? styles.editorButtonPressed : null,
                   ]}
                 >
-                  <Text style={styles.editorCancelButtonText}>Cancel</Text>
+                  <IBMPlexText style={styles.editorCancelButtonText}>Cancel</IBMPlexText>
                 </Pressable>
               </View>
             </KeyboardAvoidingView>
@@ -298,8 +298,8 @@ export default function TrainingPreferencesEventPreparationView({
         </>
       ) : (
         <>
-          <TitleText height={130}>When is your next event?</TitleText>
-          <StandardText
+          <IBMPlexText titleBlock height={130}>When is your next event?</IBMPlexText>
+          <IBMPlexText defaultWhite
             style={styles.helperText}
             center
             onLayout={(event) => {
@@ -308,7 +308,7 @@ export default function TrainingPreferencesEventPreparationView({
             }}
           >
             Pick the date so the plan can time training around it.
-          </StandardText>
+          </IBMPlexText>
           <View
             style={[
               styles.contentSlot,
@@ -398,8 +398,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -411,15 +410,13 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
     textAlign: "left",
   },
   descriptionPreview: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
     marginTop: 4,
   },
@@ -428,8 +425,7 @@ const styles = StyleSheet.create({
   },
   descriptionInput: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
     marginTop: 4,
     minHeight: 144,
@@ -504,12 +500,10 @@ const styles = StyleSheet.create({
   },
   editorSaveButtonText: {
     color: "#141414",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
   editorCancelButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
 });

@@ -1,13 +1,12 @@
 import { View, TouchableOpacity, StyleSheet } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
 import SignFormInput from "../../components/authComponents/SignFormInput.jsx";
 import GoogleButtonComponent from "../../components/authComponents/GoogleButton.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 export function LoginView(props) {
   return (
     <View style={{ flex: 1 }}>
-      <TitleText>Welcome back!</TitleText>
+      <IBMPlexText titleBlock>Welcome back!</IBMPlexText>
 
       <SignFormInput
         text="E-mail"
@@ -37,12 +36,12 @@ export function LoginView(props) {
         onPress={props.onForgotPasswordPress}
         disabled={props.isSubmitting}
       >
-        <StandardText center={true}>Forgot your password?</StandardText>
+        <IBMPlexText defaultWhite center={true}>Forgot your password?</IBMPlexText>
       </TouchableOpacity>
 
-      {props.error ? <StandardText center={true}>{props.error}</StandardText> : null}
+      {props.error ? <IBMPlexText defaultWhite center={true}>{props.error}</IBMPlexText> : null}
       {props.verificationMessage ? (
-        <StandardText center={true}>{props.verificationMessage}</StandardText>
+        <IBMPlexText defaultWhite center={true}>{props.verificationMessage}</IBMPlexText>
       ) : null}
       {props.canResendVerification ? (
         <TouchableOpacity
@@ -50,11 +49,11 @@ export function LoginView(props) {
           onPress={props.onResendVerificationPress}
           disabled={props.isSubmitting || props.isResendingVerification}
         >
-          <StandardText center={true}>
+          <IBMPlexText defaultWhite center={true}>
             {props.isResendingVerification
               ? "Sending verification e-mail..."
               : "Resend verification e-mail"}
-          </StandardText>
+          </IBMPlexText>
         </TouchableOpacity>
       ) : null}
     </View>

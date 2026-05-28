@@ -1,7 +1,7 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 
 import BlackGradient from "../colorComponents/BlackGradient.jsx";
-
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const BENEFITS = [
   {
     title: "Analysis",
@@ -44,12 +44,12 @@ export default function SubscriptionCard({
       {showBackground ? <BlackGradient /> : null}
       <View style={[styles.content, contentStyle]}>
         <View style={styles.planHeader}>
-          <Text style={[styles.planLabel, planLabelStyle]}>
+          <IBMPlexText style={[styles.planLabel, planLabelStyle]}>
             {displayedPlanLabel}
-          </Text>
+          </IBMPlexText>
           {timeRemainingText ? (
             <View style={styles.timePill}>
-              <Text style={styles.timePillText}>{timeRemainingText}</Text>
+              <IBMPlexText style={styles.timePillText}>{timeRemainingText}</IBMPlexText>
             </View>
           ) : null}
         </View>
@@ -57,13 +57,13 @@ export default function SubscriptionCard({
         <View style={styles.benefitsRow}>
           {benefits.map((benefit) => (
             <View key={benefit.title} style={styles.benefitItem}>
-              <Text numberOfLines={2} adjustsFontSizeToFit style={styles.benefitTitle}>
+              <IBMPlexText numberOfLines={2} adjustsFontSizeToFit style={styles.benefitTitle}>
                 {benefit.title}
-              </Text>
+              </IBMPlexText>
               <View style={styles.benefitDivider} />
-              <Text numberOfLines={4} style={styles.benefitDescription}>
+              <IBMPlexText numberOfLines={4} style={styles.benefitDescription}>
                 {benefit.description}
-              </Text>
+              </IBMPlexText>
             </View>
           ))}
         </View>
@@ -80,7 +80,7 @@ export default function SubscriptionCard({
               disabled={isSubmitting}
               style={[styles.actionButton, isSubmitting ? styles.buttonDisabled : null]}
             >
-              <Text style={styles.actionButtonText}>Subscribe</Text>
+              <IBMPlexText style={styles.actionButtonText}>Subscribe</IBMPlexText>
             </TouchableOpacity>
 
             {showDetailsButton ? (
@@ -93,9 +93,9 @@ export default function SubscriptionCard({
                   isSubmitting ? styles.buttonDisabled : null,
                 ]}
               >
-                <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>
+                <IBMPlexText style={[styles.actionButtonText, styles.secondaryButtonText]}>
                   Details
-                </Text>
+                </IBMPlexText>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -129,8 +129,7 @@ const styles = StyleSheet.create({
   planLabel: {
     color: "#ffffff",
     fontSize: 20,
-    lineHeight: 26,
-    fontWeight: "700",
+    lineHeight: 26, fontWeight: "700",
     textAlign: "center",
   },
   timePill: {
@@ -144,8 +143,7 @@ const styles = StyleSheet.create({
   timePillText: {
     color: "#9ca3af",
     fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "700",
+    lineHeight: 16, fontWeight: "700",
   },
   benefitsRow: {
     flexDirection: "row",
@@ -160,8 +158,7 @@ const styles = StyleSheet.create({
   benefitTitle: {
     color: "#ffffff",
     fontSize: 13,
-    lineHeight: 17,
-    fontWeight: "700",
+    lineHeight: 17, fontWeight: "700",
     textAlign: "center",
     flexShrink: 1,
   },
@@ -200,8 +197,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: "#141414",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

@@ -1,11 +1,10 @@
 import { View, StyleSheet } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
-
-import StandardText from "../textComponents/StandardText.jsx";
 import {
     getCurrentPhaseText,
     getProgramCountdownStatus,
 } from "../../services/utils/programProgress.js";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
 const RING_SIZE = 238;
 const RING_CENTER = RING_SIZE / 2;
@@ -85,13 +84,13 @@ export default function ProgramProgressRing({
                 />
             </Svg>
             <View style={styles.statusRingContent}>
-                <StandardText style={styles.countdownText} center>
+                <IBMPlexText defaultWhite style={styles.countdownText} center>
                     {countdownStatus.text}
-                </StandardText>
+                </IBMPlexText>
                 {currentPhaseText ? (
-                    <StandardText style={styles.phaseText} center>
+                    <IBMPlexText defaultWhite style={styles.phaseText} center>
                         {currentPhaseText}
-                    </StandardText>
+                    </IBMPlexText>
                 ) : null}
             </View>
         </View>

@@ -9,7 +9,6 @@ import {
   Platform,
   ScrollView,
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -26,7 +25,7 @@ import ProfilePersonalDetailsView from "./profile/ProfilePersonalDetailsView.jsx
 import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx";
 import RegisterEventView from "./profile/RegisterEventView.jsx";
 import ProfileReportInjuryView from "./profile/ProfileReportInjuryView.jsx";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -174,7 +173,7 @@ export function MyProfileView(props) {
           disabled={props.isSubmitting}
           style={styles.backButton}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
         </TouchableOpacity>
       ) : null}
       <ScrollView
@@ -278,7 +277,7 @@ export function MyProfileView(props) {
             disabled={props.isSubmitting}
             style={styles.logoutButton}
           >
-            <Text style={styles.logoutButtonText}>Log out</Text>
+            <IBMPlexText style={styles.logoutButtonText}>Log out</IBMPlexText>
           </TouchableOpacity>
         ) : null}
 
@@ -301,9 +300,9 @@ export function MyProfileView(props) {
                 </View>
               )}
             </TouchableOpacity>
-            <Text style={styles.profileEmail} numberOfLines={1}>
+            <IBMPlexText style={styles.profileEmail} numberOfLines={1}>
               {props.email || props.emailPlaceholder || ""}
-            </Text>
+            </IBMPlexText>
           </View>
         ) : null}
 
@@ -365,7 +364,7 @@ export function MyProfileView(props) {
           />
         ) : null}
 
-        {props.error ? <Text style={styles.errorText}>{props.error}</Text> : null}
+        {props.error ? <IBMPlexText style={styles.errorText}>{props.error}</IBMPlexText> : null}
 
         {showInlineActions ? (
           <View style={styles.actions}>
@@ -377,9 +376,9 @@ export function MyProfileView(props) {
                 props.isSubmitting || !props.canSave ? styles.buttonDisabled : null,
               ]}
             >
-              <Text style={styles.primaryButtonText}>
+              <IBMPlexText style={styles.primaryButtonText}>
                 {props.isSubmitting ? "Saving..." : "Save changes"}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -387,7 +386,7 @@ export function MyProfileView(props) {
               disabled={props.isSubmitting}
               style={styles.secondaryButton}
             >
-              <Text style={styles.secondaryButtonText}>Cancel</Text>
+              <IBMPlexText style={styles.secondaryButtonText}>Cancel</IBMPlexText>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -414,7 +413,7 @@ export function MyProfileView(props) {
         >
           <View style={styles.usernameEditorCard}>
             <View style={styles.usernameEditorContent}>
-              <Text style={styles.usernameEditorLabel}>Username</Text>
+              <IBMPlexText style={styles.usernameEditorLabel}>Username</IBMPlexText>
               <TextInput
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -442,9 +441,9 @@ export function MyProfileView(props) {
                   : null,
               ]}
             >
-              <Text style={styles.usernameEditorSaveButtonText}>
+              <IBMPlexText style={styles.usernameEditorSaveButtonText}>
                 {props.isSubmitting ? "Saving..." : "Save"}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -455,7 +454,7 @@ export function MyProfileView(props) {
                 props.isSubmitting ? styles.usernameEditorButtonDisabled : null,
               ]}
             >
-              <Text style={styles.usernameEditorCancelButtonText}>Cancel</Text>
+              <IBMPlexText style={styles.usernameEditorCancelButtonText}>Cancel</IBMPlexText>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -479,13 +478,13 @@ export function MyProfileView(props) {
         content={
           <View style={styles.passwordResetMessages}>
             {props.passwordResetMessage ? (
-              <Text style={styles.passwordResetSuccessText}>
+              <IBMPlexText style={styles.passwordResetSuccessText}>
                 {props.passwordResetMessage}
-              </Text>
+              </IBMPlexText>
             ) : null}
 
             {props.error ? (
-              <Text style={styles.passwordResetErrorText}>{props.error}</Text>
+              <IBMPlexText style={styles.passwordResetErrorText}>{props.error}</IBMPlexText>
             ) : null}
           </View>
         }
@@ -515,9 +514,9 @@ export function MyProfileView(props) {
                   : null,
               ]}
             >
-              <Text style={styles.floatingSaveButtonText}>
+              <IBMPlexText style={styles.floatingSaveButtonText}>
                 {props.isSubmitting ? "Saving..." : "Save changes"}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -525,14 +524,14 @@ export function MyProfileView(props) {
               disabled={props.isSubmitting}
               style={styles.floatingCancelButton}
             >
-              <Text
+              <IBMPlexText
                 style={[
                   styles.floatingCancelButtonText,
                   props.isSubmitting ? styles.floatingCancelButtonTextDisabled : null,
                 ]}
               >
                 Cancel
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -595,8 +594,7 @@ const styles = StyleSheet.create({
   },
   profileEmail: {
     color: "#C9B259",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 18,
     marginTop: "5%",
     maxWidth: "100%",
@@ -612,8 +610,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 18,
   },
   errorText: {
@@ -633,8 +630,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: "#141414",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 16, fontWeight: "600",
   },
   secondaryButton: {
     paddingVertical: 14,
@@ -646,8 +642,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: "#141414",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 16, fontWeight: "600",
   },
   floatingActionsWrap: {
     bottom: 0,
@@ -687,8 +682,7 @@ const styles = StyleSheet.create({
   },
   floatingSaveButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     letterSpacing: 0.2,
   },
   floatingCancelButton: {
@@ -703,8 +697,7 @@ const styles = StyleSheet.create({
   },
   floatingCancelButtonText: {
     color: "#141414",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     letterSpacing: 0.2,
   },
   floatingCancelButtonTextDisabled: {
@@ -747,14 +740,12 @@ const styles = StyleSheet.create({
   },
   usernameEditorLabel: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
   },
   usernameEditorInput: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
     marginTop: 4,
     minHeight: 20,
@@ -793,27 +784,23 @@ const styles = StyleSheet.create({
   },
   usernameEditorSaveButtonText: {
     color: "#141414",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
   usernameEditorCancelButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
   passwordResetMessages: {
     gap: 8,
   },
   passwordResetSuccessText: {
     color: "#047857",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
   },
   passwordResetErrorText: {
     color: "#b91c1c",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
   },
   logoutButton: {
@@ -827,8 +814,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     color: "#fff",
     opacity: 0.5,
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 16, fontWeight: "600",
   },
   buttonDisabled: {
     backgroundColor: "rgba(255,255,255,0.5)",

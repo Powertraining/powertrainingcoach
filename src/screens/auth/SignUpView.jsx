@@ -1,13 +1,12 @@
 import { View, TouchableOpacity } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
 import SignFormInput from "../../components/authComponents/SignFormInput.jsx";
 import GoogleButtonComponent from "../../components/authComponents/GoogleButton.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 export function SignUpView(props) {
   return (
     <View style={{ flex: 1 }}>
-      <TitleText>Lets Get Started</TitleText>
+      <IBMPlexText titleBlock>Lets Get Started</IBMPlexText>
 
       <SignFormInput
         text="Username"
@@ -44,9 +43,9 @@ export function SignUpView(props) {
       />
 
       {props.message ? (
-        <StandardText center={true}>{props.message}</StandardText>
+        <IBMPlexText defaultWhite center={true}>{props.message}</IBMPlexText>
       ) : null}
-      {props.error && <StandardText center={true}>{props.error}</StandardText>}
+      {props.error && <IBMPlexText defaultWhite center={true}>{props.error}</IBMPlexText>}
     </View>
   );
 }

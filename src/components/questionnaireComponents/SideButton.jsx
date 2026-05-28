@@ -1,5 +1,5 @@
-import { Text, TouchableOpacity, StyleSheet } from "react-native";
-
+import { TouchableOpacity, StyleSheet } from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const BUTTON_RADIUS = 35;
 
 export default function SideButton({
@@ -17,7 +17,7 @@ export default function SideButton({
         isSelected ? styles.optionSelected : styles.optionUnselected,
       ]}
     >
-      <Text
+      <IBMPlexText
         style={[
           styles.optionText,
           side === "right" ? styles.optionTextRight : styles.optionTextLeft,
@@ -25,7 +25,7 @@ export default function SideButton({
         ]}
       >
         {label}
-      </Text>
+      </IBMPlexText>
     </TouchableOpacity>
   );
 }
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: "#8E8E8E",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 38,
     includeFontPadding: false,
     textAlignVertical: "center",

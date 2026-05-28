@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState } from "react";
 import { View, StyleSheet, PanResponder } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx"
-import StandardText from "../../components/textComponents/StandardText.jsx"
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const MIN_SESSIONS = 1;
 const MAX_SESSIONS = 5;
@@ -24,7 +25,7 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     for (let i = 1; i <= MAX_SESSIONS; i += 1) {
         markers.push(
             <View key={i} style={styles.numberSlot}>
-                <StandardText
+                <IBMPlexText defaultWhite
                     style={[
                         styles.number,
                         i === activeValue ? styles.numberActive : null,
@@ -33,7 +34,7 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                     textColor={i === activeValue ? "#fff" : "#585858"}
                 >
                     {i}
-                </StandardText>
+                </IBMPlexText>
             </View>
         );
     }
@@ -76,9 +77,9 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     return (
         <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View style={styles.container}>
-                <TitleText height={230} style={styles.title}>
+                <IBMPlexText titleBlock height={230} style={styles.title}>
                     How many days per week do you exercise?
-                </TitleText>
+                </IBMPlexText>
                 <View style={styles.content}>
                     <View style={styles.sliderSection}>
                         <View style={styles.numbers}>
@@ -108,8 +109,8 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                         </View>
 
                         <View style={styles.sliderLabels}>
-                            <StandardText style={styles.leftLabel}>Full body</StandardText>
-                            <StandardText style={styles.rightLabel}>Precise</StandardText>
+                            <IBMPlexText defaultWhite style={styles.leftLabel}>Full body</IBMPlexText>
+                            <IBMPlexText defaultWhite style={styles.rightLabel}>Precise</IBMPlexText>
                         </View>
                     </View>
                 </View>

@@ -1,6 +1,6 @@
-import { StyleSheet, TouchableWithoutFeedback, View, Text } from "react-native";
+import { StyleSheet, TouchableWithoutFeedback, View } from "react-native";
 import Comment from "../../components/forumComponents/Comment.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   gold: "#C9B259",
   panel: "#141414",
@@ -17,10 +17,10 @@ export default function CoachResponseView({ onClose, comments = [] }) {
         <TouchableWithoutFeedback onPress={() => {}}>
           <View style={styles.content}>
             <View style={styles.box}>
-              <Text style={styles.title}>Coach Response</Text>
-              <Text style={styles.description}>
+              <IBMPlexText style={styles.title}>Coach Response</IBMPlexText>
+              <IBMPlexText style={styles.description}>
                 Coach Response shows that a verified coach has contributed to the thread, so you can weigh the advice with more confidence.
-              </Text>
+              </IBMPlexText>
             </View>
             <View style={styles.commentsList}>
               {comments.map((comment) => (
@@ -59,13 +59,11 @@ const styles = StyleSheet.create({
   },
   title: {
     color: COLORS.gold,
-    fontSize: 20,
-    fontWeight: "900",
+    fontSize: 20, fontWeight: "900",
     lineHeight: 25,
   },
   description: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 14, fontWeight: "600",
     lineHeight: 20,
     color: COLORS.muted,
     marginTop: 10,

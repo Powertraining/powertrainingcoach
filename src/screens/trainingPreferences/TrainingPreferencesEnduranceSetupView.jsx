@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState } from "react";
 import {
   Image,
   Keyboard,
@@ -6,7 +8,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -14,9 +15,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-import TitleText from "../../components/textComponents/TitleText.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
 import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
 import {
   CIRCUIT_GOAL_EXAMPLES,
@@ -25,7 +23,7 @@ import {
   HEAVY_BAG_ENDURANCE_TARGET_OPTIONS,
   SPRINTING_TARGET_OPTIONS,
 } from "../../constants/trainingPreferences.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ENDURANCE_FORMAT_DETAILS = Object.freeze({
   low_intensity_aerobic:
     "Easy steady work for base fitness and recovery. Usually the safest default.",
@@ -95,9 +93,9 @@ function ChoiceChip({ label, isSelected, onPress }) {
         pressed && styles.chipPressed,
       ]}
     >
-      <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+      <IBMPlexText style={[styles.chipText, isSelected && styles.chipTextSelected]}>
         {label}
-      </Text>
+      </IBMPlexText>
     </Pressable>
   );
 }
@@ -162,14 +160,14 @@ function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
 
           return (
             <View key={dayCount} style={styles.sliderNumberSlot}>
-              <StandardText
+              <IBMPlexText defaultWhite
                 style={[
                   styles.sliderNumber,
                   isActive ? styles.sliderNumberActive : null,
                 ]}
               >
                 {dayCount}
-              </StandardText>
+              </IBMPlexText>
             </View>
           );
         })}
@@ -201,8 +199,8 @@ function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
       </View>
 
       <View style={styles.sliderLabels}>
-        <StandardText style={styles.sliderLabel}>Beginner / busy</StandardText>
-        <StandardText style={styles.sliderLabel}>Experienced</StandardText>
+        <IBMPlexText defaultWhite style={styles.sliderLabel}>Beginner / busy</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.sliderLabel}>Experienced</IBMPlexText>
       </View>
     </View>
   );
@@ -213,8 +211,8 @@ function OptionGroup({ title, hint, options, value, onChange, multi = false }) {
 
   return (
     <View style={styles.group}>
-      {title ? <Text style={styles.groupTitle}>{title}</Text> : null}
-      {hint ? <Text style={styles.groupHint}>{hint}</Text> : null}
+      {title ? <IBMPlexText style={styles.groupTitle}>{title}</IBMPlexText> : null}
+      {hint ? <IBMPlexText style={styles.groupHint}>{hint}</IBMPlexText> : null}
       <View style={styles.chipRow}>
         {options.map((option) => {
           const isSelected = multi
@@ -299,14 +297,14 @@ function CompactFocusGrid({
                 style={styles.circuitFocusOptionIcon}
               />
             ) : null}
-            <Text
+            <IBMPlexText
               style={[
                 styles.circuitFocusOptionText,
                 isSelected ? styles.circuitFocusOptionTextSelected : null,
               ]}
             >
               {shortLabels[option.value] || option.label}
-            </Text>
+            </IBMPlexText>
           </Pressable>
         );
       })}
@@ -339,7 +337,7 @@ function LargeOptionGrid({ options, value, onChange, icons = {} }) {
                   style={styles.largeOptionIcon}
                 />
               ) : null}
-              <Text style={styles.largeOptionText}>{option.label}</Text>
+              <IBMPlexText style={styles.largeOptionText}>{option.label}</IBMPlexText>
             </View>
           </Pressable>
         );
@@ -434,13 +432,13 @@ export default function TrainingPreferencesEnduranceSetupView({
   if (mode === "days") {
     return (
       <View style={[styles.daysSection, { minHeight: screenHeight }]}>
-        <TitleText height={130}>Endurance days</TitleText>
-        <StandardText style={styles.helperText} center>
+        <IBMPlexText titleBlock height={130}>Endurance days</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.helperText} center>
           Choose the fewest endurance sessions you want scheduled each week.
-        </StandardText>
-        <StandardText style={styles.daysWarningText} textColor="#C9B259" center>
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.daysWarningText} textColor="#C9B259" center>
           3+ days needs solid recovery and low enough sport load.
-        </StandardText>
+        </IBMPlexText>
         <View style={styles.daysContent}>
           <EnduranceDaysSlider
             value={values?.enduranceSessionsPerWeek ?? MIN_ENDURANCE_DAYS}
@@ -466,12 +464,12 @@ export default function TrainingPreferencesEnduranceSetupView({
             <Image source={NURSE_ICON} style={styles.botAvatarImage} resizeMode="contain" />
           </View>
           <View style={styles.chatHeaderCopy}>
-            <StandardText style={styles.chatName}>Coach intake</StandardText>
-            <StandardText style={styles.chatStatus}>Circuit goal</StandardText>
+            <IBMPlexText defaultWhite style={styles.chatName}>Coach intake</IBMPlexText>
+            <IBMPlexText defaultWhite style={styles.chatStatus}>Circuit goal</IBMPlexText>
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity accessibilityRole="button" onPress={onSkip} style={styles.skipButton}>
-              <StandardText style={styles.skipButtonText}>Skip &gt;</StandardText>
+              <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip &gt;</IBMPlexText>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
@@ -482,7 +480,7 @@ export default function TrainingPreferencesEnduranceSetupView({
                 !canContinueCircuitGoal ? styles.continueButtonDisabled : null,
               ]}
             >
-              <StandardText style={styles.continueButtonText}>Continue</StandardText>
+              <IBMPlexText defaultWhite style={styles.continueButtonText}>Continue</IBMPlexText>
             </TouchableOpacity>
           </View>
         </View>
@@ -496,7 +494,7 @@ export default function TrainingPreferencesEnduranceSetupView({
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.timestampPill}>
-                <StandardText style={styles.timestampText}>Today</StandardText>
+                <IBMPlexText defaultWhite style={styles.timestampText}>Today</IBMPlexText>
               </View>
 
               {CIRCUIT_BOT_MESSAGES.map((message, index) => (
@@ -509,9 +507,9 @@ export default function TrainingPreferencesEnduranceSetupView({
                     <View style={styles.botIconSpacer} />
                   )}
                   <View style={styles.messageBubble}>
-                    <StandardText style={styles.messageText} textColor="#000000">
+                    <IBMPlexText defaultWhite style={styles.messageText} textColor="#000000">
                       {message}
-                    </StandardText>
+                    </IBMPlexText>
                   </View>
                 </View>
               ))}
@@ -526,7 +524,7 @@ export default function TrainingPreferencesEnduranceSetupView({
                       pressed ? styles.optionPressed : null,
                     ]}
                   >
-                    <StandardText style={styles.exampleReplyText}>{example}</StandardText>
+                    <IBMPlexText defaultWhite style={styles.exampleReplyText}>{example}</IBMPlexText>
                   </Pressable>
                 ))}
               </View>
@@ -536,18 +534,18 @@ export default function TrainingPreferencesEnduranceSetupView({
                   {circuitMessages.map((message, index) => (
                     <View key={`user-circuit-message-${index}`} style={styles.userMessageRow}>
                       <View style={styles.userMessageBubble}>
-                        <StandardText style={styles.userMessageText} textColor="#ffffff">
+                        <IBMPlexText defaultWhite style={styles.userMessageText} textColor="#ffffff">
                           {message}
-                        </StandardText>
+                        </IBMPlexText>
                       </View>
                     </View>
                   ))}
                 </View>
               ) : (
                 <View style={styles.emptyReplyHint}>
-                  <StandardText style={styles.emptyReplyText}>
+                  <IBMPlexText defaultWhite style={styles.emptyReplyText}>
                     No circuit goal added yet
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               )}
             </ScrollView>
@@ -575,10 +573,10 @@ export default function TrainingPreferencesEnduranceSetupView({
   if (mode === "circuitFocus") {
     return (
       <View style={[styles.section, { minHeight: screenHeight }]}>
-        <TitleText height={130}>Circuit focus</TitleText>
-        <StandardText style={styles.helperText} textColor="#C9B259" center>
+        <IBMPlexText titleBlock height={130}>Circuit focus</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
           Pick the main quality your circuit sessions should target.
-        </StandardText>
+        </IBMPlexText>
         <View style={styles.circuitFocusContent}>
           <CompactFocusGrid
             options={CIRCUIT_PRIORITY_OPTIONS}
@@ -608,10 +606,10 @@ export default function TrainingPreferencesEnduranceSetupView({
   if (mode === "heavyBagFocus") {
     return (
       <View style={[styles.section, { minHeight: screenHeight }]}>
-        <TitleText height={118}>Heavy bag focus</TitleText>
-        <StandardText style={styles.heavyBagHelperText} textColor="#C9B259" center>
+        <IBMPlexText titleBlock height={118}>Heavy bag focus</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.heavyBagHelperText} textColor="#C9B259" center>
           Pick what your bag conditioning should mainly train.
-        </StandardText>
+        </IBMPlexText>
         <View style={styles.heavyBagOptionContent}>
           <LargeOptionGrid
             options={HEAVY_BAG_ENDURANCE_TARGET_OPTIONS}
@@ -627,10 +625,10 @@ export default function TrainingPreferencesEnduranceSetupView({
   if (mode === "sprintingFocus") {
     return (
       <View style={[styles.section, { minHeight: screenHeight }]}>
-        <TitleText height={130}>Sprinting focus</TitleText>
-        <StandardText style={styles.helperText} center>
+        <IBMPlexText titleBlock height={130}>Sprinting focus</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.helperText} center>
           Pick what sprint sessions should mainly train.
-        </StandardText>
+        </IBMPlexText>
         <View style={styles.sprintingOptions}>
           {SPRINTING_TARGET_OPTIONS.map((option) => {
             const isSelected = values?.sprintingTarget === option.value;
@@ -663,10 +661,10 @@ export default function TrainingPreferencesEnduranceSetupView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={130}>Endurance style</TitleText>
-      <StandardText style={styles.helperText} textColor="#C9B259" center>
+      <IBMPlexText titleBlock height={130}>Endurance style</IBMPlexText>
+      <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
         Pick the type of endurance work you want the plan to favor when possible.
-      </StandardText>
+      </IBMPlexText>
 
       <ScrollView
         style={styles.scroll}
@@ -899,8 +897,7 @@ const styles = StyleSheet.create({
   },
   circuitFocusOptionText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 15,
     textAlign: "center",
   },
@@ -956,7 +953,7 @@ const styles = StyleSheet.create({
   },
   largeOptionText: {
     color: "#ffffff",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 18,
     lineHeight: 21,
     textAlign: "center",
@@ -966,8 +963,7 @@ const styles = StyleSheet.create({
   },
   groupTitle: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     textAlign: "center",
   },
   groupHint: {
@@ -1010,8 +1006,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -1087,8 +1082,7 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

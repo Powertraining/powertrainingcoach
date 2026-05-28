@@ -1,8 +1,6 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-
-import StandardText from "../components/textComponents/StandardText.jsx";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const SECTION_PROGRESS_RING_SIZE = 260;
 const SECTION_PROGRESS_RING_CENTER = SECTION_PROGRESS_RING_SIZE / 2;
 const SECTION_PROGRESS_RING_RADIUS = 110;
@@ -72,34 +70,34 @@ export default function ActiveSessionSectionIntroView({
             </Svg>
             <View style={styles.sectionIntroRingContent}>
               <View style={styles.sectionIntroPhaseBlock}>
-                <Text style={styles.sectionIntroTitle}>
+                <IBMPlexText style={styles.sectionIntroTitle}>
                   {isSessionComplete ? "Complete" : phaseLabel}
-                </Text>
-                <Text style={styles.sectionIntroWeekText}>Week {weekNumber}</Text>
+                </IBMPlexText>
+                <IBMPlexText style={styles.sectionIntroWeekText}>Week {weekNumber}</IBMPlexText>
               </View>
             </View>
           </View>
           {phaseFocus ? (
-            <Text style={styles.sectionIntroPhaseText}>{phaseFocus}</Text>
+            <IBMPlexText style={styles.sectionIntroPhaseText}>{phaseFocus}</IBMPlexText>
           ) : null}
           {isSessionComplete ? (
-            <Text style={styles.sectionIntroDescription}>
+            <IBMPlexText style={styles.sectionIntroDescription}>
               Save this session and return to your plan.
-            </Text>
+            </IBMPlexText>
           ) : exerciseCount > 0 ? (
-            <Text style={styles.sectionIntroDescription}>
+            <IBMPlexText style={styles.sectionIntroDescription}>
               {exerciseCount} exercise{exerciseCount === 1 ? "" : "s"} in this section.
-            </Text>
+            </IBMPlexText>
           ) : null}
         </View>
       ) : null}
       {children}
       <View style={styles.sectionIntroFooter}>
         {hideIntroContent ? null : (
-          <Text style={styles.sectionIntroStageLabel}>{stageLabel}</Text>
+          <IBMPlexText style={styles.sectionIntroStageLabel}>{stageLabel}</IBMPlexText>
         )}
         <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
-          <StandardText style={styles.nextButtonText}>Continue</StandardText>
+          <IBMPlexText defaultWhite style={styles.nextButtonText}>Continue</IBMPlexText>
         </TouchableOpacity>
       </View>
     </View>
@@ -135,8 +133,7 @@ const styles = StyleSheet.create({
   },
   sectionIntroTitle: {
     color: "#fff",
-    fontSize: 30,
-    fontWeight: "800",
+    fontSize: 30, fontWeight: "800",
     lineHeight: 36,
     textAlign: "center",
   },
@@ -146,8 +143,7 @@ const styles = StyleSheet.create({
   },
   sectionIntroWeekText: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 18, fontWeight: "700",
     lineHeight: 22,
     textAlign: "center",
   },
@@ -170,8 +166,7 @@ const styles = StyleSheet.create({
   },
   sectionIntroStageLabel: {
     color: "#fff",
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -186,7 +181,6 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     color: "#000",
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 17, fontWeight: "700",
   },
 });

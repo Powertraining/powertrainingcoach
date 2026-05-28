@@ -1,12 +1,17 @@
-import { Image, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   APP_LOGIC_SETTINGS_DEFAULTS,
   LOADING_STRATEGY_OPTIONS,
 } from "../../constants/appLogicSettings.js";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const ARROW_IMAGE = require("../../assets/icons/arrow.png");
 
@@ -89,14 +94,14 @@ function LoadingBlock({ width, label }) {
       >
         <View pointerEvents="none" style={styles.loadingBlockShadow} />
         <View style={styles.loadingBlockFace}>
-          <StandardText
+          <IBMPlexText defaultWhite
             lines={1}
             style={styles.blockText}
             textColor="#000000"
             center
           >
             {label}
-          </StandardText>
+          </IBMPlexText>
         </View>
       </View>
     </View>
@@ -148,20 +153,20 @@ export default function LoadingStrategyView({ value, onChange }) {
         },
       ]}
     >
-      <TitleText style={styles.titleText} height={130}>
+      <IBMPlexText titleBlock style={styles.titleText} height={130}>
         Loading strategy
-      </TitleText>
+      </IBMPlexText>
 
       <View style={styles.selectionArea}>
         <LoadingVisual value={activeOption?.value} />
 
-        <StandardText style={styles.optionText} textColor="#ffffff" center>
+        <IBMPlexText defaultWhite style={styles.optionText} textColor="#ffffff" center>
           {activeOption?.label}
-        </StandardText>
+        </IBMPlexText>
 
-        <StandardText style={styles.descriptionText} textColor="#C9B259" center>
+        <IBMPlexText defaultWhite style={styles.descriptionText} textColor="#C9B259" center>
           {activeOption?.description}
-        </StandardText>
+        </IBMPlexText>
       </View>
 
       <View style={styles.buttonsRow}>

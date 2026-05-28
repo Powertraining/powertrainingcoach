@@ -1,6 +1,11 @@
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+} from "react-native";
 import { createPortalSession } from '../services/utils/stripeClient.js';
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 export default function PaymentSuccessView({ sessionId, onContinue }) {
   const handleManageBilling = async () => {
     try {
@@ -12,17 +17,17 @@ export default function PaymentSuccessView({ sessionId, onContinue }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>💪</Text>
-      <Text style={styles.title}>Subscription Ready!</Text>
-      <Text style={styles.copy}>
+      <IBMPlexText style={styles.icon}>💪</IBMPlexText>
+      <IBMPlexText style={styles.title}>Subscription Ready!</IBMPlexText>
+      <IBMPlexText style={styles.copy}>
         Your subscription is set up and your app access is now active.
-      </Text>
+      </IBMPlexText>
       <TouchableOpacity style={styles.secondaryButton} onPress={handleManageBilling}>
-        <Text style={styles.secondaryButtonText}>Manage billing</Text>
+        <IBMPlexText style={styles.secondaryButtonText}>Manage billing</IBMPlexText>
       </TouchableOpacity>
       {onContinue ? (
         <TouchableOpacity style={styles.primaryButton} onPress={onContinue}>
-          <Text style={styles.primaryButtonText}>Continue</Text>
+          <IBMPlexText style={styles.primaryButtonText}>Continue</IBMPlexText>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -40,8 +45,7 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   title: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 22, fontWeight: "700",
     textAlign: "center",
     color: "#111827",
   },
@@ -57,8 +61,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e5e7eb",
   },
   secondaryButtonText: {
-    color: "#111827",
-    fontWeight: "600",
+    color: "#111827", fontWeight: "600",
   },
   primaryButton: {
     paddingHorizontal: 18,
@@ -67,7 +70,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#111827",
   },
   primaryButtonText: {
-    color: "#ffffff",
-    fontWeight: "600",
+    color: "#ffffff", fontWeight: "600",
   },
 });

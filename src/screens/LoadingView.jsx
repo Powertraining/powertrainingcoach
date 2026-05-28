@@ -1,10 +1,10 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 export default function LoadingView({ label = "" }) {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color="rgba(255, 255, 255, 0.72)" />
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <IBMPlexText style={styles.label}>{label}</IBMPlexText> : null}
     </View>
   );
 }
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 14,
     color: "#ffffff",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 20,
     lineHeight: 22,
   },

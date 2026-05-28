@@ -1,4 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState } from "react";
 import { useRouter } from "expo-router";
 import {
   Animated,
@@ -7,14 +11,12 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import PlanSetTabs from "../components/planComponents/PlanSetTabs.jsx";
-import StandardText from "../components/textComponents/StandardText.jsx";
 import ActiveSessionSectionIntroView from "./ActiveSessionSectionIntroView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
@@ -26,7 +28,7 @@ import {
 } from "../services/utils/trainingPlan.js";
 import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOneRepMaxKg } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const NEXT_INPUT_KEYBOARD_GAP = 36;
 const INPUT_PANEL_ANIMATION_DURATION = 180;
 const INPUT_FOCUS_SHIFT_DELAY_MS = 80;
@@ -704,13 +706,13 @@ function ActiveSessionHeader({
         accessibilityRole="button"
         accessibilityLabel="Back"
       >
-        <Text style={styles.backButtonIcon}>←</Text>
+        <IBMPlexText style={styles.backButtonIcon}>←</IBMPlexText>
       </TouchableOpacity>
       <View style={styles.headerTitleWrap}>
         {title ? (
-          <Text style={styles.headerTitle} numberOfLines={1}>
+          <IBMPlexText style={styles.headerTitle} numberOfLines={1}>
             {title}
-          </Text>
+          </IBMPlexText>
         ) : null}
       </View>
       {showProgressRing ? (
@@ -744,12 +746,12 @@ function ActiveSessionHeader({
             />
           </Svg>
           <View style={styles.headerProgressRingContent}>
-            <Text style={styles.headerProgressRingText}>{progressText}</Text>
+            <IBMPlexText style={styles.headerProgressRingText}>{progressText}</IBMPlexText>
           </View>
         </View>
       ) : progressText ? (
         <View style={styles.progressRow}>
-          <Text style={styles.progressText}>{progressText}</Text>
+          <IBMPlexText style={styles.progressText}>{progressText}</IBMPlexText>
         </View>
       ) : null}
     </View>
@@ -831,9 +833,9 @@ function ExerciseResultProgressRing({ completedSetCount = 0, totalSetCount = 0 }
         />
       </Svg>
       <View style={styles.resultsExerciseProgressRingContent}>
-        <Text style={styles.resultsExerciseProgressRingText}>
+        <IBMPlexText style={styles.resultsExerciseProgressRingText}>
           {completedSetCount}/{totalSetCount}
-        </Text>
+        </IBMPlexText>
       </View>
     </View>
   );
@@ -964,7 +966,7 @@ function ActiveSessionResultsList({
           key={`results-${section}-${sectionIndex}`}
           style={styles.resultsSection}
         >
-          <Text style={styles.resultsSectionTitle}>{getSectionLabel(section)}</Text>
+          <IBMPlexText style={styles.resultsSectionTitle}>{getSectionLabel(section)}</IBMPlexText>
           <View style={styles.resultsExerciseList}>
             {sectionExercises.map(({ exercise, exerciseIndex }) => {
               const recommendation = getExerciseRecommendationDisplay(exercise);
@@ -988,32 +990,32 @@ function ActiveSessionResultsList({
                     style={styles.resultsExerciseForumButton}
                     onPress={() => openForumSearch(exercise)}
                   >
-                    <Text style={styles.resultsExerciseForumText}>Forum</Text>
+                    <IBMPlexText style={styles.resultsExerciseForumText}>Forum</IBMPlexText>
                   </TouchableOpacity>
                   <View style={styles.resultsExerciseMain}>
-                    <Text style={styles.resultsExerciseName}>
+                    <IBMPlexText style={styles.resultsExerciseName}>
                       {getExerciseDisplayName(exercise)}
-                    </Text>
+                    </IBMPlexText>
                     {prescription ? (
-                      <Text style={styles.resultsExercisePrescription}>
+                      <IBMPlexText style={styles.resultsExercisePrescription}>
                         {prescription}
-                      </Text>
+                      </IBMPlexText>
                     ) : null}
                     {reportedResultSummary ? (
-                      <Text style={styles.resultsReportedText}>
+                      <IBMPlexText style={styles.resultsReportedText}>
                         {reportedResultSummary}
-                      </Text>
+                      </IBMPlexText>
                     ) : null}
                     {recommendation.details ? (
-                      <Text style={styles.resultsExerciseDetails}>
+                      <IBMPlexText style={styles.resultsExerciseDetails}>
                         {recommendation.details}
-                      </Text>
+                      </IBMPlexText>
                     ) : null}
                   </View>
                   {recommendation.primary ? (
-                    <Text style={styles.resultsExercisePrimary}>
+                    <IBMPlexText style={styles.resultsExercisePrimary}>
                       {recommendation.primary}
-                    </Text>
+                    </IBMPlexText>
                   ) : null}
                 </View>
               );
@@ -1271,23 +1273,23 @@ function ExerciseSessionStep({
         >
           <View style={styles.exerciseInfoMainText}>
             {exercisePrescription ? (
-              <Text style={styles.exercisePrescription}>{exercisePrescription}</Text>
+              <IBMPlexText style={styles.exercisePrescription}>{exercisePrescription}</IBMPlexText>
             ) : null}
             {exerciseWeight ? (
-              <Text style={styles.exerciseWeight}>{exerciseWeight}</Text>
+              <IBMPlexText style={styles.exerciseWeight}>{exerciseWeight}</IBMPlexText>
             ) : null}
           </View>
           {hasRecommendationDetails ? (
             <View style={styles.exerciseMetaRow}>
-              <Text style={styles.exerciseIntensityDetails}>{recommendation.details}</Text>
+              <IBMPlexText style={styles.exerciseIntensityDetails}>{recommendation.details}</IBMPlexText>
             </View>
           ) : null}
         </View>
 
         {exercise.notes ? (
-          <Text style={styles.exerciseNotes}>
+          <IBMPlexText style={styles.exerciseNotes}>
             {exercise.notes}
-          </Text>
+          </IBMPlexText>
         ) : null}
       </View>
 
@@ -1325,9 +1327,9 @@ function ExerciseSessionStep({
                   style={styles.inputField}
                   onLayout={(event) => handleInputFieldLayout("loadKg", event)}
                 >
-                  <Text style={styles.inputLabel}>
+                  <IBMPlexText style={styles.inputLabel}>
                     {strengthRequirements?.loadLabel || "Load used (kg)"}
-                  </Text>
+                  </IBMPlexText>
                   <TextInput
                     value={inputDraft.loadKg}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "loadKg", value)}
@@ -1346,9 +1348,9 @@ function ExerciseSessionStep({
                   style={styles.inputField}
                   onLayout={(event) => handleInputFieldLayout("reps", event)}
                 >
-                  <Text style={styles.inputLabel}>
+                  <IBMPlexText style={styles.inputLabel}>
                     {strengthRequirements?.repsLabel || "Reps completed"}
-                  </Text>
+                  </IBMPlexText>
                   <TextInput
                     value={inputDraft.reps}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "reps", value)}
@@ -1367,9 +1369,9 @@ function ExerciseSessionStep({
                   style={styles.inputField}
                   onLayout={(event) => handleInputFieldLayout("rpe", event)}
                 >
-                  <Text style={styles.inputLabel}>
+                  <IBMPlexText style={styles.inputLabel}>
                     {strengthRequirements?.rpeLabel || "RPE"}
-                  </Text>
+                  </IBMPlexText>
                   <TextInput
                     value={inputDraft.rpe}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "rpe", value)}
@@ -1389,7 +1391,7 @@ function ExerciseSessionStep({
                   style={styles.inputField}
                   onLayout={(event) => handleInputFieldLayout(field.id, event)}
                 >
-                  <Text style={styles.inputLabel}>{field.label}</Text>
+                  <IBMPlexText style={styles.inputLabel}>{field.label}</IBMPlexText>
                   <TextInput
                     value={inputDraft.customValues?.[field.id] || ""}
                     onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, field.id, value, true)}
@@ -1410,10 +1412,10 @@ function ExerciseSessionStep({
       <View style={styles.footerActions}>
         <View style={styles.navigationRow}>
           <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-            <StandardText style={styles.skipButtonText}>Skip</StandardText>
+            <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip</IBMPlexText>
           </TouchableOpacity>
           <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
-            <StandardText style={styles.nextButtonText}>Finish set</StandardText>
+            <IBMPlexText defaultWhite style={styles.nextButtonText}>Finish set</IBMPlexText>
           </TouchableOpacity>
         </View>
       </View>
@@ -1772,9 +1774,9 @@ export default function ActiveSessionView({
           />
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateTitle}>No exercises in this session.</Text>
+            <IBMPlexText style={styles.emptyStateTitle}>No exercises in this session.</IBMPlexText>
             <TouchableOpacity style={styles.nextButton} onPress={onBack}>
-              <StandardText style={styles.nextButtonText}>Back</StandardText>
+              <IBMPlexText defaultWhite style={styles.nextButtonText}>Back</IBMPlexText>
             </TouchableOpacity>
           </View>
         )}
@@ -1808,8 +1810,7 @@ const styles = StyleSheet.create({
   },
   backButtonIcon: {
     color: "#fff",
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 24, fontWeight: "700",
     lineHeight: 24,
   },
   headerTitleWrap: {
@@ -1820,8 +1821,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#fff",
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 17, fontWeight: "700",
     lineHeight: 20,
     textAlign: "center",
   },
@@ -1832,8 +1832,7 @@ const styles = StyleSheet.create({
   },
   progressText: {
     color: "#fff",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     textTransform: "uppercase",
   },
   headerProgressRing: {
@@ -1850,8 +1849,7 @@ const styles = StyleSheet.create({
   },
   headerProgressRingText: {
     color: "#fff",
-    fontSize: 9,
-    fontWeight: "800",
+    fontSize: 9, fontWeight: "800",
     lineHeight: 11,
     textAlign: "center",
   },
@@ -1869,8 +1867,7 @@ const styles = StyleSheet.create({
   },
   resultsSectionTitle: {
     color: "#9ca3af",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 15,
     textTransform: "uppercase",
   },
@@ -1897,8 +1894,7 @@ const styles = StyleSheet.create({
   },
   resultsExerciseName: {
     color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
     lineHeight: 18,
   },
   resultsExercisePrescription: {
@@ -1908,21 +1904,18 @@ const styles = StyleSheet.create({
   },
   resultsReportedText: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 15,
     paddingTop: 2,
   },
   resultsExerciseDetails: {
     color: "#C9B259",
-    fontSize: 10,
-    fontWeight: "700",
+    fontSize: 10, fontWeight: "700",
     lineHeight: 12,
   },
   resultsExercisePrimary: {
     color: "#fff",
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 17, fontWeight: "700",
     lineHeight: 20,
   },
   resultsExerciseProgressRing: {
@@ -1941,8 +1934,7 @@ const styles = StyleSheet.create({
   },
   resultsExerciseProgressRingText: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 14,
     textAlign: "center",
   },
@@ -1959,8 +1951,7 @@ const styles = StyleSheet.create({
   },
   resultsExerciseForumText: {
     color: "#000",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
   },
@@ -1994,19 +1985,16 @@ const styles = StyleSheet.create({
   },
   exercisePrescription: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 14, fontWeight: "600",
     lineHeight: 17,
   },
   exerciseWeight: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 16, fontWeight: "700",
   },
   exerciseIntensityDetails: {
     color: "#C9B259",
-    fontSize: 9,
-    fontWeight: "700",
+    fontSize: 9, fontWeight: "700",
     lineHeight: 11,
   },
   exerciseMetaRow: {
@@ -2047,8 +2035,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     color: "#D4D4D8",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
   },
   input: {
     minHeight: 42,
@@ -2085,8 +2072,7 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
   },
   stepActionButton: {
     width: "49%",
@@ -2108,8 +2094,7 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     color: "#000",
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 17, fontWeight: "700",
   },
   emptyState: {
     gap: 14,
@@ -2119,7 +2104,6 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 18, fontWeight: "700",
   },
 });

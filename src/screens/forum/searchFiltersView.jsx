@@ -1,10 +1,16 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../constants/combatSports.js";
 import {
   ANALYSIS_FORUM_TAG,
   FORUM_TOPIC_SUGGESTIONS,
 } from "../../services/models/forumModel.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   text: "#ffffff",
@@ -45,13 +51,13 @@ function SportFilterOption({ option, selected = false, onPress }) {
           resizeMode="contain"
         />
       </View>
-      <Text
+      <IBMPlexText
         numberOfLines={1}
         adjustsFontSizeToFit
         style={selected ? styles.sportSelectedText : styles.sportText}
       >
         {option.label}
-      </Text>
+      </IBMPlexText>
     </TouchableOpacity>
   );
 }
@@ -109,14 +115,14 @@ export default function SearchFiltersView({
     <View style={[styles.content, style]}>
       <View style={[styles.actionRow, insetStyle]}>
         <TouchableOpacity style={styles.doneButton} onPress={onClose}>
-          <Text style={styles.doneButtonText}>Close</Text>
+          <IBMPlexText style={styles.doneButtonText}>Close</IBMPlexText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={onReset}>
-          <Text style={styles.actionButtonText}>Reset</Text>
+          <IBMPlexText style={styles.actionButtonText}>Reset</IBMPlexText>
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.rowLabel, insetStyle]}>Sports</Text>
+      <IBMPlexText style={[styles.rowLabel, insetStyle]}>Sports</IBMPlexText>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -137,7 +143,7 @@ export default function SearchFiltersView({
         })}
       </ScrollView>
 
-      <Text style={[styles.rowLabel, insetStyle]}>Topics</Text>
+      <IBMPlexText style={[styles.rowLabel, insetStyle]}>Topics</IBMPlexText>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -153,12 +159,12 @@ export default function SearchFiltersView({
               style={[styles.topicOption, isSelected ? styles.topicOptionSelected : null]}
               onPress={() => toggleTopic(topic)}
             >
-              <Text
+              <IBMPlexText
                 numberOfLines={1}
                 style={isSelected ? styles.topicSelectedText : styles.topicText}
               >
                 {topic}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           );
         })}
@@ -166,7 +172,7 @@ export default function SearchFiltersView({
 
       {showSortOptions ? (
         <>
-          <Text style={[styles.rowLabel, insetStyle]}>Sort</Text>
+          <IBMPlexText style={[styles.rowLabel, insetStyle]}>Sort</IBMPlexText>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -182,12 +188,12 @@ export default function SearchFiltersView({
                   style={[styles.topicOption, isSelected ? styles.topicOptionSelected : null]}
                   onPress={() => onChangeSortBy?.(option.value)}
                 >
-                  <Text
+                  <IBMPlexText
                     numberOfLines={1}
                     style={isSelected ? styles.topicSelectedText : styles.topicText}
                   >
                     {option.label}
-                  </Text>
+                  </IBMPlexText>
                 </TouchableOpacity>
               );
             })}
@@ -208,8 +214,7 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     color: COLORS.faint,
-    fontSize: 11,
-    fontWeight: "800",
+    fontSize: 11, fontWeight: "800",
     lineHeight: 14,
     marginBottom: -2,
     marginHorizontal: 20,
@@ -254,14 +259,14 @@ const styles = StyleSheet.create({
   },
   sportText: {
     color: COLORS.muted,
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 14,
     lineHeight: 16,
     textAlign: "center",
   },
   sportSelectedText: {
     color: COLORS.text,
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 14,
     lineHeight: 16,
     textAlign: "center",
@@ -297,14 +302,14 @@ const styles = StyleSheet.create({
   },
   topicText: {
     color: COLORS.muted,
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 16,
     lineHeight: 20,
     textAlign: "center",
   },
   topicSelectedText: {
     color: COLORS.panel,
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 16,
     lineHeight: 20,
     textAlign: "center",
@@ -330,8 +335,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -346,8 +350,7 @@ const styles = StyleSheet.create({
   },
   doneButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

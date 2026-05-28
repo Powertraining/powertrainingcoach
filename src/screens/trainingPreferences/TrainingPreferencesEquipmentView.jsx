@@ -2,8 +2,7 @@ import { EQUIPMENT_OPTIONS } from "../../constants/trainingPreferences.js";
 import { useState } from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
 import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const EQUIPMENT_IMAGES = Object.freeze({
   full_gym: require("../../assets/icons/bench.png"),
@@ -22,10 +21,10 @@ export default function TrainingPreferencesEquipmentView({
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
-      <TitleText height={130}>Equipment available</TitleText>
-      <StandardText style={styles.helperText} center>
+      <IBMPlexText titleBlock height={130}>Equipment available</IBMPlexText>
+      <IBMPlexText defaultWhite style={styles.helperText} center>
         Pick the setup you can train with most often so exercises match your access.
-      </StandardText>
+      </IBMPlexText>
       <View style={styles.options}>
         {EQUIPMENT_OPTIONS.map((option) => {
           const isSelected = displayedValue === option.value;

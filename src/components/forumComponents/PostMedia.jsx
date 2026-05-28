@@ -1,18 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   Image,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useEvent, useEventListener } from "expo";
 import { Image as ExpoImage } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
-
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   text: "#ffffff",
@@ -300,7 +302,7 @@ export function PendingPostMedia({ mediaUrl = "", mediaType = "none", isUploadin
   if (isUploading) {
     return (
       <View style={[styles.frame, styles.pendingFrame]}>
-        <Text style={styles.pendingText}>Uploading media...</Text>
+        <IBMPlexText style={styles.pendingText}>Uploading media...</IBMPlexText>
       </View>
     );
   }
@@ -312,9 +314,9 @@ export function PendingPostMedia({ mediaUrl = "", mediaType = "none", isUploadin
   return (
     <View style={styles.pendingWrap}>
       <PostMedia mediaUrl={mediaUrl} mediaType={mediaType} />
-      <Text style={styles.attachedText}>
+      <IBMPlexText style={styles.attachedText}>
         {mediaType === "video" ? "Video attached" : "Image attached"}
-      </Text>
+      </IBMPlexText>
     </View>
   );
 }
@@ -422,14 +424,12 @@ const styles = StyleSheet.create({
   },
   pendingText: {
     color: COLORS.muted,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
   },
   attachedText: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

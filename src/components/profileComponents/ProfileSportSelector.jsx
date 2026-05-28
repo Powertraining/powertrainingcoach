@@ -1,5 +1,11 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function ProfileSportSelector({
   options = [],
   value = "",
@@ -33,13 +39,13 @@ export default function ProfileSportSelector({
                 style={isSelected ? styles.selectedImage : styles.image}
                 resizeMode="contain"
               />
-              <Text
+              <IBMPlexText
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 style={isSelected ? styles.selectedText : styles.text}
               >
                 {option.label}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           );
         })}
@@ -85,12 +91,12 @@ const styles = StyleSheet.create({
   },
   text: {
     color: "#8E8E8E",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 16,
   },
   selectedText: {
     color: "#ffffff",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 16,
   },
 });

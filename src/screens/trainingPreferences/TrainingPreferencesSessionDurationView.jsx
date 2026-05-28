@@ -2,8 +2,7 @@ import { SESSION_DURATION_OPTIONS } from "../../constants/trainingPreferences.js
 import { useState } from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
 import SessionDurationSelector from "../../components/questionnaireComponents/SessionDurationSelector.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const SELECTOR_HEIGHT = 70 * 3;
 const CONTINUE_BUTTON_TOP_OFFSET = 80;
@@ -22,8 +21,8 @@ export default function TrainingPreferencesSessionDurationView({
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
-      <TitleText height={130}>Duration of each session</TitleText>
-      <StandardText
+      <IBMPlexText titleBlock height={130}>Duration of each session</IBMPlexText>
+      <IBMPlexText defaultWhite
         style={styles.helperText}
         center
         onLayout={(event) => {
@@ -32,7 +31,7 @@ export default function TrainingPreferencesSessionDurationView({
         }}
       >
         Pick how much time you can usually commit so each workout fits your schedule.
-      </StandardText>
+      </IBMPlexText>
       <View
         style={[
           styles.selectorWrap,

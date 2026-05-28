@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect } from "react";
 import { TouchableOpacity, View, Keyboard } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 export default function AuthNavbar({ onTabChange, onSubmitLogin, onSubmitSignup }) {
   const [active, setActive] = useState(1);
@@ -40,18 +42,18 @@ export default function AuthNavbar({ onTabChange, onSubmitLogin, onSubmitSignup 
         style={[{ flex: active === 1 ? 3 : 1, height: "100%", justifyContent: "center", alignItems: "center", borderRadius: 120 },
           active === 1 ? { backgroundColor: "#ffff" } : null
         ]}>
-        <StandardText style={[active === 1 ? { color: "#000" } : null, { fontSize: 18 }]}>
+        <IBMPlexText defaultWhite style={[active === 1 ? { color: "#000" } : null, { fontSize: 18 }]}>
           Login
-        </StandardText>
+        </IBMPlexText>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={pressSignupACB}
         style={[{ flex: active === 2 ? 3 : 1, height: "100%", justifyContent: "center", alignItems: "center", borderRadius: 120 },
           active === 2 ? { backgroundColor: "#ffff" } : null
         ]}>
-        <StandardText style={[active === 2 ? { color: "#000" } : null, { fontSize: 18 }]}>
+        <IBMPlexText defaultWhite style={[active === 2 ? { color: "#000" } : null, { fontSize: 18 }]}>
           Sign Up
-        </StandardText>
+        </IBMPlexText>
       </TouchableOpacity>
     </View>
   );

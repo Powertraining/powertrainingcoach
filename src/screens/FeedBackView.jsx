@@ -1,5 +1,11 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from "react-native";
-
+import {
+  View,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 export default function FeedBackView(props) {
   const stars = Array.from({ length: 10 }, (_, i) => i + 1);
 
@@ -11,7 +17,7 @@ export default function FeedBackView(props) {
 
   return (
     <View>
-      <Text>Session Feedback: How was the workout plan provided to you?</Text>
+      <IBMPlexText>Session Feedback: How was the workout plan provided to you?</IBMPlexText>
 
       <View style={styles.stars}>
         {stars.map((value) => (
@@ -20,14 +26,14 @@ export default function FeedBackView(props) {
             onPress={() => starClickedACB(value)}
             disabled={props.isSubmitting}
           >
-            <Text style={value <= props.rating ? styles.starActive : styles.star}>★</Text>
+            <IBMPlexText style={value <= props.rating ? styles.starActive : styles.star}>★</IBMPlexText>
           </TouchableOpacity>
         ))}
       </View>
 
       <View style={styles.scale}>
-        <Text>1</Text>
-        <Text>10</Text>
+        <IBMPlexText>1</IBMPlexText>
+        <IBMPlexText>10</IBMPlexText>
       </View>
 
       <TextInput
@@ -39,13 +45,13 @@ export default function FeedBackView(props) {
         editable={!props.isSubmitting}
       />
 
-      {props.error && <Text>{props.error}</Text>}
+      {props.error && <IBMPlexText>{props.error}</IBMPlexText>}
 
       <TouchableOpacity
         onPress={props.onSubmit}
         disabled={props.isSubmitting || props.rating === 0}
       >
-        <Text>{props.isSubmitting ? "Sending..." : "Send feedback"}</Text>
+        <IBMPlexText>{props.isSubmitting ? "Sending..." : "Send feedback"}</IBMPlexText>
       </TouchableOpacity>
     </View>
   );

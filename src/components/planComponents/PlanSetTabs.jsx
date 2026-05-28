@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import StandardText from "../textComponents/StandardText.jsx";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
 export default function PlanSetTabs({
   prescribedSets = [],
@@ -38,7 +38,7 @@ export default function PlanSetTabs({
               }
             }}
           >
-            <StandardText
+            <IBMPlexText defaultWhite
               style={[
                 styles.setTabButtonText,
                 isActive ? styles.setTabButtonTextActive : styles.setTabButtonTextInactive,
@@ -47,7 +47,7 @@ export default function PlanSetTabs({
             >
               Set{"\n"}
               {prescribedSet.setIndex + 1}
-            </StandardText>
+            </IBMPlexText>
           </TouchableOpacity>
         );
       })}
@@ -86,8 +86,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E1E1E",
   },
   setTabButtonText: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
   },

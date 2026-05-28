@@ -1,4 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState } from "react";
 import {
   Animated,
   Easing,
@@ -9,7 +13,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
   useWindowDimensions,
@@ -23,7 +26,7 @@ import {
   formatEventPreparation,
   parseEventPreparation,
 } from "../../services/utils/profileFields.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const DESCRIPTION_CONTAINER_HEIGHT = 252;
 
 export default function RegisterEventView({
@@ -166,8 +169,8 @@ export default function RegisterEventView({
         <View style={styles.currentEventCard}>
           <BlackGradient />
           <View style={styles.currentEventContent}>
-            <Text style={styles.currentEventEyebrow}>Current event</Text>
-            <Text
+            <IBMPlexText style={styles.currentEventEyebrow}>Current event</IBMPlexText>
+            <IBMPlexText
               numberOfLines={2}
               ellipsizeMode="tail"
               style={styles.currentEventTitle}
@@ -175,12 +178,12 @@ export default function RegisterEventView({
               {initialEvent.hasEvent
                 ? initialEvent.description || "Registered event"
                 : "No event registered"}
-            </Text>
-            <Text numberOfLines={1} style={styles.currentEventMeta}>
+            </IBMPlexText>
+            <IBMPlexText numberOfLines={1} style={styles.currentEventMeta}>
               {initialEvent.hasEvent
                 ? initialEvent.date || "No date saved"
                 : "There isn't any event saved yet"}
-            </Text>
+            </IBMPlexText>
           </View>
         </View>
 
@@ -194,12 +197,12 @@ export default function RegisterEventView({
           >
             <View style={styles.detailRowHeader}>
               <View style={styles.detailRowCopy}>
-                <Text style={styles.detailRowTitle}>Event date</Text>
-                <Text numberOfLines={1} style={styles.detailRowText}>
+                <IBMPlexText style={styles.detailRowTitle}>Event date</IBMPlexText>
+                <IBMPlexText numberOfLines={1} style={styles.detailRowText}>
                   {eventDate || "No date selected"}
-                </Text>
+                </IBMPlexText>
               </View>
-              <Text style={styles.detailRowAction}>Edit &gt;</Text>
+              <IBMPlexText style={styles.detailRowAction}>Edit &gt;</IBMPlexText>
             </View>
           </Pressable>
 
@@ -213,21 +216,21 @@ export default function RegisterEventView({
           >
             <View style={[styles.detailRowHeader, styles.descriptionDetailRowHeader]}>
               <View style={styles.detailRowCopy}>
-                <Text style={styles.detailRowTitle}>Description</Text>
+                <IBMPlexText style={styles.detailRowTitle}>Description</IBMPlexText>
                 <ScrollView
                   nestedScrollEnabled
                   showsVerticalScrollIndicator={false}
                   style={styles.descriptionDetailScroll}
                   contentContainerStyle={styles.descriptionDetailScrollContent}
                 >
-                  <Text style={styles.detailRowText}>
+                  <IBMPlexText style={styles.detailRowText}>
                     {eventDescription || "No description added"}
-                  </Text>
+                  </IBMPlexText>
                 </ScrollView>
               </View>
-              <Text style={[styles.detailRowAction, styles.descriptionDetailRowAction]}>
+              <IBMPlexText style={[styles.detailRowAction, styles.descriptionDetailRowAction]}>
                 Edit &gt;
-              </Text>
+              </IBMPlexText>
             </View>
           </Pressable>
 
@@ -242,7 +245,7 @@ export default function RegisterEventView({
                 : null,
             ]}
           >
-            <Text style={styles.clearEventButtonText}>Clear event</Text>
+            <IBMPlexText style={styles.clearEventButtonText}>Clear event</IBMPlexText>
           </Pressable>
         </View>
       </View>
@@ -302,7 +305,7 @@ export default function RegisterEventView({
           >
             <View style={styles.descriptionEditorCard}>
               <View style={styles.descriptionEditorContent}>
-                <Text style={styles.descriptionEditorLabel}>Description</Text>
+                <IBMPlexText style={styles.descriptionEditorLabel}>Description</IBMPlexText>
                 <TextInput
                   value={draftEventDescription}
                   onChangeText={setDraftEventDescription}
@@ -329,9 +332,9 @@ export default function RegisterEventView({
                   isSubmitting ? styles.descriptionEditorSaveButtonDisabled : null,
                 ]}
               >
-                <Text style={styles.descriptionEditorSaveButtonText}>
+                <IBMPlexText style={styles.descriptionEditorSaveButtonText}>
                   {isSubmitting ? "Saving..." : "Save"}
-                </Text>
+                </IBMPlexText>
               </Pressable>
 
               <Pressable
@@ -342,7 +345,7 @@ export default function RegisterEventView({
                   isSubmitting ? styles.descriptionEditorButtonDisabled : null,
                 ]}
               >
-                <Text style={styles.descriptionEditorCancelButtonText}>Cancel</Text>
+                <IBMPlexText style={styles.descriptionEditorCancelButtonText}>Cancel</IBMPlexText>
               </Pressable>
             </View>
           </KeyboardAvoidingView>
@@ -381,8 +384,7 @@ const styles = StyleSheet.create({
   },
   currentEventEyebrow: {
     color: "#C9B259",
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     letterSpacing: 0.4,
     lineHeight: 16,
     marginBottom: 8,
@@ -390,14 +392,12 @@ const styles = StyleSheet.create({
   },
   currentEventTitle: {
     color: "#ffffff",
-    fontSize: 22,
-    fontWeight: "900",
+    fontSize: 22, fontWeight: "900",
     lineHeight: 27,
   },
   currentEventMeta: {
     color: "#d4d4d4",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
     marginTop: 10,
   },
@@ -446,21 +446,18 @@ const styles = StyleSheet.create({
   },
   detailRowTitle: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
   },
   detailRowText: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
   },
   detailRowAction: {
     color: "#ffffff",
     flexShrink: 0,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -483,8 +480,7 @@ const styles = StyleSheet.create({
   },
   clearEventButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 16, fontWeight: "600",
     opacity: 0.5,
   },
   editorDimLayer: {
@@ -528,15 +524,13 @@ const styles = StyleSheet.create({
   },
   descriptionEditorLabel: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
   },
   descriptionEditorInput: {
     color: "#9ca3af",
     flex: 1,
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
     marginTop: 4,
     minHeight: 0,
@@ -576,13 +570,11 @@ const styles = StyleSheet.create({
   },
   descriptionEditorSaveButtonText: {
     color: "#141414",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
   descriptionEditorCancelButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
   dateSelectorWrap: {
     marginHorizontal: -20,

@@ -1,7 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import { Text, View, TouchableOpacity, ScrollView, StyleSheet, Pressable } from "react-native";
+import {
+  useEffect,
+  useRef,
+  useState } from "react";
+import {
+  View,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+} from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
 import DayDetailView from "./DayDetailView.jsx";
@@ -23,7 +31,7 @@ import {
   isSameCalendarDay,
 } from "../services/utils/programOverview.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const WEEK_SCHEDULE_ITEM_WIDTH = 56;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
@@ -226,9 +234,9 @@ function HeaderSessionProgressRing({ progressPercent = 0 }) {
         />
       </Svg>
       <View style={styles.headerSessionProgressRingContent}>
-        <Text style={styles.headerSessionProgressRingText}>
+        <IBMPlexText style={styles.headerSessionProgressRingText}>
           {safeProgressPercent}%
-        </Text>
+        </IBMPlexText>
       </View>
     </View>
   );
@@ -288,12 +296,12 @@ function ProgramOverviewSkeleton() {
           style={styles.skeletonInteractionBlocker}
         >
           <View style={styles.skeletonMessageCard}>
-            <StandardText style={styles.skeletonMessageTitle}>
+            <IBMPlexText defaultWhite style={styles.skeletonMessageTitle}>
               No program yet.
-            </StandardText>
-            <StandardText style={styles.skeletonMessageText}>
+            </IBMPlexText>
+            <IBMPlexText defaultWhite style={styles.skeletonMessageText}>
               Generate a plan to see your weekly breakdown.
-            </StandardText>
+            </IBMPlexText>
           </View>
         </Pressable>
       </View>
@@ -800,8 +808,8 @@ export default function ProgramOverviewView({
         }}
       >
         <View style={styles.header}>
-          <StandardText style={styles.headerDate}>{currentDateLabel}</StandardText>
-          <StandardText style={styles.headerPhase}>{currentPhaseLabel}</StandardText>
+          <IBMPlexText defaultWhite style={styles.headerDate}>{currentDateLabel}</IBMPlexText>
+          <IBMPlexText defaultWhite style={styles.headerPhase}>{currentPhaseLabel}</IBMPlexText>
           <ScrollView
             ref={weekScheduleScrollRef}
             horizontal
@@ -853,15 +861,15 @@ export default function ProgramOverviewView({
                         isSelectedRestDay && styles.weekScheduleSelectedDay,
                       ]}
                     >
-                      <StandardText
+                      <IBMPlexText defaultWhite
                         style={styles.weekScheduleLabel}
                         textColor="#fff"
                       >
                         {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
-                      </StandardText>
+                      </IBMPlexText>
                     </TouchableOpacity>
                   </View>
-                  <StandardText
+                  <IBMPlexText defaultWhite
                     style={[
                       styles.weekScheduleDate,
                       isToday && styles.weekScheduleTodayDate,
@@ -870,7 +878,7 @@ export default function ProgramOverviewView({
                     {weekday.slice(0, 3)}
                     {"\n"}
                     {date.getDate()}
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               );
             })}
@@ -890,12 +898,12 @@ export default function ProgramOverviewView({
               {showCompletedSessionStatus ? (
                 <View style={styles.headerCompletedStatus}>
                   <View style={styles.headerCompletedCopy}>
-                    <StandardText style={styles.headerCompletedTitle}>
+                    <IBMPlexText defaultWhite style={styles.headerCompletedTitle}>
                       Session complete.
-                    </StandardText>
-                    <StandardText style={styles.headerCompletedSubtitle}>
+                    </IBMPlexText>
+                    <IBMPlexText defaultWhite style={styles.headerCompletedSubtitle}>
                       {nextSessionText}
-                    </StandardText>
+                    </IBMPlexText>
                   </View>
                   <View style={styles.headerCompletedRingSlot}>
                     <HeaderSessionProgressRing
@@ -906,29 +914,29 @@ export default function ProgramOverviewView({
               ) : null}
               {showRestSessionStatus ? (
                 <View style={styles.restSessionContent}>
-                  <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                  <IBMPlexText numberOfLines={1} style={styles.currentSessionTitle}>
                     This session
-                  </Text>
-                  <StandardText lines={1} style={styles.restSessionText}>
+                  </IBMPlexText>
+                  <IBMPlexText defaultWhite lines={1} style={styles.restSessionText}>
                     Rest
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               ) : null}
               {showPushedBackSessionStatus ? (
                 <View style={styles.restSessionContent}>
-                  <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                  <IBMPlexText numberOfLines={1} style={styles.currentSessionTitle}>
                     This session
-                  </Text>
-                  <StandardText lines={1} style={styles.restSessionText}>
+                  </IBMPlexText>
+                  <IBMPlexText defaultWhite lines={1} style={styles.restSessionText}>
                     Pushed back
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               ) : null}
               {showFutureSessionStatus ? (
                 <View style={styles.restSessionContent}>
-                  <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                  <IBMPlexText numberOfLines={1} style={styles.currentSessionTitle}>
                     This session
-                  </Text>
+                  </IBMPlexText>
                   {showPushBackButton ? (
                     <TouchableOpacity
                       style={[
@@ -938,12 +946,12 @@ export default function ProgramOverviewView({
                       onPress={openPushBackConfirm}
                       disabled={updatingPlan}
                     >
-                      <StandardText
+                      <IBMPlexText defaultWhite
                         lines={1}
                         style={styles.futureSessionPushBackButtonText}
                       >
                         {updatingPlan ? "Updating" : "Push back"}
-                      </StandardText>
+                      </IBMPlexText>
                     </TouchableOpacity>
                   ) : null}
                 </View>
@@ -951,16 +959,16 @@ export default function ProgramOverviewView({
               {showStartButton ? (
                 <View style={styles.currentSessionContent}>
                   <View style={styles.currentSessionSummary}>
-                    <Text numberOfLines={1} style={styles.currentSessionTitle}>
+                    <IBMPlexText numberOfLines={1} style={styles.currentSessionTitle}>
                       This session
-                    </Text>
+                    </IBMPlexText>
                     <View style={styles.currentSessionMeta}>
-                      <StandardText lines={1} style={styles.currentSessionMetaLabel}>
+                      <IBMPlexText defaultWhite lines={1} style={styles.currentSessionMetaLabel}>
                         Next exercise:
-                      </StandardText>
-                      <StandardText lines={2} style={styles.currentSessionMetaValue}>
+                      </IBMPlexText>
+                      <IBMPlexText defaultWhite lines={2} style={styles.currentSessionMetaValue}>
                         {sessionActionSummary.nextExerciseName}
-                      </StandardText>
+                      </IBMPlexText>
                     </View>
                   </View>
                   <View style={styles.currentSessionActions}>
@@ -968,9 +976,9 @@ export default function ProgramOverviewView({
                       style={styles.headerStartButton}
                       onPress={handleStartSession}
                     >
-                      <StandardText lines={1} style={styles.headerStartButtonText}>
+                      <IBMPlexText defaultWhite lines={1} style={styles.headerStartButtonText}>
                         {selectedDayHasStartedSession ? "Continue" : "Start"}
-                      </StandardText>
+                      </IBMPlexText>
                     </TouchableOpacity>
                     <View style={styles.currentSessionSecondaryActions}>
                       {showPushBackButton ? (
@@ -982,12 +990,12 @@ export default function ProgramOverviewView({
                           onPress={openPushBackConfirm}
                           disabled={updatingPlan}
                         >
-                          <StandardText
+                          <IBMPlexText defaultWhite
                             lines={1}
                             style={styles.currentSessionSecondaryButtonText}
                           >
                             {updatingPlan ? "Updating" : "Push back"}
-                          </StandardText>
+                          </IBMPlexText>
                         </TouchableOpacity>
                       ) : null}
                       {showCompleteButton ? (
@@ -995,12 +1003,12 @@ export default function ProgramOverviewView({
                           style={styles.currentSessionSecondaryButton}
                           onPress={openCompleteConfirm}
                         >
-                          <StandardText
+                          <IBMPlexText defaultWhite
                             lines={1}
                             style={styles.currentSessionSecondaryButtonText}
                           >
                             Complete
-                          </StandardText>
+                          </IBMPlexText>
                         </TouchableOpacity>
                       ) : null}
                     </View>
@@ -1062,18 +1070,18 @@ export default function ProgramOverviewView({
                 style={styles.testSessionButton}
                 onPress={onTestSession}
               >
-                <StandardText lines={1} style={styles.testSessionButtonText}>
+                <IBMPlexText defaultWhite lines={1} style={styles.testSessionButtonText}>
                   Test session
-                </StandardText>
+                </IBMPlexText>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity
               style={styles.programDetailsFooterLink}
               onPress={() => setDetailsVisible(true)}
             >
-              <StandardText style={styles.programDetailsFooterLinkText}>
+              <IBMPlexText defaultWhite style={styles.programDetailsFooterLinkText}>
                 Program details &gt;
-              </StandardText>
+              </IBMPlexText>
             </TouchableOpacity>
           </View>
         </View>
@@ -1125,25 +1133,25 @@ export default function ProgramOverviewView({
             contentContainerStyle={styles.detailsSheetScrollContent}
           >
             {plan.summary ? (
-              <StandardText style={styles.detailText} textColor="#111">
+              <IBMPlexText defaultWhite style={styles.detailText} textColor="#111">
                 {plan.summary}
-              </StandardText>
+              </IBMPlexText>
             ) : null}
             {phaseOverview.map((phase) => (
               <View
                 key={`${phase.weekStart}-${phase.weekEnd}-${phase.label}`}
                 style={styles.phaseDetail}
               >
-                <StandardText style={styles.phaseRange} textColor="#6b7280">
+                <IBMPlexText defaultWhite style={styles.phaseRange} textColor="#6b7280">
                   {getPhaseRangeLabel(phase)}
-                </StandardText>
-                <StandardText style={styles.phaseLabel} textColor="#111">
+                </IBMPlexText>
+                <IBMPlexText defaultWhite style={styles.phaseLabel} textColor="#111">
                   {phase.label}
-                </StandardText>
+                </IBMPlexText>
                 {phase.focus ? (
-                  <StandardText style={styles.detailText} textColor="#374151">
+                  <IBMPlexText defaultWhite style={styles.detailText} textColor="#374151">
                     {phase.focus}
-                  </StandardText>
+                  </IBMPlexText>
                 ) : null}
               </View>
             ))}
@@ -1159,9 +1167,9 @@ export default function ProgramOverviewView({
         onButtonPress={closeRescheduleInfo}
         content={
           rescheduleInfoMode ? (
-            <StandardText style={styles.rescheduleInfoMeta} textColor="#525252">
+            <IBMPlexText defaultWhite style={styles.rescheduleInfoMeta} textColor="#525252">
               Mode: {rescheduleInfoMode}
-            </StandardText>
+            </IBMPlexText>
           ) : null
         }
       />
@@ -1211,8 +1219,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 28, fontWeight: "700",
   },
   subtitle: {
     fontSize: 16,
@@ -1229,8 +1236,7 @@ const styles = StyleSheet.create({
   },
   headerDate: {
     fontSize: 30,
-    lineHeight: 34,
-    fontWeight: "700",
+    lineHeight: 34, fontWeight: "700",
     marginBottom: 6,
   },
   headerPhase: {
@@ -1258,8 +1264,7 @@ const styles = StyleSheet.create({
   },
   testSessionButtonText: {
     color: "#000",
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
     textAlign: "center",
     textTransform: "uppercase",
   },
@@ -1270,8 +1275,7 @@ const styles = StyleSheet.create({
   },
   programDetailsFooterLinkText: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
   },
   rescheduleInfoButton: {
     alignItems: "center",
@@ -1297,8 +1301,7 @@ const styles = StyleSheet.create({
     marginLeft: 1,
   },
   rescheduleInfoMeta: {
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 18,
     textTransform: "capitalize",
   },
@@ -1337,8 +1340,7 @@ const styles = StyleSheet.create({
   headerStartButtonText: {
     color: "#000",
     alignSelf: "center",
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
     textAlign: "center",
     textTransform: "uppercase",
   },
@@ -1362,14 +1364,12 @@ const styles = StyleSheet.create({
   },
   headerCompletedTitle: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 18, fontWeight: "800",
     lineHeight: 22,
   },
   headerCompletedSubtitle: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 16,
   },
   headerSessionProgressRing: {
@@ -1386,8 +1386,7 @@ const styles = StyleSheet.create({
   },
   headerSessionProgressRingText: {
     color: "#fff",
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -1401,8 +1400,7 @@ const styles = StyleSheet.create({
   },
   restSessionText: {
     color: "#7E7E7E",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -1417,8 +1415,7 @@ const styles = StyleSheet.create({
   },
   futureSessionPushBackButtonText: {
     color: "#000",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     textAlign: "center",
     textTransform: "uppercase",
   },
@@ -1437,8 +1434,7 @@ const styles = StyleSheet.create({
   },
   currentSessionTitle: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 16, fontWeight: "700",
     lineHeight: 20,
     textAlign: "center",
   },
@@ -1448,15 +1444,13 @@ const styles = StyleSheet.create({
   },
   currentSessionMetaLabel: {
     color: "#858585",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
   },
   currentSessionMetaValue: {
     color: "#858585",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -1486,8 +1480,7 @@ const styles = StyleSheet.create({
   },
   currentSessionSecondaryButtonText: {
     color: "#fff",
-    fontSize: 10,
-    fontWeight: "700",
+    fontSize: 10, fontWeight: "700",
     lineHeight: 14,
     textAlign: "center",
     textTransform: "uppercase",
@@ -1510,12 +1503,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   phaseRange: {
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
   },
   phaseLabel: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 17, fontWeight: "700",
   },
   weekSchedule: {
     flexDirection: "row",
@@ -1567,15 +1558,13 @@ const styles = StyleSheet.create({
     width: 58,
   },
   weekScheduleLabel: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
   },
   weekScheduleDate: {
     marginTop: 3,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
   },
@@ -1610,8 +1599,7 @@ const styles = StyleSheet.create({
   },
   skeletonMessageTitle: {
     color: "#fff",
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 28, fontWeight: "700",
     lineHeight: 34,
     textAlign: "center",
   },

@@ -3,14 +3,13 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Text,
   useWindowDimensions,
 } from "react-native";
 
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import PostMedia from "./PostMedia.jsx";
-
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const COLORS = {
   gold: "#C9B259",
   panelBorder: "#1E1E1E",
@@ -52,25 +51,25 @@ export default function PostCard({
                 {post?.isCoachVerified ? (
                   <VerifiedBadge />
                 ) : null}
-                <Text numberOfLines={1} style={styles.postAuthor}>
+                <IBMPlexText numberOfLines={1} style={styles.postAuthor}>
                   {post?.authorDisplayName}
-                </Text>
+                </IBMPlexText>
               </TouchableOpacity>
 
               <View style={styles.dot} />
 
               <TouchableOpacity onPress={() => onPressTopic?.(post?.topic)}>
-                <Text numberOfLines={1} style={styles.postTopic}>
+                <IBMPlexText numberOfLines={1} style={styles.postTopic}>
                   {post?.topic}
-                </Text>
+                </IBMPlexText>
               </TouchableOpacity>
             </View>
-            <Text numberOfLines={2} style={styles.postTitle}>
+            <IBMPlexText numberOfLines={2} style={styles.postTitle}>
               {post?.title}
-            </Text>
-            <Text numberOfLines={hasMedia ? 3 : 5} style={styles.postContent}>
+            </IBMPlexText>
+            <IBMPlexText numberOfLines={hasMedia ? 3 : 5} style={styles.postContent}>
               {post?.body}
-            </Text>
+            </IBMPlexText>
           </TouchableOpacity>
           <PostMedia
             compact
@@ -95,23 +94,23 @@ export default function PostCard({
                 source={require("../../assets/icons/like.png")}
                 style={[styles.buttonIcon, isPostLiked ? styles.buttonIconActive : null]}
               />
-              <Text style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
+              <IBMPlexText style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
                 {post?.likesCount}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
             <View style={styles.commentCount}>
               <Image
                 source={require("../../assets/icons/conversation.png")}
                 style={styles.buttonIcon}
               />
-              <Text style={styles.countText}>{post?.commentsCount}</Text>
+              <IBMPlexText style={styles.countText}>{post?.commentsCount}</IBMPlexText>
             </View>
             {post?.coachResponseStatus === "responded" ? (
               <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                 <GoldGradient style={styles.coachResponseStatus}>
-                  <Text style={styles.coachResponseText}>
+                  <IBMPlexText style={styles.coachResponseText}>
                     Coach Response
-                  </Text>
+                  </IBMPlexText>
                 </GoldGradient>
               </TouchableOpacity>
             ) : null}
@@ -153,8 +152,7 @@ const styles = StyleSheet.create({
   },
   postAuthor: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   dot: {
@@ -166,22 +164,20 @@ const styles = StyleSheet.create({
   },
   postTopic: {
     color: COLORS.muted,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 17,
     textTransform: "uppercase",
   },
 
   postTitle: {
     color: COLORS.text,
-    fontSize: 17,
-    fontWeight: "800",
+    fontSize: 17, fontWeight: "800",
     lineHeight: 22,
   },
   postContent: {
     color: COLORS.muted,
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 19,
     marginTop: 22,
   },
@@ -204,8 +200,7 @@ const styles = StyleSheet.create({
   },
   coachResponseText: {
     color: "#111111",
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: 11, fontWeight: "900",
     lineHeight: 14,
     textTransform: "uppercase",
   },
@@ -259,8 +254,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     color: COLORS.text,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 17,
   },
   countTextActive: {

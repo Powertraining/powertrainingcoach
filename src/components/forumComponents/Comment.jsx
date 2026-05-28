@@ -1,15 +1,15 @@
-import { useState } from "react";
+import {
+  useState } from "react";
 import {
   Image,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
 import { MAX_FORUM_COMMENT_REPLY_DEPTH } from "../../services/models/forumModel.js";
 import VerifiedBadge from "./VerifiedBadge.jsx";
-
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const COLORS = {
   gold: "#C9B259",
   text: "#ffffff",
@@ -58,16 +58,16 @@ export default function Comment({
         <View style={styles.textContent}>
           <View style={styles.nameRow}>
             {comment?.isCoachVerified ? <VerifiedBadge /> : null}
-            <Text numberOfLines={1} style={styles.name}>
+            <IBMPlexText numberOfLines={1} style={styles.name}>
               {comment?.authorDisplayName}
-            </Text>
+            </IBMPlexText>
             {replyDepth >= 1 && replyToDisplayName ? (
-              <Text numberOfLines={1} style={styles.replyTag}>
+              <IBMPlexText numberOfLines={1} style={styles.replyTag}>
                 @{replyToDisplayName}
-              </Text>
+              </IBMPlexText>
             ) : null}
           </View>
-          <Text
+          <IBMPlexText
             numberOfLines={bodyLines}
             style={styles.body}
             onTextLayout={(event) => {
@@ -82,27 +82,27 @@ export default function Comment({
             }}
           >
             {comment?.body}
-          </Text>
+          </IBMPlexText>
           <View style={styles.buttons}>
             {canReply ? (
               <TouchableOpacity onPress={() => onPressReply?.(comment)}>
-                <Text style={styles.readMore}>Reply</Text>
+                <IBMPlexText style={styles.readMore}>Reply</IBMPlexText>
               </TouchableOpacity>
             ) : null}
             {hasReplies ? (
               <TouchableOpacity onPress={() => setAreRepliesVisible((current) => !current)}>
-                <Text style={styles.readMore}>
+                <IBMPlexText style={styles.readMore}>
                   {areRepliesVisible ?
                     "Hide replies" :
                     `Show ${repliesCount} ${repliesCount === 1 ? "reply" : "replies"}`}
-                </Text>
+                </IBMPlexText>
               </TouchableOpacity>
             ) : null}
             {needsToggle ? (
               <TouchableOpacity onPress={() => setExpanded((current) => !current)}>
-                <Text style={styles.readMore}>
+                <IBMPlexText style={styles.readMore}>
                   {expanded ? "Less" : "More"}
-                </Text>
+                </IBMPlexText>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -181,21 +181,19 @@ const styles = StyleSheet.create({
   name: {
     color: COLORS.text,
     flexShrink: 1,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   replyTag: {
     color: COLORS.gold,
     flexShrink: 1,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
   },
   body: {
     color: COLORS.muted,
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 21,
   },
   buttons: {
@@ -206,8 +204,7 @@ const styles = StyleSheet.create({
   },
   readMore: {
     color: COLORS.text,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 17,
   },
 });

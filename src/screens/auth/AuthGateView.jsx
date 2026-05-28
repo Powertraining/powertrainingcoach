@@ -1,21 +1,21 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function AuthGateView({ onLogin, onSignup }) {
     return (
         <View style={styles.center}>
             <View style={styles.card}>
-                <Text style={styles.eyebrow}>Session needed</Text>
-                <Text style={styles.title}>Connect to build your plan</Text>
-                <Text style={styles.subtitle}>
+                <IBMPlexText style={styles.eyebrow}>Session needed</IBMPlexText>
+                <IBMPlexText style={styles.title}>Connect to build your plan</IBMPlexText>
+                <IBMPlexText style={styles.subtitle}>
                     Log in or create an account to generate, save, and resume your combat training program.
-                </Text>
+                </IBMPlexText>
 
                 <View style={styles.actions}>
                     <TouchableOpacity style={styles.primary} onPress={onLogin}>
-                        <Text style={styles.primaryText}>Log in</Text>
+                        <IBMPlexText style={styles.primaryText}>Log in</IBMPlexText>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.secondary} onPress={onSignup}>
-                        <Text style={styles.secondaryText}>Create account</Text>
+                        <IBMPlexText style={styles.secondaryText}>Create account</IBMPlexText>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -44,12 +44,10 @@ const styles = StyleSheet.create({
         fontSize: 14,
         letterSpacing: 1,
         textTransform: 'uppercase',
-        color: '#6b7280',
-        fontWeight: '700',
+        color: '#6b7280', fontWeight: '700',
     },
     title: {
-        fontSize: 30,
-        fontWeight: '800',
+        fontSize: 30, fontWeight: '800',
         color: '#0f172a',
     },
     subtitle: {
@@ -70,8 +68,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#111',
     },
     primaryText: {
-        color: 'white',
-        fontWeight: '700',
+        color: 'white', fontWeight: '700',
         fontSize: 16,
     },
     secondary: {
@@ -82,8 +79,7 @@ const styles = StyleSheet.create({
         borderColor: '#111',
     },
     secondaryText: {
-        color: '#111',
-        fontWeight: '700',
+        color: '#111', fontWeight: '700',
         fontSize: 16,
     },
 });

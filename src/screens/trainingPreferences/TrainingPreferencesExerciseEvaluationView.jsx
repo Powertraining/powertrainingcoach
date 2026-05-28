@@ -1,20 +1,19 @@
-import { Text, View, StyleSheet } from "react-native";
-import StandardText from "../../components/textComponents/StandardText";
-
+import { View, StyleSheet } from "react-native";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function TrainingPreferencesExerciseEvaluationView({
   category = "Strength Training",
 }) {
   return (
     <View style={styles.container}>
       <View style={styles.titleWrap}>
-        <Text style={styles.titleText}>{category}</Text>
-        <StandardText style={styles.kickerText}>Exercise Evaluation</StandardText>
+        <IBMPlexText style={styles.titleText}>{category}</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.kickerText}>Exercise Evaluation</IBMPlexText>
       </View>
 
       <View style={styles.descriptionWrap}>
-        <StandardText style={styles.descriptionText}>
+        <IBMPlexText defaultWhite style={styles.descriptionText}>
           Answer how confidently and safely you can perform the following exercises
-        </StandardText>
+        </IBMPlexText>
       </View>
     </View>
   );
@@ -34,7 +33,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: "#ffffff",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 35,
     lineHeight: 39,
     textAlign: "center",

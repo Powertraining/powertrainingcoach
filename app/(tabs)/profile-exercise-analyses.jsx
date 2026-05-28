@@ -1,6 +1,10 @@
-import { useCallback, useMemo } from "react";
+import {
+  useCallback,
+  useMemo } from "react";
 import { observer } from "mobx-react-lite";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect,
+  useLocalSearchParams,
+  useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import ExerciseAnalysisListView from "../../src/screens/profile/ExerciseAnalysisListView.jsx";

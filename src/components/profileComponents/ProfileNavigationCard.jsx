@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import RowCard from "../homeComponents/RowCard.jsx";
 import LockIcon from "../LockIcon.jsx";
-
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function ProfileNavigationCard({
   title,
   description,
@@ -44,14 +44,14 @@ export default function ProfileNavigationCard({
               wide ? styles.navigationCardCopyWide : null,
             ]}
           >
-            <Text numberOfLines={2} adjustsFontSizeToFit style={styles.navigationCardTitle}>
+            <IBMPlexText numberOfLines={2} adjustsFontSizeToFit style={styles.navigationCardTitle}>
               {title}
-            </Text>
+            </IBMPlexText>
             {description ? (
               <View style={obscureContent ? styles.obscuredContent : null}>
-                <Text numberOfLines={2} style={styles.navigationCardText}>
+                <IBMPlexText numberOfLines={2} style={styles.navigationCardText}>
                   {description}
-                </Text>
+                </IBMPlexText>
               </View>
             ) : null}
             {obscureContent ? null : copyChildren || null}
@@ -66,7 +66,7 @@ export default function ProfileNavigationCard({
           ) : actionElement || null}
 
           {obscureContent && !actionElement && actionLabel ? (
-            <Text
+            <IBMPlexText
               style={[
                 styles.navigationActionText,
                 styles.obscuredContent,
@@ -74,16 +74,16 @@ export default function ProfileNavigationCard({
               ]}
             >
               {actionLabel} &gt;
-            </Text>
+            </IBMPlexText>
           ) : !actionElement && actionLabel ? (
-            <Text
+            <IBMPlexText
               style={[
                 styles.navigationActionText,
                 wide ? styles.navigationActionTextWide : null,
               ]}
             >
               {actionLabel} &gt;
-            </Text>
+            </IBMPlexText>
           ) : null}
 
           {obscureContent ? (
@@ -139,14 +139,12 @@ const styles = StyleSheet.create({
   },
   navigationCardTitle: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
   },
   navigationCardText: {
     color: "#9ca3af",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 12, fontWeight: "600",
     lineHeight: 16,
   },
   obscuredContent: {
@@ -155,8 +153,7 @@ const styles = StyleSheet.create({
   },
   navigationActionText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     marginTop: 12,
     textTransform: "uppercase",

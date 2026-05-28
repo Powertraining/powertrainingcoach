@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import ProfileFrequencySelector from "../../components/profileComponents/ProfileFrequencySelector.jsx";
 import ProfileSportSelector from "../../components/profileComponents/ProfileSportSelector.jsx";
@@ -9,24 +9,24 @@ import ProfileTrainingPreferencesFields, {
   ProfileSessionDurationSelector,
 } from "../ProfileTrainingPreferencesFields.jsx";
 import { SESSION_DURATION_OPTIONS } from "../../constants/trainingPreferences.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function ProfilePlanAdjustmentsView(props) {
   return (
     <>
       <View style={styles.heroHeader}>
         <View style={styles.heroCopy}>
-          <Text style={styles.heroEyebrow}>Plan settings</Text>
-          <Text style={styles.heroTitle}>Adjust Plan</Text>
-          <Text style={styles.heroText}>
+          <IBMPlexText style={styles.heroEyebrow}>Plan settings</IBMPlexText>
+          <IBMPlexText style={styles.heroTitle}>Adjust Plan</IBMPlexText>
+          <IBMPlexText style={styles.heroText}>
             Tune the inputs your next training block uses for sport, schedule,
             and progression logic.
-          </Text>
+          </IBMPlexText>
         </View>
       </View>
 
       <View style={styles.planFields}>
         <View style={styles.preferenceField}>
-          <Text style={styles.preferenceSummaryLabel}>Primary Sport</Text>
+          <IBMPlexText style={styles.preferenceSummaryLabel}>Primary Sport</IBMPlexText>
           <ProfileSportSelector
             options={props.combatSportOptions}
             value={props.primaryCombatSport}
@@ -44,10 +44,10 @@ export default function ProfilePlanAdjustmentsView(props) {
       </View>
 
       <View style={styles.inlineSection}>
-        <Text style={styles.preferenceSummaryLabel}>Training Load</Text>
+        <IBMPlexText style={styles.preferenceSummaryLabel}>Training Load</IBMPlexText>
         <View style={styles.preferenceBox}>
           <View style={styles.preferenceControl}>
-            <Text style={styles.preferenceControlLabel}>Training Frequency</Text>
+            <IBMPlexText style={styles.preferenceControlLabel}>Training Frequency</IBMPlexText>
             <ProfileFrequencySelector
               value={props.sessionsPerWeek}
               onChange={props.onSessionsPerWeekChange}
@@ -57,7 +57,7 @@ export default function ProfilePlanAdjustmentsView(props) {
           <View style={styles.preferenceDivider} />
 
           <View style={styles.preferenceControl}>
-            <Text style={styles.preferenceControlLabel}>Session Duration</Text>
+            <IBMPlexText style={styles.preferenceControlLabel}>Session Duration</IBMPlexText>
             <ProfileSessionDurationSelector
               options={SESSION_DURATION_OPTIONS}
               value={props.trainingPreferences?.sessionDuration}
@@ -73,7 +73,7 @@ export default function ProfilePlanAdjustmentsView(props) {
           <View style={styles.preferenceDivider} />
 
           <View style={styles.preferenceControl}>
-            <Text style={styles.preferenceControlLabel}>Combat Training Intensity</Text>
+            <IBMPlexText style={styles.preferenceControlLabel}>Combat Training Intensity</IBMPlexText>
             <CombatTrainingIntensityMeter
               value={props.trainingPreferences?.combatTrainingIntensity}
               onChange={(value) =>
@@ -89,10 +89,10 @@ export default function ProfilePlanAdjustmentsView(props) {
       </View>
 
       <View style={styles.inlineSection}>
-        <Text style={styles.preferenceSummaryLabel}>Plan Structure</Text>
+        <IBMPlexText style={styles.preferenceSummaryLabel}>Plan Structure</IBMPlexText>
         <View style={[styles.preferenceBox, styles.structureBox]}>
           <View style={styles.structureControl}>
-            <Text style={styles.preferenceControlLabel}>Loading Strategy</Text>
+            <IBMPlexText style={styles.preferenceControlLabel}>Loading Strategy</IBMPlexText>
             <ProfileLoadingStrategyOptions
               compact
               value={props.trainingPreferences?.loadingStrategy}
@@ -108,7 +108,7 @@ export default function ProfilePlanAdjustmentsView(props) {
           <View style={styles.preferenceDivider} />
 
           <View style={styles.structureControl}>
-            <Text style={styles.preferenceControlLabel}>Deload Strategy</Text>
+            <IBMPlexText style={styles.preferenceControlLabel}>Deload Strategy</IBMPlexText>
             <ProfileDeloadStrategyOptions
               compact
               value={props.trainingPreferences?.deloadStrategy}
@@ -155,21 +155,18 @@ const styles = StyleSheet.create({
   },
   heroEyebrow: {
     color: "#C9B259",
-    fontSize: 11,
-    fontWeight: "800",
+    fontSize: 11, fontWeight: "800",
     lineHeight: 14,
     textTransform: "uppercase",
   },
   heroTitle: {
     color: "#ffffff",
-    fontSize: 28,
-    fontWeight: "900",
+    fontSize: 28, fontWeight: "900",
     lineHeight: 33,
   },
   heroText: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 18,
     maxWidth: 310,
   },
@@ -204,8 +201,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   preferenceControlLabel: {
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     color: "#8E8E8E",
     lineHeight: 14,
     textTransform: "uppercase",
@@ -215,8 +211,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E1E1E",
   },
   preferenceSummaryLabel: {
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     color: "#8E8E8E",
     lineHeight: 15,
     textTransform: "uppercase",

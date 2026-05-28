@@ -4,7 +4,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -14,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import PostMedia from "../../components/forumComponents/PostMedia.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   panelSoft: "rgba(255,255,255,0.08)",
@@ -63,7 +62,7 @@ function ChatMessage({ comment, currentUserId = "" }) {
           isCoach ? styles.messageBubbleCoach : null,
         ]}
       >
-        <Text
+        <IBMPlexText
           numberOfLines={1}
           style={[
             styles.messageAuthor,
@@ -72,15 +71,15 @@ function ChatMessage({ comment, currentUserId = "" }) {
           ]}
         >
           {isOwnMessage ? "You" : comment.authorDisplayName}
-        </Text>
-        <Text
+        </IBMPlexText>
+        <IBMPlexText
           style={[
             styles.messageBody,
             isOwnMessage ? styles.messageBodyOwn : null,
           ]}
         >
           {comment.body}
-        </Text>
+        </IBMPlexText>
       </View>
     </View>
   );
@@ -110,7 +109,7 @@ export default function ExerciseAnalysisPostView({
         disabled={isSubmittingComment}
         style={styles.backButton}
       >
-        <Text style={styles.backButtonText}>Go Back</Text>
+        <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
       </TouchableOpacity>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -128,9 +127,9 @@ export default function ExerciseAnalysisPostView({
           ]}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>{post?.title || "Exercise analysis"}</Text>
+            <IBMPlexText style={styles.title}>{post?.title || "Exercise analysis"}</IBMPlexText>
             {post?.body ? (
-              <Text style={styles.description}>{post.body}</Text>
+              <IBMPlexText style={styles.description}>{post.body}</IBMPlexText>
             ) : null}
           </View>
 
@@ -141,7 +140,7 @@ export default function ExerciseAnalysisPostView({
           />
 
           <View style={styles.chatSection}>
-            <Text style={styles.sectionLabel}>Comments</Text>
+            <IBMPlexText style={styles.sectionLabel}>Comments</IBMPlexText>
             <View style={styles.chatContainer}>
               <ScrollView
                 nestedScrollEnabled
@@ -162,7 +161,7 @@ export default function ExerciseAnalysisPostView({
                   ))
                 ) : (
                   <View style={styles.chatState}>
-                    <Text style={styles.emptyChatText}>No comments yet.</Text>
+                    <IBMPlexText style={styles.emptyChatText}>No comments yet.</IBMPlexText>
                   </View>
                 )}
               </ScrollView>
@@ -191,7 +190,7 @@ export default function ExerciseAnalysisPostView({
               </TouchableOpacity>
             </View>
             {commentError ? (
-              <Text style={styles.commentError}>{commentError}</Text>
+              <IBMPlexText style={styles.commentError}>{commentError}</IBMPlexText>
             ) : null}
           </View>
         </ScrollView>
@@ -226,8 +225,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   header: {
@@ -235,14 +233,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: COLORS.text,
-    fontSize: 24,
-    fontWeight: "900",
+    fontSize: 24, fontWeight: "900",
     lineHeight: 30,
   },
   description: {
     color: COLORS.muted,
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 14, fontWeight: "600",
     lineHeight: 21,
   },
   chatSection: {
@@ -251,8 +247,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -278,8 +273,7 @@ const styles = StyleSheet.create({
   },
   emptyChatText: {
     color: COLORS.faint,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
   },
   messageRow: {
@@ -306,8 +300,7 @@ const styles = StyleSheet.create({
   },
   messageAuthor: {
     color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: 11, fontWeight: "900",
     lineHeight: 15,
     marginBottom: 3,
   },
@@ -319,8 +312,7 @@ const styles = StyleSheet.create({
   },
   messageBody: {
     color: COLORS.muted,
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 14, fontWeight: "600",
     lineHeight: 20,
   },
   messageBodyOwn: {
@@ -341,8 +333,7 @@ const styles = StyleSheet.create({
   commentInput: {
     color: COLORS.text,
     flex: 1,
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 14, fontWeight: "600",
     lineHeight: 20,
     maxHeight: 92,
     minHeight: 34,
@@ -363,8 +354,7 @@ const styles = StyleSheet.create({
   },
   commentError: {
     color: COLORS.error,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 17,
   },
 });

@@ -1,11 +1,12 @@
 // npx expo install @stripe/stripe-react-native to add Stripe's React Native SDK
 
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 
 export default function MessageView({ message }) {
   return (
     <View>
-      <Text>{message}</Text>
+      <IBMPlexText>{message}</IBMPlexText>
     </View>
   );
 }

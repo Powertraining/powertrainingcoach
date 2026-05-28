@@ -1,5 +1,5 @@
-import { Pressable, View, Text, StyleSheet } from "react-native";
-
+import { Pressable, View, StyleSheet } from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function PersonalDetailsUsernameCard({ username, onPress, disabled }) {
   return (
     <Pressable
@@ -13,12 +13,12 @@ export default function PersonalDetailsUsernameCard({ username, onPress, disable
     >
       <View style={styles.content}>
         <View style={styles.copy}>
-          <Text style={styles.title}>Username</Text>
-          <Text style={styles.text} numberOfLines={1}>
+          <IBMPlexText style={styles.title}>Username</IBMPlexText>
+          <IBMPlexText style={styles.text} numberOfLines={1}>
             {username}
-          </Text>
+          </IBMPlexText>
         </View>
-        <Text style={styles.actionText}>Edit &gt;</Text>
+        <IBMPlexText style={styles.actionText}>Edit &gt;</IBMPlexText>
       </View>
     </Pressable>
   );
@@ -58,21 +58,18 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
   },
   text: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
   },
   actionText: {
     color: "#ffffff",
     flexShrink: 0,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

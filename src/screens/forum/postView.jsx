@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState } from "react";
 import {
   Image,
   Keyboard,
@@ -7,7 +10,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   useWindowDimensions,
@@ -19,7 +21,7 @@ import Comment from "../../components/forumComponents/Comment.jsx";
 import PostMedia from "../../components/forumComponents/PostMedia.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   gold: "#C9B259",
   panel: "#141414",
@@ -208,7 +210,7 @@ export default function PostView({
       <View style={styles.wrapper}>
         <View style={[styles.screenContent, isCommentEditorOpen ? styles.blurredContent : null]}>
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>Go Back</Text>
+            <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
           </TouchableOpacity>
 
           <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
@@ -217,18 +219,18 @@ export default function PostView({
               <View style={styles.authorDetails}>
                 <View style={styles.authorRow}>
                   {post?.isCoachVerified ? <VerifiedBadge /> : null}
-                  <Text numberOfLines={1} style={styles.authorName}>
+                  <IBMPlexText numberOfLines={1} style={styles.authorName}>
                     {post?.authorDisplayName}
-                  </Text>
+                  </IBMPlexText>
                 </View>
-                <Text numberOfLines={1} style={styles.topicText}>
+                <IBMPlexText numberOfLines={1} style={styles.topicText}>
                   {post?.topic}
-                </Text>
+                </IBMPlexText>
               </View>
             </View>
 
-            <Text style={styles.title}>{post?.title}</Text>
-            <Text style={styles.body}>{post?.body}</Text>
+            <IBMPlexText style={styles.title}>{post?.title}</IBMPlexText>
+            <IBMPlexText style={styles.body}>{post?.body}</IBMPlexText>
             <PostMedia
               autoPlay
               compact
@@ -254,23 +256,23 @@ export default function PostView({
                   source={require("../../assets/icons/like.png")}
                   style={[styles.buttonIcon, isPostLiked ? styles.buttonIconActive : null]}
                 />
-                <Text style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
+                <IBMPlexText style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
                   {post?.likesCount}
-                </Text>
+                </IBMPlexText>
               </TouchableOpacity>
               <View style={styles.commentCount}>
                 <Image
                   source={require("../../assets/icons/conversation.png")}
                   style={styles.buttonIcon}
                 />
-                <Text style={styles.countText}>{post?.commentsCount}</Text>
+                <IBMPlexText style={styles.countText}>{post?.commentsCount}</IBMPlexText>
               </View>
               {post?.coachResponseStatus === "responded" ? (
                 <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                   <GoldGradient style={styles.coachResponseStatus}>
-                    <Text style={styles.coachResponseText}>
+                    <IBMPlexText style={styles.coachResponseText}>
                       Coach Response
-                    </Text>
+                    </IBMPlexText>
                   </GoldGradient>
                 </TouchableOpacity>
               ) : null}
@@ -306,7 +308,7 @@ export default function PostView({
                     </>
                   ) : (
                     <>
-                      <Text
+                      <IBMPlexText
                         numberOfLines={3}
                         style={[
                           styles.commentPreviewText,
@@ -314,7 +316,7 @@ export default function PostView({
                         ]}
                       >
                         {commentValue || "Write a comment"}
-                      </Text>
+                      </IBMPlexText>
                       <View style={styles.commentPromptUnderline} />
                     </>
                   )}
@@ -322,9 +324,9 @@ export default function PostView({
                 {commentsLocked ? (
                   <View pointerEvents="none" style={styles.commentComposerLockOverlay}>
                     <LockIcon size={16} style={styles.commentComposerLockInlineIcon} />
-                    <Text style={styles.commentComposerLockText}>
+                    <IBMPlexText style={styles.commentComposerLockText}>
                       Members only, so coaches can ensure safety and quality.
-                    </Text>
+                    </IBMPlexText>
                   </View>
                 ) : null}
               </Pressable>
@@ -385,19 +387,19 @@ export default function PostView({
                 </View>
                 <View style={styles.lockedCommentEditorOverlay}>
                   <LockIcon size={24} style={styles.lockedCommentMessageIcon} />
-                  <Text style={styles.lockedCommentMessageTitle}>
+                  <IBMPlexText style={styles.lockedCommentMessageTitle}>
                     Commenting is locked
-                  </Text>
-                  <Text style={styles.lockedCommentMessageText}>
+                  </IBMPlexText>
+                  <IBMPlexText style={styles.lockedCommentMessageText}>
                     Commenting is limited to members so coaches can maintain safety and quality feedback.
-                  </Text>
+                  </IBMPlexText>
                   <TouchableOpacity
                     style={styles.lockedCommentBackButton}
                     onPress={closeCommentEditor}
                   >
-                    <Text style={styles.lockedCommentBackButtonText}>
+                    <IBMPlexText style={styles.lockedCommentBackButtonText}>
                       Go Back
-                    </Text>
+                    </IBMPlexText>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -412,13 +414,13 @@ export default function PostView({
                   <View style={styles.replyTargetTextContent}>
                     <View style={styles.replyTargetNameRow}>
                       {replyTargetComment?.isCoachVerified ? <VerifiedBadge /> : null}
-                      <Text numberOfLines={1} style={styles.replyTargetName}>
+                      <IBMPlexText numberOfLines={1} style={styles.replyTargetName}>
                         {replyTargetComment?.authorDisplayName}
-                      </Text>
+                      </IBMPlexText>
                     </View>
-                    <Text numberOfLines={3} style={styles.replyTargetBody}>
+                    <IBMPlexText numberOfLines={3} style={styles.replyTargetBody}>
                       {replyTargetComment?.body}
-                    </Text>
+                    </IBMPlexText>
                   </View>
                 </View>
               ) : null}
@@ -445,7 +447,7 @@ export default function PostView({
                     ]}
                   />
                   {editorError ? (
-                    <Text style={styles.commentError}>{editorError}</Text>
+                    <IBMPlexText style={styles.commentError}>{editorError}</IBMPlexText>
                   ) : null}
                 </View>
               </View>
@@ -458,18 +460,18 @@ export default function PostView({
                 onPress={handleSubmitEditor}
                 disabled={isSubmittingEditor}
               >
-                <Text style={styles.commentSubmitButtonText}>
+                <IBMPlexText style={styles.commentSubmitButtonText}>
                   {isSubmittingEditor ?
                     "Posting..." :
                     isReplyEditor ? "Post Reply" : "Post Comment"}
-                </Text>
+                </IBMPlexText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.commentCancelButton}
                 onPress={closeCommentEditor}
                 disabled={isSubmittingEditor}
               >
-                <Text style={styles.commentCancelButtonText}>Cancel</Text>
+                <IBMPlexText style={styles.commentCancelButtonText}>Cancel</IBMPlexText>
               </TouchableOpacity>
             </View>
             ) : null}
@@ -499,8 +501,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 18,
   },
   scrollView: {
@@ -534,28 +535,25 @@ const styles = StyleSheet.create({
   authorName: {
     color: COLORS.text,
     flexShrink: 1,
-    fontSize: 17,
-    fontWeight: "800",
+    fontSize: 17, fontWeight: "800",
     lineHeight: 22,
   },
   topicText: {
     color: COLORS.muted,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 17,
     textTransform: "uppercase",
   },
   title: {
     color: COLORS.text,
-    fontSize: 25,
-    fontWeight: "900",
+    fontSize: 25, fontWeight: "900",
     lineHeight: 32,
     marginTop: 24,
   },
   body: {
     color: COLORS.muted,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 26,
     marginTop: 24,
   },
@@ -651,7 +649,7 @@ const styles = StyleSheet.create({
   commentPreviewText: {
     color: COLORS.text,
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 21,
   },
   commentPreviewPlaceholder: {
@@ -699,8 +697,7 @@ const styles = StyleSheet.create({
   commentComposerLockText: {
     color: COLORS.gold,
     flexShrink: 1,
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     lineHeight: 15,
   },
   commentInput: {
@@ -708,8 +705,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 12,
     color: COLORS.text,
+    fontFamily: "IBMPlexSans_400Regular",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 20,
     textAlignVertical: "top",
   },
@@ -770,8 +768,7 @@ const styles = StyleSheet.create({
   },
   lockedCommentMessageTitle: {
     color: COLORS.text,
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 24, fontWeight: "700",
     lineHeight: 30,
     textAlign: "center",
   },
@@ -794,8 +791,7 @@ const styles = StyleSheet.create({
   },
   lockedCommentBackButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -828,8 +824,7 @@ const styles = StyleSheet.create({
   },
   commentSubmitButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
   },
   commentCancelButton: {
@@ -842,14 +837,12 @@ const styles = StyleSheet.create({
   },
   commentCancelButtonText: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
   },
   commentError: {
     color: COLORS.error,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
   },
   replyTargetPreview: {
@@ -880,14 +873,13 @@ const styles = StyleSheet.create({
   replyTargetName: {
     color: COLORS.text,
     flexShrink: 1,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   replyTargetBody: {
     color: COLORS.muted,
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 18,
   },
   coachResponseStatus: {
@@ -901,8 +893,7 @@ const styles = StyleSheet.create({
   },
   coachResponseText: {
     color: "#111111",
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: 11, fontWeight: "900",
     lineHeight: 14,
     textTransform: "uppercase",
   },
@@ -955,8 +946,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     color: COLORS.text,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 17,
   },
   countTextActive: {

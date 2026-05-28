@@ -1,12 +1,20 @@
-import { useRef } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, TextInput } from "react-native";
+import {
+  useRef } from "react";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  TextInput,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PostCard from "../../components/forumComponents/PostCard.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import SearchFiltersView from "./searchFiltersView.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   gold: "#C9B259",
   panel: "#141414",
@@ -126,7 +134,7 @@ export default function ForumView({
           ]}
         >
           {title ? (
-            <Text style={styles.title}>{title}</Text>
+            <IBMPlexText style={styles.title}>{title}</IBMPlexText>
           ) : null}
 
           <View
@@ -173,7 +181,7 @@ export default function ForumView({
               onPress={onResetFilters}
               style={styles.resetFiltersButton}
             >
-              <Text style={styles.resetFiltersButtonText}>Reset filters</Text>
+              <IBMPlexText style={styles.resetFiltersButtonText}>Reset filters</IBMPlexText>
             </TouchableOpacity>
           ) : null}
 
@@ -198,16 +206,16 @@ export default function ForumView({
               </View>
             ) : postsError ? (
               <View style={styles.postsState}>
-                <Text style={styles.postsErrorText}>
+                <IBMPlexText style={styles.postsErrorText}>
                   {postsError.message || "Could not load the forum feed."}
-                </Text>
+                </IBMPlexText>
                 <TouchableOpacity style={styles.retryButton} onPress={onRetryPosts}>
-                  <Text style={styles.retryButtonText}>Try Again</Text>
+                  <IBMPlexText style={styles.retryButtonText}>Try Again</IBMPlexText>
                 </TouchableOpacity>
               </View>
             ) : posts.length === 0 ? (
               <View style={styles.postsState}>
-                <Text style={styles.emptyText}>{emptyText}</Text>
+                <IBMPlexText style={styles.emptyText}>{emptyText}</IBMPlexText>
               </View>
             ) : (
               posts.map((_, index) => (
@@ -364,8 +372,7 @@ const styles = StyleSheet.create({
   },
   postsErrorText: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 20,
     marginBottom: 14,
     textAlign: "center",
@@ -381,8 +388,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -396,16 +402,14 @@ const styles = StyleSheet.create({
   },
   title: {
     color: COLORS.text,
-    fontSize: 24,
-    fontWeight: "900",
+    fontSize: 24, fontWeight: "900",
     lineHeight: 30,
     marginHorizontal: 20,
     marginBottom: 8,
   },
   emptyText: {
     color: COLORS.muted,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 20,
     textAlign: "center",
   },
@@ -434,8 +438,9 @@ const styles = StyleSheet.create({
     flex: 1,
     color: COLORS.text,
     height: "100%",
+    fontFamily: "IBMPlexSans_400Regular",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "400",
     lineHeight: 18,
     padding: 0,
   },
@@ -464,8 +469,7 @@ const styles = StyleSheet.create({
   },
   resetFiltersButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, TouchableOpacity, Image } from "react-native";
 import logo from "../assets/logo.png";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 export function UpBarView(props) {
     const { isAuthenticated, isSubscribed, path, onLogoClick, onNavigate } = props;
 
@@ -37,12 +37,12 @@ export function UpBarView(props) {
                 <Image source={logo} style={{ width: 40, height: 40 }} />
             </TouchableOpacity>
 
-            <Text>Power Training Coach</Text>
+            <IBMPlexText>Power Training Coach</IBMPlexText>
 
             <View>
                 {rightLabel && (
                     <TouchableOpacity onPress={handleRightButtonClickACB}>
-                        <Text>{rightLabel}</Text>
+                        <IBMPlexText>{rightLabel}</IBMPlexText>
                     </TouchableOpacity>
                 )}
             </View>

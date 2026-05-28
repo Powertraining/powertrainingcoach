@@ -1,5 +1,10 @@
-import { Image, Text, TouchableOpacity, StyleSheet, View } from "react-native";
-
+import {
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  View,
+} from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function QuestionnaireSportOptionButton({ option, isSelected, onPress }) {
     return (
         <TouchableOpacity
@@ -9,7 +14,7 @@ export default function QuestionnaireSportOptionButton({ option, isSelected, onP
         >
             <View style={styles.option}>
                 <Image source={option.image} style={isSelected ? styles.selectedImageStyle : styles.nonSelctedImageStyle} resizeMode="contain" />
-                <Text style={isSelected ? styles.optionTextSelected : styles.optionText}>{option.label}</Text>
+                <IBMPlexText style={isSelected ? styles.optionTextSelected : styles.optionText}>{option.label}</IBMPlexText>
             </View>
         </TouchableOpacity>
     );
@@ -54,12 +59,12 @@ const styles = StyleSheet.create({
     },
     optionText: {
         color: "#ffffff",
-        fontFamily: "BebasNeue",
+        fontFamily: "IBMPlexSans_600SemiBold",
         fontSize: 20,
     },
     optionTextSelected: {
         color: "#fff",
-        fontFamily: "BebasNeue",
+        fontFamily: "IBMPlexSans_600SemiBold",
         fontSize: 20
     },
 });

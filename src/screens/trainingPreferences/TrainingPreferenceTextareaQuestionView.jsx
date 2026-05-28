@@ -1,6 +1,10 @@
-import { Text, TextInput, StyleSheet, View, useWindowDimensions } from "react-native";
-import TitleText from "../../components/textComponents/TitleText.jsx";
-
+import {
+  TextInput,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function TrainingPreferenceTextareaQuestionView({
   label,
   helperText,
@@ -12,9 +16,9 @@ export default function TrainingPreferenceTextareaQuestionView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={130}>{label}</TitleText>
+      <IBMPlexText titleBlock height={130}>{label}</IBMPlexText>
       <View style={styles.contentSlot}>
-        {helperText ? <Text style={styles.helperText}>{helperText}</Text> : null}
+        {helperText ? <IBMPlexText style={styles.helperText}>{helperText}</IBMPlexText> : null}
         <TextInput
           placeholder={placeholder}
           value={value}

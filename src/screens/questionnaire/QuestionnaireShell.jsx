@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet } from "react-native";
 import { reactiveModel } from "../../services/models/mobxReactiveModel.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function QuestionnaireShell({
     children,
     hideTabBar = true,
@@ -35,7 +35,7 @@ export default function QuestionnaireShell({
                     onPress={onClose}
                     style={styles.closeButton}
                 >
-                    <Text style={styles.closeButtonText}>Go Back</Text>
+                    <IBMPlexText style={styles.closeButtonText}>Go Back</IBMPlexText>
                 </Pressable>
             ) : null}
             {children}
@@ -67,8 +67,7 @@ const styles = StyleSheet.create({
     },
     closeButtonText: {
         color: "#ffffff",
-        fontSize: 14,
-        fontWeight: "700",
+        fontSize: 14, fontWeight: "700",
         lineHeight: 18,
     }
 });

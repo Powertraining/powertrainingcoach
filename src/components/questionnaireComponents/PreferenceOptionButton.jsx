@@ -1,7 +1,10 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
-import StandardText from "../textComponents/StandardText.jsx";
-
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function PreferenceOptionButton({
   label,
   isSelected,
@@ -51,7 +54,7 @@ export default function PreferenceOptionButton({
             resizeMode="contain"
           />
         ) : mediaText ? (
-          <StandardText
+          <IBMPlexText defaultWhite
             style={[
               styles.mediaText,
               hasDescription ? styles.mediaTextWithDescription : null,
@@ -61,14 +64,14 @@ export default function PreferenceOptionButton({
             center
           >
             {mediaText}
-          </StandardText>
+          </IBMPlexText>
         ) : null}
         {hasBadge ? (
           <View style={[styles.badge, badgeStyle]}>
-            <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
+            <IBMPlexText style={[styles.badgeText, badgeTextStyle]}>{badge}</IBMPlexText>
           </View>
         ) : null}
-        <StandardText
+        <IBMPlexText defaultWhite
           fontSize={14}
           lines={stacked ? 2 : undefined}
           style={[
@@ -81,14 +84,14 @@ export default function PreferenceOptionButton({
           center
         >
           {label}
-        </StandardText>
+        </IBMPlexText>
         {hasDescription ? (
-          <Text
+          <IBMPlexText
             numberOfLines={2}
             style={[styles.description, descriptionStyle]}
           >
             {description}
-          </Text>
+          </IBMPlexText>
         ) : null}
       </View>
     </TouchableOpacity>
@@ -139,8 +142,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: "#C9B259",
-    fontSize: 10,
-    fontWeight: "800",
+    fontSize: 10, fontWeight: "800",
     textTransform: "uppercase",
   },
   image: {

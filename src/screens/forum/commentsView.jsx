@@ -4,7 +4,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -12,7 +11,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import Comment from "../../components/forumComponents/Comment.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   panelBorder: "#1E1E1E",
@@ -151,12 +150,12 @@ export default function CommentsView({
             <View style={styles.replyTargetPreview}>
               <Image source={replyTargetAvatarSource} style={styles.replyTargetAvatar} />
               <View style={styles.replyTargetTextContent}>
-                <Text numberOfLines={1} style={styles.replyTargetName}>
+                <IBMPlexText numberOfLines={1} style={styles.replyTargetName}>
                   {replyTargetComment?.authorDisplayName}
-                </Text>
-                <Text numberOfLines={3} style={styles.replyTargetBody}>
+                </IBMPlexText>
+                <IBMPlexText numberOfLines={3} style={styles.replyTargetBody}>
                   {replyTargetComment?.body}
-                </Text>
+                </IBMPlexText>
               </View>
             </View>
           ) : null}
@@ -171,9 +170,9 @@ export default function CommentsView({
                   </View>
                   <View pointerEvents="none" style={styles.lockedComposerInlineOverlay}>
                     <LockIcon size={16} style={styles.lockedComposerInlineIcon} />
-                    <Text style={styles.lockedComposerInlineText}>
+                    <IBMPlexText style={styles.lockedComposerInlineText}>
                       Members only, so coaches can ensure safety and quality.
-                    </Text>
+                    </IBMPlexText>
                   </View>
                 </View>
               ) : (
@@ -199,15 +198,15 @@ export default function CommentsView({
                 {commentsLocked ? (
                   <LockIcon size={16} />
                 ) : (
-                  <Text style={styles.commentSubmitButtonText}>
+                  <IBMPlexText style={styles.commentSubmitButtonText}>
                     {isSubmittingComposer ?
                       "Posting..." :
                       isReplyComposer ? "Post Reply" : "Post Comment"}
-                  </Text>
+                  </IBMPlexText>
                 )}
               </TouchableOpacity>
               {composerError ? (
-                <Text style={styles.commentError}>{composerError}</Text>
+                <IBMPlexText style={styles.commentError}>{composerError}</IBMPlexText>
               ) : null}
             </View>
           </View>
@@ -286,8 +285,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: COLORS.text,
+    fontFamily: "IBMPlexSans_400Regular",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 20,
     textAlignVertical: "top",
   },
@@ -322,8 +322,7 @@ const styles = StyleSheet.create({
   lockedComposerInlineText: {
     color: "#C9B259",
     flexShrink: 1,
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     lineHeight: 15,
   },
   lockedComposerLineLong: {
@@ -357,14 +356,12 @@ const styles = StyleSheet.create({
   },
   commentSubmitButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
   },
   commentError: {
     color: COLORS.error,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
   },
   replyTargetPreview: {
@@ -389,14 +386,13 @@ const styles = StyleSheet.create({
   replyTargetName: {
     color: COLORS.text,
     flexShrink: 1,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   replyTargetBody: {
     color: COLORS.muted,
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "400",
     lineHeight: 18,
   },
   commentsList: {

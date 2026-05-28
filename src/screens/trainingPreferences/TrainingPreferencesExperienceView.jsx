@@ -1,6 +1,10 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  View,
+} from "react-native";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ARROW_IMAGE = require("../../assets/icons/arrow.png");
 
 const EXPERIENCE_ORDER = Object.freeze([
@@ -81,12 +85,12 @@ function OptionCard({ children, position, isSelected }) {
           isSelected ? styles.optionFaceSelected : null,
         ]}
       >
-        <StandardText
+        <IBMPlexText defaultWhite
           style={[styles.optionText, optionTextPositionStyle]}
           textColor="#000000"
         >
           {children}
-        </StandardText>
+        </IBMPlexText>
       </View>
     </View>
   );
@@ -111,9 +115,9 @@ export default function TrainingPreferencesExperienceView({
   return (
     <View style={styles.container}>
       <View style={styles.titleWrap}>
-        <Text style={styles.titleText}>
+        <IBMPlexText style={styles.titleText}>
           Rate your strength & conditioning level
-        </Text>
+        </IBMPlexText>
       </View>
 
       <View style={styles.optionsRow}>
@@ -128,9 +132,9 @@ export default function TrainingPreferencesExperienceView({
         </OptionCard>
       </View>
 
-      <StandardText style={styles.descriptionText} textColor="#C9B259" center>
+      <IBMPlexText defaultWhite style={styles.descriptionText} textColor="#C9B259" center>
         {activeOption.description}
-      </StandardText>
+      </IBMPlexText>
 
       <View style={styles.buttonsRow}>
         <Pressable
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: "#ffffff",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 35,
     lineHeight: 39,
     textAlign: "center",

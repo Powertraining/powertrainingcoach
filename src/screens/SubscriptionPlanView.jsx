@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState } from "react";
 import {
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -18,7 +21,7 @@ import {
   listSubscriptionPlans,
   openTrustedStripeUrl,
 } from "../services/utils/stripeClient.js";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const PLAN_OPTIONS = [
   {
     lookupKey: "expert_plan_setup",
@@ -274,7 +277,7 @@ export default function SubscriptionPlanView({
           disabled={Boolean(loadingPlan)}
           style={styles.backButton}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
         </TouchableOpacity>
       ) : null}
       <ScrollView
@@ -330,12 +333,12 @@ export default function SubscriptionPlanView({
         </View>
 
         {!loadingPlans && !error && visiblePlans.length === 0 ? (
-          <Text style={styles.statusCopy}>
+          <IBMPlexText style={styles.statusCopy}>
             No subscription plans are currently available.
-          </Text>
+          </IBMPlexText>
         ) : null}
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <IBMPlexText style={styles.error}>{error}</IBMPlexText> : null}
 
         <View style={styles.trustRow}>
           {TRUST_ITEMS.map((item) => (
@@ -343,12 +346,12 @@ export default function SubscriptionPlanView({
               <View style={styles.trustIcon}>
                 <TrustBenefitIcon type={item.icon} />
               </View>
-              <Text
+              <IBMPlexText
                 numberOfLines={1}
                 style={styles.trustText}
               >
                 {item.label}
-              </Text>
+              </IBMPlexText>
             </View>
           ))}
         </View>
@@ -370,9 +373,9 @@ export default function SubscriptionPlanView({
               isCheckoutDisabled ? styles.checkoutButtonDisabled : null,
             ]}
           >
-            <Text style={styles.checkoutButtonText}>
+            <IBMPlexText style={styles.checkoutButtonText}>
               {loadingPlan ? "PROCESSING..." : "CHECKOUT"}
-            </Text>
+            </IBMPlexText>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -406,13 +409,11 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 18,
   },
   subscriptionCardPlanLabel: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 20, fontWeight: "700",
     lineHeight: 26,
   },
   headerBenefitsSection: {
@@ -424,22 +425,19 @@ const styles = StyleSheet.create({
   },
   statusCopy: {
     color: "rgba(255,255,255,0.72)",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 16,
   },
   trialCopy: {
     color: "rgba(255,255,255,0.72)",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
     marginTop: 18,
     textAlign: "center",
   },
   error: {
     color: "#fca5a5",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
     marginTop: 18,
     textAlign: "center",
@@ -469,8 +467,7 @@ const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     color: "#141414",
-    fontSize: 16,
-    fontWeight: "900",
+    fontSize: 16, fontWeight: "900",
     lineHeight: 21,
   },
   trustRow: {
@@ -494,8 +491,7 @@ const styles = StyleSheet.create({
   },
   trustText: {
     color: "#ffffff",
-    fontSize: 10,
-    fontWeight: "900",
+    fontSize: 10, fontWeight: "900",
     lineHeight: 13,
     textAlign: "center",
   },

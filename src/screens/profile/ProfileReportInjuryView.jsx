@@ -1,4 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState } from "react";
 import {
   Dimensions,
   Keyboard,
@@ -7,7 +11,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
   useWindowDimensions,
@@ -16,7 +19,7 @@ import {
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import { parseInjuryReport } from "../../services/utils/profileFields.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const INJURY_CONTAINER_HEIGHT = 252;
 const INJURY_EDITOR_HEIGHT = 504;
 
@@ -114,19 +117,19 @@ export default function ProfileReportInjuryView({
         <View style={styles.currentInjuryCard}>
           <BlackGradient />
           <View style={styles.currentInjuryContent}>
-            <Text style={styles.currentInjuryEyebrow}>Current injury report</Text>
-            <Text
+            <IBMPlexText style={styles.currentInjuryEyebrow}>Current injury report</IBMPlexText>
+            <IBMPlexText
               numberOfLines={2}
               ellipsizeMode="tail"
               style={styles.currentInjuryTitle}
             >
               {hasInjuryReport ? injuryReport : "No injury reported"}
-            </Text>
-            <Text numberOfLines={1} style={styles.currentInjuryMeta}>
+            </IBMPlexText>
+            <IBMPlexText numberOfLines={1} style={styles.currentInjuryMeta}>
               {hasInjuryReport
                 ? "Injuries and limitations saved"
                 : "There isn't any injury report saved yet"}
-            </Text>
+            </IBMPlexText>
           </View>
         </View>
 
@@ -141,21 +144,21 @@ export default function ProfileReportInjuryView({
           >
             <View style={[styles.detailRowHeader, styles.injuryDetailRowHeader]}>
               <View style={styles.detailRowCopy}>
-                <Text style={styles.detailRowTitle}>Injury details</Text>
+                <IBMPlexText style={styles.detailRowTitle}>Injury details</IBMPlexText>
                 <ScrollView
                   nestedScrollEnabled
                   showsVerticalScrollIndicator={false}
                   style={styles.injuryDetailScroll}
                   contentContainerStyle={styles.injuryDetailScrollContent}
                 >
-                  <Text style={styles.detailRowText}>
+                  <IBMPlexText style={styles.detailRowText}>
                     {injuryReport || "No injuries or limitations added"}
-                  </Text>
+                  </IBMPlexText>
                 </ScrollView>
               </View>
-              <Text style={[styles.detailRowAction, styles.injuryDetailRowAction]}>
+              <IBMPlexText style={[styles.detailRowAction, styles.injuryDetailRowAction]}>
                 Edit &gt;
-              </Text>
+              </IBMPlexText>
             </View>
           </Pressable>
 
@@ -170,7 +173,7 @@ export default function ProfileReportInjuryView({
                 : null,
             ]}
           >
-            <Text style={styles.clearInjuryButtonText}>Clear injury</Text>
+            <IBMPlexText style={styles.clearInjuryButtonText}>Clear injury</IBMPlexText>
           </Pressable>
         </View>
       </View>
@@ -203,7 +206,7 @@ export default function ProfileReportInjuryView({
           >
             <View style={styles.injuryEditorCard}>
               <View style={styles.injuryEditorContent}>
-                <Text style={styles.injuryEditorLabel}>Injury details</Text>
+                <IBMPlexText style={styles.injuryEditorLabel}>Injury details</IBMPlexText>
                 <TextInput
                   value={draftInjuryReport}
                   onChangeText={setDraftInjuryReport}
@@ -229,9 +232,9 @@ export default function ProfileReportInjuryView({
                   isSubmitting ? styles.injuryEditorSaveButtonDisabled : null,
                 ]}
               >
-                <Text style={styles.injuryEditorSaveButtonText}>
+                <IBMPlexText style={styles.injuryEditorSaveButtonText}>
                   {isSubmitting ? "Saving..." : "Save"}
-                </Text>
+                </IBMPlexText>
               </Pressable>
 
               <Pressable
@@ -242,7 +245,7 @@ export default function ProfileReportInjuryView({
                   isSubmitting ? styles.injuryEditorButtonDisabled : null,
                 ]}
               >
-                <Text style={styles.injuryEditorCancelButtonText}>Cancel</Text>
+                <IBMPlexText style={styles.injuryEditorCancelButtonText}>Cancel</IBMPlexText>
               </Pressable>
             </View>
           </KeyboardAvoidingView>
@@ -281,8 +284,7 @@ const styles = StyleSheet.create({
   },
   currentInjuryEyebrow: {
     color: "#C9B259",
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     letterSpacing: 0.4,
     lineHeight: 16,
     marginBottom: 8,
@@ -290,14 +292,12 @@ const styles = StyleSheet.create({
   },
   currentInjuryTitle: {
     color: "#ffffff",
-    fontSize: 22,
-    fontWeight: "900",
+    fontSize: 22, fontWeight: "900",
     lineHeight: 27,
   },
   currentInjuryMeta: {
     color: "#d4d4d4",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
     marginTop: 10,
   },
@@ -346,21 +346,18 @@ const styles = StyleSheet.create({
   },
   detailRowTitle: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
   },
   detailRowText: {
     color: "#9ca3af",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
   },
   detailRowAction: {
     color: "#ffffff",
     flexShrink: 0,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -383,8 +380,7 @@ const styles = StyleSheet.create({
   },
   clearInjuryButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 16, fontWeight: "600",
     opacity: 0.5,
   },
   editorDimLayer: {
@@ -427,15 +423,13 @@ const styles = StyleSheet.create({
   },
   injuryEditorLabel: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
   },
   injuryEditorInput: {
     color: "#9ca3af",
     flex: 1,
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     lineHeight: 17,
     marginTop: 4,
     minHeight: 0,
@@ -475,12 +469,10 @@ const styles = StyleSheet.create({
   },
   injuryEditorSaveButtonText: {
     color: "#141414",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
   injuryEditorCancelButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
 });

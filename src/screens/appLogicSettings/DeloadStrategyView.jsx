@@ -7,8 +7,7 @@ import {
 } from "react-native";
 
 import { DELOAD_STRATEGY_OPTIONS } from "../../constants/appLogicSettings.js";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const DELOAD_OPTION_TEXT = Object.freeze({
   maintain_intensity_reduce_volume: {
@@ -39,7 +38,7 @@ export default function DeloadStrategyView({ value, onChange }) {
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={230}>Deload strategy</TitleText>
+      <IBMPlexText titleBlock height={230}>Deload strategy</IBMPlexText>
       <ScrollView
         style={styles.optionsScroll}
         contentContainerStyle={styles.contentSlot}
@@ -70,15 +69,15 @@ export default function DeloadStrategyView({ value, onChange }) {
                 isSelected ? styles.optionButtonSelected : null,
               ]}
             >
-              <StandardText
+              <IBMPlexText defaultWhite
                 lines={1}
                 style={styles.optionMediaText}
                 textColor={textColor}
                 center
               >
                 {content?.mediaText ?? option.label}
-              </StandardText>
-              <StandardText
+              </IBMPlexText>
+              <IBMPlexText defaultWhite
                 fontSize={13}
                 lines={2}
                 style={styles.optionLabel}
@@ -86,11 +85,11 @@ export default function DeloadStrategyView({ value, onChange }) {
                 center
               >
                 {content?.description ?? option.description}
-              </StandardText>
+              </IBMPlexText>
 
               <View style={styles.example}>
                 <View style={[styles.exampleBlock, styles.exampleBlockLeft]}>
-                  <StandardText
+                  <IBMPlexText defaultWhite
                     fontSize={14}
                     textColor={repsTextColor}
                     style={[
@@ -101,8 +100,8 @@ export default function DeloadStrategyView({ value, onChange }) {
                     ]}
                   >
                     10r
-                  </StandardText>
-                  <StandardText
+                  </IBMPlexText>
+                  <IBMPlexText defaultWhite
                     fontSize={14}
                     textColor={weightTextColor}
                     style={[
@@ -113,11 +112,11 @@ export default function DeloadStrategyView({ value, onChange }) {
                     ]}
                   >
                     10kg
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
                 <ExampleArrow color={textColor} />
                 <View style={[styles.exampleBlock, styles.exampleBlockRight]}>
-                  <StandardText
+                  <IBMPlexText defaultWhite
                     fontSize={14}
                     textColor={repsTextColor}
                     style={[
@@ -128,8 +127,8 @@ export default function DeloadStrategyView({ value, onChange }) {
                     ]}
                   >
                     {content?.afterReps ?? "5reps"}
-                  </StandardText>
-                  <StandardText
+                  </IBMPlexText>
+                  <IBMPlexText defaultWhite
                     fontSize={14}
                     textColor={weightTextColor}
                     style={[
@@ -140,7 +139,7 @@ export default function DeloadStrategyView({ value, onChange }) {
                     ]}
                   >
                     {content?.afterWeight ?? "10kg"}
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               </View>
             </TouchableOpacity>

@@ -1,11 +1,11 @@
-import { Text, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import { getAppLogicSettingsFormState } from "../constants/appLogicSettings.js";
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 export default function AppLogicSettingsFields({
   title,
   description,
@@ -55,8 +55,8 @@ export default function AppLogicSettingsFields({
     <View style={styles.section}>
       {(title || description) && (
         <View style={styles.header}>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
-          {description ? <Text style={styles.description}>{description}</Text> : null}
+          {title ? <IBMPlexText style={styles.title}>{title}</IBMPlexText> : null}
+          {description ? <IBMPlexText style={styles.description}>{description}</IBMPlexText> : null}
         </View>
       )}
 
@@ -106,8 +106,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 20, fontWeight: "700",
     color: "#111827",
   },
   description: {

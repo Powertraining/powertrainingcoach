@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  useEffect,
+  useMemo,
+  useState } from "react";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 
 import {
   buildTrainingCheckInRecommendation,
   TRAINING_CHECK_IN_FIELD_OPTIONS,
 } from "../services/utils/trainingCheckIn.js";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const DEFAULT_ANSWERS = Object.freeze({
   progress: "not_sure",
   fatigue: "normal",
@@ -16,7 +19,7 @@ const DEFAULT_ANSWERS = Object.freeze({
 function ChoiceGroup({ label, value, options, onChange }) {
   return (
     <View style={styles.group}>
-      <Text style={styles.groupLabel}>{label}</Text>
+      <IBMPlexText style={styles.groupLabel}>{label}</IBMPlexText>
       <View style={styles.choiceRow}>
         {options.map((option) => {
           const selected = option.value === value;
@@ -27,14 +30,14 @@ function ChoiceGroup({ label, value, options, onChange }) {
               onPress={() => onChange(option.value)}
               style={[styles.choiceChip, selected && styles.choiceChipSelected]}
             >
-              <Text
+              <IBMPlexText
                 style={[
                   styles.choiceChipText,
                   selected && styles.choiceChipTextSelected,
                 ]}
               >
                 {option.label}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           );
         })}
@@ -77,15 +80,15 @@ export default function TrainingCheckInCard({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>{prompt.type === "end_of_block" ? "Block Review" : "Weekly Review"}</Text>
-        <Text style={styles.title}>{prompt.title}</Text>
-        <Text style={styles.description}>{prompt.summary}</Text>
+        <IBMPlexText style={styles.eyebrow}>{prompt.type === "end_of_block" ? "Block Review" : "Weekly Review"}</IBMPlexText>
+        <IBMPlexText style={styles.title}>{prompt.title}</IBMPlexText>
+        <IBMPlexText style={styles.description}>{prompt.summary}</IBMPlexText>
       </View>
 
       {prompt.objectiveSummary?.summary ? (
         <View style={styles.detectedBox}>
-          <Text style={styles.detectedTitle}>What the app detected</Text>
-          <Text style={styles.detectedText}>{prompt.objectiveSummary.summary}</Text>
+          <IBMPlexText style={styles.detectedTitle}>What the app detected</IBMPlexText>
+          <IBMPlexText style={styles.detectedText}>{prompt.objectiveSummary.summary}</IBMPlexText>
         </View>
       ) : null}
 
@@ -118,11 +121,11 @@ export default function TrainingCheckInCard({
       />
 
       <View style={styles.recommendationBox}>
-        <Text style={styles.recommendationLabel}>Recommended next step</Text>
-        <Text style={styles.recommendationTitle}>
+        <IBMPlexText style={styles.recommendationLabel}>Recommended next step</IBMPlexText>
+        <IBMPlexText style={styles.recommendationTitle}>
           {recommendation.recommendedAction.label}
-        </Text>
-        <Text style={styles.recommendationText}>{recommendation.explanation}</Text>
+        </IBMPlexText>
+        <IBMPlexText style={styles.recommendationText}>{recommendation.explanation}</IBMPlexText>
       </View>
 
       <View style={styles.actionColumn}>
@@ -142,7 +145,7 @@ export default function TrainingCheckInCard({
                 recommended && styles.actionButtonRecommended,
               ]}
             >
-              <Text
+              <IBMPlexText
                 style={[
                   styles.actionButtonTitle,
                   recommended && styles.actionButtonTitleRecommended,
@@ -150,16 +153,16 @@ export default function TrainingCheckInCard({
               >
                 {option.label}
                 {recommended ? " (Recommended)" : ""}
-              </Text>
+              </IBMPlexText>
               {option.summary ? (
-                <Text
+                <IBMPlexText
                   style={[
                     styles.actionButtonText,
                     recommended && styles.actionButtonTextRecommended,
                   ]}
                 >
                   {option.summary}
-                </Text>
+                </IBMPlexText>
               ) : null}
             </TouchableOpacity>
           );
@@ -182,15 +185,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   eyebrow: {
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 1,
     color: "#1d4ed8",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 24, fontWeight: "700",
     color: "#0f172a",
   },
   description: {
@@ -207,8 +208,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   detectedTitle: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     color: "#1d4ed8",
     textTransform: "uppercase",
     letterSpacing: 0.8,
@@ -222,8 +222,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   groupLabel: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
     color: "#0f172a",
   },
   choiceRow: {
@@ -244,8 +243,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563eb",
   },
   choiceChipText: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 13, fontWeight: "600",
     color: "#334155",
   },
   choiceChipTextSelected: {
@@ -258,15 +256,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   recommendationLabel: {
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.9,
     color: "#93c5fd",
   },
   recommendationTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 18, fontWeight: "700",
     color: "#ffffff",
   },
   recommendationText: {
@@ -290,8 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#eff6ff",
   },
   actionButtonTitle: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
     color: "#111827",
   },
   actionButtonTitleRecommended: {

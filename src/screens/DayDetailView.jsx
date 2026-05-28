@@ -1,8 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState } from "react";
 import { useRouter } from "expo-router";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Pressable, Modal, useWindowDimensions } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Pressable,
+  Modal,
+  useWindowDimensions,
+} from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import StandardText from "../components/textComponents/StandardText.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
@@ -26,7 +38,7 @@ import {
     buildMissedRepRecommendation,
     MISSED_REP_REASON_OPTIONS,
 } from "../services/utils/trainingPerformance.js";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 function buildTrackingDrafts(
     exercises = [],
     initialPerformanceResults = [],
@@ -150,9 +162,9 @@ function CompletedExerciseProgressRing({ completedSetCount = 0, totalSetCount = 
                 />
             </Svg>
             <View style={styles.completedExerciseProgressRingContent}>
-                <Text style={styles.completedExerciseProgressRingText}>
+                <IBMPlexText style={styles.completedExerciseProgressRingText}>
                     {completedSetCount}/{totalSetCount}
-                </Text>
+                </IBMPlexText>
             </View>
         </View>
     );
@@ -1093,27 +1105,27 @@ export default function DayDetailView({
                             ]}
                         >
                             <View style={styles.swapEditorTopArea}>
-                                <Text style={styles.swapCurrentLabel}>Current exercise</Text>
+                                <IBMPlexText style={styles.swapCurrentLabel}>Current exercise</IBMPlexText>
                                 <View style={styles.swapCurrentExerciseCard}>
-                                    <StandardText
+                                    <IBMPlexText defaultWhite
                                         lines={2}
                                         style={styles.swapCurrentExerciseName}
                                     >
                                         {getExerciseDisplayName(swapExercise)}
-                                    </StandardText>
-                                    <StandardText
+                                    </IBMPlexText>
+                                    <IBMPlexText defaultWhite
                                         lines={1}
                                         style={styles.swapCurrentExercisePrescription}
                                     >
                                         {getExercisePrescriptionDisplay(swapExercise)}
-                                    </StandardText>
+                                    </IBMPlexText>
                                     {swapExercise?.notes ? (
-                                        <Text
+                                        <IBMPlexText
                                             numberOfLines={3}
                                             style={styles.swapCurrentExerciseDescription}
                                         >
                                             {swapExercise.notes}
-                                        </Text>
+                                        </IBMPlexText>
                                     ) : null}
                                 </View>
                             </View>
@@ -1126,14 +1138,14 @@ export default function DayDetailView({
                                             style={styles.swapOptionCard}
                                         >
                                             <View style={styles.swapOptionTextBlock}>
-                                                <Text style={styles.swapOptionName}>{option.name}</Text>
-                                                <Text style={styles.swapOptionPrescription}>
+                                                <IBMPlexText style={styles.swapOptionName}>{option.name}</IBMPlexText>
+                                                <IBMPlexText style={styles.swapOptionPrescription}>
                                                     {option.sets} x {option.reps}
-                                                </Text>
+                                                </IBMPlexText>
                                                 {option.notes ? (
-                                                    <Text style={styles.swapOptionNotes}>
+                                                    <IBMPlexText style={styles.swapOptionNotes}>
                                                         {option.notes}
-                                                    </Text>
+                                                    </IBMPlexText>
                                                 ) : null}
                                             </View>
                                             <TouchableOpacity
@@ -1142,7 +1154,7 @@ export default function DayDetailView({
                                                 onPress={() => replaceExerciseFromOverlay(option.id)}
                                                 style={styles.swapOptionAction}
                                             >
-                                                <Text style={styles.swapOptionActionIcon}>⇅</Text>
+                                                <IBMPlexText style={styles.swapOptionActionIcon}>⇅</IBMPlexText>
                                             </TouchableOpacity>
                                         </View>
                                     ))}
@@ -1151,7 +1163,7 @@ export default function DayDetailView({
                                     onPress={closeSwapOptions}
                                     style={styles.swapEditorCancelButton}
                                 >
-                                    <Text style={styles.swapEditorCancelButtonText}>Done</Text>
+                                    <IBMPlexText style={styles.swapEditorCancelButtonText}>Done</IBMPlexText>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -1174,7 +1186,7 @@ export default function DayDetailView({
                         style={styles.tipsScroller}
                         contentContainerStyle={styles.tipsContent}
                     >
-                        <Text style={styles.tipsText}>{tipsExercise?.notes}</Text>
+                        <IBMPlexText style={styles.tipsText}>{tipsExercise?.notes}</IBMPlexText>
                     </ScrollView>
                 }
             />
@@ -1192,13 +1204,13 @@ export default function DayDetailView({
                 >
                     {isSkipped ? (
                         <View style={styles.skippedStatus}>
-                            <Text style={styles.skippedStatusTitle}>Session skipped</Text>
-                            <Text style={styles.skippedStatusText}>
+                            <IBMPlexText style={styles.skippedStatusTitle}>Session skipped</IBMPlexText>
+                            <IBMPlexText style={styles.skippedStatusText}>
                                 {adjustmentSummary ||
                                     "This slot no longer counts toward the current training week."}
-                            </Text>
+                            </IBMPlexText>
                             {rescueMode ? (
-                                <Text style={styles.skippedStatusMeta}>Mode: {rescueMode.replace(/_/g, " ")}</Text>
+                                <IBMPlexText style={styles.skippedStatusMeta}>Mode: {rescueMode.replace(/_/g, " ")}</IBMPlexText>
                             ) : null}
                         </View>
                     ) : showRescheduledNotice && isRescheduled ? (
@@ -1208,15 +1220,15 @@ export default function DayDetailView({
                                 styles.adjustmentBoxRescue,
                             ]}
                         >
-                            <Text style={styles.adjustmentTitle}>
+                            <IBMPlexText style={styles.adjustmentTitle}>
                                 Rescheduled session
-                            </Text>
-                            <Text style={styles.adjustmentText}>
+                            </IBMPlexText>
+                            <IBMPlexText style={styles.adjustmentText}>
                                 {adjustmentSummary ||
                                     "This session was moved after a missed slot."}
-                            </Text>
+                            </IBMPlexText>
                             {rescueMode ? (
-                                <Text style={styles.adjustmentMeta}>Mode: {rescueMode.replace(/_/g, " ")}</Text>
+                                <IBMPlexText style={styles.adjustmentMeta}>Mode: {rescueMode.replace(/_/g, " ")}</IBMPlexText>
                             ) : null}
                         </View>
                     ) : null}
@@ -1228,11 +1240,11 @@ export default function DayDetailView({
                             return (
                                 <View key={`tabs-${dayIdentity}-${section}-${sectionIndex}`} style={styles.exerciseSection}>
                                     <View style={styles.exerciseSectionHeader}>
-                                        <StandardText
+                                        <IBMPlexText defaultWhite
                                             style={styles.exerciseSectionTitle}
                                         >
                                             {EXERCISE_SECTION_LABELS[section]}
-                                        </StandardText>
+                                        </IBMPlexText>
                                     </View>
                                     <ScrollView
                                         horizontal
@@ -1316,14 +1328,14 @@ export default function DayDetailView({
                                                                                     handleTabTouchStart(event);
                                                                                 }}
                                                                             >
-                                                                                <Text
+                                                                                <IBMPlexText
                                                                                     style={[
                                                                                         styles.tabButtonActionIcon,
                                                                                         styles.tabButtonSwapActionIcon,
                                                                                     ]}
                                                                                 >
                                                                                     ⇅
-                                                                                </Text>
+                                                                                </IBMPlexText>
                                                                             </TouchableOpacity>
                                                                         ) : null}
                                                                         {hasExerciseTips ? (
@@ -1337,14 +1349,14 @@ export default function DayDetailView({
                                                                                     handleTabTouchStart(event);
                                                                                 }}
                                                                             >
-                                                                                <Text
+                                                                                <IBMPlexText
                                                                                     style={[
                                                                                         styles.tabButtonActionIcon,
                                                                                         styles.tabButtonTipsActionIcon,
                                                                                     ]}
                                                                                 >
                                                                                     ?
-                                                                                </Text>
+                                                                                </IBMPlexText>
                                                                             </TouchableOpacity>
                                                                         ) : null}
                                                                     </View>
@@ -1359,7 +1371,7 @@ export default function DayDetailView({
                                                                         handleTabTouchStart(event);
                                                                     }}
                                                                 >
-                                                                    <Text style={styles.tabButtonForumText}>Forum</Text>
+                                                                    <IBMPlexText style={styles.tabButtonForumText}>Forum</IBMPlexText>
                                                                 </TouchableOpacity>
                                                             </View>
                                                         ) : null}
@@ -1372,14 +1384,14 @@ export default function DayDetailView({
                                                             ]}
                                                         >
                                                             <View style={styles.tabButtonText}>
-                                                                <StandardText
+                                                                <IBMPlexText defaultWhite
                                                                     style={styles.tabButtonName}
                                                                     lines={2}
                                                                     textColor="#fff"
                                                                 >
                                                                     {getExerciseDisplayName(ex)}
-                                                                </StandardText>
-                                                                <StandardText
+                                                                </IBMPlexText>
+                                                                <IBMPlexText defaultWhite
                                                                     style={styles.tabButtonSets}
                                                                     lines={isHighlighted ? 3 : 1}
                                                                     adjustsFontSizeToFit={isHighlighted}
@@ -1387,38 +1399,38 @@ export default function DayDetailView({
                                                                     textColor="#fff"
                                                                 >
                                                                     {getExercisePrescriptionDisplay(ex)}
-                                                                </StandardText>
+                                                                </IBMPlexText>
                                                                 {reportedResults.length > 0 ? (
                                                                     <View style={styles.tabButtonReportedList}>
                                                                         {reportedResults.map(({ setIndex, result }) => (
-                                                                            <StandardText
+                                                                            <IBMPlexText defaultWhite
                                                                                 key={`${exerciseIndex}-${setIndex}`}
                                                                                 style={styles.tabButtonReportedText}
                                                                                 lines={1}
                                                                             >
                                                                                 Set {setIndex + 1}: {result}
-                                                                            </StandardText>
+                                                                            </IBMPlexText>
                                                                         ))}
                                                                     </View>
                                                                 ) : null}
                                                                 {recommendation.primary ? (
-                                                                    <StandardText
+                                                                    <IBMPlexText defaultWhite
                                                                         style={styles.tabButtonRecommendationPrimary}
                                                                         lines={1}
                                                                         textColor="#fff"
                                                                     >
                                                                         {recommendation.primary}
-                                                                    </StandardText>
+                                                                    </IBMPlexText>
                                                                 ) : null}
                                                             </View>
                                                         </View>
                                                         {recommendation.details ? (
-                                                            <StandardText
+                                                            <IBMPlexText defaultWhite
                                                                 style={styles.tabButtonRecommendationDetails}
                                                                 lines={2}
                                                             >
                                                                 {recommendation.details}
-                                                            </StandardText>
+                                                            </IBMPlexText>
                                                         ) : null}
                                                     </View>
                                                 </TouchableOpacity>
@@ -1472,39 +1484,39 @@ export default function DayDetailView({
                                         style={styles.assessmentCard}
                                     >
                                         <View style={styles.assessmentHeader}>
-                                            <Text style={styles.assessmentLiftName}>
+                                            <IBMPlexText style={styles.assessmentLiftName}>
                                                 {performanceTarget?.liftName ||
                                                     strengthAssessment?.liftName ||
                                                     exercise.name}
-                                            </Text>
+                                            </IBMPlexText>
                                             {strengthAssessment ? (
-                                                <Text style={styles.assessmentMethodTag}>
+                                                <IBMPlexText style={styles.assessmentMethodTag}>
                                                     {getStrengthAssessmentMethodLabel(
                                                         strengthAssessment.method
                                                     )}
-                                                </Text>
+                                                </IBMPlexText>
                                             ) : performanceTarget ? (
-                                                <Text style={styles.assessmentMethodTag}>
+                                                <IBMPlexText style={styles.assessmentMethodTag}>
                                                     {performanceTarget.strategy.replace(/_/g, " ")}
-                                                </Text>
+                                                </IBMPlexText>
                                             ) : null}
                                         </View>
                                         {performanceTarget?.prompt ? (
-                                            <Text style={styles.assessmentPrompt}>
+                                            <IBMPlexText style={styles.assessmentPrompt}>
                                                 {performanceTarget.prompt}
-                                            </Text>
+                                            </IBMPlexText>
                                         ) : null}
                                         {strengthAssessment?.prompt &&
                                         strengthAssessment.prompt !== performanceTarget?.prompt ? (
-                                            <Text style={styles.assessmentPromptSecondary}>
+                                            <IBMPlexText style={styles.assessmentPromptSecondary}>
                                                 {strengthAssessment.prompt}
-                                            </Text>
+                                            </IBMPlexText>
                                         ) : null}
                                         <View style={styles.assessmentInputRow}>
                                             <View style={styles.assessmentField}>
-                                                <Text style={styles.assessmentFieldLabel}>
+                                                <IBMPlexText style={styles.assessmentFieldLabel}>
                                                     {strengthRequirements?.loadLabel || "Load used (kg)"}
-                                                </Text>
+                                                </IBMPlexText>
                                                 <TextInput
                                                     value={draft.loadKg}
                                                     onChangeText={(value) =>
@@ -1522,9 +1534,9 @@ export default function DayDetailView({
 
                                             {requiresReps ? (
                                                 <View style={styles.assessmentField}>
-                                                    <Text style={styles.assessmentFieldLabel}>
+                                                    <IBMPlexText style={styles.assessmentFieldLabel}>
                                                         {strengthRequirements?.repsLabel || "Reps completed"}
-                                                    </Text>
+                                                    </IBMPlexText>
                                                     <TextInput
                                                         value={draft.reps}
                                                         onChangeText={(value) =>
@@ -1543,9 +1555,9 @@ export default function DayDetailView({
 
                                             {requiresRpe ? (
                                                 <View style={styles.assessmentField}>
-                                                    <Text style={styles.assessmentFieldLabel}>
+                                                    <IBMPlexText style={styles.assessmentFieldLabel}>
                                                         {strengthRequirements?.rpeLabel || "RPE"}
-                                                    </Text>
+                                                    </IBMPlexText>
                                                     <TextInput
                                                         value={draft.rpe}
                                                         onChangeText={(value) =>
@@ -1565,7 +1577,7 @@ export default function DayDetailView({
                                         {performanceTarget ? (
                                             <View style={styles.missedRepBox}>
                                                 <View style={styles.missedRepHeader}>
-                                                    <Text style={styles.missedRepTitle}>Missed rep</Text>
+                                                    <IBMPlexText style={styles.missedRepTitle}>Missed rep</IBMPlexText>
                                                     <TouchableOpacity
                                                         style={[
                                                             styles.missedRepToggle,
@@ -1579,14 +1591,14 @@ export default function DayDetailView({
                                                             )
                                                         }
                                                     >
-                                                        <Text
+                                                        <IBMPlexText
                                                             style={[
                                                                 styles.missedRepToggleText,
                                                                 draft.missedRep && styles.missedRepToggleTextActive,
                                                             ]}
                                                         >
                                                             {draft.missedRep ? "Logged" : "Log miss"}
-                                                        </Text>
+                                                        </IBMPlexText>
                                                     </TouchableOpacity>
                                                 </View>
                                                 {draft.missedRep ? (
@@ -1609,14 +1621,14 @@ export default function DayDetailView({
                                                                         )
                                                                     }
                                                                 >
-                                                                    <Text
+                                                                    <IBMPlexText
                                                                         style={[
                                                                             styles.missedReasonChipText,
                                                                             selected && styles.missedReasonChipTextSelected,
                                                                         ]}
                                                                     >
                                                                         {option.label}
-                                                                    </Text>
+                                                                    </IBMPlexText>
                                                                 </TouchableOpacity>
                                                             );
                                                         })}
@@ -1624,28 +1636,28 @@ export default function DayDetailView({
                                                 ) : null}
                                                 {draft.missedRep && missedRepRecommendation ? (
                                                     <View style={styles.missedRecommendationBox}>
-                                                        <Text style={styles.missedRecommendationLabel}>Best next step</Text>
-                                                        <Text style={styles.missedRecommendationTitle}>
+                                                        <IBMPlexText style={styles.missedRecommendationLabel}>Best next step</IBMPlexText>
+                                                        <IBMPlexText style={styles.missedRecommendationTitle}>
                                                             {missedRepRecommendation.recommendedAction?.label}
-                                                        </Text>
+                                                        </IBMPlexText>
                                                         {missedRepRecommendation.recommendedAction?.summary ? (
-                                                            <Text style={styles.missedRecommendationText}>
+                                                            <IBMPlexText style={styles.missedRecommendationText}>
                                                                 {missedRepRecommendation.recommendedAction.summary}
-                                                            </Text>
+                                                            </IBMPlexText>
                                                         ) : null}
-                                                        <Text style={styles.missedRecommendationNext}>
+                                                        <IBMPlexText style={styles.missedRecommendationNext}>
                                                             Next session: {missedRepRecommendation.nextSessionAdjustment}
-                                                        </Text>
+                                                        </IBMPlexText>
                                                     </View>
                                                 ) : draft.missedRep ? (
-                                                    <Text style={styles.missedRepHelper}>
+                                                    <IBMPlexText style={styles.missedRepHelper}>
                                                         Pick the reason so the app can adjust the next exposure correctly.
-                                                    </Text>
+                                                    </IBMPlexText>
                                                 ) : null}
                                             </View>
                                         ) : null}
                                         {savedPerformanceResult ? (
-                                            <Text style={styles.assessmentSaved}>
+                                            <IBMPlexText style={styles.assessmentSaved}>
                                                 {savedPerformanceResult.missedRep ?
                                                     `Saved missed rep: ${savedPerformanceResult.missedRepReasonLabel || "Logged"}` :
                                                     `Saved performance: ${savedPerformanceResult.loadKg} kg x ${savedPerformanceResult.reps}`
@@ -1659,17 +1671,17 @@ export default function DayDetailView({
                                                     ` | drift ${savedPerformanceResult.rpeDrift > 0 ? "+" : ""}${savedPerformanceResult.rpeDrift}` :
                                                     ""
                                                 }
-                                            </Text>
+                                            </IBMPlexText>
                                         ) : null}
                                         {savedResult ? (
-                                            <Text style={styles.assessmentSaved}>
+                                            <IBMPlexText style={styles.assessmentSaved}>
                                                 Saved estimate: {savedResult.estimatedOneRepMaxKg} kg 1RM, {savedResult.trainingMaxKg} kg training max.
-                                            </Text>
+                                            </IBMPlexText>
                                         ) : null}
                                         {!savedResult && !savedPerformanceResult ? (
-                                            <Text style={styles.assessmentSaved}>
+                                            <IBMPlexText style={styles.assessmentSaved}>
                                                 Leave blank if you did not perform the tracked top set today.
-                                            </Text>
+                                            </IBMPlexText>
                                         ) : null}
                                     </View>
                                 );
@@ -1678,20 +1690,20 @@ export default function DayDetailView({
                     ) : null}
 
                     {/* <View style={styles.listBlock}>
-                        <Text style={styles.listLabel}>Complete workout breakdown:</Text>
+                        <IBMPlexText style={styles.listLabel}>Complete workout breakdown:</IBMPlexText>
                         {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
                             return (
                                 <View key={`${section}-${sectionIndex}`} style={styles.exerciseSection}>
                                     <View style={styles.exerciseSectionHeader}>
-                                        <Text style={styles.exerciseSectionTitle}>
+                                        <IBMPlexText style={styles.exerciseSectionTitle}>
                                             {EXERCISE_SECTION_LABELS[section]}
-                                        </Text>
+                                        </IBMPlexText>
                                     </View>
                                     {sectionExercises.map(({ exercise: ex, exerciseIndex }) => (
                                         <View key={exerciseIndex} style={styles.exerciseRow}>
                                             <View>
-                                                <Text style={styles.exerciseName}>{getExerciseDisplayName(ex)}</Text>
-                                                {ex.notes ? <Text style={styles.exerciseNotes}>{ex.notes}</Text> : null}
+                                                <IBMPlexText style={styles.exerciseName}>{getExerciseDisplayName(ex)}</IBMPlexText>
+                                                {ex.notes ? <IBMPlexText style={styles.exerciseNotes}>{ex.notes}</IBMPlexText> : null}
                                             </View>
                                         </View>
                                     ))}
@@ -1761,8 +1773,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ecfeff',
     },
     adjustmentTitle: {
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: 14, fontWeight: '700',
         color: '#111827',
     },
     adjustmentText: {
@@ -1780,8 +1791,7 @@ const styles = StyleSheet.create({
     },
     skippedStatusTitle: {
         color: '#9ca3af',
-        fontSize: 12,
-        fontWeight: '700',
+        fontSize: 12, fontWeight: '700',
         textTransform: 'uppercase',
     },
     skippedStatusText: {
@@ -1835,8 +1845,7 @@ const styles = StyleSheet.create({
     },
     swapCurrentLabel: {
         color: '#7E7E7E',
-        fontSize: 12,
-        fontWeight: '800',
+        fontSize: 12, fontWeight: '800',
         lineHeight: 15,
         marginBottom: 6,
         paddingHorizontal: 2,
@@ -1845,23 +1854,20 @@ const styles = StyleSheet.create({
     },
     swapCurrentExerciseName: {
         color: '#ffffff',
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 18, fontWeight: '700',
         lineHeight: 22,
         textAlign: 'left',
     },
     swapCurrentExercisePrescription: {
         color: '#d1d5db',
-        fontSize: 13,
-        fontWeight: '700',
+        fontSize: 13, fontWeight: '700',
         lineHeight: 16,
         marginTop: 6,
         textAlign: 'left',
     },
     swapCurrentExerciseDescription: {
         color: '#9ca3af',
-        fontSize: 12,
-        fontWeight: '600',
+        fontSize: 12, fontWeight: '600',
         lineHeight: 16,
         marginTop: 8,
         textAlign: 'left',
@@ -1891,8 +1897,7 @@ const styles = StyleSheet.create({
         gap: 3,
     },
     swapOptionName: {
-        fontSize: 15,
-        fontWeight: '700',
+        fontSize: 15, fontWeight: '700',
         color: '#ffffff',
     },
     swapOptionPrescription: {
@@ -1914,8 +1919,7 @@ const styles = StyleSheet.create({
     },
     swapOptionActionIcon: {
         color: '#ffffff',
-        fontSize: 20,
-        fontWeight: '800',
+        fontSize: 20, fontWeight: '800',
         lineHeight: 22,
         textAlign: 'center',
     },
@@ -1931,8 +1935,7 @@ const styles = StyleSheet.create({
     },
     swapEditorCancelButtonText: {
         color: '#ffffff',
-        fontSize: 12,
-        fontWeight: '800',
+        fontSize: 12, fontWeight: '800',
     },
     tipsSheet: {
         maxHeight: '72%',
@@ -1962,8 +1965,7 @@ const styles = StyleSheet.create({
         borderTopColor: 'rgba(0,0,0,0.08)',
     },
     assessmentTitle: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 18, fontWeight: '700',
         color: '#111827',
     },
     assessmentDescription: {
@@ -1987,13 +1989,11 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     assessmentLiftName: {
-        fontSize: 16,
-        fontWeight: '700',
+        fontSize: 16, fontWeight: '700',
         color: '#111827',
     },
     assessmentMethodTag: {
-        fontSize: 12,
-        fontWeight: '700',
+        fontSize: 12, fontWeight: '700',
         color: '#1d4ed8',
         backgroundColor: 'white',
         paddingHorizontal: 10,
@@ -2023,8 +2023,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     assessmentFieldLabel: {
-        fontSize: 13,
-        fontWeight: '600',
+        fontSize: 13, fontWeight: '600',
         color: '#1f2937',
     },
     assessmentInput: {
@@ -2052,8 +2051,7 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     missedRepTitle: {
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: 14, fontWeight: '700',
         color: '#7c2d12',
     },
     missedRepToggle: {
@@ -2069,8 +2067,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#c2410c',
     },
     missedRepToggleText: {
-        fontSize: 13,
-        fontWeight: '700',
+        fontSize: 13, fontWeight: '700',
         color: '#9a3412',
     },
     missedRepToggleTextActive: {
@@ -2094,8 +2091,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#c2410c',
     },
     missedReasonChipText: {
-        fontSize: 13,
-        fontWeight: '600',
+        fontSize: 13, fontWeight: '600',
         color: '#9a3412',
     },
     missedReasonChipTextSelected: {
@@ -2113,15 +2109,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#431407',
     },
     missedRecommendationLabel: {
-        fontSize: 11,
-        fontWeight: '700',
+        fontSize: 11, fontWeight: '700',
         letterSpacing: 0.8,
         textTransform: 'uppercase',
         color: '#fed7aa',
     },
     missedRecommendationTitle: {
-        fontSize: 15,
-        fontWeight: '700',
+        fontSize: 15, fontWeight: '700',
         color: 'white',
     },
     missedRecommendationText: {
@@ -2190,8 +2184,7 @@ const styles = StyleSheet.create({
     },
     completedExerciseProgressRingText: {
         color: "#fff",
-        fontSize: 12,
-        fontWeight: "800",
+        fontSize: 12, fontWeight: "800",
         lineHeight: 14,
         textAlign: "center",
     },
@@ -2205,8 +2198,7 @@ const styles = StyleSheet.create({
     },
     tabButtonActionIcon: {
         color: '#000',
-        fontSize: 22,
-        fontWeight: '800',
+        fontSize: 22, fontWeight: '800',
         height: 30,
         lineHeight: 30,
         textAlign: 'center',
@@ -2230,8 +2222,7 @@ const styles = StyleSheet.create({
     },
     tabButtonForumText: {
         color: '#000',
-        fontSize: 13,
-        fontWeight: '700',
+        fontSize: 13, fontWeight: '700',
         lineHeight: 15,
         textAlign: 'center',
     },
@@ -2250,15 +2241,13 @@ const styles = StyleSheet.create({
     },
     tabButtonReportedText: {
         color: "#fff",
-        fontSize: 11,
-        fontWeight: "700",
+        fontSize: 11, fontWeight: "700",
         lineHeight: 13,
     },
     tabButtonRecommendationPrimary: { fontSize: 17, fontWeight: '700', lineHeight: 20 },
     tabButtonRecommendationDetails: {
         color: '#C9B259',
-        fontSize: 10,
-        fontWeight: '700',
+        fontSize: 10, fontWeight: '700',
         lineHeight: 12,
     },
     tabButtonActive: { },
@@ -2279,8 +2268,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9fafb',
     },
     emptyStateTitle: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 18, fontWeight: '700',
         color: '#111827',
     },
     emptyStateText: {
@@ -2309,8 +2297,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     exerciseSectionTitle: {
-        fontSize: 12,
-        fontWeight: '700',
+        fontSize: 12, fontWeight: '700',
         color: '#9ca3af',
         opacity: 1,
         textAlign: 'left',

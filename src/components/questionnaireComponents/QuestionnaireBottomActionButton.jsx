@@ -1,5 +1,5 @@
-import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
-
+import { TouchableOpacity, View, StyleSheet } from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 export default function QuestionnaireBottomActionButton({
     text = "continue",
     canContinue,
@@ -14,11 +14,11 @@ export default function QuestionnaireBottomActionButton({
             <View style={styles.stackedContainer}>
                 {!hideBack ? (
                     <TouchableOpacity onPress={onBack} style={styles.stackedBackButton}>
-                        <Text style={[styles.buttonText, styles.bottomBackButtonText]}>Back</Text>
+                        <IBMPlexText style={[styles.buttonText, styles.bottomBackButtonText]}>Back</IBMPlexText>
                     </TouchableOpacity>
                 ) : null}
                 <TouchableOpacity onPress={onContinue} style={styles.stackedContinueButton}>
-                    <Text style={styles.buttonText}>{text}</Text>
+                    <IBMPlexText style={styles.buttonText}>{text}</IBMPlexText>
                 </TouchableOpacity>
             </View>
         );
@@ -33,16 +33,16 @@ export default function QuestionnaireBottomActionButton({
             onPress={canContinue ? onContinue : onBack}
             style={canContinue ? styles.continueButton : styles.bottomBackButton}
         >
-            <Text style={[styles.buttonText, !canContinue && styles.bottomBackButtonText]}>
+            <IBMPlexText style={[styles.buttonText, !canContinue && styles.bottomBackButtonText]}>
                 {canContinue ? text : "Go back"}
-            </Text>
+            </IBMPlexText>
         </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
     buttonText: {
-        fontFamily: "BebasNeue",
+        fontFamily: "IBMPlexSans_600SemiBold",
         fontSize: 22
     },
     continueButton: {

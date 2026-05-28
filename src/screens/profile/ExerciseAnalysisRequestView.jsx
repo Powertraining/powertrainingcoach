@@ -1,11 +1,11 @@
-import { useState } from "react";
+import {
+  useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useVideoPlayer, VideoView } from "expo-video";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   panelSoft: "rgba(255,255,255,0.08)",
@@ -116,7 +116,7 @@ export default function ExerciseAnalysisRequestView({
         disabled={videoActionDisabled}
         style={styles.backButton}
       >
-        <Text style={styles.backButtonText}>Go Back</Text>
+        <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
       </TouchableOpacity>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -134,13 +134,13 @@ export default function ExerciseAnalysisRequestView({
           ]}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Exercise analysis</Text>
-            <Text style={styles.subtitle}>Send a video for coach feedback.</Text>
+            <IBMPlexText style={styles.title}>Exercise analysis</IBMPlexText>
+            <IBMPlexText style={styles.subtitle}>Send a video for coach feedback.</IBMPlexText>
           </View>
 
           <View style={styles.form}>
             <View style={styles.field}>
-              <Text style={styles.label}>Exercise name</Text>
+              <IBMPlexText style={styles.label}>Exercise name</IBMPlexText>
               <TextInput
                 style={styles.input}
                 placeholder="Exercise name"
@@ -155,7 +155,7 @@ export default function ExerciseAnalysisRequestView({
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Video</Text>
+              <IBMPlexText style={styles.label}>Video</IBMPlexText>
               <TouchableOpacity
                 accessibilityRole="button"
                 onPress={onUploadVideo}
@@ -172,7 +172,7 @@ export default function ExerciseAnalysisRequestView({
                       {isUploadingVideo ? (
                         <ActivityIndicator color={COLORS.text} size="small" />
                       ) : (
-                        <Text style={styles.videoOverlayText}>Change video</Text>
+                        <IBMPlexText style={styles.videoOverlayText}>Change video</IBMPlexText>
                       )}
                     </View>
                   </>
@@ -181,15 +181,15 @@ export default function ExerciseAnalysisRequestView({
                 ) : (
                   <View style={styles.emptyVideoState}>
                     <VideoIcon />
-                    <Text style={styles.emptyVideoTitle}>Upload video</Text>
+                    <IBMPlexText style={styles.emptyVideoTitle}>Upload video</IBMPlexText>
                   </View>
                 )}
               </TouchableOpacity>
-              <Text style={styles.requiredText}>Video is required.</Text>
+              <IBMPlexText style={styles.requiredText}>Video is required.</IBMPlexText>
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Advice request</Text>
+              <IBMPlexText style={styles.label}>Advice request</IBMPlexText>
               <TextInput
                 multiline
                 style={[styles.input, styles.textArea]}
@@ -204,7 +204,7 @@ export default function ExerciseAnalysisRequestView({
             </View>
           </View>
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {error ? <IBMPlexText style={styles.errorText}>{error}</IBMPlexText> : null}
 
           <View style={styles.footer}>
             <TouchableOpacity
@@ -213,9 +213,9 @@ export default function ExerciseAnalysisRequestView({
               style={[styles.secondaryButton, isSubmitting ? styles.disabledButton : null]}
             >
               <TrashIcon />
-              <Text style={styles.secondaryButtonText}>
+              <IBMPlexText style={styles.secondaryButtonText}>
                 {hasVideo ? "Remove" : "Discard"}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onSend}
@@ -223,9 +223,9 @@ export default function ExerciseAnalysisRequestView({
               style={[styles.primaryButton, sendDisabled ? styles.disabledButton : null]}
             >
               <PaperAirplaneIcon />
-              <Text style={styles.primaryButtonText}>
+              <IBMPlexText style={styles.primaryButtonText}>
                 {isSubmitting ? "Sending..." : "Send"}
-              </Text>
+              </IBMPlexText>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -260,8 +260,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   header: {
@@ -269,14 +268,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: COLORS.text,
-    fontSize: 28,
-    fontWeight: "900",
+    fontSize: 28, fontWeight: "900",
     lineHeight: 34,
   },
   subtitle: {
     color: COLORS.faint,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
   },
   form: {
@@ -287,8 +284,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -298,8 +294,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 2,
     color: COLORS.text,
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
     minHeight: 54,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -336,8 +331,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.58)",
     borderRadius: 999,
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     lineHeight: 16,
     overflow: "hidden",
     paddingHorizontal: 14,
@@ -350,15 +344,13 @@ const styles = StyleSheet.create({
   },
   emptyVideoTitle: {
     color: COLORS.text,
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: 13, fontWeight: "900",
     lineHeight: 17,
     textTransform: "uppercase",
   },
   requiredText: {
     color: COLORS.faint,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
   },
   footer: {
@@ -381,8 +373,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: COLORS.panel,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -400,8 +391,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -410,8 +400,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: COLORS.error,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 17,
   },
   videoIcon: {

@@ -1,8 +1,8 @@
 import { View, StyleSheet, ScrollView } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
 import QuestionnaireSportOptionButton from "../../components/questionnaireComponents/QuestionnaireSportOptionButton.jsx";
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick, onClose }) {
     const canContinue = Boolean(value);
@@ -11,7 +11,7 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
         <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View>
             <ScrollView>
-            <TitleText >select your primary combat sport</TitleText>
+            <IBMPlexText titleBlock >select your primary combat sport</IBMPlexText>
                 <View >
                     <View  style={styles.grid}>
                     {options.map((option) => {

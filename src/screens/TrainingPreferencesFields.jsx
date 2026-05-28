@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
@@ -20,7 +20,7 @@ import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntens
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
-
+import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 22;
 const APP_LOGIC_SECTION_COUNT = 4;
 export const DESIRED_TRAINING_STEP_INDEX = 14;
@@ -644,9 +644,9 @@ export default function TrainingPreferencesFields({
     <View style={styles.section}>
       {(title || description) && (
         <View style={styles.header}>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
+          {title ? <IBMPlexText style={styles.title}>{title}</IBMPlexText> : null}
           {description ? (
-            <Text style={styles.description}>{description}</Text>
+            <IBMPlexText style={styles.description}>{description}</IBMPlexText>
           ) : null}
         </View>
       )}
@@ -668,8 +668,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 20, fontWeight: "700",
     color: "#111827",
   },
   description: {

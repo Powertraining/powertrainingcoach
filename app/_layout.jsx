@@ -7,14 +7,12 @@ import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as NavigationBar from "expo-navigation-bar";
 
-
-
-
 import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../src/screens/LoadingView.jsx";
 import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
 import BlackGradient from "../src/components/colorComponents/BlackGradient.jsx";
 import { preloadQuestionnaireImages } from "../src/services/utils/preloadAssets.js";
+import { fonts } from "../src/theme/colors.js";
 
 
 // Make model globally available for debugging
@@ -25,7 +23,11 @@ if (typeof global !== "undefined") {
 const RootLayout = observer(function RootLayout() {
   const model = reactiveModel;
   const [fontsLoaded] = useFonts({
-    BebasNeue: require("../src/assets/BebasNeue-Regular.ttf"),
+    [fonts.display]: require("../src/shared/fonts/bebaskai/BebasKai.ttf"),
+    [fonts.body]: require("../src/shared/fonts/cmu-sans-serif/cmunss.ttf"),
+    [fonts.bodyMedium]: require("../src/shared/fonts/cmu-bright/cmunbmr.ttf"),
+    [fonts.bodySemiBold]: require("../src/shared/fonts/cmu-bright/cmunbsr.ttf"),
+    [fonts.bodyBold]: require("../src/shared/fonts/cmu-sans-serif/cmunsx.ttf"),
   });
 
   // Start the background date change detector when app mounts

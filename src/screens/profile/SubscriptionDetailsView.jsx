@@ -1,11 +1,17 @@
-import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useVideoPlayer, VideoView } from "expo-video";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ANALYSIS_SLOTS = ["1", "2", "3", "4"];
 
 function AnalysisVideoPreview({ uri }) {
@@ -36,9 +42,9 @@ function AnalysisSlotContent({ post }) {
         </View>
         {post.title ? (
           <View style={styles.analysisTitleScrim}>
-            <Text numberOfLines={1} style={styles.analysisTitleText}>
+            <IBMPlexText numberOfLines={1} style={styles.analysisTitleText}>
               {post.title}
-            </Text>
+            </IBMPlexText>
           </View>
         ) : null}
       </View>
@@ -99,7 +105,7 @@ export default function SubscriptionDetailsView({
         disabled={isSubmitting}
         style={styles.backButton}
       >
-        <Text style={styles.backButtonText}>Go Back</Text>
+        <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
       </TouchableOpacity>
       <ScrollView
         style={styles.scroll}
@@ -112,18 +118,18 @@ export default function SubscriptionDetailsView({
         ]}
       >
         <View style={styles.planHeader}>
-          <Text style={styles.planTitle}>{`{ ${planName} }`}</Text>
+          <IBMPlexText style={styles.planTitle}>{`{ ${planName} }`}</IBMPlexText>
           {subscribedText ? (
-            <Text style={styles.subscribedText}>{subscribedText}</Text>
+            <IBMPlexText style={styles.subscribedText}>{subscribedText}</IBMPlexText>
           ) : null}
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Analyses</Text>
-            <Text style={styles.analysisCounterText}>
+            <IBMPlexText style={styles.sectionTitle}>Analyses</IBMPlexText>
+            <IBMPlexText style={styles.analysisCounterText}>
               {`${analysesLeftThisMonth}/4 analyses left this month`}
-            </Text>
+            </IBMPlexText>
             <View style={styles.sectionDivider} />
           </View>
 
@@ -148,13 +154,13 @@ export default function SubscriptionDetailsView({
             disabled={isSubmitting}
             style={[styles.showAllButton, isSubmitting ? styles.optionRowDisabled : null]}
           >
-            <Text style={styles.showAllButtonText}>Show all</Text>
+            <IBMPlexText style={styles.showAllButtonText}>Show all</IBMPlexText>
           </TouchableOpacity>
         </View>
 
         <View style={[styles.section, styles.optionsSection]}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Options</Text>
+            <IBMPlexText style={styles.sectionTitle}>Options</IBMPlexText>
             <View style={styles.sectionDivider} />
           </View>
 
@@ -164,7 +170,7 @@ export default function SubscriptionDetailsView({
               disabled={isSubmitting}
               style={[styles.optionRow, isSubmitting ? styles.optionRowDisabled : null]}
             >
-              <Text style={styles.optionRowText}>Change payment method</Text>
+              <IBMPlexText style={styles.optionRowText}>Change payment method</IBMPlexText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -172,16 +178,16 @@ export default function SubscriptionDetailsView({
               disabled={isSubmitting}
               style={[styles.optionRow, isSubmitting ? styles.optionRowDisabled : null]}
             >
-              <Text style={styles.optionRowText}>Cancel plan</Text>
+              <IBMPlexText style={styles.optionRowText}>Cancel plan</IBMPlexText>
             </TouchableOpacity>
           </View>
 
           {nextBillingText ? (
-            <Text style={styles.nextBillingText}>{nextBillingText}</Text>
+            <IBMPlexText style={styles.nextBillingText}>{nextBillingText}</IBMPlexText>
           ) : null}
         </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <IBMPlexText style={styles.error}>{error}</IBMPlexText> : null}
       </ScrollView>
       <WhiteBottomMenu
         visible={cancelConfirmVisible}
@@ -225,8 +231,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 14, fontWeight: "700",
     lineHeight: 18,
   },
   planHeader: {
@@ -237,15 +242,13 @@ const styles = StyleSheet.create({
   },
   planTitle: {
     color: "#ffffff",
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 20, fontWeight: "700",
     lineHeight: 26,
     textAlign: "center",
   },
   subscribedText: {
     color: "#9ca3af",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -261,15 +264,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "900",
+    fontSize: 18, fontWeight: "900",
     lineHeight: 23,
     textAlign: "center",
   },
   analysisCounterText: {
     color: "#9ca3af",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -295,8 +296,7 @@ const styles = StyleSheet.create({
   },
   showAllButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 12, fontWeight: "900",
     lineHeight: 16,
     textTransform: "uppercase",
   },
@@ -380,8 +380,7 @@ const styles = StyleSheet.create({
   },
   analysisTitleText: {
     color: "#ffffff",
-    fontSize: 10,
-    fontWeight: "900",
+    fontSize: 10, fontWeight: "900",
     lineHeight: 13,
   },
   optionRows: {
@@ -400,8 +399,7 @@ const styles = StyleSheet.create({
   },
   optionRowText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "900",
+    fontSize: 14, fontWeight: "900",
     lineHeight: 18,
     textAlign: "center",
   },
@@ -410,15 +408,13 @@ const styles = StyleSheet.create({
   },
   nextBillingText: {
     color: "#9ca3af",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
     textAlign: "center",
   },
   error: {
     color: "#fca5a5",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 17,
     textAlign: "center",
   },

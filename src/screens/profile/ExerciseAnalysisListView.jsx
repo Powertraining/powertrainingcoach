@@ -1,7 +1,6 @@
 import {
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -10,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useVideoPlayer, VideoView } from "expo-video";
 
 import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
   panel: "#141414",
   border: "#1E1E1E",
@@ -57,7 +56,7 @@ export default function ExerciseAnalysisListView({
     <View style={styles.screen}>
       <BlackGradient />
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={styles.backButtonText}>Go Back</Text>
+        <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
       </TouchableOpacity>
       <ScrollView
         style={styles.scroll}
@@ -70,8 +69,8 @@ export default function ExerciseAnalysisListView({
         ]}
       >
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>Analysis archive</Text>
-          <Text style={styles.subtitle}>Previous video analyses</Text>
+          <IBMPlexText style={styles.title}>Analysis archive</IBMPlexText>
+          <IBMPlexText style={styles.subtitle}>Previous video analyses</IBMPlexText>
         </View>
 
         {posts.length > 0 ? (
@@ -93,7 +92,7 @@ export default function ExerciseAnalysisListView({
           </View>
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No previous analyses yet.</Text>
+            <IBMPlexText style={styles.emptyText}>No previous analyses yet.</IBMPlexText>
           </View>
         )}
       </ScrollView>
@@ -116,8 +115,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 14, fontWeight: "800",
     lineHeight: 18,
   },
   scroll: {
@@ -132,14 +130,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: COLORS.text,
-    fontSize: 26,
-    fontWeight: "900",
+    fontSize: 26, fontWeight: "900",
     lineHeight: 32,
   },
   subtitle: {
     color: COLORS.muted,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
   },
   grid: {
@@ -197,8 +193,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: COLORS.muted,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 18,
     textAlign: "center",
   },

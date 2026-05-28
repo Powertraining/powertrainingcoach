@@ -1,18 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from "react-native";
-
-import TitleText from "../../components/textComponents/TitleText.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
 import { ENDURANCE_MODALITY_OPTIONS } from "../../constants/trainingPreferences.js";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ENDURANCE_METHOD_ICONS = Object.freeze({
   arm_crank_machine: "arm-flex",
   assault_bike: "bike-fast",
@@ -85,20 +84,20 @@ export default function TrainingPreferencesEnduranceMethodsView({
         style={activeInfoOption ? styles.blurredContent : null}
         contentContainerStyle={styles.scrollContent}
       >
-        <TitleText height={118}>Endurance Methods</TitleText>
-        <StandardText style={styles.helperText} textColor="#C9B259" center>
+        <IBMPlexText titleBlock height={118}>Endurance Methods</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
           Optional. Pick the tools you prefer, or leave this open so the coach can
           choose around your week.
-        </StandardText>
+        </IBMPlexText>
         <View style={styles.infoHint}>
           <MaterialCommunityIcons
             name="gesture-tap-hold"
             size={15}
             color="#9CA3AF"
           />
-          <Text style={styles.infoHintText}>
+          <IBMPlexText style={styles.infoHintText}>
             Tap to select. Hold any method for details.
-          </Text>
+          </IBMPlexText>
         </View>
 
         <View style={styles.grid}>
@@ -134,7 +133,7 @@ export default function TrainingPreferencesEnduranceMethodsView({
                   color="#ffffff"
                   style={styles.optionIcon}
                 />
-                <Text style={styles.optionLabel}>{option.label}</Text>
+                <IBMPlexText style={styles.optionLabel}>{option.label}</IBMPlexText>
               </Pressable>
             );
           })}
@@ -165,11 +164,11 @@ export default function TrainingPreferencesEnduranceMethodsView({
                   color="#ffffff"
                   style={styles.infoCardIcon}
                 />
-                <Text style={styles.infoTitle}>{activeInfoOption.label}</Text>
+                <IBMPlexText style={styles.infoTitle}>{activeInfoOption.label}</IBMPlexText>
               </View>
             </View>
             <View style={styles.infoBottomContent}>
-              <Text style={styles.infoText}>{activeInfoOption.description}</Text>
+              <IBMPlexText style={styles.infoText}>{activeInfoOption.description}</IBMPlexText>
               <View style={styles.infoActions}>
                 <Pressable
                   onPress={selectActiveInfoMethod}
@@ -178,9 +177,9 @@ export default function TrainingPreferencesEnduranceMethodsView({
                     pressed ? styles.infoActionPressed : null,
                   ]}
                 >
-                  <Text style={styles.infoSelectButtonText}>
+                  <IBMPlexText style={styles.infoSelectButtonText}>
                     {isActiveInfoSelected ? "Selected" : "Select"}
-                  </Text>
+                  </IBMPlexText>
                 </Pressable>
                 <Pressable
                   onPress={closeInfo}
@@ -189,7 +188,7 @@ export default function TrainingPreferencesEnduranceMethodsView({
                     pressed ? styles.infoActionPressed : null,
                   ]}
                 >
-                  <Text style={styles.infoCloseButtonText}>Close</Text>
+                  <IBMPlexText style={styles.infoCloseButtonText}>Close</IBMPlexText>
                 </Pressable>
               </View>
             </View>
@@ -232,8 +231,7 @@ const styles = StyleSheet.create({
   },
   infoHintText: {
     color: "#9CA3AF",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 15,
   },
   grid: {
@@ -267,8 +265,7 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 12, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
   },
@@ -322,8 +319,7 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 15, fontWeight: "800",
     lineHeight: 18,
     textAlign: "center",
   },
@@ -368,12 +364,10 @@ const styles = StyleSheet.create({
   },
   infoSelectButtonText: {
     color: "#141414",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
   infoCloseButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
   },
 });

@@ -1,20 +1,18 @@
-import { useState } from "react";
+import {
+  useState } from "react";
 import {
   LIFT_INTENSITY_METHOD_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
-} from "../../constants/appLogicSettings.js";
+  } from "../../constants/appLogicSettings.js";
 import {
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
 import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const LIFT_INTENSITY_MEDIA_TEXT = Object.freeze({
   rpe: "RPE",
 });
@@ -53,7 +51,7 @@ export default function LiftIntensityMethodView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={TITLE_BLOCK_HEIGHT}>Lift intensity method</TitleText>
+      <IBMPlexText titleBlock height={TITLE_BLOCK_HEIGHT}>Lift intensity method</IBMPlexText>
       <ScrollView
         style={styles.optionsScroll}
         contentContainerStyle={styles.contentSlot}
@@ -79,15 +77,15 @@ export default function LiftIntensityMethodView({
           style={styles.advancedRow}
           onPress={() => setIsAdvancedExpanded((current) => !current)}
         >
-          <StandardText style={styles.advancedText}>Advanced</StandardText>
-          <Text
+          <IBMPlexText defaultWhite style={styles.advancedText}>Advanced</IBMPlexText>
+          <IBMPlexText
             style={[
               styles.advancedArrow,
               isAdvancedExpanded ? styles.advancedArrowExpanded : null,
             ]}
           >
             ›
-          </Text>
+          </IBMPlexText>
         </TouchableOpacity>
         {isAdvancedExpanded ? (
           <View style={styles.referenceOptions}>
@@ -154,8 +152,7 @@ const styles = StyleSheet.create({
   optionLabel: {
     bottom: "auto",
     color: "#A6A6A6",
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 13, fontWeight: "800",
     lineHeight: 16,
     position: "relative",
     textTransform: "uppercase",

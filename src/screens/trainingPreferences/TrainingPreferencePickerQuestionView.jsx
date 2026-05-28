@@ -1,6 +1,6 @@
-import { Text, StyleSheet, View, useWindowDimensions } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function TrainingPreferencePickerQuestionView({
   label,
   helperText,
@@ -15,9 +15,9 @@ export default function TrainingPreferencePickerQuestionView({
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
       <View style={styles.field}>
-        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={styles.label}>{label}</Text>
-        {helperText ? <Text style={styles.helperText}>{helperText}</Text> : null}
+        {eyebrow ? <IBMPlexText style={styles.eyebrow}>{eyebrow}</IBMPlexText> : null}
+        <IBMPlexText style={styles.label}>{label}</IBMPlexText>
+        {helperText ? <IBMPlexText style={styles.helperText}>{helperText}</IBMPlexText> : null}
         <Picker
           selectedValue={value}
           onValueChange={onChange}
@@ -44,8 +44,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   eyebrow: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     color: "#6b7280",
     textTransform: "uppercase",
     letterSpacing: 0.8,

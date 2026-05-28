@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
-import { PanResponder, StyleSheet, Text, View } from "react-native";
-
+import {
+  useEffect,
+  useState } from "react";
+import { PanResponder, StyleSheet, View } from "react-native";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const MIN_SESSIONS = 1;
 const MAX_SESSIONS = 5;
 const THUMB_SIZE = 18;
@@ -66,9 +68,9 @@ export default function ProfileFrequencySelector({ value = 3, onChange }) {
 
           return (
             <View key={sessions} style={styles.numberSlot}>
-              <Text style={[styles.number, isActive ? styles.numberActive : null]}>
+              <IBMPlexText style={[styles.number, isActive ? styles.numberActive : null]}>
                 {sessions}
-              </Text>
+              </IBMPlexText>
             </View>
           );
         })}
@@ -102,8 +104,8 @@ export default function ProfileFrequencySelector({ value = 3, onChange }) {
       </View>
 
       <View style={styles.sliderLabels}>
-        <Text style={styles.sliderLabel}>Full body</Text>
-        <Text style={styles.sliderLabel}>Precise</Text>
+        <IBMPlexText style={styles.sliderLabel}>Full body</IBMPlexText>
+        <IBMPlexText style={styles.sliderLabel}>Precise</IBMPlexText>
       </View>
     </View>
   );
@@ -129,7 +131,7 @@ const styles = StyleSheet.create({
   },
   number: {
     color: "#585858",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 14,
     lineHeight: 16,
   },
@@ -177,7 +179,6 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     color: "#585858",
-    fontSize: 11,
-    fontWeight: "600",
+    fontSize: 11, fontWeight: "600",
   },
 });

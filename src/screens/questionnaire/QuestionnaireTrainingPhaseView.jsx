@@ -1,8 +1,12 @@
-import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 import { TRAINING_PHASE_OPTIONS } from "../../constants/appLogicSettings.js";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const PHASE_BUTTON_LABELS = Object.freeze({
   off_camp: "Off camp",
@@ -16,10 +20,10 @@ export default function QuestionnaireTrainingPhaseView({
   const { height: screenHeight } = useWindowDimensions();
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <TitleText height={130}>Training phase</TitleText>
-      <StandardText style={styles.helperText} center>
+      <IBMPlexText titleBlock height={130}>Training phase</IBMPlexText>
+      <IBMPlexText defaultWhite style={styles.helperText} center>
         Choose whether you are building generally or preparing for a specific event.
-      </StandardText>
+      </IBMPlexText>
 
       <View style={styles.phaseButtonRow}>
         {TRAINING_PHASE_OPTIONS.map((option) => {
@@ -35,22 +39,22 @@ export default function QuestionnaireTrainingPhaseView({
                 pressed ? styles.phaseButtonPressed : null,
               ]}
             >
-              <StandardText
+              <IBMPlexText defaultWhite
                 style={[
                   styles.phaseButtonTitle,
                   isSelected ? styles.phaseButtonTitleSelected : null,
                 ]}
               >
                 {PHASE_BUTTON_LABELS[option.value] || option.label}
-              </StandardText>
-              <StandardText
+              </IBMPlexText>
+              <IBMPlexText defaultWhite
                 style={[
                   styles.phaseButtonDescription,
                   isSelected ? styles.phaseButtonDescriptionSelected : null,
                 ]}
               >
                 {option.description}
-              </StandardText>
+              </IBMPlexText>
             </Pressable>
           );
         })}

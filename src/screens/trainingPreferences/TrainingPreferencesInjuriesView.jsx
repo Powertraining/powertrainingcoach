@@ -1,4 +1,9 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState } from "react";
 import {
   Image,
   Keyboard,
@@ -10,8 +15,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-
-import StandardText from "../../components/textComponents/StandardText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const NURSE_ICON = require("../../assets/icons/nurse.png");
 const ARROW_TEXT_ICON = require("../../assets/icons/arrowText.png");
@@ -99,8 +103,8 @@ function TrainingPreferencesInjuriesView({
           />
         </View>
         <View style={styles.chatHeaderCopy}>
-          <StandardText style={styles.chatName}>Coach intake</StandardText>
-          <StandardText style={styles.chatStatus}>Ready to log notes</StandardText>
+          <IBMPlexText defaultWhite style={styles.chatName}>Coach intake</IBMPlexText>
+          <IBMPlexText defaultWhite style={styles.chatStatus}>Ready to log notes</IBMPlexText>
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
@@ -108,7 +112,7 @@ function TrainingPreferencesInjuriesView({
             onPress={onSkip}
             style={styles.skipButton}
           >
-            <StandardText style={styles.skipButtonText}>Skip &gt;</StandardText>
+            <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip &gt;</IBMPlexText>
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
@@ -119,7 +123,7 @@ function TrainingPreferencesInjuriesView({
               !canContinue ? styles.continueButtonDisabled : null,
             ]}
           >
-            <StandardText style={styles.continueButtonText}>Continue</StandardText>
+            <IBMPlexText defaultWhite style={styles.continueButtonText}>Continue</IBMPlexText>
           </TouchableOpacity>
         </View>
       </View>
@@ -134,7 +138,7 @@ function TrainingPreferencesInjuriesView({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.timestampPill}>
-              <StandardText style={styles.timestampText}>Today</StandardText>
+              <IBMPlexText defaultWhite style={styles.timestampText}>Today</IBMPlexText>
             </View>
 
             {BOT_MESSAGES.map((message, index) => (
@@ -155,9 +159,9 @@ function TrainingPreferencesInjuriesView({
                     styles.messageBubble,
                   ]}
                 >
-                  <StandardText style={styles.messageText} textColor="#000000">
+                  <IBMPlexText defaultWhite style={styles.messageText} textColor="#000000">
                     {message}
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               </View>
             ))}
@@ -171,18 +175,18 @@ function TrainingPreferencesInjuriesView({
                         styles.userMessageBubble,
                       ]}
                     >
-                      <StandardText style={styles.userMessageText} textColor="#ffffff">
+                      <IBMPlexText defaultWhite style={styles.userMessageText} textColor="#ffffff">
                         {message}
-                      </StandardText>
+                      </IBMPlexText>
                     </View>
                   </View>
                 ))}
               </View>
             ) : (
               <View style={styles.emptyReplyHint}>
-                <StandardText style={styles.emptyReplyText}>
+                <IBMPlexText defaultWhite style={styles.emptyReplyText}>
                   No injury notes added yet
-                </StandardText>
+                </IBMPlexText>
               </View>
             )}
           </ScrollView>
@@ -364,8 +368,7 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",
   },

@@ -1,8 +1,14 @@
-import { DESIRED_TRAINING_OPTIONS } from "../../constants/trainingPreferences.js";
+import {
+  DESIRED_TRAINING_OPTIONS } from "../../constants/trainingPreferences.js";
 import { useState } from "react";
-import { Image, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const DESIRED_TRAINING_LABELS = Object.freeze({
   endurance: "Endurance",
@@ -36,10 +42,10 @@ export default function TrainingPreferencesDesiredTrainingView({
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
-      <TitleText height={110}>What would you like to focus on?</TitleText>
-      <StandardText style={styles.helperText} center>
+      <IBMPlexText titleBlock height={110}>What would you like to focus on?</IBMPlexText>
+      <IBMPlexText defaultWhite style={styles.helperText} center>
         Choose what your plan should prioritize so training matches your goals.
-      </StandardText>
+      </IBMPlexText>
 
       <View style={styles.options}>
         {DESIRED_TRAINING_OPTIONS.map((option, index) => {
@@ -99,7 +105,7 @@ export default function TrainingPreferencesDesiredTrainingView({
                   ))}
                 </View>
               </View>
-              <StandardText
+              <IBMPlexText defaultWhite
                 style={[
                   styles.optionText,
                   isSelected ? styles.optionTextSelected : null,
@@ -107,7 +113,7 @@ export default function TrainingPreferencesDesiredTrainingView({
                 center
               >
                 {DESIRED_TRAINING_LABELS[option.value] ?? option.label}
-              </StandardText>
+              </IBMPlexText>
             </TouchableOpacity>
           );
         })}

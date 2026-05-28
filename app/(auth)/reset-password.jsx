@@ -1,4 +1,5 @@
-import { useState } from "react";
+import {
+  useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -8,9 +9,8 @@ import {
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import SignFormInput from "../../src/components/authComponents/SignFormInput.jsx";
-import StandardText from "../../src/components/textComponents/StandardText.jsx";
-import TitleText from "../../src/components/textComponents/TitleText.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 
 function getParamValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -91,11 +91,11 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
 
   return (
     <View style={styles.container}>
-      <TitleText height={200}>Reset Password</TitleText>
-      <StandardText center={true} style={styles.description}>
+      <IBMPlexText titleBlock height={200}>Reset Password</IBMPlexText>
+      <IBMPlexText defaultWhite center={true} style={styles.description}>
         Enter the e-mail address you use to sign in and we will send you a reset
         link.
-      </StandardText>
+      </IBMPlexText>
 
       <SignFormInput
         text="E-mail"
@@ -125,9 +125,9 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
         {isSubmitting ? (
           <ActivityIndicator color="#000" />
         ) : (
-          <StandardText textColor="#000" fontSize={22}>
+          <IBMPlexText defaultWhite textColor="#000" fontSize={22}>
             Send reset link
-          </StandardText>
+          </IBMPlexText>
         )}
       </TouchableOpacity>
 
@@ -136,19 +136,19 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
         onPress={handleBackPress}
         disabled={isSubmitting}
       >
-        <StandardText center={true}>Back to sign in</StandardText>
+        <IBMPlexText defaultWhite center={true}>Back to sign in</IBMPlexText>
       </TouchableOpacity>
 
       {successMessage ? (
-        <StandardText center={true} style={styles.successText}>
+        <IBMPlexText defaultWhite center={true} style={styles.successText}>
           {successMessage}
-        </StandardText>
+        </IBMPlexText>
       ) : null}
 
       {error ? (
-        <StandardText center={true} style={styles.errorText}>
+        <IBMPlexText defaultWhite center={true} style={styles.errorText}>
           {error}
-        </StandardText>
+        </IBMPlexText>
       ) : null}
     </View>
   );

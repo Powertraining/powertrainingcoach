@@ -1,7 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { TextInput, StyleSheet, ScrollView, View } from "react-native";
-
-import StandardText from "../textComponents/StandardText.jsx";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState } from "react";
+import {
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  View,
+} from "react-native";
 import {
   clampDatePartsToRange,
   formatDateParts,
@@ -10,6 +17,7 @@ import {
   startOfLocalDay,
   MONTHS,
 } from "../../services/utils/dateUtils.js";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
 const ITEM_HEIGHT = 70;
 const VISIBLE_ROWS = 3;
@@ -116,7 +124,7 @@ function WheelColumn({
       >
         {values.map((value, index) => (
           <View key={`${value}-${index}`} style={styles.item}>
-            <StandardText
+            <IBMPlexText defaultWhite
               style={[
                 styles.itemText,
                 variant === "light" ? styles.itemTextLight : null,
@@ -127,7 +135,7 @@ function WheelColumn({
               ]}
             >
               {value}
-            </StandardText>
+            </IBMPlexText>
           </View>
         ))}
       </ScrollView>
@@ -368,13 +376,11 @@ const styles = StyleSheet.create({
     opacity: 0.62,
   },
   itemTextSelected: {
-    fontSize: 24,
-    fontWeight: "600",
+    fontSize: 24, fontWeight: "600",
     opacity: 1,
   },
   itemTextSelectedLight: {
-    color: "#141414",
-    fontWeight: "900",
+    color: "#141414", fontWeight: "900",
   },
   selectedFrame: {
     position: "absolute",

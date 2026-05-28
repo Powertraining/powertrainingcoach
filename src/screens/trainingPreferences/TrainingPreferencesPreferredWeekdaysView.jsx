@@ -1,16 +1,13 @@
 import {
   Pressable,
   ScrollView,
-  Text,
   View,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
 
 import { WEEKDAY_OPTIONS } from "../../constants/weekdays.js";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-import TitleText from "../../components/textComponents/TitleText.jsx";
-
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const WEEKDAY_CHIP_OPTIONS = WEEKDAY_OPTIONS.filter((option) => option.value);
 const WEEKDAY_INDEX_BY_VALUE = Object.freeze(
   WEEKDAY_CHIP_OPTIONS.reduce((lookup, option, index) => {
@@ -79,11 +76,11 @@ export default function TrainingPreferencesPreferredWeekdaysView({
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.content}>
-        <TitleText height={82}>Preferred weekdays</TitleText>
-        <StandardText style={styles.helperText} textColor="#9ca3af" center>
+        <IBMPlexText titleBlock height={82}>Preferred weekdays</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.helperText} textColor="#9ca3af" center>
           Optional. Choose fixed weekdays for training days that need them.
           Leave the rest flexible.
-        </StandardText>
+        </IBMPlexText>
 
         <View style={styles.preferenceBox}>
           <View style={styles.preferenceGrid}>
@@ -92,7 +89,7 @@ export default function TrainingPreferencesPreferredWeekdaysView({
                 key={`preferred-weekday-${index + 1}`}
                 style={styles.preferenceItem}
               >
-                <Text style={styles.preferenceLabel}>Day {index + 1}</Text>
+                <IBMPlexText style={styles.preferenceLabel}>Day {index + 1}</IBMPlexText>
                 <View style={styles.weekdayRow}>
                   {WEEKDAY_CHIP_OPTIONS.map((option) => {
                     const isSelected = preferredWeekdays[index] === option.value;
@@ -118,7 +115,7 @@ export default function TrainingPreferencesPreferredWeekdaysView({
                           pressed ? styles.weekdayButtonPressed : null,
                         ]}
                       >
-                        <Text
+                        <IBMPlexText
                           style={[
                             styles.weekdayButtonText,
                             isSelected ? styles.weekdayButtonTextSelected : null,
@@ -126,7 +123,7 @@ export default function TrainingPreferencesPreferredWeekdaysView({
                           ]}
                         >
                           {option.label.slice(0, 3)}
-                        </Text>
+                        </IBMPlexText>
                       </Pressable>
                     );
                   })}
@@ -179,8 +176,7 @@ const styles = StyleSheet.create({
   },
   preferenceLabel: {
     color: "#8E8E8E",
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 11, fontWeight: "700",
     lineHeight: 14,
     textTransform: "uppercase",
   },
@@ -213,8 +209,7 @@ const styles = StyleSheet.create({
     opacity: 0.78,
   },
   weekdayButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 15, fontWeight: "700",
     color: "#fff",
   },
   weekdayButtonTextSelected: {

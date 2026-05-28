@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import {
+  useRef,
+  useState } from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
-import TitleText from "../../components/textComponents/TitleText.jsx";
-import StandardText from "../../components/textComponents/StandardText.jsx";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const METER_HEIGHT = 290;
 const METER_WIDTH = 76;
@@ -64,23 +65,23 @@ export default function CombatTrainingIntensityView({
         }}
       />
       <View style={styles.section}>
-        <TitleText height={130}>
+        <IBMPlexText titleBlock height={130}>
           Combat training intensity
-        </TitleText>
+        </IBMPlexText>
       </View>
       <View style={[styles.intensityOutline, { top: meterTop }]}>
         <View pointerEvents="none" style={[styles.tickLine, styles.tickLineTop]} />
         <View pointerEvents="none" style={[styles.tickLine, styles.tickLineMiddle]} />
         <View pointerEvents="none" style={[styles.tickLine, styles.tickLineBottom]} />
-        <StandardText style={[styles.tickLabel, styles.tickLabelTop]}>
+        <IBMPlexText defaultWhite style={[styles.tickLabel, styles.tickLabelTop]}>
           Intense
-        </StandardText>
-        <StandardText style={[styles.tickLabel, styles.tickLabelMiddle]}>
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={[styles.tickLabel, styles.tickLabelMiddle]}>
           Moderate
-        </StandardText>
-        <StandardText style={[styles.tickLabel, styles.tickLabelBottom]}>
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={[styles.tickLabel, styles.tickLabelBottom]}>
           Light
-        </StandardText>
+        </IBMPlexText>
         <View style={styles.fillClip}>
           <View
             style={[
@@ -90,9 +91,9 @@ export default function CombatTrainingIntensityView({
           />
         </View>
       </View>
-      <StandardText style={[styles.selectedValueText, { top: meterTop + METER_HEIGHT + 18 }]} center>
+      <IBMPlexText defaultWhite style={[styles.selectedValueText, { top: meterTop + METER_HEIGHT + 18 }]} center>
         {getValueFromFillRatio(fillRatio)}
-      </StandardText>
+      </IBMPlexText>
     </View>
   );
 }

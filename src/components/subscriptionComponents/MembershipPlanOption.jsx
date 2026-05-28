@@ -2,12 +2,11 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
-
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const GOLD = "#C9B259";
 
 export default function MembershipPlanOption({
@@ -36,21 +35,21 @@ export default function MembershipPlanOption({
       ]}
     >
       <View style={styles.copy}>
-        {current ? <Text style={styles.currentLabel}>YOUR PLAN</Text> : null}
-        {loading ? <Text style={styles.loadingLabel}>LOADING</Text> : null}
+        {current ? <IBMPlexText style={styles.currentLabel}>YOUR PLAN</IBMPlexText> : null}
+        {loading ? <IBMPlexText style={styles.loadingLabel}>LOADING</IBMPlexText> : null}
         <View style={styles.titleRow}>
-          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.title}>
+          <IBMPlexText numberOfLines={1} adjustsFontSizeToFit style={styles.title}>
             {title}
-          </Text>
+          </IBMPlexText>
         </View>
         <View style={styles.priceRow}>
-          <Text style={styles.price}>{price}</Text>
+          <IBMPlexText style={styles.price}>{price}</IBMPlexText>
           {badge ? (
             <View style={styles.badge}>
               <GoldGradient />
-              <Text numberOfLines={1} style={styles.badgeText}>
+              <IBMPlexText numberOfLines={1} style={styles.badgeText}>
                 {badge}
-              </Text>
+              </IBMPlexText>
             </View>
           ) : null}
         </View>
@@ -105,14 +104,12 @@ const styles = StyleSheet.create({
   },
   currentLabel: {
     color: GOLD,
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: 11, fontWeight: "900",
     lineHeight: 14,
   },
   loadingLabel: {
     color: "rgba(255,255,255,0.62)",
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: 11, fontWeight: "900",
     lineHeight: 14,
   },
   titleRow: {
@@ -123,14 +120,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "900",
+    fontSize: 14, fontWeight: "900",
     lineHeight: 18,
   },
   price: {
     color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
     lineHeight: 17,
   },
   priceRow: {
@@ -150,8 +145,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: "#111111",
-    fontSize: 10,
-    fontWeight: "900",
+    fontSize: 10, fontWeight: "900",
     lineHeight: 12,
   },
   radio: {

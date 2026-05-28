@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-
-import StandardText from "../textComponents/StandardText.jsx";
+import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
 const ITEM_HEIGHT = 70;
 const VISIBLE_ROWS = 3;
@@ -115,32 +117,32 @@ export default function SessionDurationSelector({
             <View key={option.value} style={styles.item}>
               {minuteLabelParts ? (
                 <View style={[styles.minuteLabel, !isSelected ? styles.itemTextDimmed : null]}>
-                  <StandardText
+                  <IBMPlexText defaultWhite
                     style={[
                       styles.itemNumberText,
                       isSelected ? styles.itemNumberTextSelected : null,
                     ]}
                   >
                     {minuteLabelParts.number}
-                  </StandardText>
-                  <StandardText
+                  </IBMPlexText>
+                  <IBMPlexText defaultWhite
                     style={[
                       styles.itemUnitText,
                       isSelected ? styles.itemUnitTextSelected : null,
                     ]}
                   >
                     {minuteLabelParts.unit}
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               ) : (
-                <StandardText
+                <IBMPlexText defaultWhite
                   style={[
                     styles.itemText,
                     isSelected ? styles.itemTextSelected : null,
                   ]}
                 >
                   {option.label}
-                </StandardText>
+                </IBMPlexText>
               )}
             </View>
           );

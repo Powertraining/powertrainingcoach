@@ -32,9 +32,7 @@ export default function SignFormInput({ text, image, inputProps, type }) {
         placeholder={text}
         placeholderTextColor="#fff"
         style={{
-          color: "#fff",
-          fontFamily: "BebasNeue",
-          fontSize: 18,
+          color: "#fff", fontSize: 18,
           flex: 1,
           textAlignVertical: "center",
           height: "100%",

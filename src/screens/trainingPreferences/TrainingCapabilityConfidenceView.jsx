@@ -1,6 +1,10 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import StandardText from "../../components/textComponents/StandardText.jsx";
-
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const CONFIDENCE_OPTIONS = [
   { label: "Not Very", value: "no" },
   { label: "Fairly", value: "somewhat" },
@@ -41,7 +45,7 @@ function ExerciseBox({ exercise, imageSource }) {
           resizeMode="contain"
         />
       ) : (
-        <StandardText style={styles.exerciseBoxText}>{exercise}</StandardText>
+        <IBMPlexText defaultWhite style={styles.exerciseBoxText}>{exercise}</IBMPlexText>
       )}
     </View>
   );
@@ -59,8 +63,8 @@ export default function TrainingCapabilityConfidenceView({
   return (
     <View style={styles.container}>
       <View style={styles.titleWrap}>
-        <Text style={styles.titleText}>{item.label}</Text>
-        <StandardText style={styles.categoryText}>{item.description}</StandardText>
+        <IBMPlexText style={styles.titleText}>{item.label}</IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.categoryText}>{item.description}</IBMPlexText>
       </View>
 
       <View style={styles.exerciseGrid}>
@@ -78,9 +82,9 @@ export default function TrainingCapabilityConfidenceView({
       </View>
 
       <View style={styles.options}>
-        <StandardText style={styles.confidenceQuestion}>
+        <IBMPlexText defaultWhite style={styles.confidenceQuestion}>
           How confident are you?
-        </StandardText>
+        </IBMPlexText>
         <View style={styles.optionRow}>
           {CONFIDENCE_OPTIONS.map((option) => {
             const isSelected = value === option.value;
@@ -101,7 +105,7 @@ export default function TrainingCapabilityConfidenceView({
                   ]}
                 />
                 <View style={[styles.optionFace, isSelected ? styles.optionFaceSelected : null]}>
-                  <StandardText
+                  <IBMPlexText defaultWhite
                     lines={1}
                     style={[
                       styles.optionButtonText,
@@ -109,7 +113,7 @@ export default function TrainingCapabilityConfidenceView({
                     ]}
                   >
                     {option.label}
-                  </StandardText>
+                  </IBMPlexText>
                 </View>
               </TouchableOpacity>
             );
@@ -137,7 +141,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: "#ffffff",
-    fontFamily: "BebasNeue",
+    fontFamily: "IBMPlexSans_600SemiBold",
     fontSize: 35,
     lineHeight: 39,
     textAlign: "center",
