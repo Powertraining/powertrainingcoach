@@ -204,7 +204,9 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         router.push("/(tabs)/profile");
       }
     } catch (e) {
-      setError(e.message || "Update failed.");
+      const message = e.message || "Could not save your profile. Please try again.";
+      setError(message);
+      model.showError?.(e, "Could not save your profile. Please try again.");
     } finally {
       setIsSubmitting(false);
       setPassword("");
@@ -310,9 +312,12 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
 
     try {
       await model.submitLogout();
+      router.replace("/(auth)/auth");
     } catch (e) {
       console.error(e);
-      setError(e.message || "Logout failed.");
+      const message = e.message || "Could not log out. Please try again.";
+      setError(message);
+      model.showError?.(e, "Could not log out. Please try again.");
       setIsSubmitting(false);
       return;
     }
@@ -326,7 +331,9 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     const resetEmail = (email || user.email || "").trim();
 
     if (!resetEmail) {
-      setError("No e-mail address is available for this account.");
+      const message = "No e-mail address is available for this account.";
+      setError(message);
+      model.showError?.(message);
       setPasswordResetMessage(null);
       return;
     }
@@ -338,8 +345,11 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     try {
       await model.submitPasswordReset(resetEmail);
       setPasswordResetMessage("Password reset e-mail sent.");
+      model.showSuccess?.("Password reset e-mail sent.");
     } catch (e) {
-      setError(e.message || "Could not send password reset e-mail.");
+      const message = e.message || "Could not send password reset e-mail.";
+      setError(message);
+      model.showError?.(e, "Could not send password reset e-mail.");
     } finally {
       setIsSubmitting(false);
     }
@@ -370,7 +380,9 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
       });
       setProfilePhotoUrl(uploadedImage.url);
     } catch (e) {
-      setError(e.message || "Could not update profile picture.");
+      const message = e.message || "Could not update profile picture.";
+      setError(message);
+      model.showError?.(e, "Could not update profile picture.");
     } finally {
       setIsSubmitting(false);
     }

@@ -62,7 +62,9 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
     const normalizedEmail = email.trim();
 
     if (!normalizedEmail) {
-      setError("Enter the e-mail address for your account.");
+      const message = "Enter the e-mail address for your account.";
+      setError(message);
+      model.showError?.(message);
       setSuccessMessage(null);
       return;
     }
@@ -74,16 +76,19 @@ const ResetPasswordScreen = observer(function ResetPasswordScreen() {
     try {
       await model.submitPasswordReset(normalizedEmail);
       setSuccessMessage(RESET_PASSWORD_SUCCESS_MESSAGE);
+      model.showSuccess?.(RESET_PASSWORD_SUCCESS_MESSAGE);
       setEmail(normalizedEmail);
     } catch (submitError) {
       if (submitError?.message === "auth/user-not-found") {
         setSuccessMessage(RESET_PASSWORD_SUCCESS_MESSAGE);
+        model.showSuccess?.(RESET_PASSWORD_SUCCESS_MESSAGE);
         setEmail(normalizedEmail);
         return;
       }
 
       const nextMessage = mapResetPasswordError(submitError.message);
       setError(nextMessage);
+      model.showError?.(nextMessage);
     } finally {
       setIsSubmitting(false);
     }

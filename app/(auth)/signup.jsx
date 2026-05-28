@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { SignUpView } from "../../src/screens/auth/SignUpView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { useGoogleIdTokenProvider } from "../../src/services/auth/googleIdentity";
+import { getFriendlyErrorMessage } from "../../src/services/utils/errorMessages.js";
 
 function getParamValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -63,6 +64,7 @@ const SignUpScreen = observer(function SignUpScreen() {
       if (result?.requiresEmailVerification) {
         setPassword("");
         setMessage(genericSignupMessage);
+        model.showSuccess?.(genericSignupMessage);
         setIsSubmitting(false);
         return;
       }
@@ -73,8 +75,12 @@ const SignUpScreen = observer(function SignUpScreen() {
       const message =
         e.message === "auth/signup-unavailable"
           ? "Could not process sign-up right now. Please try again."
-          : e.message || "Could not process sign-up right now. Please try again.";
+          : getFriendlyErrorMessage(
+              e,
+              "Could not process sign-up right now. Please try again."
+            );
       setError(message);
+      model.showError?.(message);
       setIsSubmitting(false);
     }
   }
@@ -90,7 +96,12 @@ const SignUpScreen = observer(function SignUpScreen() {
       router.replace(returnTo || "/(tabs)");
     } catch (e) {
       console.error(e);
-      setError(e.message || "Google sign-in could not be completed.");
+      const message = getFriendlyErrorMessage(
+        e,
+        "Google sign-in could not be completed."
+      );
+      setError(message);
+      model.showError?.(message);
     } finally {
       setIsSubmitting(false);
     }

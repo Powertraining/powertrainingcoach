@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { LoginView } from "../../src/screens/auth/LoginView.jsx";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { useGoogleIdTokenProvider } from "../../src/services/auth/googleIdentity";
+import { getFriendlyErrorMessage } from "../../src/services/utils/errorMessages.js";
 
 function getParamValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -63,6 +64,7 @@ const LoginScreen = observer(function LoginScreen() {
     } catch (e) {
       console.error(e);
       setError(genericLoginError);
+      model.showError?.(genericLoginError);
       setCanResendVerification(true);
       setIsSubmitting(false);
     }
@@ -80,7 +82,12 @@ const LoginScreen = observer(function LoginScreen() {
       router.replace(returnTo || "/(tabs)");
     } catch (e) {
       console.error(e);
-      setError(e.message || "Google sign-in could not be completed.");
+      const message = getFriendlyErrorMessage(
+        e,
+        "Google sign-in could not be completed."
+      );
+      setError(message);
+      model.showError?.(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -111,7 +118,9 @@ const LoginScreen = observer(function LoginScreen() {
     const normalizedIdentifier = identifier.trim();
 
     if (!normalizedIdentifier || !password) {
-      setError("Enter your e-mail and password first.");
+      const message = "Enter your e-mail and password first.";
+      setError(message);
+      model.showError?.(message);
       return;
     }
 
@@ -125,9 +134,11 @@ const LoginScreen = observer(function LoginScreen() {
         password
       );
       setVerificationMessage(genericVerificationMessage);
+      model.showSuccess?.(genericVerificationMessage);
     } catch (e) {
       console.error(e);
       setVerificationMessage(genericVerificationMessage);
+      model.showSuccess?.(genericVerificationMessage);
     } finally {
       setCanResendVerification(false);
       setIsResendingVerification(false);

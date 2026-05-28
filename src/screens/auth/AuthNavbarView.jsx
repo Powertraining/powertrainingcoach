@@ -1,15 +1,17 @@
 import {
   useState,
   useEffect } from "react";
-import { Animated, Easing, TouchableOpacity, View, Keyboard } from "react-native";
+import { Animated, Easing, Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
+const LABEL_SLIDE_DISTANCE = 16;
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function AuthNavbar({ onTabChange, onSubmitLogin, onSubmitSignup }) {
   const [active, setActive] = useState(1);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const tabProgress = useState(() => new Animated.Value(0))[0];
+  const [submitLabel, setSubmitLabel] = useState("Login");
+  const labelProgress = useState(() => new Animated.Value(1))[0];
 
   useEffect(() => {
     const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
@@ -18,73 +20,119 @@ export default function AuthNavbar({ onTabChange, onSubmitLogin, onSubmitSignup 
   }, []);
 
   useEffect(() => {
-    Animated.timing(tabProgress, {
-      toValue: active === 1 ? 0 : 1,
-      duration: 180,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, [active, tabProgress]);
+    const nextLabel = active === 1 ? "Login" : "Sign Up";
 
-  function pressLoginACB() {
+    if (nextLabel === submitLabel) {
+      return;
+    }
+
+    labelProgress.stopAnimation();
+    Animated.timing(labelProgress, {
+      toValue: 0,
+      duration: 120,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (!finished) {
+        return;
+      }
+
+      setSubmitLabel(nextLabel);
+      Animated.timing(labelProgress, {
+        toValue: 1,
+        duration: 190,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [active, labelProgress, submitLabel]);
+
+  function switchToLoginACB() {
+    setActive(1);
+    onTabChange?.(1);
+  }
+
+  function switchToSignupACB() {
+    setActive(2);
+    onTabChange?.(2);
+  }
+
+  function pressSubmitACB() {
     if (active === 1) {
       onSubmitLogin?.();
     } else {
-      setActive(1);
-      onTabChange(1);
-    }
-  }
-
-  function pressSignupACB() {
-    if (active === 2) {
       onSubmitSignup?.();
-    } else {
-      setActive(2);
-      onTabChange(2);
     }
   }
 
   if (keyboardVisible) return null;
 
-  const loginAnimatedStyle = {
-    flex: tabProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: [3, 1],
-    }),
-    backgroundColor: tabProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: ["#ffffff", "rgba(255,255,255,0)"],
-    }),
-  };
-
-  const signupAnimatedStyle = {
-    flex: tabProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: [1, 3],
-    }),
-    backgroundColor: tabProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: ["rgba(255,255,255,0)", "#ffffff"],
-    }),
+  const isLogin = active === 1;
+  const labelAnimatedStyle = {
+    opacity: labelProgress,
+    transform: [
+      {
+        translateY: labelProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [LABEL_SLIDE_DISTANCE, 0],
+        }),
+      },
+    ],
   };
 
   return (
-    <View style={{ alignSelf: "stretch", flexDirection: "row",
-      backgroundColor: "#151515", alignItems: "center", marginHorizontal: 20, borderRadius: 120, height: 70,
-    }}>
-      <AnimatedTouchableOpacity onPress={pressLoginACB}
-        style={[{ height: "100%", justifyContent: "center", alignItems: "center", borderRadius: 120 }, loginAnimatedStyle]}>
-        <IBMPlexText defaultWhite style={[active === 1 ? { color: "#000" } : null, { fontSize: 18 }]}>
-          Login
+    <View style={styles.container}>
+      <View style={styles.switchRow}>
+        <IBMPlexText defaultWhite style={styles.switchText}>
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
         </IBMPlexText>
-      </AnimatedTouchableOpacity>
+        <TouchableOpacity onPress={isLogin ? switchToSignupACB : switchToLoginACB}>
+          <IBMPlexText defaultWhite style={[styles.switchText, styles.switchLink]}>
+            {isLogin ? "Sign Up" : "Login"}
+          </IBMPlexText>
+        </TouchableOpacity>
+      </View>
 
-      <AnimatedTouchableOpacity onPress={pressSignupACB}
-        style={[{ height: "100%", justifyContent: "center", alignItems: "center", borderRadius: 120 }, signupAnimatedStyle]}>
-        <IBMPlexText defaultWhite style={[active === 2 ? { color: "#000" } : null, { fontSize: 18 }]}>
-          Sign Up
-        </IBMPlexText>
+      <AnimatedTouchableOpacity onPress={pressSubmitACB} style={styles.submitButton}>
+        <Animated.View style={labelAnimatedStyle}>
+          <IBMPlexText style={styles.submitText}>
+            {submitLabel}
+          </IBMPlexText>
+        </Animated.View>
       </AnimatedTouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignSelf: "stretch",
+    marginHorizontal: 20,
+  },
+  switchRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  switchText: {
+    fontSize: 18,
+    lineHeight: 24,
+  },
+  switchLink: {
+    textDecorationLine: "underline",
+  },
+  submitButton: {
+    height: 70,
+    borderRadius: 120,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  submitText: {
+    color: "#000000",
+    fontFamily: "IBMPlexSans_600SemiBold",
+    fontSize: 22,
+  },
+});

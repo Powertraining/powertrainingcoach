@@ -1,4 +1,4 @@
-import { View, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
 import SignFormInput from "../../components/authComponents/SignFormInput.jsx";
 import GoogleButtonComponent from "../../components/authComponents/GoogleButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
@@ -6,49 +6,59 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export function SignUpView(props) {
   return (
     <View style={{ flex: 1 }}>
-      <IBMPlexText titleBlock>Lets Get Started</IBMPlexText>
+      <IBMPlexText titleBlock height={190} numberOfLines={1} adjustsFontSizeToFit>
+        POWERTRAINING
+      </IBMPlexText>
 
-      <SignFormInput
-        text="Username"
-        image="user"
-        inputProps={{
-          value: props.username,
-          onChangeText: props.onUsernameChange,
-          autoCapitalize: "none",
-        }}
-      />
-      <SignFormInput
-        text="E-mail"
-        image="user"
-        inputProps={{
-          value: props.email,
-          onChangeText: props.onEmailChange,
-          keyboardType: "email-address",
-          autoCapitalize: "none",
-        }}
-      />
-      <SignFormInput
-        text="Password"
-        image="lock"
-        inputProps={{
-          value: props.password,
-          onChangeText: props.onPasswordChange,
-          secureTextEntry: true,
-        }}
-      />
+      <View style={styles.formContent}>
+        <SignFormInput
+          text="Username"
+          image="user"
+          inputProps={{
+            value: props.username,
+            onChangeText: props.onUsernameChange,
+            autoCapitalize: "none",
+          }}
+        />
+        <SignFormInput
+          text="E-mail"
+          image="email"
+          inputProps={{
+            value: props.email,
+            onChangeText: props.onEmailChange,
+            keyboardType: "email-address",
+            autoCapitalize: "none",
+          }}
+        />
+        <SignFormInput
+          text="Password"
+          image="lock"
+          inputProps={{
+            value: props.password,
+            onChangeText: props.onPasswordChange,
+            secureTextEntry: true,
+          }}
+        />
 
-      <GoogleButtonComponent
-        onPress={props.onSubmitGoogle}
-        disabled={props.isSubmitting}
-      />
+        <GoogleButtonComponent
+          onPress={props.onSubmitGoogle}
+          disabled={props.isSubmitting}
+        />
 
-      {props.message ? (
-        <IBMPlexText defaultWhite center={true}>{props.message}</IBMPlexText>
-      ) : null}
-      {props.error && <IBMPlexText defaultWhite center={true}>{props.error}</IBMPlexText>}
+        {props.message ? (
+          <IBMPlexText defaultWhite center={true}>{props.message}</IBMPlexText>
+        ) : null}
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  formContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
+});
 
 
 // export function SignUpView(props) {

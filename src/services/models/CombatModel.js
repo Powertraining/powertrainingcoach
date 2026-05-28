@@ -92,6 +92,7 @@ import {
   getPasswordValidationError,
   normalizeBoundedString,
 } from "../utils/inputValidation.js";
+import { getFriendlyErrorMessage } from "../utils/errorMessages.js";
 import {
   applyTrainingCheckInAction,
   applyMissedRepPlanAdjustment,
@@ -166,6 +167,8 @@ function getSubscriptionPlanConfig(typeOrKey) {
 export const model = {
   user: null, // firebaseModel.js handles that proprety (object User or null)
   ready: false, // stays false until the first auth state/bootstrap completes
+  appToast: null,
+  appToastId: 0,
 
   // Questionnaire responses (persistent across sessions)
   questionnaire: null,
@@ -219,6 +222,37 @@ export const model = {
   finishedWorkout: 0,
 
   // action to create an account
+  showToast(message, options = {}) {
+    const safeMessage = String(message || "").trim();
+
+    if (!safeMessage) {
+      return;
+    }
+
+    this.appToastId += 1;
+    this.appToast = {
+      id: this.appToastId,
+      message: safeMessage,
+      type: options.type || "error",
+    };
+  },
+
+  showError(error, fallback) {
+    this.showToast(getFriendlyErrorMessage(error, fallback), { type: "error" });
+  },
+
+  showSuccess(message) {
+    this.showToast(message, { type: "success" });
+  },
+
+  hideToast(id = null) {
+    if (id && this.appToast?.id !== id) {
+      return;
+    }
+
+    this.appToast = null;
+  },
+
   async submitSignup(username, email, password) {
     const authResult = await registerWithEmailPassword(
       username,

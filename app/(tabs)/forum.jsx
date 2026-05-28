@@ -302,7 +302,9 @@ const ForumScreen = observer(function ForumScreen() {
       });
     } catch (error) {
       console.warn("Could not upload forum media:", error);
-      setCreatePostError(error?.message || "Could not upload media.");
+      const message = error?.message || "Could not upload media.";
+      setCreatePostError(message);
+      model.showError?.(error, "Could not upload media. Please try again.");
     } finally {
       setIsUploadingPostMedia(false);
       setPostMediaPreview({ mediaUrl: "", mediaType: "none" });
@@ -333,7 +335,9 @@ const ForumScreen = observer(function ForumScreen() {
       setPostSendAnimationKey((key) => key + 1);
     } catch (error) {
       console.warn("Could not create the forum post:", error);
-      setCreatePostError(error?.message || "Could not create the forum post.");
+      const message = error?.message || "Could not create the forum post.";
+      setCreatePostError(message);
+      model.showError?.(error, "Could not create the forum post. Please try again.");
       setIsCreatingPost(false);
     }
   }
@@ -436,9 +440,9 @@ const ForumScreen = observer(function ForumScreen() {
       setCommentDraft("");
     } catch (error) {
       console.warn("Could not create the forum comment:", error);
-      setCreateCommentError(
-        error?.message || "Could not create the forum comment."
-      );
+      const message = error?.message || "Could not create the forum comment.";
+      setCreateCommentError(message);
+      model.showError?.(error, "Could not post your comment. Please try again.");
     } finally {
       setIsCreatingComment(false);
     }
@@ -461,7 +465,9 @@ const ForumScreen = observer(function ForumScreen() {
       resetReplyComposer();
     } catch (error) {
       console.warn("Could not create the forum reply:", error);
-      setCreateReplyError(error?.message || "Could not create the forum reply.");
+      const message = error?.message || "Could not create the forum reply.";
+      setCreateReplyError(message);
+      model.showError?.(error, "Could not post your reply. Please try again.");
     } finally {
       setIsCreatingReply(false);
     }

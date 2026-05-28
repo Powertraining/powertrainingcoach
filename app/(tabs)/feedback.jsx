@@ -48,7 +48,9 @@ const FeedbackScreen = observer(function FeedbackScreen() {
 
   async function handleSubmit() {
     if (rating === 0) {
-      setError("Please select a rating");
+      const message = "Please select a rating before sending feedback.";
+      setError(message);
+      model.showError?.(message);
       return;
     }
 
@@ -74,7 +76,9 @@ const FeedbackScreen = observer(function FeedbackScreen() {
       router.replace("/(tabs)");
     } catch (e) {
       console.error("Error submitting feedback:", e);
-      setError(e.message || "Failed to submit feedback");
+      const message = e.message || "Could not send feedback. Please try again.";
+      setError(message);
+      model.showError?.(e, "Could not send feedback. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

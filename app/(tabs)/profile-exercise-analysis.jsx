@@ -135,7 +135,9 @@ const ProfileExerciseAnalysisScreen = observer(function ProfileExerciseAnalysisS
       });
     } catch (uploadError) {
       console.warn("Could not upload exercise analysis video:", uploadError);
-      setError(uploadError?.message || "Could not upload video.");
+      const message = uploadError?.message || "Could not upload video.";
+      setError(message);
+      model.showError?.(uploadError, "Could not upload video. Please try again.");
     } finally {
       setIsUploadingVideo(false);
       setPreviewVideoUrl("");
@@ -185,12 +187,16 @@ const ProfileExerciseAnalysisScreen = observer(function ProfileExerciseAnalysisS
     const mediaType = model.forumComposer?.mediaType;
 
     if (!title) {
-      setError("Exercise name is required.");
+      const message = "Exercise name is required.";
+      setError(message);
+      model.showError?.(message);
       return;
     }
 
     if (!mediaUrl || mediaType !== "video") {
-      setError("A video is required before sending.");
+      const message = "A video is required before sending.";
+      setError(message);
+      model.showError?.(message);
       return;
     }
 
@@ -212,7 +218,9 @@ const ProfileExerciseAnalysisScreen = observer(function ProfileExerciseAnalysisS
       router.replace(returnTo);
     } catch (sendError) {
       console.warn("Could not send exercise analysis request:", sendError);
-      setError(sendError?.message || "Could not send the exercise analysis.");
+      const message = sendError?.message || "Could not send the exercise analysis.";
+      setError(message);
+      model.showError?.(sendError, "Could not send the exercise analysis. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

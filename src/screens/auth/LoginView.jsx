@@ -6,61 +6,68 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export function LoginView(props) {
   return (
     <View style={{ flex: 1 }}>
-      <IBMPlexText titleBlock>Welcome back!</IBMPlexText>
+      <IBMPlexText titleBlock height={190} numberOfLines={1} adjustsFontSizeToFit>
+        POWERTRAINING
+      </IBMPlexText>
 
-      <SignFormInput
-        text="E-mail"
-        image="user"
-        inputProps={{
-          value: props.identifier,
-          onChangeText: props.onIdentifierChange,
-          keyboardType: "email-address",
-          autoCapitalize: "none",
-        }}
-      />
-      <SignFormInput
-        text="Password"
-        image="lock"
-        inputProps={{
-          value: props.password,
-          onChangeText: props.onPasswordChange,
-          secureTextEntry: true,
-        }}
-      />
-      <GoogleButtonComponent
-        onPress={props.onSubmitGoogle}
-        disabled={props.isSubmitting}
-      />
-      <TouchableOpacity
-        style={styles.forgotPasswordButton}
-        onPress={props.onForgotPasswordPress}
-        disabled={props.isSubmitting}
-      >
-        <IBMPlexText defaultWhite center={true}>Forgot your password?</IBMPlexText>
-      </TouchableOpacity>
-
-      {props.error ? <IBMPlexText defaultWhite center={true}>{props.error}</IBMPlexText> : null}
-      {props.verificationMessage ? (
-        <IBMPlexText defaultWhite center={true}>{props.verificationMessage}</IBMPlexText>
-      ) : null}
-      {props.canResendVerification ? (
+      <View style={styles.formContent}>
+        <SignFormInput
+          text="E-mail"
+          image="email"
+          inputProps={{
+            value: props.identifier,
+            onChangeText: props.onIdentifierChange,
+            keyboardType: "email-address",
+            autoCapitalize: "none",
+          }}
+        />
+        <SignFormInput
+          text="Password"
+          image="lock"
+          inputProps={{
+            value: props.password,
+            onChangeText: props.onPasswordChange,
+            secureTextEntry: true,
+          }}
+        />
+        <GoogleButtonComponent
+          onPress={props.onSubmitGoogle}
+          disabled={props.isSubmitting}
+        />
         <TouchableOpacity
-          style={styles.resendVerificationButton}
-          onPress={props.onResendVerificationPress}
-          disabled={props.isSubmitting || props.isResendingVerification}
+          style={styles.forgotPasswordButton}
+          onPress={props.onForgotPasswordPress}
+          disabled={props.isSubmitting}
         >
-          <IBMPlexText defaultWhite center={true}>
-            {props.isResendingVerification
-              ? "Sending verification e-mail..."
-              : "Resend verification e-mail"}
-          </IBMPlexText>
+          <IBMPlexText defaultWhite center={true}>Forgot your password?</IBMPlexText>
         </TouchableOpacity>
-      ) : null}
+
+        {props.verificationMessage ? (
+          <IBMPlexText defaultWhite center={true}>{props.verificationMessage}</IBMPlexText>
+        ) : null}
+        {props.canResendVerification ? (
+          <TouchableOpacity
+            style={styles.resendVerificationButton}
+            onPress={props.onResendVerificationPress}
+            disabled={props.isSubmitting || props.isResendingVerification}
+          >
+            <IBMPlexText defaultWhite center={true}>
+              {props.isResendingVerification
+                ? "Sending verification e-mail..."
+                : "Resend verification e-mail"}
+            </IBMPlexText>
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  formContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
   forgotPasswordButton: {
     width: "100%",
     marginBottom: 15,

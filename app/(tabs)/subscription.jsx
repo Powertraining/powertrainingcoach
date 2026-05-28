@@ -182,6 +182,10 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
               error.message ||
                 "Your subscription is active, but we couldn't generate your training plan yet. Please return to the questionnaire and try again."
             );
+            model.showError?.(
+              error,
+              "Your subscription is active, but we could not generate your training plan yet."
+            );
             return;
           } finally {
             setGeneratingPlan(false);
@@ -203,6 +207,10 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
         setMessage(
           error.message ||
             "We couldn't verify the payment yet. Please wait a moment and try again."
+        );
+        model.showError?.(
+          error,
+          "We could not verify the payment yet. Please wait a moment and try again."
         );
       })
       .finally(() => {

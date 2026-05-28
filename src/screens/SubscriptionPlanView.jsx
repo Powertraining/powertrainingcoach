@@ -22,6 +22,7 @@ import {
   listSubscriptionPlans,
   openTrustedStripeUrl,
 } from "../services/utils/stripeClient.js";
+import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const PLAN_OPTIONS = [
   {
@@ -152,7 +153,9 @@ export default function SubscriptionPlanView({
           return;
         }
 
-        setError(err.message || "Failed to load subscription plans.");
+        const message = err.message || "Could not load subscription plans.";
+        setError(message);
+        reactiveModel.showError?.(err, "Could not load subscription plans. Please try again.");
         setRemotePlans([]);
       })
       .finally(() => {
@@ -263,7 +266,9 @@ export default function SubscriptionPlanView({
 
       await openTrustedStripeUrl(checkoutData.checkoutUrl);
     } catch (err) {
-      setError(err.message || "Failed to start checkout. Please try again.");
+      const message = err.message || "Could not start checkout. Please try again.";
+      setError(message);
+      reactiveModel.showError?.(err, "Could not start checkout. Please try again.");
     } finally {
       setLoadingPlan("");
     }

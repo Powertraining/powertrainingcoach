@@ -241,9 +241,9 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
       setCommentDraft("");
     } catch (error) {
       console.warn("Could not create the forum comment:", error);
-      setCreateCommentError(
-        error?.message || "Could not create the forum comment."
-      );
+      const message = error?.message || "Could not create the forum comment.";
+      setCreateCommentError(message);
+      model.showError?.(error, "Could not post your comment. Please try again.");
     } finally {
       setIsCreatingComment(false);
     }
@@ -266,7 +266,9 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
       resetReplyComposer();
     } catch (error) {
       console.warn("Could not create the forum reply:", error);
-      setCreateReplyError(error?.message || "Could not create the forum reply.");
+      const message = error?.message || "Could not create the forum reply.";
+      setCreateReplyError(message);
+      model.showError?.(error, "Could not post your reply. Please try again.");
     } finally {
       setIsCreatingReply(false);
     }
