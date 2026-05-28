@@ -3,6 +3,8 @@ import {
   useRef,
   useState } from "react";
 import {
+  Animated,
+  Easing,
   Image,
   Keyboard,
   Pressable,
@@ -76,6 +78,7 @@ const SPRINTING_TARGET_ICONS = Object.freeze({
   repeat_bursts: "repeat",
   hard_conditioning: "fire",
 });
+const GOLD_RAY_ANGLES = Object.freeze([0, 45, 90, 135, 180, 225, 270, 315]);
 const HEAVY_BAG_TARGET_ICONS = Object.freeze({
   aerobic_bag_work: "heart-pulse",
   tempo_sustained_conditioning: "timer-sand",
@@ -83,6 +86,199 @@ const HEAVY_BAG_TARGET_ICONS = Object.freeze({
   local_upper_body_endurance: "arm-flex",
   sport_specific_fight_camp_simulation: "boxing-glove",
 });
+
+function EnduranceStyleOptionButton({
+  index,
+  isSelected,
+  label,
+  description,
+  onPress,
+}) {
+  const entranceProgress = useRef(new Animated.Value(0)).current;
+  const pressProgress = useRef(new Animated.Value(0)).current;
+  const animatedStyle = {
+    opacity: entranceProgress,
+    transform: [
+      {
+        translateY: Animated.add(
+          entranceProgress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [22, 0],
+          }),
+          pressProgress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, -4],
+          })
+        ),
+      },
+    ],
+  };
+
+  useEffect(() => {
+    Animated.timing(entranceProgress, {
+      toValue: 1,
+      duration: 340,
+      delay: 80 + index * 70,
+      useNativeDriver: true,
+    }).start();
+  }, [entranceProgress, index]);
+
+  function animatePress(toValue) {
+    Animated.timing(pressProgress, {
+      toValue,
+      duration: toValue ? 90 : 150,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <PreferenceOptionButton
+        isSelected={isSelected}
+        label={label}
+        description={description}
+        buttonStyle={styles.styleOptionButton}
+        selectedButtonStyle={styles.styleOptionButtonSelected}
+        labelStyle={styles.styleOptionLabel}
+        descriptionStyle={styles.styleOptionDescription}
+        onPress={onPress}
+        onPressIn={() => animatePress(1)}
+        onPressOut={() => animatePress(0)}
+      />
+    </Animated.View>
+  );
+}
+
+function SprintingFocusOptionButton({
+  iconName,
+  isSelected,
+  label,
+  onPress,
+}) {
+  const selectedProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
+  const pressProgress = useRef(new Animated.Value(0)).current;
+  const burstProgress = useRef(new Animated.Value(0)).current;
+  const wasSelectedRef = useRef(isSelected);
+  const [burstOrigin, setBurstOrigin] = useState({ x: "50%", y: "50%" });
+
+  useEffect(() => {
+    Animated.timing(selectedProgress, {
+      toValue: isSelected ? 1 : 0,
+      duration: isSelected ? 160 : 120,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+
+    if (isSelected && !wasSelectedRef.current) {
+      burstProgress.setValue(0);
+      Animated.timing(burstProgress, {
+        toValue: 1,
+        duration: 280,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }
+
+    wasSelectedRef.current = isSelected;
+  }, [burstProgress, isSelected, selectedProgress]);
+
+  function animatePress(toValue, event) {
+    if (event?.nativeEvent) {
+      setBurstOrigin({
+        x: event.nativeEvent.locationX,
+        y: event.nativeEvent.locationY,
+      });
+    }
+
+    Animated.timing(pressProgress, {
+      toValue,
+      duration: toValue ? 70 : 110,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }
+
+  const optionAnimatedStyle = {
+    opacity: pressProgress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 0.78],
+    }),
+    transform: [
+      {
+        translateY: selectedProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -7],
+        }),
+      },
+      {
+        scale: selectedProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 1.025],
+        }),
+      },
+    ],
+  };
+  const burstStyle = {
+    opacity: burstProgress.interpolate({
+      inputRange: [0, 0.18, 1],
+      outputRange: [0, 0.95, 0],
+    }),
+    transform: [
+      {
+        scale: burstProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.35, 1.28],
+        }),
+      },
+    ],
+  };
+
+  return (
+    <View style={styles.sprintingOptionWrap}>
+      <Animated.View style={[styles.sprintingOptionShell, optionAnimatedStyle]}>
+        <PreferenceOptionButton
+          isSelected={isSelected}
+          label={label}
+          icon={
+            <MaterialCommunityIcons
+              name={iconName}
+              size={34}
+              color={isSelected ? "#ffffff" : "#C9B259"}
+            />
+          }
+          stacked
+          buttonStyle={styles.sprintingOptionButton}
+          selectedButtonStyle={styles.sprintingOptionButtonSelected}
+          labelStyle={styles.sprintingOptionLabel}
+          onPress={onPress}
+          onPressIn={(event) => animatePress(1, event)}
+          onPressOut={() => animatePress(0)}
+        />
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.sprintingGoldBurst,
+            burstStyle,
+            {
+              left: burstOrigin.x,
+              top: burstOrigin.y,
+            },
+          ]}
+        >
+          {GOLD_RAY_ANGLES.map((angle) => (
+            <View
+              key={`sprinting-gold-ray-${angle}`}
+              style={[
+                styles.sprintingGoldRay,
+                { transform: [{ rotate: `${angle}deg` }, { translateY: -54 }] },
+              ]}
+            />
+          ))}
+        </Animated.View>
+      </Animated.View>
+    </View>
+  );
+}
 
 function ChoiceChip({ label, isSelected, onPress }) {
   return (
@@ -691,20 +887,11 @@ export default function TrainingPreferencesEnduranceSetupView({
             const isSelected = values?.sprintingTarget === option.value;
 
             return (
-              <PreferenceOptionButton
+              <SprintingFocusOptionButton
                 key={option.value}
                 isSelected={isSelected}
                 label={option.label}
-                icon={
-                  <MaterialCommunityIcons
-                    name={SPRINTING_TARGET_ICONS[option.value]}
-                    size={34}
-                    color={isSelected ? "#ffffff" : "#C9B259"}
-                  />
-                }
-                stacked
-                buttonStyle={styles.sprintingOptionButton}
-                labelStyle={styles.sprintingOptionLabel}
+                iconName={SPRINTING_TARGET_ICONS[option.value]}
                 onPress={() =>
                   updateField("sprintingTarget", isSelected ? null : option.value)
                 }
@@ -729,16 +916,13 @@ export default function TrainingPreferencesEnduranceSetupView({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.styleOptions}>
-          {ENDURANCE_FORMAT_OPTIONS.map((option) => (
-            <PreferenceOptionButton
+          {ENDURANCE_FORMAT_OPTIONS.map((option, index) => (
+            <EnduranceStyleOptionButton
               key={option.value}
+              index={index}
               isSelected={values?.preferredEnduranceFormat === option.value}
               label={option.label}
               description={ENDURANCE_FORMAT_DETAILS[option.value]}
-              buttonStyle={styles.styleOptionButton}
-              selectedButtonStyle={styles.styleOptionButtonSelected}
-              labelStyle={styles.styleOptionLabel}
-              descriptionStyle={styles.styleOptionDescription}
               onPress={() =>
                 updateField(
                   "preferredEnduranceFormat",
@@ -911,15 +1095,55 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 56,
   },
+  sprintingOptionWrap: {
+    alignSelf: "center",
+    overflow: "visible",
+    position: "relative",
+    width: "75%",
+  },
+  sprintingOptionShell: {
+    overflow: "visible",
+    position: "relative",
+    width: "100%",
+  },
   sprintingOptionButton: {
     minHeight: 118,
     paddingHorizontal: 14,
     paddingVertical: 14,
+    width: "100%",
+  },
+  sprintingOptionButtonSelected: {
+    borderColor: "#ffffff",
+    shadowColor: "#ffffff",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24,
+    shadowRadius: 14,
+    elevation: 8,
   },
   sprintingOptionLabel: {
     color: "#ffffff",
     fontSize: 14,
     lineHeight: 18,
+  },
+  sprintingGoldBurst: {
+    alignItems: "center",
+    elevation: 12,
+    height: 1,
+    justifyContent: "center",
+    position: "absolute",
+    width: 1,
+    zIndex: 4,
+  },
+  sprintingGoldRay: {
+    backgroundColor: "#ffffff",
+    borderRadius: 2,
+    height: 34,
+    left: "50%",
+    marginLeft: -1.5,
+    marginTop: -17,
+    position: "absolute",
+    top: "50%",
+    width: 3,
   },
   circuitFocusContent: {
     flex: 1,

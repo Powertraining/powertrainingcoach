@@ -1,14 +1,9 @@
 import {
-  useEffect,
-  useRef,
-} from "react";
-import {
-  Animated,
   Image,
-  Pressable,
   StyleSheet,
   View,
 } from "react-native";
+import PressedShadowButton from "../../components/questionnaireComponents/PressedShadowButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const CONFIDENCE_OPTIONS = [
   { label: "I'm not", value: "no" },
@@ -57,71 +52,29 @@ function ExerciseBox({ exercise, imageSource }) {
 }
 
 function ConfidenceOptionButton({ isSelected, label, onPress }) {
-  const pressProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
-  const optionFaceTransform = {
-    transform: [
-      {
-        translateX: pressProgress.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, -OPTION_SHADOW_OFFSET],
-        }),
-      },
-      {
-        translateY: pressProgress.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, -OPTION_SHADOW_OFFSET],
-        }),
-      },
-    ],
-  };
-
-  useEffect(() => {
-    Animated.timing(pressProgress, {
-      toValue: isSelected ? 1 : 0,
-      duration: 120,
-      useNativeDriver: true,
-    }).start();
-  }, [isSelected, pressProgress]);
-
-  function animatePress(toValue) {
-    Animated.timing(pressProgress, {
-      toValue,
-      duration: toValue ? 70 : 120,
-      useNativeDriver: true,
-    }).start();
-  }
-
   return (
-    <Pressable
+    <PressedShadowButton
+      faceSelectedStyle={styles.optionFaceSelected}
+      faceStyle={styles.optionFace}
       onPress={onPress}
-      onPressIn={() => animatePress(1)}
+      pressedTranslateX={-OPTION_SHADOW_OFFSET}
+      pressedTranslateY={-OPTION_SHADOW_OFFSET}
+      releaseOnPressOut={false}
+      selected={isSelected}
+      shadowSelectedStyle={styles.optionShadowSelected}
+      shadowStyle={styles.optionShadow}
       style={styles.optionButton}
     >
-      <View
-        pointerEvents="none"
+      <IBMPlexText defaultWhite
+        lines={1}
         style={[
-          styles.optionShadow,
-          isSelected ? styles.optionShadowSelected : null,
-        ]}
-      />
-      <Animated.View
-        style={[
-          styles.optionFace,
-          optionFaceTransform,
-          isSelected ? styles.optionFaceSelected : null,
+          styles.optionButtonText,
+          isSelected ? styles.optionButtonTextSelected : null,
         ]}
       >
-        <IBMPlexText defaultWhite
-          lines={1}
-          style={[
-            styles.optionButtonText,
-            isSelected ? styles.optionButtonTextSelected : null,
-          ]}
-        >
-          {label}
-        </IBMPlexText>
-      </Animated.View>
-    </Pressable>
+        {label}
+      </IBMPlexText>
+    </PressedShadowButton>
   );
 }
 

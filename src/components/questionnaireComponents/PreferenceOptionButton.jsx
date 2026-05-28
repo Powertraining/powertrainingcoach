@@ -9,6 +9,8 @@ export default function PreferenceOptionButton({
   label,
   isSelected,
   onPress,
+  onPressIn,
+  onPressOut,
   imageSource,
   imageStyle,
   icon,
@@ -30,6 +32,8 @@ export default function PreferenceOptionButton({
   return (
     <TouchableOpacity
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       style={[
         styles.button,
         hasDescription ? styles.buttonWithDescription : null,

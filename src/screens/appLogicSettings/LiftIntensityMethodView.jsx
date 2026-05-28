@@ -1,10 +1,15 @@
 import {
-  useState } from "react";
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   LIFT_INTENSITY_METHOD_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
-  } from "../../constants/appLogicSettings.js";
+} from "../../constants/appLogicSettings.js";
 import {
+  Animated,
+  Easing,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -37,6 +42,39 @@ const TITLE_BLOCK_HEIGHT = 196;
 const SECTION_TOP_PADDING = 52;
 const OPTIONS_BOTTOM_CLEARANCE = 132;
 
+function FadeInOption({ children, delay = 0 }) {
+  const enterProgress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    enterProgress.setValue(0);
+    Animated.timing(enterProgress, {
+      toValue: 1,
+      duration: 360,
+      delay,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [delay, enterProgress]);
+
+  const animatedStyle = {
+    opacity: enterProgress,
+    transform: [
+      {
+        translateY: enterProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [24, 0],
+        }),
+      },
+    ],
+  };
+
+  return (
+    <Animated.View style={[styles.fadeInOption, animatedStyle]}>
+      {children}
+    </Animated.View>
+  );
+}
+
 export default function LiftIntensityMethodView({
   value,
   onChange,
@@ -59,19 +97,21 @@ export default function LiftIntensityMethodView({
         bounces={false}
       >
         {rpeOption ? (
-          <PreferenceOptionButton
-            isSelected={value === rpeOption.value}
-            label="Adjust by effort"
-            mediaText={LIFT_INTENSITY_MEDIA_TEXT[rpeOption.value]}
-            buttonStyle={styles.optionButton}
-            selectedButtonStyle={styles.optionButtonSelected}
-            labelStyle={styles.optionLabel}
-            mediaTextStyle={styles.optionMediaText}
-            badge="Recommended"
-            onPress={() =>
-              onChange?.(value === rpeOption.value ? null : rpeOption.value)
-            }
-          />
+          <FadeInOption>
+            <PreferenceOptionButton
+              isSelected={value === rpeOption.value}
+              label="Adjust by effort"
+              mediaText={LIFT_INTENSITY_MEDIA_TEXT[rpeOption.value]}
+              buttonStyle={styles.optionButton}
+              selectedButtonStyle={styles.optionButtonSelected}
+              labelStyle={styles.optionLabel}
+              mediaTextStyle={styles.optionMediaText}
+              badge="Recommended"
+              onPress={() =>
+                onChange?.(value === rpeOption.value ? null : rpeOption.value)
+              }
+            />
+          </FadeInOption>
         ) : null}
         <TouchableOpacity
           style={styles.advancedRow}
@@ -89,7 +129,7 @@ export default function LiftIntensityMethodView({
         </TouchableOpacity>
         {isAdvancedExpanded ? (
           <View style={styles.referenceOptions}>
-            {PERCENTAGE_REFERENCE_DISPLAY_ORDER.map((optionValue) => {
+            {PERCENTAGE_REFERENCE_DISPLAY_ORDER.map((optionValue, index) => {
               const option = PERCENTAGE_REFERENCE_METHOD_OPTIONS.find(
                 (referenceOption) => referenceOption.value === optionValue
               );
@@ -100,20 +140,21 @@ export default function LiftIntensityMethodView({
               const buttonContent = PERCENTAGE_REFERENCE_BUTTONS[option.value];
 
               return (
-                <PreferenceOptionButton
-                  key={option.value}
-                  isSelected={
-                    value === "percentage" &&
-                    percentageReferenceValue === option.value
-                  }
-                  label={buttonContent?.label ?? option.label}
-                  mediaText={buttonContent?.mediaText}
-                  buttonStyle={styles.optionButton}
-                  selectedButtonStyle={styles.optionButtonSelected}
-                  labelStyle={styles.optionLabel}
-                  mediaTextStyle={styles.optionMediaText}
-                  onPress={() => onPercentageReferenceChange?.(option.value)}
-                />
+                <FadeInOption key={option.value} delay={index * 70}>
+                  <PreferenceOptionButton
+                    isSelected={
+                      value === "percentage" &&
+                      percentageReferenceValue === option.value
+                    }
+                    label={buttonContent?.label ?? option.label}
+                    mediaText={buttonContent?.mediaText}
+                    buttonStyle={styles.optionButton}
+                    selectedButtonStyle={styles.optionButtonSelected}
+                    labelStyle={styles.optionLabel}
+                    mediaTextStyle={styles.optionMediaText}
+                    onPress={() => onPercentageReferenceChange?.(option.value)}
+                  />
+                </FadeInOption>
               );
             })}
           </View>
@@ -136,6 +177,9 @@ const styles = StyleSheet.create({
     gap: 14,
     justifyContent: "flex-start",
     paddingBottom: OPTIONS_BOTTOM_CLEARANCE,
+  },
+  fadeInOption: {
+    width: "100%",
   },
   optionButton: {
     backgroundColor: "#141414",

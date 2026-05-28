@@ -3,7 +3,9 @@ import {
   useRef,
   useState } from "react";
 import {
+  Animated,
   Dimensions,
+  Easing,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -58,6 +60,7 @@ export default function TrainingPreferencesEventPreparationView({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const cancelPressPendingRef = useRef(false);
   const isDetailsEditingRef = useRef(false);
+  const editorEntranceProgress = useRef(new Animated.Value(0)).current;
   const overlayHeight =
     Math.max(screenHeight, physicalScreenHeight) + SECTION_TOP_PADDING + keyboardHeight;
   const editorSafeTopPadding = Math.max(insets.top + 20, 32);
@@ -77,6 +80,49 @@ export default function TrainingPreferencesEventPreparationView({
     typeof helperBottom === "number"
       ? helperBottom + (continueButtonTop - helperBottom) / 2
       : null;
+  const editorCardCenter =
+    DESCRIPTION_EDITOR_TOP_OFFSET +
+    editorSafeTopPadding +
+    (editorLayerHeight - editorSafeTopPadding - editorContentHeight) / 2 +
+    DESCRIPTION_EDITOR_CARD_HEIGHT / 2;
+  const editorStartTranslateY =
+    typeof centeredContentCenter === "number"
+      ? centeredContentCenter - editorCardCenter
+      : DESCRIPTION_CARD_HEIGHT;
+  const editorCardAnimatedStyle = {
+    opacity: editorEntranceProgress.interpolate({
+      inputRange: [0, 0.4, 1],
+      outputRange: [0.92, 1, 1],
+    }),
+    transform: [
+      {
+        translateY: editorEntranceProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [editorStartTranslateY, 0],
+        }),
+      },
+      {
+        scaleY: editorEntranceProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [DESCRIPTION_CARD_HEIGHT / DESCRIPTION_EDITOR_CARD_HEIGHT, 1],
+        }),
+      },
+    ],
+  };
+  const editorActionsAnimatedStyle = {
+    opacity: editorEntranceProgress.interpolate({
+      inputRange: [0, 0.72, 1],
+      outputRange: [0, 0, 1],
+    }),
+    transform: [
+      {
+        translateY: editorEntranceProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [14, 0],
+        }),
+      },
+    ],
+  };
 
   useEffect(() => {
     setEventDate(getInitialDate(value));
@@ -91,6 +137,20 @@ export default function TrainingPreferencesEventPreparationView({
   useEffect(() => {
     isDetailsEditingRef.current = isDetailsEditing;
   }, [isDetailsEditing]);
+
+  useEffect(() => {
+    if (!isDetailsEditing) {
+      editorEntranceProgress.setValue(0);
+      return;
+    }
+
+    Animated.timing(editorEntranceProgress, {
+      toValue: 1,
+      duration: 360,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [editorEntranceProgress, isDetailsEditing]);
 
   useEffect(() => {
     const keyboardShowEvent =
@@ -250,7 +310,7 @@ export default function TrainingPreferencesEventPreparationView({
                 },
               ]}
             >
-              <View style={styles.editorCard}>
+              <Animated.View style={[styles.editorCard, editorCardAnimatedStyle]}>
                 <View style={styles.editorContent}>
                   <IBMPlexText defaultWhite style={styles.inputLabel}>
                     Event details
@@ -267,8 +327,8 @@ export default function TrainingPreferencesEventPreparationView({
                     style={styles.descriptionInput}
                   />
                 </View>
-              </View>
-              <View style={styles.editorActions}>
+              </Animated.View>
+              <Animated.View style={[styles.editorActions, editorActionsAnimatedStyle]}>
                 <Pressable
                   accessibilityRole="button"
                   onPress={saveDetailsEditor}
@@ -292,7 +352,7 @@ export default function TrainingPreferencesEventPreparationView({
                 >
                   <IBMPlexText style={styles.editorCancelButtonText}>Cancel</IBMPlexText>
                 </Pressable>
-              </View>
+              </Animated.View>
             </KeyboardAvoidingView>
           ) : null}
         </>

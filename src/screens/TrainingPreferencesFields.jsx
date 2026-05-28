@@ -181,6 +181,7 @@ const NULLABLE_FORM_KEYS = Object.freeze([
   "preferredEnduranceFormat",
   "circuitTrainingPrimaryPriority",
   "sessionDuration",
+  "equipment",
   "trainingPhase",
   "combatTrainingIntensity",
   "liftIntensityMethod",

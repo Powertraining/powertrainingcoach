@@ -4,6 +4,7 @@ import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 const BUTTON_SLIDE_DISTANCE = 86;
+const STACKED_TEXT_SLIDE_DISTANCE = 16;
 
 export default function QuestionnaireBottomActionButton({
     text = "continue",
@@ -17,8 +18,11 @@ export default function QuestionnaireBottomActionButton({
     const hidesDisabledSingleButton = layout !== "stacked" && !canContinue && (hideWhenDisabled || hideBack);
     const shouldRenderSingleButton = !hidesDisabledSingleButton;
     const [buttonCanContinue, setButtonCanContinue] = useState(Boolean(canContinue));
+    const [stackedText, setStackedText] = useState(text);
     const buttonProgress = useRef(new Animated.Value(shouldRenderSingleButton ? 1 : 0)).current;
+    const stackedTextProgress = useRef(new Animated.Value(1)).current;
     const animationIdRef = useRef(0);
+    const stackedTextAnimationIdRef = useRef(0);
 
     useEffect(() => {
         if (layout === "stacked") {
@@ -52,7 +56,48 @@ export default function QuestionnaireBottomActionButton({
         });
     }, [buttonProgress, canContinue, layout, shouldRenderSingleButton]);
 
+    useEffect(() => {
+        if (layout !== "stacked" || text === stackedText) {
+            return;
+        }
+
+        stackedTextAnimationIdRef.current += 1;
+        const animationId = stackedTextAnimationIdRef.current;
+        stackedTextProgress.stopAnimation();
+
+        Animated.timing(stackedTextProgress, {
+            toValue: 0,
+            duration: 120,
+            easing: Easing.in(Easing.cubic),
+            useNativeDriver: true,
+        }).start(({ finished }) => {
+            if (!finished || stackedTextAnimationIdRef.current !== animationId) {
+                return;
+            }
+
+            setStackedText(text);
+            Animated.timing(stackedTextProgress, {
+                toValue: 1,
+                duration: 190,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+            }).start();
+        });
+    }, [layout, stackedText, stackedTextProgress, text]);
+
     if (layout === "stacked") {
+        const stackedTextAnimatedStyle = {
+            opacity: stackedTextProgress,
+            transform: [
+                {
+                    translateY: stackedTextProgress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [STACKED_TEXT_SLIDE_DISTANCE, 0],
+                    }),
+                },
+            ],
+        };
+
         return (
             <View style={styles.stackedContainer}>
                 {!hideBack ? (
@@ -61,7 +106,9 @@ export default function QuestionnaireBottomActionButton({
                     </TouchableOpacity>
                 ) : null}
                 <TouchableOpacity onPress={onContinue} style={styles.stackedContinueButton}>
-                    <IBMPlexText style={styles.buttonText}>{text}</IBMPlexText>
+                    <Animated.View style={stackedTextAnimatedStyle}>
+                        <IBMPlexText style={styles.buttonText}>{stackedText}</IBMPlexText>
+                    </Animated.View>
                 </TouchableOpacity>
             </View>
         );

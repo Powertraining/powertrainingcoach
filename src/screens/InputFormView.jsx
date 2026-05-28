@@ -132,6 +132,11 @@ export default function InputFormView({
     const isInjuriesStep = activeStepKey === "injuries";
     const isEnduranceCircuitGoalStep = activeStepKey === "enduranceCircuitGoal";
     const isEnduranceStyleStep = activeStepKey === "enduranceStyle";
+    const enduranceStyleStepSelected = Boolean(trainingPreferences.preferredEnduranceFormat);
+    const isEnduranceSprintingFocusStep = activeStepKey === "enduranceSprintingFocus";
+    const enduranceSprintingFocusStepSelected = Boolean(trainingPreferences.sprintingTarget);
+    const isEquipmentStep = activeStepKey === "equipment";
+    const equipmentStepSelected = Boolean(trainingPreferences.equipment);
     const isLiftIntensityMethodStep = activeStepKey === "liftIntensityMethod";
     const isDeloadStrategyStep = activeStepKey === "deloadStrategy";
     const liftIntensityMethodStepSelected = Boolean(trainingPreferences.liftIntensityMethod);
@@ -306,6 +311,12 @@ export default function InputFormView({
                     hideBack
                     text={activeStep >= sectionCount - 1
                         ? (subscription ? "Generate Plan" : "Subscribe & Generate Plan")
+                        : (
+                            (isEnduranceStyleStep && !enduranceStyleStepSelected) ||
+                            (isEnduranceSprintingFocusStep && !enduranceSprintingFocusStepSelected) ||
+                            (isEquipmentStep && !equipmentStepSelected)
+                        )
+                            ? "Skip"
                         : "Continue"}
                     onContinue={handleContinue}
                     onBack={handleStepBack}

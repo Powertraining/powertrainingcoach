@@ -1,6 +1,5 @@
 import {
   Image,
-  Pressable,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -11,9 +10,13 @@ import {
   APP_LOGIC_SETTINGS_DEFAULTS,
   LOADING_STRATEGY_OPTIONS,
 } from "../../constants/appLogicSettings.js";
+import PressedShadowButton from "../../components/questionnaireComponents/PressedShadowButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const ARROW_IMAGE = require("../../assets/icons/arrow.png");
+const LOADING_VISUAL_HEIGHT = 211;
+const OPTION_LABEL_HEIGHT = 28;
+const DESCRIPTION_HEIGHT = 78;
 
 function getActiveIndex(value) {
   const foundIndex = LOADING_STRATEGY_OPTIONS.findIndex(
@@ -170,41 +173,41 @@ export default function LoadingStrategyView({ value, onChange }) {
       </View>
 
       <View style={styles.buttonsRow}>
-        <Pressable
+        <PressedShadowButton
           accessibilityLabel="Previous loading strategy"
-          accessibilityRole="button"
+          faceStyle={styles.arrowWrap}
           onPress={() => moveSelection(-1)}
+          pressedTranslateX={-5}
+          pressedTranslateY={-5}
+          shadowStyle={styles.arrowShadow}
           style={styles.button}
         >
-          <View style={styles.arrowShadow} />
-          <View style={styles.arrowWrap}>
-            <Image
-              source={ARROW_IMAGE}
-              style={[
-                styles.arrowImage,
-                styles.arrowImageLeft,
-                styles.arrowImageLeftOffset,
-              ]}
-              resizeMode="contain"
-            />
-          </View>
-        </Pressable>
+          <Image
+            source={ARROW_IMAGE}
+            style={[
+              styles.arrowImage,
+              styles.arrowImageLeft,
+              styles.arrowImageLeftOffset,
+            ]}
+            resizeMode="contain"
+          />
+        </PressedShadowButton>
 
-        <Pressable
+        <PressedShadowButton
           accessibilityLabel="Next loading strategy"
-          accessibilityRole="button"
+          faceStyle={styles.arrowWrap}
           onPress={() => moveSelection(1)}
+          pressedTranslateX={-5}
+          pressedTranslateY={-5}
+          shadowStyle={styles.arrowShadow}
           style={styles.button}
         >
-          <View style={styles.arrowShadow} />
-          <View style={styles.arrowWrap}>
-            <Image
-              source={ARROW_IMAGE}
-              style={[styles.arrowImage, styles.arrowImageRightOffset]}
-              resizeMode="contain"
-            />
-          </View>
-        </Pressable>
+          <Image
+            source={ARROW_IMAGE}
+            style={[styles.arrowImage, styles.arrowImageRightOffset]}
+            resizeMode="contain"
+          />
+        </PressedShadowButton>
       </View>
     </View>
   );
@@ -222,6 +225,7 @@ const styles = StyleSheet.create({
   loadingVisual: {
     alignItems: "center",
     gap: 20,
+    height: LOADING_VISUAL_HEIGHT,
     marginTop: 36,
     width: 250,
   },
@@ -263,15 +267,20 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 20,
+    height: OPTION_LABEL_HEIGHT,
+    lineHeight: 24,
     marginTop: 32,
+    textAlignVertical: "center",
   },
   descriptionText: {
     alignSelf: "center",
+    height: DESCRIPTION_HEIGHT,
+    lineHeight: 20,
     marginBottom: 42,
     marginTop: 42,
     maxWidth: 320,
-    minHeight: 48,
     paddingHorizontal: 24,
+    textAlignVertical: "center",
   },
   buttonsRow: {
     flexDirection: "row",
