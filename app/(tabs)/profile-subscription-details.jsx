@@ -154,7 +154,9 @@ const ProfileSubscriptionDetailsScreen = observer(function ProfileSubscriptionDe
     try {
       await createPortalSession({});
     } catch (portalError) {
-      setError(portalError.message || "Could not open billing settings.");
+      const message = portalError.message || "Could not open billing settings.";
+      setError(message);
+      model.showError?.(portalError, "Could not open billing settings. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
