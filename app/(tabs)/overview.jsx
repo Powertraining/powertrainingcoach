@@ -31,7 +31,6 @@ const OverviewScreen = observer(function OverviewScreen() {
   const [trainingCheckInSubmitting, setTrainingCheckInSubmitting] = useState(false);
   const [selectedDayPointer, setSelectedDayPointer] = useState(null);
   const [updatingPlan, setUpdatingPlan] = useState(false);
-  const lastAutoSelectedDayRef = useRef("");
   const lastRouteSelectedDayRef = useRef("");
 
   function getParamValue(value) {
@@ -140,7 +139,6 @@ const OverviewScreen = observer(function OverviewScreen() {
       : [];
     const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
     const today = getProgramOverviewToday();
-    const todayDateKey = today.toDateString();
     const todayWeekday = getWeekdayNameFromIndex(today.getDay());
     const todayTrainingDay =
       currentWeek?.days?.find(
@@ -152,11 +150,6 @@ const OverviewScreen = observer(function OverviewScreen() {
       return;
     }
 
-    if (lastAutoSelectedDayRef.current === todayDateKey) {
-      return;
-    }
-
-    lastAutoSelectedDayRef.current = todayDateKey;
     setSelectedDayPointer({ week: currentWeek.week, day: todayTrainingDay.day });
   }, [completedDays, plan, routeDayNumber, routeWeekNumber, selectedDayPointer]);
   const selectedDayAssessmentResults = useMemo(

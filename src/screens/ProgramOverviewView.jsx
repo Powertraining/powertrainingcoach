@@ -614,8 +614,23 @@ export default function ProgramOverviewView({
       isArchived: Boolean(archivedContext),
     };
   });
-  const selectedRestSlot = selectedRestSlotKey
-    ? currentWeekSchedule.find((slot) => slot.dateKey === selectedRestSlotKey)
+  const hasExplicitScheduleSelection = Boolean(
+    selectedRestSlotKey ||
+      selectedTrainingSlotKey ||
+      activeSelectedDay ||
+      selectedArchivedDay
+  );
+  const fallbackSelectedRestSlotKey =
+    !hasExplicitScheduleSelection &&
+    currentWeekSchedule.some(
+      (slot) => slot.dateKey === todayDateKey && !slot.trainingDay
+    )
+      ? todayDateKey
+      : "";
+  const effectiveSelectedRestSlotKey =
+    selectedRestSlotKey || fallbackSelectedRestSlotKey;
+  const selectedRestSlot = effectiveSelectedRestSlotKey
+    ? currentWeekSchedule.find((slot) => slot.dateKey === effectiveSelectedRestSlotKey)
     : null;
   const selectedTrainingSlot =
     activeSelectedDay && !selectedRestSlot
@@ -960,7 +975,8 @@ export default function ProgramOverviewView({
                 selectedArchivedDay?.week === weekNumber &&
                 selectedArchivedDay?.day === trainingDay?.day &&
                 selectedTrainingSlotKey === dateKey;
-              const isSelectedRestDay = !trainingDay && selectedRestSlotKey === dateKey;
+              const isSelectedRestDay =
+                !trainingDay && effectiveSelectedRestSlotKey === dateKey;
               const isSelectedScheduleDay =
                 isSelectedTrainingDay ||
                 isSelectedArchivedDay ||
