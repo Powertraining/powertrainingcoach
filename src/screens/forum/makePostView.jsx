@@ -1,12 +1,17 @@
 import {
   useEffect,
-  useState } from "react";
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Image,
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -216,12 +221,21 @@ export default function MakePostView({
   allowImageUpload = true,
   allowVideoUpload = true,
   allowAnalysisTag = false,
+  sendAnimationKey = 0,
+  onSendAnimationEnd,
   onBack,
   onDiscard,
 }) {
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const entranceTranslateY = useRef(new Animated.Value(Math.min(windowHeight * 0.2, 150))).current;
+  const entranceOpacity = useRef(new Animated.Value(0)).current;
+  const sendTranslateY = useRef(new Animated.Value(0)).current;
+  const sendOpacity = useRef(new Animated.Value(1)).current;
+  const lastSendAnimationKeyRef = useRef(sendAnimationKey);
   const [isTagsPickerVisible, setIsTagsPickerVisible] = useState(false);
   const [isMediaMenuVisible, setIsMediaMenuVisible] = useState(false);
+  const [isSendAnimationRunning, setIsSendAnimationRunning] = useState(false);
   const contentTopPadding = !locked && onBack ? 26 : Math.max(insets.top + 46, 70);
   const avatarSource =
     userPhotoUrl ?
@@ -233,9 +247,9 @@ export default function MakePostView({
   const tagsButtonLabel = normalizedSelectedTags.length > 0 ?
     `Tags (${normalizedSelectedTags.length})` :
     "Tags";
-  const isDraftEditingDisabled = isSubmitting || locked;
-  const isUploadActionDisabled = isSubmitting || isUploadingMedia || locked;
-  const isPostActionDisabled = isSubmitting || isUploadingMedia || locked;
+  const isDraftEditingDisabled = isSubmitting || isSendAnimationRunning || locked;
+  const isUploadActionDisabled = isSubmitting || isSendAnimationRunning || isUploadingMedia || locked;
+  const isPostActionDisabled = isSubmitting || isSendAnimationRunning || isUploadingMedia || locked;
   const hasMedia = Boolean(mediaUrl && mediaType !== "none");
 
   useEffect(() => {
@@ -245,6 +259,69 @@ export default function MakePostView({
       reactiveModel.setForumTabBarHidden(false);
     };
   }, []);
+
+  useEffect(() => {
+    entranceTranslateY.setValue(Math.min(windowHeight * 0.2, 150));
+    entranceOpacity.setValue(0);
+    sendTranslateY.setValue(0);
+    sendOpacity.setValue(1);
+
+    Animated.parallel([
+      Animated.timing(entranceTranslateY, {
+        toValue: 0,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(entranceOpacity, {
+        toValue: 1,
+        duration: 280,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [entranceOpacity, entranceTranslateY, sendOpacity, sendTranslateY, windowHeight]);
+
+  useEffect(() => {
+    if (sendAnimationKey === lastSendAnimationKeyRef.current) {
+      return;
+    }
+
+    lastSendAnimationKeyRef.current = sendAnimationKey;
+
+    if (!sendAnimationKey) {
+      return;
+    }
+
+    closeTagsPicker();
+    setIsMediaMenuVisible(false);
+    sendTranslateY.stopAnimation();
+    sendOpacity.stopAnimation();
+    sendTranslateY.setValue(0);
+    sendOpacity.setValue(1);
+    setIsSendAnimationRunning(true);
+
+    Animated.parallel([
+      Animated.timing(sendTranslateY, {
+        toValue: -42,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(sendOpacity, {
+        toValue: 0.72,
+        duration: 260,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      setIsSendAnimationRunning(false);
+
+      if (finished) {
+        onSendAnimationEnd?.();
+      }
+    });
+  }, [onSendAnimationEnd, sendAnimationKey, sendOpacity, sendTranslateY]);
 
   function toggleTagsPicker() {
     setIsMediaMenuVisible(false);
@@ -280,12 +357,30 @@ export default function MakePostView({
     onRemoveMedia?.();
   }
 
+  function handlePostPress() {
+    if (isPostActionDisabled) {
+      return;
+    }
+
+    closeTagsPicker();
+    setIsMediaMenuVisible(false);
+    onPost?.();
+  }
+
   return (
-    <View style={styles.container}>
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          opacity: Animated.multiply(entranceOpacity, sendOpacity),
+          transform: [{ translateY: Animated.add(entranceTranslateY, sendTranslateY) }],
+        },
+      ]}
+    >
       {!locked && onBack ? (
         <TouchableOpacity
           onPress={onBack}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSendAnimationRunning}
           style={styles.backButton}
         >
           <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
@@ -376,14 +471,14 @@ export default function MakePostView({
           <TouchableOpacity
             style={styles.secondaryButton}
             onPress={onDiscard}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isSendAnimationRunning}
           >
             <TrashIcon />
             <IBMPlexText style={styles.secondaryButtonText}>Discard</IBMPlexText>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.primaryButton, isPostActionDisabled ? styles.disabledButton : null]}
-            onPress={onPost}
+            onPress={handlePostPress}
             disabled={isPostActionDisabled}
           >
             <PlusIcon />
@@ -415,7 +510,7 @@ export default function MakePostView({
           </View>
         </View>
       ) : null}
-    </View>
+    </Animated.View>
   );
 }
 

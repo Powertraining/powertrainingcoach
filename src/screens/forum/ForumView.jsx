@@ -1,6 +1,10 @@
 import {
-  useRef } from "react";
+  useEffect,
+  useRef,
+} from "react";
 import {
+  Animated,
+  Easing,
   Image,
   ScrollView,
   StyleSheet,
@@ -81,6 +85,55 @@ function ForumPostSkeleton({ index = 0 }) {
           <SkeletonBlock style={styles.skeletonCountButton} />
         </View>
       </View>
+    </View>
+  );
+}
+
+function AnimatedFilterIcon({ active = false }) {
+  const progress = useRef(new Animated.Value(active ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: active ? 1 : 0,
+      duration: 190,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [active, progress]);
+
+  const topLineStyle = {
+    width: progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [22, 14],
+    }),
+    transform: [
+      {
+        translateX: progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 8],
+        }),
+      },
+    ],
+  };
+  const bottomLineStyle = {
+    width: progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [14, 22],
+    }),
+    transform: [
+      {
+        translateX: progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [8, 0],
+        }),
+      },
+    ],
+  };
+
+  return (
+    <View style={styles.animatedFilterIcon}>
+      <Animated.View style={[styles.filterIconLine, topLineStyle]} />
+      <Animated.View style={[styles.filterIconLine, bottomLineStyle]} />
     </View>
   );
 }
@@ -167,10 +220,7 @@ export default function ForumView({
                 onPress={onPressSearchFiltersButton}
                 style={styles.filterButton}
               >
-                <Image
-                  source={require("../../assets/icons/filter.png")}
-                  style={styles.filterIcon}
-                />
+                <AnimatedFilterIcon active={isSearchFiltersVisible} />
               </TouchableOpacity>
             </View>
           </View>
@@ -451,10 +501,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 34,
   },
-  filterIcon: {
-    height: 30,
-    tintColor: COLORS.text,
-    width: 30,
+  animatedFilterIcon: {
+    height: 20,
+    justifyContent: "center",
+    width: 22,
+  },
+  filterIconLine: {
+    backgroundColor: COLORS.text,
+    borderRadius: 999,
+    height: 3,
+    marginVertical: 3,
   },
   resetFiltersButton: {
     alignItems: "center",

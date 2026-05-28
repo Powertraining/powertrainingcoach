@@ -33,6 +33,7 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
   const [isCoachResponseVisible, setIsCoachResponseVisible] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [postSendAnimationKey, setPostSendAnimationKey] = useState(0);
   const [isUploadingPostMedia, setIsUploadingPostMedia] = useState(false);
   const [postMediaPreview, setPostMediaPreview] = useState({
     mediaUrl: "",
@@ -324,13 +325,17 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
       const createdPost = await model.createForumPost();
       setSelectedPostId(createdPost?.id || null);
       await reloadMyPosts(model.forumFilters);
-      setCurrentView("post");
+      setIsCreatingPost(false);
+      setPostSendAnimationKey((key) => key + 1);
     } catch (error) {
       console.warn("Could not create the forum post:", error);
       setCreatePostError(error?.message || "Could not create the forum post.");
-    } finally {
       setIsCreatingPost(false);
     }
+  }
+
+  function handlePostSendAnimationEnd() {
+    setCurrentView("post");
   }
 
   function showPostView(postId) {
@@ -501,6 +506,8 @@ const ProfileMyPostsScreen = observer(function ProfileMyPostsScreen() {
           onChangeText={handleComposeTextChange}
           onChangeTags={handleComposeTagsChange}
           onPost={handleCreatePost}
+          sendAnimationKey={postSendAnimationKey}
+          onSendAnimationEnd={handlePostSendAnimationEnd}
           onUploadImage={() => handleUploadMedia("image")}
           onUploadVideo={() => handleUploadMedia("video")}
           onRemoveMedia={handleRemoveMedia}

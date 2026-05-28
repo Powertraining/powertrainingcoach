@@ -1,4 +1,10 @@
 import {
+  useEffect,
+  useRef,
+} from "react";
+import {
+  Animated,
+  Easing,
   Image,
   ScrollView,
   StyleSheet,
@@ -74,6 +80,8 @@ export default function SearchFiltersView({
   onChangeSortBy,
   onReset,
 }) {
+  const slideAnim = useRef(new Animated.Value(visible ? -18 : 0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
   const selectedTopics = getSelectedTopics(filters);
   const selectedTopicSet = new Set(selectedTopics);
   const selectedSortBy = filters?.sortBy || "recent";
@@ -99,6 +107,30 @@ export default function SearchFiltersView({
     onChangeTopic?.(Array.from(nextTopicSet));
   }
 
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    slideAnim.setValue(-18);
+    opacityAnim.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 170,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacityAnim, slideAnim, visible]);
+
   if (!visible) {
     return null;
   }
@@ -112,7 +144,16 @@ export default function SearchFiltersView({
   };
 
   return (
-    <View style={[styles.content, style]}>
+    <Animated.View
+      style={[
+        styles.content,
+        style,
+        {
+          opacity: opacityAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
       <View style={[styles.actionRow, insetStyle]}>
         <TouchableOpacity style={styles.doneButton} onPress={onClose}>
           <IBMPlexText style={styles.doneButtonText}>Close</IBMPlexText>
@@ -201,7 +242,7 @@ export default function SearchFiltersView({
         </>
       ) : null}
 
-    </View>
+    </Animated.View>
   );
 }
 

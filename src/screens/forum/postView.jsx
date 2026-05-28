@@ -3,6 +3,8 @@ import {
   useRef,
   useState } from "react";
 import {
+  Animated,
+  Easing,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -16,6 +18,7 @@ import {
   View,
 } from "react-native";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
+import AnimatedForumActionButton from "../../components/forumComponents/AnimatedForumActionButton.jsx";
 import VerifiedBadge from "../../components/forumComponents/VerifiedBadge.jsx";
 import Comment from "../../components/forumComponents/Comment.jsx";
 import PostMedia from "../../components/forumComponents/PostMedia.jsx";
@@ -30,6 +33,7 @@ const COLORS = {
   muted: "#9ca3af",
   error: "#fca5a5",
 };
+const POST_OPEN_DURATION_MS = 55;
 const COMMENT_SKELETONS = [0, 1, 2];
 
 function SkeletonBlock({ style }) {
@@ -84,6 +88,7 @@ export default function PostView({
   onToggleCoachResponse,
 }) {
   const { height: windowHeight } = useWindowDimensions();
+  const openProgress = useRef(new Animated.Value(0)).current;
   const [isCommentEditorOpen, setIsCommentEditorOpen] = useState(false);
   const [replyTargetComment, setReplyTargetComment] = useState(null);
   const wasSubmittingCommentRef = useRef(false);
@@ -112,6 +117,16 @@ export default function PostView({
     replyTargetComment?.authorAvatarUrl ?
       { uri: replyTargetComment.authorAvatarUrl } :
       require("../../assets/icons/user.png");
+
+  useEffect(() => {
+    openProgress.setValue(0);
+    Animated.timing(openProgress, {
+      toValue: 1,
+      duration: POST_OPEN_DURATION_MS,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [openProgress, post?.id]);
 
   useEffect(() => {
     if (
@@ -205,13 +220,42 @@ export default function PostView({
     onCreateComment?.();
   }
 
+  function handleBack() {
+    Keyboard.dismiss();
+    onBack?.();
+  }
+
+  const openingStyle = {
+    opacity: openProgress,
+    transform: [
+      {
+        translateY: openProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [3, 0],
+        }),
+      },
+      {
+        scale: openProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.985, 1],
+        }),
+      },
+    ],
+  };
+
   return (
     <QuestionnaireShell hideTabBar={hideTabBar}>
-      <View style={styles.wrapper}>
+      <Animated.View style={[styles.wrapper, openingStyle]}>
         <View style={[styles.screenContent, isCommentEditorOpen ? styles.blurredContent : null]}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed ? styles.backButtonPressed : null,
+            ]}
+            onPress={handleBack}
+          >
             <IBMPlexText style={styles.backButtonText}>Go Back</IBMPlexText>
-          </TouchableOpacity>
+          </Pressable>
 
           <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
             <View style={styles.header}>
@@ -239,7 +283,8 @@ export default function PostView({
             />
 
             <View style={styles.menu}>
-              <TouchableOpacity
+              <AnimatedForumActionButton
+                pressOnPressIn
                 style={[styles.standardButton, isPostSaved ? styles.standardButtonActive : null]}
                 onPress={() => onTogglePostSave?.(post.id)}
               >
@@ -247,8 +292,9 @@ export default function PostView({
                   source={require("../../assets/icons/save.png")}
                   style={[styles.buttonIcon, isPostSaved ? styles.buttonIconActive : null]}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity
+              </AnimatedForumActionButton>
+              <AnimatedForumActionButton
+                pressOnPressIn
                 style={[styles.countButton, isPostLiked ? styles.countButtonActive : null]}
                 onPress={() => onTogglePostLike?.(post.id)}
               >
@@ -259,7 +305,7 @@ export default function PostView({
                 <IBMPlexText style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
                   {post?.likesCount}
                 </IBMPlexText>
-              </TouchableOpacity>
+              </AnimatedForumActionButton>
               <View style={styles.commentCount}>
                 <Image
                   source={require("../../assets/icons/conversation.png")}
@@ -477,7 +523,7 @@ export default function PostView({
             ) : null}
           </KeyboardAvoidingView>
         ) : null}
-      </View>
+      </Animated.View>
     </QuestionnaireShell>
   );
 }
@@ -498,6 +544,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 18,
     paddingBottom: 8,
+  },
+  backButtonPressed: {
+    opacity: 0.75,
   },
   backButtonText: {
     color: COLORS.text,

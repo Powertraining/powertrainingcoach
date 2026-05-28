@@ -7,6 +7,7 @@ import {
 } from "react-native";
 
 import GoldGradient from "../colorComponents/GoldGradient.jsx";
+import AnimatedForumActionButton from "./AnimatedForumActionButton.jsx";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import PostMedia from "./PostMedia.jsx";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
@@ -77,7 +78,8 @@ export default function PostCard({
             mediaType={post?.mediaType}
           />
           <View style={styles.postCardMenu}>
-            <TouchableOpacity
+            <AnimatedForumActionButton
+              pressOnPressIn
               style={[styles.standardButton, isPostSaved ? styles.standardButtonActive : null]}
               onPress={() => onTogglePostSave?.(post.id)}
             >
@@ -85,8 +87,9 @@ export default function PostCard({
                 source={require("../../assets/icons/save.png")}
                 style={[styles.buttonIcon, isPostSaved ? styles.buttonIconActive : null]}
               />
-            </TouchableOpacity>
-            <TouchableOpacity
+            </AnimatedForumActionButton>
+            <AnimatedForumActionButton
+              pressOnPressIn
               style={[styles.countButton, isPostLiked ? styles.countButtonActive : null]}
               onPress={() => onTogglePostLike?.(post.id)}
             >
@@ -97,7 +100,7 @@ export default function PostCard({
               <IBMPlexText style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
                 {post?.likesCount}
               </IBMPlexText>
-            </TouchableOpacity>
+            </AnimatedForumActionButton>
             <View style={styles.commentCount}>
               <Image
                 source={require("../../assets/icons/conversation.png")}
