@@ -1,4 +1,5 @@
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const SECTION_PROGRESS_RING_SIZE = 260;
@@ -7,6 +8,30 @@ const SECTION_PROGRESS_RING_RADIUS = 110;
 const SECTION_PROGRESS_RING_STROKE = 12;
 const SECTION_PROGRESS_RING_CIRCUMFERENCE =
   2 * Math.PI * SECTION_PROGRESS_RING_RADIUS;
+const SECTION_PROGRESS_RING_ANIMATION_DURATION_MS = 360;
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+function clampProgressCount(value, total) {
+  const parsedValue = Number.parseInt(value, 10);
+  const parsedTotal = Number.parseInt(total, 10);
+
+  if (!Number.isFinite(parsedValue) || !Number.isFinite(parsedTotal)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(parsedValue, parsedTotal));
+}
+
+function getProgressOffset(completedCount, totalCount) {
+  if (totalCount <= 0) {
+    return SECTION_PROGRESS_RING_CIRCUMFERENCE;
+  }
+
+  return (
+    SECTION_PROGRESS_RING_CIRCUMFERENCE -
+    SECTION_PROGRESS_RING_CIRCUMFERENCE * (completedCount / totalCount)
+  );
+}
 
 export default function ActiveSessionSectionIntroView({
   weekNumber = 1,
@@ -17,7 +42,9 @@ export default function ActiveSessionSectionIntroView({
   sectionCount = 0,
   exerciseCount = 0,
   completedExerciseCount = 0,
+  previousCompletedExerciseCount = completedExerciseCount,
   totalExerciseCount = 0,
+  progressAnimationDelayMs = 0,
   isSessionComplete = false,
   hideIntroContent = false,
   children,
@@ -27,13 +54,45 @@ export default function ActiveSessionSectionIntroView({
   const stageLabel = isSessionComplete
     ? "Stage complete"
     : `Stage ${sectionNumber} - ${sectionLabel}`;
-  const progressPercent =
-    totalExerciseCount > 0
-      ? Math.round((completedExerciseCount / totalExerciseCount) * 100)
-      : 0;
-  const progressOffset =
-    SECTION_PROGRESS_RING_CIRCUMFERENCE -
-    SECTION_PROGRESS_RING_CIRCUMFERENCE * (progressPercent / 100);
+  const safeTotalExerciseCount = Math.max(0, Number.parseInt(totalExerciseCount, 10) || 0);
+  const safeCompletedExerciseCount = clampProgressCount(
+    completedExerciseCount,
+    safeTotalExerciseCount
+  );
+  const safePreviousCompletedExerciseCount = clampProgressCount(
+    previousCompletedExerciseCount,
+    safeTotalExerciseCount
+  );
+  const previousProgressOffset = getProgressOffset(
+    safePreviousCompletedExerciseCount,
+    safeTotalExerciseCount
+  );
+  const progressOffset = getProgressOffset(
+    safeCompletedExerciseCount,
+    safeTotalExerciseCount
+  );
+  const animatedProgressOffset = useRef(
+    new Animated.Value(previousProgressOffset)
+  ).current;
+
+  useEffect(() => {
+    animatedProgressOffset.setValue(previousProgressOffset);
+    const animation = Animated.timing(animatedProgressOffset, {
+      toValue: progressOffset,
+      duration: SECTION_PROGRESS_RING_ANIMATION_DURATION_MS,
+      delay: progressAnimationDelayMs,
+      useNativeDriver: false,
+    });
+
+    animation.start();
+
+    return () => animation.stop();
+  }, [
+    animatedProgressOffset,
+    previousProgressOffset,
+    progressAnimationDelayMs,
+    progressOffset,
+  ]);
 
   return (
     <View style={styles.sectionIntro}>
@@ -53,7 +112,7 @@ export default function ActiveSessionSectionIntroView({
                 stroke="#5f5f5f"
                 strokeWidth={SECTION_PROGRESS_RING_STROKE}
               />
-              <Circle
+              <AnimatedCircle
                 cx={SECTION_PROGRESS_RING_CENTER}
                 cy={SECTION_PROGRESS_RING_CENTER}
                 r={SECTION_PROGRESS_RING_RADIUS}
@@ -62,7 +121,7 @@ export default function ActiveSessionSectionIntroView({
                 strokeWidth={SECTION_PROGRESS_RING_STROKE}
                 strokeLinecap="round"
                 strokeDasharray={`${SECTION_PROGRESS_RING_CIRCUMFERENCE} ${SECTION_PROGRESS_RING_CIRCUMFERENCE}`}
-                strokeDashoffset={progressOffset}
+                strokeDashoffset={animatedProgressOffset}
                 rotation="-90"
                 originX={SECTION_PROGRESS_RING_CENTER}
                 originY={SECTION_PROGRESS_RING_CENTER}

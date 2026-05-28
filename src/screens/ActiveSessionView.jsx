@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import {
   Animated,
   Dimensions,
+  Easing,
   Keyboard,
   Platform,
   ScrollView,
@@ -33,6 +34,13 @@ const NEXT_INPUT_KEYBOARD_GAP = 36;
 const INPUT_PANEL_ANIMATION_DURATION = 180;
 const INPUT_FOCUS_SHIFT_DELAY_MS = 80;
 const KEYBOARD_SHOW_SHIFT_DELAY_MS = 40;
+const HEADER_PROGRESS_ANIMATION_DURATION_MS = 1200;
+const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 160;
+const SESSION_CONTENT_SLIDE_DURATION_MS = 220;
+const SESSION_EXERCISE_ADVANCE_DELAY_MS =
+  HEADER_PROGRESS_ANIMATION_DURATION_MS + HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS;
+const RESULTS_FADE_IN_DURATION_MS = 280;
+const RESULTS_FADE_IN_TRANSLATE_Y = 22;
 const SESSION_HORIZONTAL_PADDING = 24;
 const HEADER_PROGRESS_RING_SIZE = 54;
 const HEADER_PROGRESS_RING_CENTER = HEADER_PROGRESS_RING_SIZE / 2;
@@ -58,6 +66,7 @@ const EXERCISE_SECTION_LABELS = Object.freeze({
   core: "Core",
   accessory: "Accessory",
 });
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function getExerciseDisplayName(exercise = {}) {
   return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
@@ -176,6 +185,43 @@ function getDraftKey(exerciseIndex, setIndex = 0) {
 
 function getStepKey(exerciseIndex, setIndex = 0) {
   return `${exerciseIndex}:${setIndex}`;
+}
+
+function getHeaderProgressOffset(progressPercent = 0) {
+  return (
+    HEADER_PROGRESS_RING_CIRCUMFERENCE -
+    HEADER_PROGRESS_RING_CIRCUMFERENCE * (progressPercent / 100)
+  );
+}
+
+function ActiveSessionSlideIn({ children }) {
+  const translateX = useRef(
+    new Animated.Value(Dimensions.get("window").width)
+  ).current;
+
+  useEffect(() => {
+    translateX.setValue(Dimensions.get("window").width);
+    const animation = Animated.timing(translateX, {
+      toValue: 0,
+      duration: SESSION_CONTENT_SLIDE_DURATION_MS,
+      useNativeDriver: true,
+    });
+
+    animation.start();
+
+    return () => animation.stop();
+  }, [translateX]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.sessionContentTransition,
+        { transform: [{ translateX }] },
+      ]}
+    >
+      {children}
+    </Animated.View>
+  );
 }
 
 function normalizeText(value, fallback = "") {
@@ -691,12 +737,27 @@ function ActiveSessionHeader({
   title = "",
   progressText = "",
   progressPercent = 0,
+  previousProgressPercent = progressPercent,
   showProgressRing = false,
   onBack,
 }) {
-  const progressOffset =
-    HEADER_PROGRESS_RING_CIRCUMFERENCE -
-    HEADER_PROGRESS_RING_CIRCUMFERENCE * (progressPercent / 100);
+  const animatedProgressOffset = useRef(
+    new Animated.Value(getHeaderProgressOffset(previousProgressPercent))
+  ).current;
+
+  useEffect(() => {
+    animatedProgressOffset.setValue(getHeaderProgressOffset(previousProgressPercent));
+    const animation = Animated.timing(animatedProgressOffset, {
+      toValue: getHeaderProgressOffset(progressPercent),
+      duration: HEADER_PROGRESS_ANIMATION_DURATION_MS,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: false,
+    });
+
+    animation.start();
+
+    return () => animation.stop();
+  }, [animatedProgressOffset, previousProgressPercent, progressPercent]);
 
   return (
     <View style={styles.header}>
@@ -730,7 +791,7 @@ function ActiveSessionHeader({
               stroke="#5f5f5f"
               strokeWidth={HEADER_PROGRESS_RING_STROKE}
             />
-            <Circle
+            <AnimatedCircle
               cx={HEADER_PROGRESS_RING_CENTER}
               cy={HEADER_PROGRESS_RING_CENTER}
               r={HEADER_PROGRESS_RING_RADIUS}
@@ -739,7 +800,7 @@ function ActiveSessionHeader({
               strokeWidth={HEADER_PROGRESS_RING_STROKE}
               strokeLinecap="round"
               strokeDasharray={`${HEADER_PROGRESS_RING_CIRCUMFERENCE} ${HEADER_PROGRESS_RING_CIRCUMFERENCE}`}
-              strokeDashoffset={progressOffset}
+              strokeDashoffset={animatedProgressOffset}
               rotation="-90"
               originX={HEADER_PROGRESS_RING_CENTER}
               originY={HEADER_PROGRESS_RING_CENTER}
@@ -931,6 +992,26 @@ function ActiveSessionResultsList({
   trackingDrafts = {},
 }) {
   const router = useRouter();
+  const fadeProgress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    fadeProgress.setValue(0);
+    const animation = Animated.timing(fadeProgress, {
+      toValue: 1,
+      duration: RESULTS_FADE_IN_DURATION_MS,
+      delay: SESSION_CONTENT_SLIDE_DURATION_MS,
+      useNativeDriver: true,
+    });
+
+    animation.start();
+
+    return () => animation.stop();
+  }, [fadeProgress]);
+
+  const translateY = fadeProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [RESULTS_FADE_IN_TRANSLATE_Y, 0],
+  });
 
   if (!sectionRuns.length) {
     return null;
@@ -955,6 +1036,15 @@ function ActiveSessionResultsList({
   }
 
   return (
+    <Animated.View
+      style={[
+        styles.resultsFadeIn,
+        {
+          opacity: fadeProgress,
+          transform: [{ translateY }],
+        },
+      ]}
+    >
     <ScrollView
       nestedScrollEnabled
       showsVerticalScrollIndicator={false}
@@ -1024,6 +1114,7 @@ function ActiveSessionResultsList({
         </View>
       ))}
     </ScrollView>
+    </Animated.View>
   );
 }
 
@@ -1452,9 +1543,16 @@ export default function ActiveSessionView({
   const [activeSetIndex, setActiveSetIndex] = useState(() =>
     getSavedNumber(initialSessionProgress?.activeSetIndex)
   );
+  const [displayedCompletedExerciseCount, setDisplayedCompletedExerciseCount] =
+    useState(() => getSavedNumber(initialSessionProgress?.activeExerciseIndex));
+  const [
+    previousDisplayedCompletedExerciseCount,
+    setPreviousDisplayedCompletedExerciseCount,
+  ] = useState(() => getSavedNumber(initialSessionProgress?.activeExerciseIndex));
   const [sessionScreenMode, setSessionScreenMode] = useState(
     SESSION_SCREEN_MODES.SECTION_INTRO
   );
+  const advanceTimeoutRef = useRef(null);
   const [completedStepKeys, setCompletedStepKeys] = useState(() =>
     getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
   );
@@ -1507,12 +1605,9 @@ export default function ActiveSessionView({
     sessionScreenMode === SESSION_SCREEN_MODES.SECTION_INTRO && activeExercise;
   const showExerciseStep =
     sessionScreenMode === SESSION_SCREEN_MODES.EXERCISE && activeExercise;
-  const traversedStepCount = isSessionCompleteIntro
-    ? sessionSteps.length
-    : resolvedActiveStepIndex;
   const traversedExerciseCount = isSessionCompleteIntro
     ? normalizedExercises.length
-    : Math.max(0, activeStep?.exerciseIndex || 0);
+    : displayedCompletedExerciseCount;
   const safeTotalExerciseCount = Number.isFinite(normalizedExercises.length)
     ? normalizedExercises.length
     : 0;
@@ -1521,8 +1616,19 @@ export default function ActiveSessionView({
     safeTotalExerciseCount
   )} of ${safeTotalExerciseCount}`;
   const sessionProgressPercent =
-    sessionSteps.length > 0
-      ? Math.round((traversedStepCount / sessionSteps.length) * 100)
+    safeTotalExerciseCount > 0
+      ? Math.round((Math.min(traversedExerciseCount, safeTotalExerciseCount) / safeTotalExerciseCount) * 100)
+      : 0;
+  const previousSessionProgressPercent =
+    safeTotalExerciseCount > 0
+      ? Math.round(
+          (Math.min(
+            previousDisplayedCompletedExerciseCount,
+            safeTotalExerciseCount
+          ) /
+            safeTotalExerciseCount) *
+            100
+        )
       : 0;
   const headerTitle = isSessionCompleteIntro
     ? "Session results"
@@ -1536,13 +1642,17 @@ export default function ActiveSessionView({
     : showSectionIntro
       ? sessionProgressText
       : activeStep
-        ? `${activeStep.exerciseIndex + 1} of ${normalizedExercises.length}`
+        ? sessionProgressText
         : "";
   const activeExerciseSetTabs = activeExercise
     ? Array.from({ length: activeStep.setCount }).map((_, setIndex) => ({
         setIndex,
       }))
     : [];
+  const activeSessionSlideKey = [
+    sessionScreenMode,
+    activeStep?.exerciseIndex ?? "empty",
+  ].join(":");
 
   useEffect(() => {
     const fallbackDrafts = buildTrackingDrafts(
@@ -1555,6 +1665,12 @@ export default function ActiveSessionView({
       getSavedNumber(initialSessionProgress?.activeExerciseIndex)
     );
     setActiveSetIndex(getSavedNumber(initialSessionProgress?.activeSetIndex));
+    setDisplayedCompletedExerciseCount(
+      getSavedNumber(initialSessionProgress?.activeExerciseIndex)
+    );
+    setPreviousDisplayedCompletedExerciseCount(
+      getSavedNumber(initialSessionProgress?.activeExerciseIndex)
+    );
     setSessionScreenMode(SESSION_SCREEN_MODES.SECTION_INTRO);
     setCompletedStepKeys(
       getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
@@ -1566,6 +1682,15 @@ export default function ActiveSessionView({
       )
     );
   }, [day?.day, initialAssessmentResults, initialPerformanceResults, normalizedExercises]);
+
+  useEffect(
+    () => () => {
+      if (advanceTimeoutRef.current) {
+        clearTimeout(advanceTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     onSessionProgressChange?.({
@@ -1632,6 +1757,28 @@ export default function ActiveSessionView({
     );
   }
 
+  function scheduleSessionStep(stepIndex, options = {}) {
+    if (advanceTimeoutRef.current) {
+      clearTimeout(advanceTimeoutRef.current);
+    }
+
+    advanceTimeoutRef.current = setTimeout(() => {
+      advanceTimeoutRef.current = null;
+      goToSessionStep(stepIndex, options);
+    }, SESSION_EXERCISE_ADVANCE_DELAY_MS);
+  }
+
+  function scheduleSessionComplete() {
+    if (advanceTimeoutRef.current) {
+      clearTimeout(advanceTimeoutRef.current);
+    }
+
+    advanceTimeoutRef.current = setTimeout(() => {
+      advanceTimeoutRef.current = null;
+      setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
+    }, SESSION_EXERCISE_ADVANCE_DELAY_MS);
+  }
+
   function handleExitSession() {
     onBack?.();
   }
@@ -1651,13 +1798,27 @@ export default function ActiveSessionView({
 
     if (!isLastStep) {
       const nextStep = sessionSteps[resolvedActiveStepIndex + 1];
+      const isMovingToNextExercise =
+        nextStep?.exerciseIndex !== activeStep.exerciseIndex;
+
+      if (isMovingToNextExercise) {
+        setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
+        setDisplayedCompletedExerciseCount(nextStep.exerciseIndex);
+        scheduleSessionStep(resolvedActiveStepIndex + 1, {
+          showIntro: nextStep?.section !== activeStep.section,
+        });
+        return;
+      }
+
       goToSessionStep(resolvedActiveStepIndex + 1, {
         showIntro: nextStep?.section !== activeStep.section,
       });
       return;
     }
 
-    setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
+    setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
+    setDisplayedCompletedExerciseCount(normalizedExercises.length);
+    scheduleSessionComplete();
   }
 
   function handleSkipExercise() {
@@ -1671,13 +1832,17 @@ export default function ActiveSessionView({
 
     if (nextExerciseStepIndex >= 0) {
       const nextStep = sessionSteps[nextExerciseStepIndex];
-      goToSessionStep(nextExerciseStepIndex, {
+      setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
+      setDisplayedCompletedExerciseCount(nextStep.exerciseIndex);
+      scheduleSessionStep(nextExerciseStepIndex, {
         showIntro: nextStep?.section !== activeStep.section,
       });
       return;
     }
 
-    setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
+    setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
+    setDisplayedCompletedExerciseCount(normalizedExercises.length);
+    scheduleSessionComplete();
   }
 
   function handleContinueIntro() {
@@ -1704,82 +1869,95 @@ export default function ActiveSessionView({
           title={headerTitle}
           progressText={headerProgressText}
           progressPercent={sessionProgressPercent}
+          previousProgressPercent={previousSessionProgressPercent}
           showProgressRing={showExerciseStep}
           onBack={handleExitSession}
         />
 
-        {isSessionCompleteIntro ? (
-          <ActiveSessionSectionIntroView
-            weekNumber={weekNumber}
-            phaseLabel={phaseDetails.label}
-            phaseFocus={phaseDetails.focus}
-            sectionLabel={activeSectionLabel}
-            sectionIndex={Math.max(activeSectionRunIndex, 0)}
-            sectionCount={sectionRuns.length}
-            exerciseCount={activeSectionRun?.exercises.length || 0}
-            completedExerciseCount={Math.min(
-              traversedExerciseCount,
-              normalizedExercises.length
-            )}
-            totalExerciseCount={normalizedExercises.length}
-            isSessionComplete
-            hideIntroContent
-            onContinue={handleContinueIntro}
-          >
-            <ActiveSessionResultsList
-              sectionRuns={sectionRuns}
-              completedStepKeys={completedStepKeys}
-              trackingDrafts={trackingDrafts}
+        <ActiveSessionSlideIn key={activeSessionSlideKey}>
+          {isSessionCompleteIntro ? (
+            <ActiveSessionSectionIntroView
+              weekNumber={weekNumber}
+              phaseLabel={phaseDetails.label}
+              phaseFocus={phaseDetails.focus}
+              sectionLabel={activeSectionLabel}
+              sectionIndex={Math.max(activeSectionRunIndex, 0)}
+              sectionCount={sectionRuns.length}
+              exerciseCount={activeSectionRun?.exercises.length || 0}
+              completedExerciseCount={Math.min(
+                traversedExerciseCount,
+                normalizedExercises.length
+              )}
+              previousCompletedExerciseCount={Math.max(
+                0,
+                Math.min(traversedExerciseCount - 1, normalizedExercises.length)
+              )}
+              totalExerciseCount={normalizedExercises.length}
+              progressAnimationDelayMs={SESSION_CONTENT_SLIDE_DURATION_MS}
+              isSessionComplete
+              hideIntroContent
+              onContinue={handleContinueIntro}
+            >
+              <ActiveSessionResultsList
+                sectionRuns={sectionRuns}
+                completedStepKeys={completedStepKeys}
+                trackingDrafts={trackingDrafts}
+              />
+            </ActiveSessionSectionIntroView>
+          ) : showSectionIntro ? (
+            <ActiveSessionSectionIntroView
+              weekNumber={weekNumber}
+              phaseLabel={phaseDetails.label}
+              phaseFocus={phaseDetails.focus}
+              sectionLabel={activeSectionLabel}
+              sectionIndex={Math.max(activeSectionRunIndex, 0)}
+              sectionCount={sectionRuns.length}
+              exerciseCount={activeSectionRun?.exercises.length || 0}
+              completedExerciseCount={Math.min(
+                traversedExerciseCount,
+                normalizedExercises.length
+              )}
+              previousCompletedExerciseCount={Math.max(
+                0,
+                Math.min(traversedExerciseCount - 1, normalizedExercises.length)
+              )}
+              totalExerciseCount={normalizedExercises.length}
+              progressAnimationDelayMs={SESSION_CONTENT_SLIDE_DURATION_MS}
+              onContinue={handleContinueIntro}
             />
-          </ActiveSessionSectionIntroView>
-        ) : showSectionIntro ? (
-          <ActiveSessionSectionIntroView
-            weekNumber={weekNumber}
-            phaseLabel={phaseDetails.label}
-            phaseFocus={phaseDetails.focus}
-            sectionLabel={activeSectionLabel}
-            sectionIndex={Math.max(activeSectionRunIndex, 0)}
-            sectionCount={sectionRuns.length}
-            exerciseCount={activeSectionRun?.exercises.length || 0}
-            completedExerciseCount={Math.min(
-              traversedExerciseCount,
-              normalizedExercises.length
-            )}
-            totalExerciseCount={normalizedExercises.length}
-            onContinue={handleContinueIntro}
-          />
-        ) : showExerciseStep ? (
-          <ExerciseSessionStep
-            key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
-            exercise={activeExercise}
-            exerciseIndex={activeStep.exerciseIndex}
-            setIndex={activeStep.setIndex}
-            draft={trackingDrafts[getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)]}
-            prescribedSets={activeExerciseSetTabs}
-            completedSetIndexes={activeExerciseSetTabs
-              .filter(({ setIndex }) =>
-                completedStepKeys.has(
-                  getStepKey(activeStep.exerciseIndex, setIndex)
+          ) : showExerciseStep ? (
+            <ExerciseSessionStep
+              key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
+              exercise={activeExercise}
+              exerciseIndex={activeStep.exerciseIndex}
+              setIndex={activeStep.setIndex}
+              draft={trackingDrafts[getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)]}
+              prescribedSets={activeExerciseSetTabs}
+              completedSetIndexes={activeExerciseSetTabs
+                .filter(({ setIndex }) =>
+                  completedStepKeys.has(
+                    getStepKey(activeStep.exerciseIndex, setIndex)
+                  )
                 )
-              )
-              .map(({ setIndex }) => setIndex)}
-            onSelectSet={(setIndex) => {
-              setActiveExerciseIndex(activeStep.exerciseIndex);
-              setActiveSetIndex(setIndex);
-              setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
-            }}
-            onNext={handleCompleteCurrentSet}
-            onSkip={handleSkipExercise}
-            onDraftChange={updateTrackingDraft}
-          />
-        ) : (
-          <View style={styles.emptyState}>
-            <IBMPlexText style={styles.emptyStateTitle}>No exercises in this session.</IBMPlexText>
-            <TouchableOpacity style={styles.nextButton} onPress={onBack}>
-              <IBMPlexText defaultWhite style={styles.nextButtonText}>Back</IBMPlexText>
-            </TouchableOpacity>
-          </View>
-        )}
+                .map(({ setIndex }) => setIndex)}
+              onSelectSet={(setIndex) => {
+                setActiveExerciseIndex(activeStep.exerciseIndex);
+                setActiveSetIndex(setIndex);
+                setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
+              }}
+              onNext={handleCompleteCurrentSet}
+              onSkip={handleSkipExercise}
+              onDraftChange={updateTrackingDraft}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <IBMPlexText style={styles.emptyStateTitle}>No exercises in this session.</IBMPlexText>
+              <TouchableOpacity style={styles.nextButton} onPress={onBack}>
+                <IBMPlexText defaultWhite style={styles.nextButtonText}>Back</IBMPlexText>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ActiveSessionSlideIn>
       </ScrollView>
     </QuestionnaireShell>
   );
@@ -1794,6 +1972,10 @@ const styles = StyleSheet.create({
     padding: SESSION_HORIZONTAL_PADDING,
     paddingBottom: 48,
     gap: 18,
+  },
+  sessionContentTransition: {
+    flex: 1,
+    width: "100%",
   },
   header: {
     width: "100%",
@@ -1857,6 +2039,10 @@ const styles = StyleSheet.create({
     gap: 18,
     paddingTop: 8,
     paddingBottom: 18,
+  },
+  resultsFadeIn: {
+    alignSelf: "stretch",
+    flex: 1,
   },
   resultsScroller: {
     alignSelf: "stretch",
