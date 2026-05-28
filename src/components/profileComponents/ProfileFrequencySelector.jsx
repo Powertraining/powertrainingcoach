@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState } from "react";
 import { PanResponder, StyleSheet, View } from "react-native";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
@@ -11,6 +12,10 @@ const SLIDER_TOUCH_HEIGHT = 38;
 export default function ProfileFrequencySelector({ value = 3, onChange }) {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [dragValue, setDragValue] = useState(value);
+  const activeTouchIdRef = useRef(null);
+  const dragStartPageXRef = useRef(0);
+  const dragStartValueRef = useRef(value);
+  const dragValueRef = useRef(value);
   const activeValue = Math.round(dragValue);
   const sliderProgress =
     (dragValue - MIN_SESSIONS) / (MAX_SESSIONS - MIN_SESSIONS);
@@ -19,44 +24,94 @@ export default function ProfileFrequencySelector({ value = 3, onChange }) {
     : 0;
 
   useEffect(() => {
+    dragValueRef.current = value;
     setDragValue(value);
   }, [value]);
 
-  function updateValueFromTouch(locationX, shouldCommit = false) {
+  function setLiveDragValue(nextValue) {
+    dragValueRef.current = nextValue;
+    setDragValue(nextValue);
+  }
+
+  function commitDragValue(nextValue = dragValueRef.current) {
+    const roundedValue = Math.round(nextValue);
+    dragValueRef.current = roundedValue;
+    setDragValue(roundedValue);
+    onChange?.(roundedValue);
+  }
+
+  function getResponderTouch(event) {
+    const { changedTouches = [], touches = [], identifier } = event.nativeEvent;
+    const activeTouchId = activeTouchIdRef.current;
+    const allTouches = [...changedTouches, ...touches];
+
+    if (activeTouchId != null) {
+      return allTouches.find((touch) => touch.identifier === activeTouchId) || null;
+    }
+
+    return allTouches.find((touch) => touch.identifier === identifier) || allTouches[0] || event.nativeEvent;
+  }
+
+  function valueFromLocationX(locationX) {
     if (!sliderWidth) {
-      return;
+      return dragValueRef.current;
     }
 
     const clampedX = Math.min(Math.max(locationX, 0), sliderWidth);
-    const rawValue =
+    return (
       MIN_SESSIONS +
-      (clampedX / sliderWidth) * (MAX_SESSIONS - MIN_SESSIONS);
+      (clampedX / sliderWidth) * (MAX_SESSIONS - MIN_SESSIONS)
+    );
+  }
 
-    if (shouldCommit) {
-      const roundedValue = Math.round(rawValue);
-      setDragValue(roundedValue);
-      onChange?.(roundedValue);
+  function valueFromPageX(pageX) {
+    if (!sliderWidth) {
+      return dragValueRef.current;
+    }
+
+    const deltaValue =
+      ((pageX - dragStartPageXRef.current) / sliderWidth) *
+      (MAX_SESSIONS - MIN_SESSIONS);
+
+    return Math.min(
+      Math.max(dragStartValueRef.current + deltaValue, MIN_SESSIONS),
+      MAX_SESSIONS
+    );
+  }
+
+  function startDrag(event) {
+    const touch = getResponderTouch(event);
+    const nextValue = valueFromLocationX(touch?.locationX ?? event.nativeEvent.locationX ?? 0);
+
+    activeTouchIdRef.current = touch?.identifier ?? event.nativeEvent.identifier ?? null;
+    dragStartPageXRef.current = touch?.pageX ?? event.nativeEvent.pageX ?? 0;
+    dragStartValueRef.current = nextValue;
+    setLiveDragValue(nextValue);
+  }
+
+  function updateDrag(event) {
+    const touch = getResponderTouch(event);
+
+    if (!touch) {
       return;
     }
 
-    setDragValue(rawValue);
+    setLiveDragValue(valueFromPageX(touch.pageX));
+  }
+
+  function endDrag(event) {
+    updateDrag(event);
+    commitDragValue();
+    activeTouchIdRef.current = null;
   }
 
   const sliderPanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponder: () => activeTouchIdRef.current == null,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX);
-    },
-    onPanResponderMove: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX);
-    },
-    onPanResponderRelease: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX, true);
-    },
-    onPanResponderTerminate: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX, true);
-    },
+    onPanResponderGrant: startDrag,
+    onPanResponderMove: updateDrag,
+    onPanResponderRelease: endDrag,
+    onPanResponderTerminate: endDrag,
   });
 
   return (

@@ -1,5 +1,10 @@
-import { TouchableOpacity, View, StyleSheet } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Easing, TouchableOpacity, View, StyleSheet } from "react-native";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
+
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+const BUTTON_SLIDE_DISTANCE = 86;
+
 export default function QuestionnaireBottomActionButton({
     text = "continue",
     canContinue,
@@ -9,6 +14,44 @@ export default function QuestionnaireBottomActionButton({
     hideWhenDisabled = false,
     hideBack = false,
 }) {
+    const hidesDisabledSingleButton = layout !== "stacked" && !canContinue && (hideWhenDisabled || hideBack);
+    const shouldRenderSingleButton = !hidesDisabledSingleButton;
+    const [buttonCanContinue, setButtonCanContinue] = useState(Boolean(canContinue));
+    const buttonProgress = useRef(new Animated.Value(shouldRenderSingleButton ? 1 : 0)).current;
+    const animationIdRef = useRef(0);
+
+    useEffect(() => {
+        if (layout === "stacked") {
+            return;
+        }
+
+        animationIdRef.current += 1;
+        const animationId = animationIdRef.current;
+        buttonProgress.stopAnimation();
+
+        if (shouldRenderSingleButton) {
+            setButtonCanContinue(Boolean(canContinue));
+            Animated.timing(buttonProgress, {
+                toValue: 1,
+                duration: 230,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: false,
+            }).start();
+            return;
+        }
+
+        Animated.timing(buttonProgress, {
+            toValue: 0,
+            duration: 180,
+            easing: Easing.in(Easing.cubic),
+            useNativeDriver: false,
+        }).start(({ finished }) => {
+            if (finished && animationIdRef.current === animationId) {
+                setButtonCanContinue(false);
+            }
+        });
+    }, [buttonProgress, canContinue, layout, shouldRenderSingleButton]);
+
     if (layout === "stacked") {
         return (
             <View style={styles.stackedContainer}>
@@ -24,19 +67,30 @@ export default function QuestionnaireBottomActionButton({
         );
     }
 
-    if (!canContinue && (hideWhenDisabled || hideBack)) {
-        return null;
-    }
+    const animatedButtonStyle = {
+        transform: [
+            {
+                translateY: buttonProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [BUTTON_SLIDE_DISTANCE, 0],
+                }),
+            },
+        ],
+    };
 
     return (
-        <TouchableOpacity
-            onPress={canContinue ? onContinue : onBack}
-            style={canContinue ? styles.continueButton : styles.bottomBackButton}
+        <AnimatedTouchableOpacity
+            onPress={buttonCanContinue ? onContinue : onBack}
+            disabled={hidesDisabledSingleButton}
+            style={[
+                buttonCanContinue ? styles.continueButton : styles.bottomBackButton,
+                animatedButtonStyle,
+            ]}
         >
-            <IBMPlexText style={[styles.buttonText, !canContinue && styles.bottomBackButtonText]}>
-                {canContinue ? text : "Go back"}
+            <IBMPlexText style={[styles.buttonText, !buttonCanContinue && styles.bottomBackButtonText]}>
+                {buttonCanContinue ? text : "Go back"}
             </IBMPlexText>
-        </TouchableOpacity>
+        </AnimatedTouchableOpacity>
     );
 }
 

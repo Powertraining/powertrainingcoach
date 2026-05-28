@@ -5,7 +5,13 @@ import {
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams,
   useRouter } from "expo-router";
-import { View, StyleSheet } from "react-native";
+import {
+  Animated,
+  Easing,
+  useWindowDimensions,
+  View,
+  StyleSheet,
+} from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 
@@ -30,6 +36,44 @@ const STEPS = Object.freeze({
   Q_FREQ: "questionnaireFrequency",
   INPUT: "input",
 });
+
+function RightSlideQuestionnaireStep({ step, children }) {
+  const { width } = useWindowDimensions();
+  const translateX = useRef(new Animated.Value(width || 360)).current;
+  const opacity = useRef(new Animated.Value(0.92)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, translateX]);
+
+  return (
+    <Animated.View
+      key={step}
+      style={[
+        styles.questionnaireStep,
+        {
+          opacity,
+          transform: [{ translateX }],
+        },
+      ]}
+    >
+      {children}
+    </Animated.View>
+  );
+}
 
 const HomeScreen = observer(function HomeScreen() {
   const model = reactiveModel;
@@ -519,7 +563,15 @@ const HomeScreen = observer(function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {render ? render() : null}
+      {render ? (
+        step === STEPS.START ? (
+          render()
+        ) : (
+          <RightSlideQuestionnaireStep key={step} step={step}>
+            {render()}
+          </RightSlideQuestionnaireStep>
+        )
+      ) : null}
       <WhiteBottomMenu
         visible={pushBackConfirmVisible}
         onDismiss={closePushBackConfirm}
@@ -540,6 +592,9 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  questionnaireStep: {
     flex: 1,
   },
   planGenerationContainer: {

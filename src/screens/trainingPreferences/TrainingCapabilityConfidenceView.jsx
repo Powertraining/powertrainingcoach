@@ -1,12 +1,17 @@
 import {
+  useEffect,
+  useRef,
+} from "react";
+import {
+  Animated,
   Image,
+  Pressable,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const CONFIDENCE_OPTIONS = [
-  { label: "Not Very", value: "no" },
+  { label: "I'm not", value: "no" },
   { label: "Fairly", value: "somewhat" },
   { label: "Very", value: "yes" },
 ];
@@ -51,6 +56,75 @@ function ExerciseBox({ exercise, imageSource }) {
   );
 }
 
+function ConfidenceOptionButton({ isSelected, label, onPress }) {
+  const pressProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
+  const optionFaceTransform = {
+    transform: [
+      {
+        translateX: pressProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -OPTION_SHADOW_OFFSET],
+        }),
+      },
+      {
+        translateY: pressProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -OPTION_SHADOW_OFFSET],
+        }),
+      },
+    ],
+  };
+
+  useEffect(() => {
+    Animated.timing(pressProgress, {
+      toValue: isSelected ? 1 : 0,
+      duration: 120,
+      useNativeDriver: true,
+    }).start();
+  }, [isSelected, pressProgress]);
+
+  function animatePress(toValue) {
+    Animated.timing(pressProgress, {
+      toValue,
+      duration: toValue ? 70 : 120,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => animatePress(1)}
+      style={styles.optionButton}
+    >
+      <View
+        pointerEvents="none"
+        style={[
+          styles.optionShadow,
+          isSelected ? styles.optionShadowSelected : null,
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.optionFace,
+          optionFaceTransform,
+          isSelected ? styles.optionFaceSelected : null,
+        ]}
+      >
+        <IBMPlexText defaultWhite
+          lines={1}
+          style={[
+            styles.optionButtonText,
+            isSelected ? styles.optionButtonTextSelected : null,
+          ]}
+        >
+          {label}
+        </IBMPlexText>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 export default function TrainingCapabilityConfidenceView({
   item,
   value,
@@ -90,32 +164,14 @@ export default function TrainingCapabilityConfidenceView({
             const isSelected = value === option.value;
 
             return (
-              <TouchableOpacity
+              <ConfidenceOptionButton
                 key={option.value}
+                isSelected={isSelected}
+                label={option.label}
                 onPress={() => {
                   onChange?.(isSelected ? null : option.value);
                 }}
-                style={styles.optionButton}
-              >
-                <View
-                  pointerEvents="none"
-                  style={[
-                    styles.optionShadow,
-                    isSelected ? styles.optionShadowSelected : null,
-                  ]}
-                />
-                <View style={[styles.optionFace, isSelected ? styles.optionFaceSelected : null]}>
-                  <IBMPlexText defaultWhite
-                    lines={1}
-                    style={[
-                      styles.optionButtonText,
-                      isSelected ? styles.optionButtonTextSelected : null,
-                    ]}
-                  >
-                    {option.label}
-                  </IBMPlexText>
-                </View>
-              </TouchableOpacity>
+              />
             );
           })}
         </View>
@@ -237,11 +293,10 @@ const styles = StyleSheet.create({
   optionFaceSelected: {
     backgroundColor: "#C9B259",
     borderColor: "#C9B259",
-    transform: [{ translateX: -OPTION_SHADOW_OFFSET }, { translateY: -OPTION_SHADOW_OFFSET }],
   },
   optionButtonText: {
     color: "#000000",
-    fontSize: 17,
+    fontSize: 15,
     textAlign: "center",
     includeFontPadding: false,
     width: "100%",

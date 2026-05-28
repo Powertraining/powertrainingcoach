@@ -1,4 +1,14 @@
-import { View, StyleSheet } from "react-native";
+import {
+  useEffect,
+  useRef,
+} from "react";
+import {
+  Animated,
+  Easing,
+  useWindowDimensions,
+  View,
+  StyleSheet,
+} from "react-native";
 
 import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
@@ -313,6 +323,40 @@ export function getTrainingPreferencesStepKeys(values = {}) {
 
 export function getTrainingPreferencesStepKey(values = {}, activeStep = 0) {
   return getTrainingPreferencesStepKeys(values)[activeStep] || "";
+}
+
+function RightSlideSection({ children }) {
+  const { width } = useWindowDimensions();
+  const translateX = useRef(new Animated.Value(width || 360)).current;
+  const opacity = useRef(new Animated.Value(0.92)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, translateX]);
+
+  return (
+    <Animated.View
+      style={{
+        opacity,
+        transform: [{ translateX }],
+      }}
+    >
+      {children}
+    </Animated.View>
+  );
 }
 
 export default function TrainingPreferencesFields({
@@ -639,6 +683,10 @@ export default function TrainingPreferencesFields({
     typeof activeStep === "number"
       ? [activeStep]
       : sectionRenderers.map((_, index) => index);
+  const activeSectionKey =
+    typeof activeStep === "number"
+      ? getTrainingPreferencesStepKey(values, activeStep)
+      : "";
 
   return (
     <View style={styles.section}>
@@ -651,11 +699,25 @@ export default function TrainingPreferencesFields({
         </View>
       )}
 
-      {renderedSectionIndexes.map((sectionIndex) => (
-        <View key={`training-preferences-section-${sectionIndex}`}>
-          {sectionRenderers[sectionIndex]?.()}
-        </View>
-      ))}
+      {renderedSectionIndexes.map((sectionIndex) => {
+        const content = sectionRenderers[sectionIndex]?.();
+
+        if (typeof activeStep !== "number") {
+          return (
+            <View key={`training-preferences-section-${sectionIndex}`}>
+              {content}
+            </View>
+          );
+        }
+
+        return (
+          <RightSlideSection
+            key={`${sectionIndex}:${activeSectionKey}`}
+          >
+            {content}
+          </RightSlideSection>
+        );
+      })}
     </View>
   );
 }

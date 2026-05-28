@@ -1,7 +1,8 @@
 import {
   DESIRED_TRAINING_OPTIONS } from "../../constants/trainingPreferences.js";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   Image,
   StyleSheet,
   TouchableOpacity,
@@ -28,6 +29,19 @@ const OPTION_IMAGE_OFFSET_STYLES = Object.freeze({
   endurance: { transform: [{ translateX: -40 }] },
   strength_power_endurance: { transform: [{ translateX: 28 }] },
 });
+const OPTION_IMAGE_SLIDE_OFFSET = OPTION_IMAGE_SIZE * 0.05;
+const OPTION_ANIMATION_DURATION = 220;
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
+function getOptionSlideOffset(optionIndex, selectedIndex) {
+  if (selectedIndex < 0 || selectedIndex === optionIndex) {
+    return 0;
+  }
+
+  return optionIndex < selectedIndex
+    ? -OPTION_IMAGE_SLIDE_OFFSET
+    : OPTION_IMAGE_SLIDE_OFFSET;
+}
 
 export default function TrainingPreferencesDesiredTrainingView({
   value,
@@ -39,10 +53,38 @@ export default function TrainingPreferencesDesiredTrainingView({
   const selectedIndex = DESIRED_TRAINING_OPTIONS.findIndex(
     (option) => option.value === displayedValue
   );
+  const optionAnimations = useRef(
+    DESIRED_TRAINING_OPTIONS.map((_, index) => ({
+      flex: new Animated.Value(index === selectedIndex ? 1 : 0),
+      slide: new Animated.Value(getOptionSlideOffset(index, selectedIndex)),
+    }))
+  ).current;
+
+  useEffect(() => {
+    const animations = optionAnimations.flatMap((optionAnimation, index) => {
+      optionAnimation.flex.stopAnimation();
+      optionAnimation.slide.stopAnimation();
+
+      return [
+        Animated.timing(optionAnimation.flex, {
+          toValue: index === selectedIndex ? 1 : 0,
+          duration: OPTION_ANIMATION_DURATION,
+          useNativeDriver: false,
+        }),
+        Animated.timing(optionAnimation.slide, {
+          toValue: getOptionSlideOffset(index, selectedIndex),
+          duration: OPTION_ANIMATION_DURATION,
+          useNativeDriver: false,
+        }),
+      ];
+    });
+
+    Animated.parallel(animations).start();
+  }, [optionAnimations, selectedIndex]);
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
-      <IBMPlexText titleBlock height={110}>What would you like to focus on?</IBMPlexText>
+      <IBMPlexText titleBlock height={140}>What would you like to focus on?</IBMPlexText>
       <IBMPlexText defaultWhite style={styles.helperText} center>
         Choose what your plan should prioritize so training matches your goals.
       </IBMPlexText>
@@ -51,12 +93,20 @@ export default function TrainingPreferencesDesiredTrainingView({
         {DESIRED_TRAINING_OPTIONS.map((option, index) => {
           const isSelected = displayedValue === option.value;
           const optionImages = DESIRED_TRAINING_IMAGES[option.value] ?? [];
-          const optionImagePositionStyle =
-            isSelected || selectedIndex < 0
-              ? styles.optionImageRowSelected
-              : index < selectedIndex
-                ? styles.optionImageRowLeft
-                : styles.optionImageRowRight;
+          const optionAnimation = optionAnimations[index];
+          const optionFlexStyle = {
+            flex: optionAnimation.flex.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, 2],
+            }),
+          };
+          const optionImagePositionStyle = {
+            transform: [
+              {
+                translateX: optionAnimation.slide,
+              },
+            ],
+          };
           const optionPositionStyle =
             index === 0
               ? styles.optionFaceLeft
@@ -65,7 +115,7 @@ export default function TrainingPreferencesDesiredTrainingView({
                 : styles.optionFaceMiddle;
 
           return (
-            <TouchableOpacity
+            <AnimatedTouchableOpacity
               key={option.value}
               onPress={() => {
                 setIsSelectionCleared(isSelected);
@@ -73,7 +123,7 @@ export default function TrainingPreferencesDesiredTrainingView({
               }}
               style={[
                 styles.optionButton,
-                isSelected ? styles.optionButtonSelected : null,
+                optionFlexStyle,
               ]}
             >
               <View
@@ -83,7 +133,7 @@ export default function TrainingPreferencesDesiredTrainingView({
                   isSelected ? styles.optionFaceSelected : null,
                 ]}
               >
-                <View
+                <Animated.View
                   style={[
                     styles.optionImageRow,
                     optionImagePositionStyle,
@@ -103,7 +153,7 @@ export default function TrainingPreferencesDesiredTrainingView({
                       resizeMode="cover"
                     />
                   ))}
-                </View>
+                </Animated.View>
               </View>
               <IBMPlexText defaultWhite
                 style={[
@@ -114,7 +164,7 @@ export default function TrainingPreferencesDesiredTrainingView({
               >
                 {DESIRED_TRAINING_LABELS[option.value] ?? option.label}
               </IBMPlexText>
-            </TouchableOpacity>
+            </AnimatedTouchableOpacity>
           );
         })}
       </View>
@@ -132,7 +182,7 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     gap: 2,
-    marginTop: 56,
+    marginTop: 68,
   },
   helperText: {
     width: "82%",
@@ -148,9 +198,6 @@ const styles = StyleSheet.create({
     position: "relative",
     overflow: "visible",
     alignItems: "center",
-  },
-  optionButtonSelected: {
-    flex:2,
   },
   optionFace: {
     width: "100%",
@@ -168,15 +215,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
-  },
-  optionImageRowSelected: {
-    width: "100%",
-  },
-  optionImageRowLeft: {
-    transform: [{ translateX: -OPTION_IMAGE_SIZE * 0.05 }],
-  },
-  optionImageRowRight: {
-    transform: [{ translateX: OPTION_IMAGE_SIZE * 0.05 }],
   },
   optionImage: {
     width: OPTION_IMAGE_SIZE,

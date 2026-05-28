@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import {
+  Animated,
   Image,
   Pressable,
   StyleSheet,
@@ -32,6 +34,7 @@ const VISUAL_ORDER = Object.freeze([
   "advanced",
   "beginner",
 ]);
+const DEFAULT_VISUAL_INDEX = VISUAL_ORDER.indexOf(EXPERIENCE_ORDER[0].value);
 
 function getActiveIndex(value) {
   const foundIndex = EXPERIENCE_ORDER.findIndex((option) => option.value === value);
@@ -40,7 +43,7 @@ function getActiveIndex(value) {
 
 function getVisualIndex(value) {
   const foundIndex = VISUAL_ORDER.findIndex((optionValue) => optionValue === value);
-  return foundIndex >= 0 ? foundIndex : 0;
+  return foundIndex >= 0 ? foundIndex : DEFAULT_VISUAL_INDEX;
 }
 
 function OptionCard({ children, position, isSelected }) {
@@ -99,6 +102,53 @@ function OptionCard({ children, position, isSelected }) {
   );
 }
 
+function ArrowButton({ disabled, imageStyle, onPress }) {
+  const pressProgress = useRef(new Animated.Value(0)).current;
+  const arrowTranslate = {
+    transform: [
+      {
+        translateX: pressProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -5],
+        }),
+      },
+      {
+        translateY: pressProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -5],
+        }),
+      },
+    ],
+  };
+
+  function animatePress(toValue) {
+    Animated.timing(pressProgress, {
+      toValue,
+      duration: toValue ? 70 : 120,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => animatePress(1)}
+      onPressOut={() => animatePress(0)}
+      disabled={disabled}
+      style={styles.button}
+    >
+      <View style={styles.arrowShadow} />
+      <Animated.View style={[styles.arrowWrap, arrowTranslate]}>
+        <Image
+          source={ARROW_IMAGE}
+          style={[styles.arrowImage, imageStyle]}
+          resizeMode="contain"
+        />
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 export default function TrainingPreferencesExperienceView({
   value,
   onChange,
@@ -140,35 +190,17 @@ export default function TrainingPreferencesExperienceView({
       </IBMPlexText>
 
       <View style={styles.buttonsRow}>
-        <Pressable
+        <ArrowButton
           onPress={() => moveSelection(-1)}
           disabled={activeVisualIndex === 0}
-          style={styles.button}
-        >
-          <View style={styles.arrowShadow} />
-          <View style={styles.arrowWrap}>
-            <Image
-              source={ARROW_IMAGE}
-              style={[styles.arrowImage, styles.arrowImageLeft, styles.arrowImageLeftOffset]}
-              resizeMode="contain"
-            />
-          </View>
-        </Pressable>
+          imageStyle={[styles.arrowImageLeft, styles.arrowImageLeftOffset]}
+        />
 
-        <Pressable
+        <ArrowButton
           onPress={() => moveSelection(1)}
           disabled={activeVisualIndex === VISUAL_ORDER.length - 1}
-          style={styles.button}
-        >
-          <View style={styles.arrowShadow} />
-          <View style={styles.arrowWrap}>
-            <Image
-              source={ARROW_IMAGE}
-              style={[styles.arrowImage, styles.arrowImageRightOffset]}
-              resizeMode="contain"
-            />
-          </View>
-        </Pressable>
+          imageStyle={styles.arrowImageRightOffset}
+        />
       </View>
     </View>
   );

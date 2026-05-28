@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState } from "react";
 import {
   Image,
@@ -103,6 +104,10 @@ function ChoiceChip({ label, isSelected, onPress }) {
 function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [dragValue, setDragValue] = useState(value ?? MIN_ENDURANCE_DAYS);
+  const activeTouchIdRef = useRef(null);
+  const dragStartPageXRef = useRef(0);
+  const dragStartValueRef = useRef(value ?? MIN_ENDURANCE_DAYS);
+  const dragValueRef = useRef(value ?? MIN_ENDURANCE_DAYS);
   const activeValue = Math.round(dragValue);
   const sliderProgress =
     (dragValue - MIN_ENDURANCE_DAYS) / (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS);
@@ -111,44 +116,95 @@ function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
     : 0;
 
   useEffect(() => {
-    setDragValue(value ?? MIN_ENDURANCE_DAYS);
+    const nextValue = value ?? MIN_ENDURANCE_DAYS;
+    dragValueRef.current = nextValue;
+    setDragValue(nextValue);
   }, [value]);
 
-  function updateValueFromTouch(locationX, shouldCommit = false) {
+  function setLiveDragValue(nextValue) {
+    dragValueRef.current = nextValue;
+    setDragValue(nextValue);
+  }
+
+  function commitDragValue(nextValue = dragValueRef.current) {
+    const roundedValue = Math.round(nextValue);
+    dragValueRef.current = roundedValue;
+    setDragValue(roundedValue);
+    onChange?.(roundedValue);
+  }
+
+  function getResponderTouch(event) {
+    const { changedTouches = [], touches = [], identifier } = event.nativeEvent;
+    const activeTouchId = activeTouchIdRef.current;
+    const allTouches = [...changedTouches, ...touches];
+
+    if (activeTouchId != null) {
+      return allTouches.find((touch) => touch.identifier === activeTouchId) || null;
+    }
+
+    return allTouches.find((touch) => touch.identifier === identifier) || allTouches[0] || event.nativeEvent;
+  }
+
+  function valueFromLocationX(locationX) {
     if (!sliderWidth) {
-      return;
+      return dragValueRef.current;
     }
 
     const clampedX = Math.min(Math.max(locationX, 0), sliderWidth);
-    const rawValue =
+    return (
       MIN_ENDURANCE_DAYS +
-      (clampedX / sliderWidth) * (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS);
+      (clampedX / sliderWidth) * (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS)
+    );
+  }
 
-    if (shouldCommit) {
-      const roundedValue = Math.round(rawValue);
-      setDragValue(roundedValue);
-      onChange?.(roundedValue);
+  function valueFromPageX(pageX) {
+    if (!sliderWidth) {
+      return dragValueRef.current;
+    }
+
+    const deltaValue =
+      ((pageX - dragStartPageXRef.current) / sliderWidth) *
+      (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS);
+
+    return Math.min(
+      Math.max(dragStartValueRef.current + deltaValue, MIN_ENDURANCE_DAYS),
+      MAX_ENDURANCE_DAYS
+    );
+  }
+
+  function startDrag(event) {
+    const touch = getResponderTouch(event);
+    const nextValue = valueFromLocationX(touch?.locationX ?? event.nativeEvent.locationX ?? 0);
+
+    activeTouchIdRef.current = touch?.identifier ?? event.nativeEvent.identifier ?? null;
+    dragStartPageXRef.current = touch?.pageX ?? event.nativeEvent.pageX ?? 0;
+    dragStartValueRef.current = nextValue;
+    setLiveDragValue(nextValue);
+  }
+
+  function updateDrag(event) {
+    const touch = getResponderTouch(event);
+
+    if (!touch) {
       return;
     }
 
-    setDragValue(rawValue);
+    setLiveDragValue(valueFromPageX(touch.pageX));
+  }
+
+  function endDrag(event) {
+    updateDrag(event);
+    commitDragValue();
+    activeTouchIdRef.current = null;
   }
 
   const sliderPanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponder: () => activeTouchIdRef.current == null,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX);
-    },
-    onPanResponderMove: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX);
-    },
-    onPanResponderRelease: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX, true);
-    },
-    onPanResponderTerminate: (event) => {
-      updateValueFromTouch(event.nativeEvent.locationX, true);
-    },
+    onPanResponderGrant: startDrag,
+    onPanResponderMove: updateDrag,
+    onPanResponderRelease: endDrag,
+    onPanResponderTerminate: endDrag,
   });
 
   return (
