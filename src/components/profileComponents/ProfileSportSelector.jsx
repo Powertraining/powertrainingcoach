@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   optionSelected: {
-    borderColor: "#ffffff",
+    borderColor: "#C9B259",
+    borderWidth: 0.5,
   },
   image: {
     width: "58%",

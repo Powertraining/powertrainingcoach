@@ -27,6 +27,9 @@ import {
   parseEventPreparation,
 } from "../../services/utils/profileFields.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+const COLORS = {
+  gold: "#C9B259",
+};
 const DESCRIPTION_CONTAINER_HEIGHT = 252;
 
 export default function RegisterEventView({
@@ -455,7 +458,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   detailRowAction: {
-    color: "#ffffff",
+    color: COLORS.gold,
     flexShrink: 0,
     fontSize: 12, fontWeight: "800",
     lineHeight: 16,

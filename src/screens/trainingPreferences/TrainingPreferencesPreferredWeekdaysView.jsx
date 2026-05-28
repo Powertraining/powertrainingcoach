@@ -84,52 +84,63 @@ export default function TrainingPreferencesPreferredWeekdaysView({
 
         <View style={styles.preferenceBox}>
           <View style={styles.preferenceGrid}>
-            {Array.from({ length: daysPerWeek }, (_, index) => (
-              <View
-                key={`preferred-weekday-${index + 1}`}
-                style={styles.preferenceItem}
-              >
-                <IBMPlexText style={styles.preferenceLabel}>Day {index + 1}</IBMPlexText>
-                <View style={styles.weekdayRow}>
-                  {WEEKDAY_CHIP_OPTIONS.map((option) => {
-                    const isSelected = preferredWeekdays[index] === option.value;
-                    const isUnavailable =
-                      !isSelected &&
-                      !canBuildOrderedWeekdaySequence(
-                        preferredWeekdays.map((weekday, selectedIndex) =>
-                          selectedIndex === index ? option.value : weekday
-                        )
-                      );
+            {Array.from({ length: daysPerWeek }, (_, index) => {
+              const hasPreferredWeekday = Boolean(preferredWeekdays[index]);
 
-                    return (
-                      <Pressable
-                        key={`${option.value}-${index + 1}`}
-                        disabled={isUnavailable}
-                        onPress={() =>
-                          onChange(index, isSelected ? "" : option.value)
-                        }
-                        style={({ pressed }) => [
-                          styles.weekdayButton,
-                          isSelected ? styles.weekdayButtonSelected : null,
-                          isUnavailable ? styles.weekdayButtonDisabled : null,
-                          pressed ? styles.weekdayButtonPressed : null,
-                        ]}
-                      >
-                        <IBMPlexText
-                          style={[
-                            styles.weekdayButtonText,
-                            isSelected ? styles.weekdayButtonTextSelected : null,
-                            isUnavailable ? styles.weekdayButtonTextDisabled : null,
+              return (
+                <View
+                  key={`preferred-weekday-${index + 1}`}
+                  style={styles.preferenceItem}
+                >
+                  <IBMPlexText
+                    style={[
+                      styles.preferenceLabel,
+                      hasPreferredWeekday ? styles.preferenceLabelSelected : null,
+                    ]}
+                  >
+                    Day {index + 1}
+                  </IBMPlexText>
+                  <View style={styles.weekdayRow}>
+                    {WEEKDAY_CHIP_OPTIONS.map((option) => {
+                      const isSelected = preferredWeekdays[index] === option.value;
+                      const isUnavailable =
+                        !isSelected &&
+                        !canBuildOrderedWeekdaySequence(
+                          preferredWeekdays.map((weekday, selectedIndex) =>
+                            selectedIndex === index ? option.value : weekday
+                          )
+                        );
+
+                      return (
+                        <Pressable
+                          key={`${option.value}-${index + 1}`}
+                          disabled={isUnavailable}
+                          onPress={() =>
+                            onChange(index, isSelected ? "" : option.value)
+                          }
+                          style={({ pressed }) => [
+                            styles.weekdayButton,
+                            isSelected ? styles.weekdayButtonSelected : null,
+                            isUnavailable ? styles.weekdayButtonDisabled : null,
+                            pressed ? styles.weekdayButtonPressed : null,
                           ]}
                         >
-                          {option.label.slice(0, 3)}
-                        </IBMPlexText>
-                      </Pressable>
-                    );
-                  })}
+                          <IBMPlexText
+                            style={[
+                              styles.weekdayButtonText,
+                              isSelected ? styles.weekdayButtonTextSelected : null,
+                              isUnavailable ? styles.weekdayButtonTextDisabled : null,
+                            ]}
+                          >
+                            {option.label.slice(0, 3)}
+                          </IBMPlexText>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
       </View>
@@ -152,7 +163,7 @@ const styles = StyleSheet.create({
   helperText: {
     alignSelf: "center",
     maxWidth: 320,
-    marginBottom: 18,
+    marginBottom: 30,
     paddingHorizontal: 24,
     fontSize: 14,
     lineHeight: 20,
@@ -179,6 +190,9 @@ const styles = StyleSheet.create({
     fontSize: 11, fontWeight: "700",
     lineHeight: 14,
     textTransform: "uppercase",
+  },
+  preferenceLabelSelected: {
+    color: "#C9B259",
   },
   weekdayRow: {
     flexDirection: "row",

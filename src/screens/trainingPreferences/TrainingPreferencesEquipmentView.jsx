@@ -39,6 +39,7 @@ export default function TrainingPreferencesEquipmentView({
               isSelected={isSelected}
               stacked
               buttonStyle={styles.optionButton}
+              selectedButtonStyle={styles.optionButtonSelected}
               imageSource={EQUIPMENT_IMAGES[option.value]}
               imageStyle={[
                 styles.optionImage,
@@ -75,6 +76,9 @@ const styles = StyleSheet.create({
     minHeight: 118,
     paddingHorizontal: 14,
     paddingVertical: 14,
+  },
+  optionButtonSelected: {
+    borderColor: "#C9B259",
   },
   optionImage: {
     flexShrink: 1,

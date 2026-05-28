@@ -1396,7 +1396,7 @@ export default function DayDetailView({
                                                                     lines={isHighlighted ? 3 : 1}
                                                                     adjustsFontSizeToFit={isHighlighted}
                                                                     minimumFontScale={0.82}
-                                                                    textColor="#fff"
+                                                                    textColor="#C9B259"
                                                                 >
                                                                     {getExercisePrescriptionDisplay(ex)}
                                                                 </IBMPlexText>
@@ -2234,7 +2234,7 @@ const styles = StyleSheet.create({
     },
     tabButtonText: { flexDirection: 'column', gap: 4},
     tabButtonName: { fontSize: 15, fontWeight: '700', color: 'white', marginBottom: 5, lineHeight: 18 },
-    tabButtonSets: { fontSize: 14, color: "#d1d5db", lineHeight: 17 },
+    tabButtonSets: { fontSize: 14, color: "#C9B259", lineHeight: 17 },
     tabButtonReportedList: {
         gap: 2,
         paddingTop: 1,
@@ -2246,7 +2246,7 @@ const styles = StyleSheet.create({
     },
     tabButtonRecommendationPrimary: { fontSize: 17, fontWeight: '700', lineHeight: 20 },
     tabButtonRecommendationDetails: {
-        color: '#C9B259',
+        color: '#fff',
         fontSize: 10, fontWeight: '700',
         lineHeight: 12,
     },

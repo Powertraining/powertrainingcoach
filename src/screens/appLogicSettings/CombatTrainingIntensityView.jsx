@@ -40,6 +40,8 @@ export default function CombatTrainingIntensityView({
   const dragStartFillRatioRef = useRef(fillRatio);
   const { height: screenHeight } = useWindowDimensions();
   const meterTop = Math.max(280, screenHeight / 2 - 60);
+  const selectedIntensity = getValueFromFillRatio(fillRatio);
+  const selectedLabelTop = meterTop + METER_HEIGHT * (1 - fillRatio) - 12;
 
   function updateFillFromDy(dy) {
     const nextFillRatio = clamp(
@@ -70,18 +72,6 @@ export default function CombatTrainingIntensityView({
         </IBMPlexText>
       </View>
       <View style={[styles.intensityOutline, { top: meterTop }]}>
-        <View pointerEvents="none" style={[styles.tickLine, styles.tickLineTop]} />
-        <View pointerEvents="none" style={[styles.tickLine, styles.tickLineMiddle]} />
-        <View pointerEvents="none" style={[styles.tickLine, styles.tickLineBottom]} />
-        <IBMPlexText defaultWhite style={[styles.tickLabel, styles.tickLabelTop]}>
-          Intense
-        </IBMPlexText>
-        <IBMPlexText defaultWhite style={[styles.tickLabel, styles.tickLabelMiddle]}>
-          Moderate
-        </IBMPlexText>
-        <IBMPlexText defaultWhite style={[styles.tickLabel, styles.tickLabelBottom]}>
-          Light
-        </IBMPlexText>
         <View style={styles.fillClip}>
           <View
             style={[
@@ -91,8 +81,18 @@ export default function CombatTrainingIntensityView({
           />
         </View>
       </View>
-      <IBMPlexText defaultWhite style={[styles.selectedValueText, { top: meterTop + METER_HEIGHT + 18 }]} center>
-        {getValueFromFillRatio(fillRatio)}
+      <IBMPlexText
+        defaultWhite
+        pointerEvents="none"
+        style={[
+          styles.selectedValueText,
+          {
+            top: selectedLabelTop,
+            transform: [{ translateX: -(METER_WIDTH / 2 + 104) }],
+          },
+        ]}
+      >
+        {selectedIntensity}
       </IBMPlexText>
     </View>
   );
@@ -135,42 +135,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     width: "100%",
   },
-  tickLine: {
-    backgroundColor: "#6B6B6B",
-    height: 2,
-    left: -88,
-    position: "absolute",
-    width: 78,
-  },
-  tickLineTop: {
-    top: METER_HEIGHT * 0.1 - 1,
-  },
-  tickLineMiddle: {
-    top: METER_HEIGHT * 0.4 - 1,
-  },
-  tickLineBottom: {
-    bottom: METER_HEIGHT * 0.3 - 1,
-  },
-  tickLabel: {
-    color: "#6B6B6B",
-    fontSize: 16,
-    left: -88,
-    position: "absolute",
-    textAlign: "center",
-    width: 78,
-  },
-  tickLabelTop: {
-    top: METER_HEIGHT * 0.1 - 24,
-  },
-  tickLabelMiddle: {
-    top: METER_HEIGHT * 0.4 - 24,
-  },
-  tickLabelBottom: {
-    bottom: METER_HEIGHT * 0.3 + 4,
-  },
   selectedValueText: {
-    left: 0,
+    color: "#C9B259",
+    fontSize: 20,
+    lineHeight: 24,
+    left: "50%",
     position: "absolute",
-    right: 0,
+    textAlign: "right",
+    textTransform: "capitalize",
+    width: 92,
   },
 });

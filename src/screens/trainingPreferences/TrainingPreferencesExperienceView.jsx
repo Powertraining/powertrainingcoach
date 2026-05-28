@@ -5,7 +5,9 @@ import {
   View,
 } from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import { fonts } from "../../theme/colors.js";
 const ARROW_IMAGE = require("../../assets/icons/arrow.png");
+const OPTION_LABEL_FONT_SIZE = 12;
 
 const EXPERIENCE_ORDER = Object.freeze([
   {
@@ -15,7 +17,7 @@ const EXPERIENCE_ORDER = Object.freeze([
   },
   {
     value: "intermediate",
-    label: "INTERMEDIATE",
+    label: "AVERAGE",
     description: "Has some experience with strength and conditioning",
   },
   {
@@ -88,6 +90,7 @@ function OptionCard({ children, position, isSelected }) {
         <IBMPlexText defaultWhite
           style={[styles.optionText, optionTextPositionStyle]}
           textColor="#000000"
+          numberOfLines={1}
         >
           {children}
         </IBMPlexText>
@@ -275,8 +278,13 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   optionText: {
+    width: "100%",
     marginTop: 5,
-    fontSize: 17,
+    fontFamily: fonts.display,
+    fontSize: OPTION_LABEL_FONT_SIZE,
+    lineHeight: 14,
+    textAlign: "center",
+    includeFontPadding: false,
   },
   optionTextLeft: {
     marginTop: -4,

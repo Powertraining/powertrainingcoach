@@ -1898,7 +1898,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   resultsExercisePrescription: {
-    color: "#d1d5db",
+    color: "#C9B259",
     fontSize: 14,
     lineHeight: 17,
   },
@@ -1909,7 +1909,7 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   resultsExerciseDetails: {
-    color: "#C9B259",
+    color: "#d1d5db",
     fontSize: 10, fontWeight: "700",
     lineHeight: 12,
   },
@@ -1984,7 +1984,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   exercisePrescription: {
-    color: "#fff",
+    color: "#C9B259",
     fontSize: 14, fontWeight: "600",
     lineHeight: 17,
   },
@@ -1993,7 +1993,7 @@ const styles = StyleSheet.create({
     fontSize: 16, fontWeight: "700",
   },
   exerciseIntensityDetails: {
-    color: "#C9B259",
+    color: "#fff",
     fontSize: 9, fontWeight: "700",
     lineHeight: 11,
   },

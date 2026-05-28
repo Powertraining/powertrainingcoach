@@ -213,44 +213,65 @@ function getCombatIntensityValueFromFillRatio(fillRatio) {
 
 export function ProfileSessionDurationSelector({ options, value, onChange }) {
   const scrollRef = useRef(null);
-  const isDraggingRef = useRef(false);
+  const isInteractingRef = useRef(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const selectedIndex = Math.max(
     options.findIndex((option) => option.value === value),
     0
   );
+  const lastOffsetXRef = useRef(selectedIndex * SESSION_DURATION_ITEM_WIDTH);
+  const [displayedIndex, setDisplayedIndex] = useState(selectedIndex);
   const sidePadding = Math.max(
     (containerWidth - SESSION_DURATION_ITEM_WIDTH) / 2,
     0
   );
 
   useEffect(() => {
-    if (isDraggingRef.current || !options.length || !containerWidth) {
+    if (isInteractingRef.current || !options.length || !containerWidth) {
       return;
     }
 
+    setDisplayedIndex(selectedIndex);
+    lastOffsetXRef.current = selectedIndex * SESSION_DURATION_ITEM_WIDTH;
     scrollRef.current?.scrollTo({
       x: selectedIndex * SESSION_DURATION_ITEM_WIDTH,
       animated: false,
     });
   }, [containerWidth, options.length, selectedIndex]);
 
+  function getIndexFromOffset(offsetX) {
+    return clamp(
+      Math.round(offsetX / SESSION_DURATION_ITEM_WIDTH),
+      0,
+      options.length - 1
+    );
+  }
+
   function finalizeSelection(offsetX) {
     if (!options.length) {
       return;
     }
 
-    const nextIndex = clamp(
-      Math.round(offsetX / SESSION_DURATION_ITEM_WIDTH),
-      0,
-      options.length - 1
-    );
+    const nextIndex = getIndexFromOffset(offsetX);
+    const nextOffsetX = nextIndex * SESSION_DURATION_ITEM_WIDTH;
 
+    lastOffsetXRef.current = nextOffsetX;
+    setDisplayedIndex(nextIndex);
     scrollRef.current?.scrollTo({
-      x: nextIndex * SESSION_DURATION_ITEM_WIDTH,
+      x: nextOffsetX,
       animated: true,
     });
     onChange?.(options[nextIndex].value);
+    isInteractingRef.current = false;
+  }
+
+  function handleScroll(event) {
+    if (!options.length) {
+      return;
+    }
+
+    lastOffsetXRef.current = event.nativeEvent.contentOffset.x;
+    setDisplayedIndex(getIndexFromOffset(lastOffsetXRef.current));
   }
 
   return (
@@ -262,8 +283,6 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
         ref={scrollRef}
         horizontal
         contentOffset={{ x: selectedIndex * SESSION_DURATION_ITEM_WIDTH, y: 0 }}
-        snapToInterval={SESSION_DURATION_ITEM_WIDTH}
-        snapToAlignment="center"
         decelerationRate="fast"
         disableIntervalMomentum
         showsHorizontalScrollIndicator={false}
@@ -274,24 +293,25 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
           styles.durationContent,
           { paddingHorizontal: sidePadding },
         ]}
+        onScroll={handleScroll}
         onScrollBeginDrag={() => {
-          isDraggingRef.current = true;
+          isInteractingRef.current = true;
         }}
         onMomentumScrollEnd={(event) => {
-          isDraggingRef.current = false;
-          finalizeSelection(event.nativeEvent.contentOffset.x);
+          lastOffsetXRef.current = event.nativeEvent.contentOffset.x;
+          finalizeSelection(lastOffsetXRef.current);
         }}
         onScrollEndDrag={(event) => {
+          lastOffsetXRef.current = event.nativeEvent.contentOffset.x;
           const velocityX = Math.abs(event.nativeEvent.velocity?.x || 0);
           if (velocityX > 0.05) {
             return;
           }
-          isDraggingRef.current = false;
-          finalizeSelection(event.nativeEvent.contentOffset.x);
+          finalizeSelection(lastOffsetXRef.current);
         }}
       >
         {options.map((option, index) => {
-          const isSelected = index === selectedIndex;
+          const isSelected = index === displayedIndex;
           const minuteLabelParts = getMinuteLabelParts(option.label);
 
           return (
@@ -1569,7 +1589,8 @@ const styles = StyleSheet.create({
     width: 100,
   },
   desiredPillSelected: {
-    borderColor: "#ffffff",
+    borderColor: "#C9B259",
+    borderWidth: 0.5,
   },
   desiredPillLeft: {
     borderRadius: 24,
@@ -1623,7 +1644,8 @@ const styles = StyleSheet.create({
     width: 100,
   },
   connectedPillSelected: {
-    borderColor: "#ffffff",
+    borderColor: "#C9B259",
+    borderWidth: 0.5,
   },
   connectedPillLeft: {
     borderRadius: 24,
@@ -1676,7 +1698,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   phasePillSelected: {
-    borderColor: "#ffffff",
+    borderColor: "#C9B259",
+    borderWidth: 0.5,
   },
   phasePillLeft: {
     borderRadius: 22,
@@ -1716,7 +1739,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   liftIntensityCardSelected: {
-    borderColor: "#ffffff",
+    borderColor: "#C9B259",
+    borderWidth: 0.5,
   },
   liftIntensityCardTitle: {
     color: "#ffffff",
@@ -1727,13 +1751,13 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
   liftIntensityCardTag: {
-    color: "#8E8E8E",
+    color: "#C9B259",
     fontSize: 9, fontWeight: "700",
     marginTop: 4,
     textTransform: "uppercase",
   },
   liftIntensityCardTagSelected: {
-    color: "#8E8E8E",
+    color: "#C9B259",
   },
   liftIntensityCardDescription: {
     color: "#8E8E8E",
@@ -1911,7 +1935,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   durationUnitText: {
-    color: "#ffffff",
+    color: "#C9B259",
     fontSize: 12,
   },
   durationUnitTextSelected: {

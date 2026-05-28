@@ -1,5 +1,8 @@
 import { Pressable, View, StyleSheet } from "react-native";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
+const COLORS = {
+  gold: "#C9B259",
+};
 export default function PersonalDetailsUsernameCard({ username, onPress, disabled }) {
   return (
     <Pressable
@@ -67,7 +70,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   actionText: {
-    color: "#ffffff",
+    color: COLORS.gold,
     flexShrink: 0,
     fontSize: 12, fontWeight: "800",
     lineHeight: 16,

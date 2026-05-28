@@ -40,8 +40,7 @@ function TrainingPreferencesInjuriesView({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const contentBottomOffset =
     keyboardHeight > 0 ? keyboardHeight : CLOSED_KEYBOARD_BOTTOM_OFFSET;
-  const canContinue =
-    Boolean(String(draftMessage || "").trim()) || userMessages.length > 0;
+  const canContinue = userMessages.length > 0;
 
   const commitDraftMessage = useCallback(() => {
     const nextMessage = draftMessage.trim();

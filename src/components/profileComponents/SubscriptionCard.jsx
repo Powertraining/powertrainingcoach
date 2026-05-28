@@ -1,6 +1,7 @@
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 
 import BlackGradient from "../colorComponents/BlackGradient.jsx";
+import GoldGradient from "../colorComponents/GoldGradient.jsx";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 const BENEFITS = [
   {
@@ -78,8 +79,13 @@ export default function SubscriptionCard({
             <TouchableOpacity
               onPress={handleUpgradePress}
               disabled={isSubmitting}
-              style={[styles.actionButton, isSubmitting ? styles.buttonDisabled : null]}
+              style={[
+                styles.actionButton,
+                styles.primaryButton,
+                isSubmitting ? styles.buttonDisabled : null,
+              ]}
             >
+              <GoldGradient />
               <IBMPlexText style={styles.actionButtonText}>Subscribe</IBMPlexText>
             </TouchableOpacity>
 
@@ -186,9 +192,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 999,
     backgroundColor: "#ffffff",
+    justifyContent: "center",
+    overflow: "hidden",
     minWidth: 104,
     paddingHorizontal: 18,
     paddingVertical: 9,
+    position: "relative",
+  },
+  primaryButton: {
+    backgroundColor: "#C9B259",
   },
   secondaryButton: {
     backgroundColor: "rgba(255,255,255,0.12)",
@@ -196,7 +208,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.22)",
   },
   actionButtonText: {
-    color: "#141414",
+    color: "#000",
     fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     textTransform: "uppercase",

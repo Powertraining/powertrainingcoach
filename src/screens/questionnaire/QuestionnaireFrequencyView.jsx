@@ -9,6 +9,7 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const MIN_SESSIONS = 1;
 const MAX_SESSIONS = 5;
 const THUMB_SIZE = 24;
+const GOLD = "#C9B259";
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick, onClose }) {
     const [sliderWidth, setSliderWidth] = useState(0);
@@ -188,13 +189,13 @@ const styles = StyleSheet.create({
     },
     leftLabel: {
         textAlign: "left",
-        color: "#7A7A7A",
+        color: GOLD,
         fontSize: 16,
         lineHeight: 18,
     },
     rightLabel: {
         textAlign: "right",
-        color: "#7A7A7A",
+        color: GOLD,
         fontSize: 16,
         lineHeight: 18,
     },

@@ -199,8 +199,12 @@ function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
       </View>
 
       <View style={styles.sliderLabels}>
-        <IBMPlexText defaultWhite style={styles.sliderLabel}>Beginner / busy</IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.sliderLabel}>Experienced</IBMPlexText>
+        <IBMPlexText defaultWhite style={[styles.sliderLabel, styles.sliderLabelLeft]}>
+          Beginner / busy
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={[styles.sliderLabel, styles.sliderLabelRight]}>
+          Experienced
+        </IBMPlexText>
       </View>
     </View>
   );
@@ -434,10 +438,8 @@ export default function TrainingPreferencesEnduranceSetupView({
       <View style={[styles.daysSection, { minHeight: screenHeight }]}>
         <IBMPlexText titleBlock height={130}>Endurance days</IBMPlexText>
         <IBMPlexText defaultWhite style={styles.helperText} center>
-          Choose the fewest endurance sessions you want scheduled each week.
-        </IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.daysWarningText} textColor="#C9B259" center>
-          3+ days needs solid recovery and low enough sport load.
+          Choose the fewest endurance sessions you want scheduled each week. 3+ days
+          needs solid recovery and low enough sport load.
         </IBMPlexText>
         <View style={styles.daysContent}>
           <EnduranceDaysSlider
@@ -454,8 +456,7 @@ export default function TrainingPreferencesEnduranceSetupView({
   if (mode === "circuitGoal") {
     const contentBottomOffset =
       keyboardHeight > 0 ? keyboardHeight : CLOSED_KEYBOARD_BOTTOM_OFFSET;
-    const canContinueCircuitGoal =
-      Boolean(String(draftMessage || "").trim()) || circuitMessages.length > 0;
+    const canContinueCircuitGoal = circuitMessages.length > 0;
 
     return (
       <View style={[styles.chatSection, { height: screenHeight }]}>
@@ -814,9 +815,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: ENDURANCE_THUMB_SIZE / 2,
   },
   sliderLabel: {
-    color: "#7A7A7A",
-    fontSize: 16,
+    color: "#C9B259",
     lineHeight: 18,
+  },
+  sliderLabelLeft: {
+    fontSize: 13,
+    textAlign: "left",
+  },
+  sliderLabelRight: {
+    fontSize: 16,
+    textAlign: "right",
   },
   styleOptions: {
     gap: 16,
@@ -1031,7 +1039,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   chatSection: {
-    paddingTop: 108,
+    paddingTop: 0,
     position: "relative",
   },
   topChatHeader: {
@@ -1041,8 +1049,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     flexDirection: "row",
     gap: 10,
-    minHeight: 58,
+    minHeight: 108,
     paddingHorizontal: 28,
+    paddingTop: 50,
     width: "100%",
   },
   botAvatar: {
@@ -1105,7 +1114,7 @@ const styles = StyleSheet.create({
     left: 0,
     position: "absolute",
     right: 0,
-    top: 166,
+    top: 108,
   },
   chatFeed: {
     alignSelf: "center",

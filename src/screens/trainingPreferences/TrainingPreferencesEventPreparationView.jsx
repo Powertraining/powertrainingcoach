@@ -175,7 +175,7 @@ export default function TrainingPreferencesEventPreparationView({
                 : null
             }
           >
-            <IBMPlexText titleBlock height={130}>Do you have an upcoming event?</IBMPlexText>
+            <IBMPlexText titleBlock height={130}>Do you have some event up and coming?</IBMPlexText>
             <IBMPlexText defaultWhite
               style={styles.helperText}
               center
@@ -206,7 +206,7 @@ export default function TrainingPreferencesEventPreparationView({
                   ]}
                 >
                   <View style={styles.eventDetailsContent}>
-                    <IBMPlexText defaultWhite style={styles.inputLabel}>
+                    <IBMPlexText style={[styles.inputLabel, styles.eventDetailsLabel]}>
                       Describe the event
                     </IBMPlexText>
                     <IBMPlexText
@@ -413,6 +413,9 @@ const styles = StyleSheet.create({
     fontSize: 15, fontWeight: "800",
     lineHeight: 18,
     textAlign: "left",
+  },
+  eventDetailsLabel: {
+    color: "#C9B259",
   },
   descriptionPreview: {
     color: "#9ca3af",

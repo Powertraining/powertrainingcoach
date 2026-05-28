@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   sectionIntroDescription: {
-    color: "#d1d5db",
+    color: "#C9B259",
     fontSize: 15,
     lineHeight: 22,
   },

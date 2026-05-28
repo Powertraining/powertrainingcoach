@@ -305,7 +305,7 @@ export default function InputFormView({
                     canContinue={canContinue}
                     hideBack
                     text={activeStep >= sectionCount - 1
-                        ? (subscription ? "Generate My Plan" : "Subscribe & Generate Plan")
+                        ? (subscription ? "Generate Plan" : "Subscribe & Generate Plan")
                         : "Continue"}
                     onContinue={handleContinue}
                     onBack={handleStepBack}
@@ -372,4 +372,3 @@ const styles = StyleSheet.create({
     activeText: { fontSize: 14, color: "#065f46", lineHeight: 22 },
     actions: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4, gap: 12, flexWrap: "wrap" },
 });
-

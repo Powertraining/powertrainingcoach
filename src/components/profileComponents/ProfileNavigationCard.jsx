@@ -3,6 +3,9 @@ import { Pressable, StyleSheet, View } from "react-native";
 import RowCard from "../homeComponents/RowCard.jsx";
 import LockIcon from "../LockIcon.jsx";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
+const COLORS = {
+  gold: "#C9B259",
+};
 export default function ProfileNavigationCard({
   title,
   description,
@@ -152,7 +155,7 @@ const styles = StyleSheet.create({
     filter: [{ blur: 4 }],
   },
   navigationActionText: {
-    color: "#ffffff",
+    color: COLORS.gold,
     fontSize: 12, fontWeight: "800",
     lineHeight: 16,
     marginTop: 12,

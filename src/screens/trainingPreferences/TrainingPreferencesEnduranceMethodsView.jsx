@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     width: "30%",
   },
   optionSelected: {
-    borderColor: "#ffffff",
+    borderColor: "#C9B259",
   },
   optionPressed: {
     opacity: 0.78,

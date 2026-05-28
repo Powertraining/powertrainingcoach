@@ -13,6 +13,7 @@ import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ANALYSIS_SLOTS = ["1", "2", "3", "4"];
+const GOLD = "#C9B259";
 
 function AnalysisVideoPreview({ uri }) {
   const player = useVideoPlayer(uri, (videoPlayer) => {
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   subscribedText: {
-    color: "#9ca3af",
+    color: GOLD,
     fontSize: 12, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
@@ -286,16 +287,12 @@ const styles = StyleSheet.create({
   },
   showAllButton: {
     alignSelf: "center",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderColor: "rgba(255,255,255,0.22)",
-    borderRadius: 999,
-    borderWidth: 1,
     justifyContent: "center",
     minHeight: 32,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
   },
   showAllButtonText: {
-    color: "#ffffff",
+    color: GOLD,
     fontSize: 12, fontWeight: "900",
     lineHeight: 16,
     textTransform: "uppercase",

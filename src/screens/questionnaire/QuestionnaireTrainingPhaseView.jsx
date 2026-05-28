@@ -95,7 +95,8 @@ const styles = StyleSheet.create({
     width: "75%",
   },
   phaseButtonSelected: {
-    borderColor: "#ffffff",
+    backgroundColor: "#C9B259",
+    borderColor: "#F3E7A6",
     borderStyle: "solid",
   },
   phaseButtonPressed: {
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   phaseButtonTitleSelected: {
-    color: "#ffffff",
+    color: "#111111",
   },
   phaseButtonDescription: {
     color: "#9ca3af",
@@ -118,6 +119,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   phaseButtonDescriptionSelected: {
-    color: "#ffffff",
+    color: "#111111",
   },
 });
