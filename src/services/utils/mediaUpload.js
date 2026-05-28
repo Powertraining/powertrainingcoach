@@ -9,22 +9,48 @@ const DEFAULT_VIDEO_MIME_TYPE = "video/mp4";
 const MAX_PROFILE_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_FORUM_MEDIA_BYTES = 100 * 1024 * 1024;
 
+const MIME_TYPES_BY_EXTENSION = Object.freeze({
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  heic: "image/heic",
+  heif: "image/heif",
+  mp4: "video/mp4",
+  mov: "video/quicktime",
+  m4v: "video/x-m4v",
+  webm: "video/webm",
+});
+
+function getAssetFileExtension(asset = {}) {
+  const fileName = String(asset.fileName || asset.uri || "").split("?")[0];
+  const extensionMatch = fileName.match(/\.([a-z0-9]+)$/i);
+
+  return extensionMatch?.[1]?.toLowerCase() || "";
+}
+
 function getAssetMimeType(asset = {}, fallbackType = "image") {
   const explicitMimeType = String(asset.mimeType || "").trim().toLowerCase();
 
-  if (explicitMimeType) {
+  if (explicitMimeType.includes("/")) {
     return explicitMimeType;
+  }
+
+  const extensionMimeType = MIME_TYPES_BY_EXTENSION[getAssetFileExtension(asset)];
+
+  if (extensionMimeType) {
+    return extensionMimeType;
   }
 
   return fallbackType === "video" ? DEFAULT_VIDEO_MIME_TYPE : DEFAULT_IMAGE_MIME_TYPE;
 }
 
 function getFileExtension(asset = {}, mediaType = "image") {
-  const fileName = String(asset.fileName || asset.uri || "").split("?")[0];
-  const extensionMatch = fileName.match(/\.([a-z0-9]+)$/i);
+  const fileExtension = getAssetFileExtension(asset);
 
-  if (extensionMatch?.[1]) {
-    return extensionMatch[1].toLowerCase();
+  if (fileExtension) {
+    return fileExtension;
   }
 
   const mimeType = getAssetMimeType(asset, mediaType);
@@ -125,15 +151,24 @@ export async function pickForumMedia() {
   return pickMedia(["images", "videos"]);
 }
 
+export async function pickForumImage() {
+  return pickMedia(["images"]);
+}
+
+export async function pickForumVideo() {
+  return pickMedia(["videos"]);
+}
+
 export async function pickProfileImage() {
   return pickMedia(["images"]);
 }
 
-export async function uploadForumMedia({ asset, ownerId }) {
+export async function uploadForumMedia({ asset, ownerId, mediaType }) {
   return uploadAsset({
     asset,
     ownerId,
     directory: "forumMedia",
+    forcedMediaType: mediaType,
   });
 }
 

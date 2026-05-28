@@ -64,6 +64,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           "uid",
           "email",
+          "emailVerified",
           "displayName",
           "role",
           "createdAt",
@@ -71,15 +72,27 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.role == "user"
         && isString(request.resource.data.email, 254)
+        && (!request.resource.data.keys().hasAny(["emailVerified"]) ||
+          request.resource.data.emailVerified is bool)
         && isString(request.resource.data.displayName, 60);
     }
 
     function isValidUserUpdate(userId) {
       return isOwner(userId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "email",
+          "emailVerified",
           "displayName",
         ])
-        && isString(request.resource.data.displayName, 60);
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          "email",
+        ]) || isString(request.resource.data.email, 254))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          "emailVerified",
+        ]) || request.resource.data.emailVerified is bool)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          "displayName",
+        ]) || isString(request.resource.data.displayName, 60));
     }
 
     function protectedCombatModelFields() {

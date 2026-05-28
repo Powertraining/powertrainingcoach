@@ -84,8 +84,27 @@ export async function syncUserEmailVerificationStatus(user) {
   }
 
   const safeUid = assertSafeFirestoreDocumentId(user.uid, "uid");
+  const userDocRef = doc(db, "users", safeUid);
+  const existingUserDoc = await getDoc(userDocRef);
+
+  if (!existingUserDoc.exists()) {
+    const createdAt = user.metadata?.creationTime
+      ? new Date(user.metadata.creationTime)
+      : new Date();
+
+    await setDoc(userDocRef, {
+      uid: safeUid,
+      email: normalizeBoundedString(user.email, 254),
+      emailVerified: user.emailVerified === true,
+      displayName: normalizeBoundedString(user.displayName, 60),
+      role: USER_ROLES.USER,
+      createdAt,
+    });
+    return;
+  }
+
   await setDoc(
-    doc(db, "users", safeUid),
+    userDocRef,
     {
       email: normalizeBoundedString(user.email, 254),
       emailVerified: user.emailVerified === true,
