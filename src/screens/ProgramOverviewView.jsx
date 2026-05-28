@@ -8,6 +8,8 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
+  Animated,
+  Easing,
 } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
@@ -48,6 +50,15 @@ const SKELETON_DAY_CONTAINERS = Object.freeze([
   { height: 150 },
   { height: 118 },
 ]);
+const WEEK_SCHEDULE_TILE_SMALL_HEIGHT = 55;
+const WEEK_SCHEDULE_TILE_SMALL_WIDTH = 50;
+const WEEK_SCHEDULE_TILE_LARGE_HEIGHT = 64;
+const WEEK_SCHEDULE_TILE_LARGE_WIDTH = 58;
+const WEEK_SCHEDULE_TILE_SELECTED_SCALE = Math.min(
+  WEEK_SCHEDULE_TILE_LARGE_HEIGHT / WEEK_SCHEDULE_TILE_SMALL_HEIGHT,
+  WEEK_SCHEDULE_TILE_LARGE_WIDTH / WEEK_SCHEDULE_TILE_SMALL_WIDTH
+);
+const SELECTED_DAY_SLIDE_DISTANCE = 44;
 
 function startOfLocalDay(value) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
@@ -191,6 +202,94 @@ function SkeletonDayDetailPreview() {
         />
       ))}
     </View>
+  );
+}
+
+function WeekScheduleTile({ selected, onPress, tileStyle, children }) {
+  const selectedProgress = useRef(new Animated.Value(selected ? 1 : 0)).current;
+
+  useEffect(() => {
+    selectedProgress.stopAnimation();
+
+    if (!selected) {
+      selectedProgress.setValue(0);
+      return;
+    }
+
+    selectedProgress.setValue(0);
+    Animated.timing(selectedProgress, {
+      toValue: 1,
+      duration: 170,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [selected, selectedProgress]);
+
+  const scale = selectedProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, WEEK_SCHEDULE_TILE_SELECTED_SCALE],
+  });
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.84}
+      style={styles.weekSchedulePressable}
+    >
+      <Animated.View
+        style={[
+          styles.weekScheduleDay,
+          tileStyle,
+          { transform: [{ scale: selected ? scale : 1 }] },
+        ]}
+      >
+        {children}
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
+function SelectedDaySlide({ animationKey, direction = 0, style, children }) {
+  const slideProgress = useRef(new Animated.Value(1)).current;
+  const previousAnimationKeyRef = useRef(animationKey);
+
+  useEffect(() => {
+    if (!animationKey || previousAnimationKeyRef.current === animationKey) {
+      previousAnimationKeyRef.current = animationKey;
+      return;
+    }
+
+    previousAnimationKeyRef.current = animationKey;
+    slideProgress.stopAnimation();
+    slideProgress.setValue(0);
+    Animated.timing(slideProgress, {
+      toValue: 1,
+      duration: 210,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [animationKey, direction, slideProgress]);
+
+  const translateX = slideProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      direction * SELECTED_DAY_SLIDE_DISTANCE,
+      0,
+    ],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        style,
+        {
+          opacity: slideProgress,
+          transform: [{ translateX }],
+        },
+      ]}
+    >
+      {children}
+    </Animated.View>
   );
 }
 
@@ -532,6 +631,31 @@ export default function ProgramOverviewView({
             slot.trainingDay?.day === activeSelectedDay.day
         )
       : null;
+  const selectedArchivedSlot =
+    selectedArchivedDay && !selectedRestSlot
+      ? currentWeekSchedule.find(
+          (slot) =>
+            selectedTrainingSlotKey &&
+            slot.dateKey === selectedTrainingSlotKey &&
+            slot.trainingDay?.day === selectedArchivedDay.day
+        )
+      : null;
+  const selectedScheduleSlot =
+    selectedRestSlot || selectedTrainingSlot || selectedArchivedSlot;
+  const selectedScheduleAnimationKey = selectedScheduleSlot
+    ? [
+        selectedScheduleSlot.dateKey,
+        selectedScheduleSlot.trainingDay?.day || "rest",
+        selectedScheduleSlot.isArchived ? "archived" : "current",
+      ].join(":")
+    : "";
+  const selectedScheduleSlideDirection = selectedScheduleSlot
+    ? isSameCalendarDay(selectedScheduleSlot.date, today)
+      ? 0
+      : selectedScheduleSlot.date < today
+        ? -1
+        : 1
+    : 0;
   const selectedTrainingSlotIsToday =
     Boolean(selectedTrainingSlot) &&
     isSameCalendarDay(selectedTrainingSlot.date, today);
@@ -837,11 +961,16 @@ export default function ProgramOverviewView({
                 selectedArchivedDay?.day === trainingDay?.day &&
                 selectedTrainingSlotKey === dateKey;
               const isSelectedRestDay = !trainingDay && selectedRestSlotKey === dateKey;
+              const isSelectedScheduleDay =
+                isSelectedTrainingDay ||
+                isSelectedArchivedDay ||
+                isSelectedRestDay;
 
               return (
                 <View key={date.toISOString()} style={styles.weekScheduleItem}>
                   <View style={styles.weekScheduleTileSlot}>
-                    <TouchableOpacity
+                    <WeekScheduleTile
+                      selected={isSelectedScheduleDay}
                       onPress={() => {
                         if (isSelectableCurrentTrainingDay) {
                           handleSelectTrainingDay(weekNumber, trainingDay.day, dateKey);
@@ -851,14 +980,10 @@ export default function ProgramOverviewView({
                           handleSelectRestSlot(dateKey);
                         }
                       }}
-                      style={[
-                        styles.weekScheduleDay,
+                      tileStyle={[
                         trainingDay && styles.weekScheduleTrainingDay,
                         isArchived && styles.weekScheduleArchivedDay,
                         isToday && styles.weekScheduleToday,
-                        isSelectedTrainingDay && styles.weekScheduleSelectedDay,
-                        isSelectedArchivedDay && styles.weekScheduleSelectedDay,
-                        isSelectedRestDay && styles.weekScheduleSelectedDay,
                       ]}
                     >
                       <IBMPlexText defaultWhite
@@ -867,7 +992,7 @@ export default function ProgramOverviewView({
                       >
                         {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
                       </IBMPlexText>
-                    </TouchableOpacity>
+                    </WeekScheduleTile>
                   </View>
                   <IBMPlexText defaultWhite
                     style={[
@@ -889,7 +1014,9 @@ export default function ProgramOverviewView({
               !showHeaderActionContent && styles.headerActionPanelEmpty,
             ]}
           >
-            <View
+            <SelectedDaySlide
+              animationKey={selectedScheduleAnimationKey}
+              direction={selectedScheduleSlideDirection}
               style={[
                 styles.headerActionArea,
                 !showHeaderActionContent && styles.headerActionAreaEmpty,
@@ -1015,7 +1142,7 @@ export default function ProgramOverviewView({
                   </View>
                 </View>
               ) : null}
-            </View>
+            </SelectedDaySlide>
           </View>
 
           {pendingTrainingCheckIn ? (
@@ -1030,7 +1157,11 @@ export default function ProgramOverviewView({
           ) : null}
 
           {detailSelectedDay && !selectedRestSlot ? (
-            <View style={styles.dayDetailEdgeToEdge}>
+            <SelectedDaySlide
+              animationKey={selectedScheduleAnimationKey}
+              direction={selectedScheduleSlideDirection}
+              style={styles.dayDetailEdgeToEdge}
+            >
               <DayDetailView
                 week={detailSelectedDay.week}
                 day={detailSelectedDay.dayData}
@@ -1061,7 +1192,7 @@ export default function ProgramOverviewView({
                 updatingPlan={selectedArchivedDay ? true : updatingPlan}
                 showRescheduledNotice={false}
               />
-            </View>
+            </SelectedDaySlide>
           ) : null}
 
           <View style={styles.programDetailsFooter}>
@@ -1532,9 +1663,15 @@ const styles = StyleSheet.create({
     height: 64,
     justifyContent: "flex-end",
   },
+  weekSchedulePressable: {
+    height: WEEK_SCHEDULE_TILE_LARGE_HEIGHT,
+    width: WEEK_SCHEDULE_TILE_LARGE_WIDTH,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
   weekScheduleDay: {
-    height: 55,
-    width: 50,
+    height: WEEK_SCHEDULE_TILE_SMALL_HEIGHT,
+    width: WEEK_SCHEDULE_TILE_SMALL_WIDTH,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 18,
@@ -1552,10 +1689,6 @@ const styles = StyleSheet.create({
   },
   weekScheduleToday: {
     borderStyle: "solid",
-  },
-  weekScheduleSelectedDay: {
-    height: 64,
-    width: 58,
   },
   weekScheduleLabel: {
     fontSize: 13, fontWeight: "700",
