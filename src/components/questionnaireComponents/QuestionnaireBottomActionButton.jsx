@@ -39,7 +39,7 @@ export default function QuestionnaireBottomActionButton({
                 toValue: 1,
                 duration: 230,
                 easing: Easing.out(Easing.cubic),
-                useNativeDriver: false,
+                useNativeDriver: true,
             }).start();
             return;
         }
@@ -48,7 +48,7 @@ export default function QuestionnaireBottomActionButton({
             toValue: 0,
             duration: 180,
             easing: Easing.in(Easing.cubic),
-            useNativeDriver: false,
+            useNativeDriver: true,
         }).start(({ finished }) => {
             if (finished && animationIdRef.current === animationId) {
                 setButtonCanContinue(false);

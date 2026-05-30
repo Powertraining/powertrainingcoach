@@ -59,7 +59,7 @@ function ProfileNavIcon({ size, color }) {
   );
 }
 
-function TabIcon({ icon: Icon, size, iconSize, focused, label }) {
+function TabIcon({ icon: Icon, size, iconSize, focused, label, showLabel = focused }) {
   const iconColor = focused ? "#fff" : "#000";
   const visualSize = iconSize ?? size;
 
@@ -72,7 +72,7 @@ function TabIcon({ icon: Icon, size, iconSize, focused, label }) {
         ]}
       >
         <Icon size={visualSize} color={iconColor} />
-        {focused ? (
+        {showLabel ? (
           <IBMPlexText numberOfLines={1} style={styles.tabIconLabel}>
             {label}
           </IBMPlexText>
@@ -181,22 +181,26 @@ function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
 
 function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {
   const pillTranslateX = useRef(new Animated.Value(0)).current;
-  const pillWidth = useRef(new Animated.Value(0)).current;
   const pillInitializedRef = useRef(false);
-  const routeFlexAnimationsRef = useRef({});
+  const routeIconAnimationsRef = useRef({});
+  const transitionIdRef = useRef(0);
+  const transitionTargetRef = useRef(null);
   const [tabBarWidth, setTabBarWidth] = useState(0);
+  const [visualActiveTabName, setVisualActiveTabName] = useState(activeTabName);
+  const [labelVisibleTabName, setLabelVisibleTabName] = useState(activeTabName);
 
   const visibleRoutes = state.routes.filter((route) => VISIBLE_TAB_ROUTES.has(route.name));
   const visibleRouteNames = visibleRoutes.map((route) => route.name).join("|");
+  const resolvedActiveTabName = visualActiveTabName || activeTabName;
+  const activePillLayout = getPillTarget(resolvedActiveTabName);
+  const collapsedSlotWidth = activePillLayout?.unitWidth || 0;
 
-  function getRouteFlexAnimation(routeName) {
-    if (!routeFlexAnimationsRef.current[routeName]) {
-      routeFlexAnimationsRef.current[routeName] = new Animated.Value(
-        activeTabName === routeName ? 3 : 1
-      );
+  function getRouteIconAnimation(routeName) {
+    if (!routeIconAnimationsRef.current[routeName]) {
+      routeIconAnimationsRef.current[routeName] = new Animated.Value(0);
     }
 
-    return routeFlexAnimationsRef.current[routeName];
+    return routeIconAnimationsRef.current[routeName];
   }
 
   function getPillTarget(tabName) {
@@ -215,20 +219,62 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     return {
       x: 6 + activeIndex * inactiveFlex * unitWidth,
       width: activeFlex * unitWidth,
+      unitWidth,
+      activeIndex,
     };
   }
 
-  function animatePillTo(tabName, animated = true) {
+  function getRouteIconX(routeName, tabName) {
+    const activeLayout = getPillTarget(tabName);
+    const routeIndex = visibleRoutes.findIndex((route) => route.name === routeName);
+
+    if (!activeLayout || routeIndex < 0) {
+      return 0;
+    }
+
+    if (routeIndex < activeLayout.activeIndex) {
+      return 6 + routeIndex * activeLayout.unitWidth;
+    }
+
+    if (routeIndex > activeLayout.activeIndex) {
+      return 6 + (routeIndex + 2) * activeLayout.unitWidth;
+    }
+
+    return activeLayout.x + activeLayout.unitWidth;
+  }
+
+  function setTabBarPosition(tabName) {
     const activeLayout = getPillTarget(tabName);
 
     if (!activeLayout) {
+      return false;
+    }
+
+    pillTranslateX.stopAnimation();
+    pillTranslateX.setValue(activeLayout.x);
+    visibleRoutes.forEach((route) => {
+      const routeIconAnimation = getRouteIconAnimation(route.name);
+      routeIconAnimation.stopAnimation();
+      routeIconAnimation.setValue(getRouteIconX(route.name, tabName));
+    });
+    pillInitializedRef.current = true;
+    return true;
+  }
+
+  function animateTabBarPosition(tabName, onComplete) {
+    const activeLayout = getPillTarget(tabName);
+
+    if (!activeLayout) {
+      onComplete?.();
       return;
     }
 
-    if (!pillInitializedRef.current || !animated) {
-      pillTranslateX.setValue(activeLayout.x);
-      pillWidth.setValue(activeLayout.width);
+    pillTranslateX.stopAnimation();
+
+    if (!pillInitializedRef.current) {
+      setTabBarPosition(tabName);
       pillInitializedRef.current = true;
+      onComplete?.();
       return;
     }
 
@@ -237,41 +283,81 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
         toValue: activeLayout.x,
         duration: TAB_BAR_ANIMATION_DURATION,
         easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
+        useNativeDriver: true,
       }),
-      Animated.timing(pillWidth, {
-        toValue: activeLayout.width,
-        duration: TAB_BAR_ANIMATION_DURATION,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
+      ...visibleRoutes.map((route) => {
+        const routeIconAnimation = getRouteIconAnimation(route.name);
+        routeIconAnimation.stopAnimation();
+
+        return Animated.timing(routeIconAnimation, {
+          toValue: getRouteIconX(route.name, tabName),
+          duration: TAB_BAR_ANIMATION_DURATION,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        });
       }),
-    ]).start();
+    ]).start(onComplete);
+  }
+
+  function runTabTransition(tabName, onMovedToTab) {
+    if (!tabName) {
+      return;
+    }
+
+    transitionIdRef.current += 1;
+    const transitionId = transitionIdRef.current;
+    transitionTargetRef.current = tabName;
+
+    setVisualActiveTabName(tabName);
+    setLabelVisibleTabName(tabName);
+
+    requestAnimationFrame(() => {
+      if (transitionIdRef.current !== transitionId) {
+        return;
+      }
+
+      animateTabBarPosition(tabName, ({ finished }) => {
+        if (transitionTargetRef.current === tabName) {
+          transitionTargetRef.current = null;
+        }
+
+        if (finished === false || transitionIdRef.current !== transitionId) {
+          return;
+        }
+      });
+
+      onMovedToTab?.();
+    });
   }
 
   useEffect(() => {
     if (!activeTabName) {
+      setVisualActiveTabName(null);
+      setLabelVisibleTabName(null);
       return;
     }
 
-    animatePillTo(activeTabName);
+    if (!pillInitializedRef.current || activeTabName === visualActiveTabName) {
+      setVisualActiveTabName(activeTabName);
+      setLabelVisibleTabName(activeTabName);
+      if (transitionTargetRef.current === activeTabName) {
+        return;
+      }
+
+      setTabBarPosition(activeTabName);
+      return;
+    }
+
+    runTabTransition(activeTabName);
   }, [activeTabName, tabBarWidth, visibleRouteNames]);
 
   useEffect(() => {
-    if (!activeTabName) {
+    if (activeTabName || !visualActiveTabName) {
       return;
     }
 
-    Animated.parallel(
-      visibleRoutes.map((route) =>
-        Animated.timing(getRouteFlexAnimation(route.name), {
-          toValue: activeTabName === route.name ? 3 : 1,
-          duration: TAB_BAR_ANIMATION_DURATION,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-        })
-      )
-    ).start();
-  }, [activeTabName, visibleRouteNames]);
+    setVisualActiveTabName(null);
+  }, [activeTabName, visualActiveTabName]);
 
   if (hidden) {
     return null;
@@ -287,19 +373,71 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
       }}
       style={[styles.customTabBar, { bottom: bottomOffset }]}
     >
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.tabBarActivePill,
-          {
-            transform: [{ translateX: pillTranslateX }],
-            width: pillWidth,
-          },
-        ]}
-      />
+      {activePillLayout ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.tabBarActivePill,
+            {
+              transform: [{ translateX: pillTranslateX }],
+              width: activePillLayout.width,
+            },
+          ]}
+        >
+          {visibleRoutes.map((route) => {
+            if (route.name !== resolvedActiveTabName) {
+              return null;
+            }
+
+            const options = descriptors[route.key]?.options ?? {};
+
+            return typeof options.tabBarIcon === "function"
+              ? options.tabBarIcon({
+                  focused: true,
+                  showLabel: labelVisibleTabName === route.name,
+                  color: "#fff",
+                  size: 24,
+                })
+              : null;
+          })}
+        </Animated.View>
+      ) : null}
+      {collapsedSlotWidth > 0
+        ? visibleRoutes.map((route) => {
+            const options = descriptors[route.key]?.options ?? {};
+            const isVisuallyActive = resolvedActiveTabName === route.name;
+
+            return (
+              <Animated.View
+                key={`${route.key}:icon`}
+                pointerEvents="none"
+                style={[
+                  styles.tabBarInactiveIconSlot,
+                  {
+                    opacity: isVisuallyActive ? 0 : 1,
+                    transform: [
+                      { translateX: getRouteIconAnimation(route.name) },
+                    ],
+                    width: collapsedSlotWidth,
+                  },
+                ]}
+              >
+                {typeof options.tabBarIcon === "function"
+                  ? options.tabBarIcon({
+                      focused: false,
+                      showLabel: false,
+                      color: "#000",
+                      size: 24,
+                    })
+                  : null}
+              </Animated.View>
+            );
+          })
+        : null}
       {visibleRoutes.map((route) => {
         const options = descriptors[route.key]?.options ?? {};
-        const focused = activeTabName === route.name;
+        const routeFocused = activeTabName === route.name;
+        const focused = resolvedActiveTabName === route.name;
 
         function onPress() {
           const event = navigation.emit({
@@ -308,9 +446,12 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
             canPreventDefault: true,
           });
 
-          if (!focused && !event.defaultPrevented) {
-            animatePillTo(route.name);
-            navigation.navigate(route.name, route.params);
+          if (!routeFocused && !event.defaultPrevented) {
+            runTabTransition(route.name, () => {
+              navigation.navigate(route.name, route.params);
+            });
+          } else if (event.defaultPrevented) {
+            runTabTransition(activeTabName);
           }
         }
 
@@ -330,19 +471,8 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={[
-              styles.tabBarButton,
-              { flex: getRouteFlexAnimation(route.name) },
-            ]}
-          >
-            {typeof options.tabBarIcon === "function"
-              ? options.tabBarIcon({
-                  focused,
-                  color: focused ? "#fff" : "#000",
-                  size: 24,
-                })
-              : null}
-          </AnimatedPressable>
+            style={styles.tabBarButton}
+          />
         );
       })}
     </View>
@@ -422,13 +552,14 @@ const TabsLayout = observer(function TabsLayout() {
           name="index"
           options={{
             title: "Home",
-            tabBarIcon: ({ size, focused }) => (
+            tabBarIcon: ({ size, focused, showLabel }) => (
               <TabIcon
                 icon={HomeNavIcon}
                 size={size}
                 iconSize={24}
                 focused={focused}
                 label="Home"
+                showLabel={showLabel}
               />
             ),
           }}
@@ -437,13 +568,14 @@ const TabsLayout = observer(function TabsLayout() {
           name="overview"
           options={{
             title: "Plan",
-            tabBarIcon: ({ size, focused }) => (
+            tabBarIcon: ({ size, focused, showLabel }) => (
               <TabIcon
                 icon={PlanNavIcon}
                 size={size}
                 iconSize={38}
                 focused={focused}
                 label="Plan"
+                showLabel={showLabel}
               />
             ),
           }}
@@ -452,13 +584,14 @@ const TabsLayout = observer(function TabsLayout() {
           name="forum"
           options={{
             title: "Forum",
-            tabBarIcon: ({ size, focused }) => (
+            tabBarIcon: ({ size, focused, showLabel }) => (
               <TabIcon
                 icon={ForumNavIcon}
                 size={size}
                 iconSize={33}
                 focused={focused}
                 label="Forum"
+                showLabel={showLabel}
               />
             ),
           }}
@@ -467,13 +600,14 @@ const TabsLayout = observer(function TabsLayout() {
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ size, focused }) => (
+            tabBarIcon: ({ size, focused, showLabel }) => (
               <TabIcon
                 icon={ProfileNavIcon}
                 size={size}
                 iconSize={36}
                 focused={focused}
                 label="Profile"
+                showLabel={showLabel}
               />
             ),
           }}
@@ -601,6 +735,15 @@ const styles = StyleSheet.create({
     borderRadius: 120,
     zIndex: 0,
   },
+  tabBarInactiveIconSlot: {
+    alignItems: "center",
+    bottom: 6,
+    justifyContent: "center",
+    left: 0,
+    position: "absolute",
+    top: 6,
+    zIndex: 1,
+  },
   tabBarDisabledOverlay: {
     backgroundColor: "rgba(0, 0, 0, 0.72)",
     height: 70,
@@ -611,10 +754,11 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   tabBarButton: {
+    flex: 1,
     height: "100%",
     borderRadius: 120,
     overflow: "hidden",
-    zIndex: 1,
+    zIndex: 2,
   },
   tabIcon: {
     flex: 1,

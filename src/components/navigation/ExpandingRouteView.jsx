@@ -9,7 +9,7 @@ export default function ExpandingRouteView({ children, routeKey }) {
 
     Animated.timing(entranceProgress, {
       toValue: 1,
-      duration: 260,
+      duration: 120,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
@@ -17,15 +17,15 @@ export default function ExpandingRouteView({ children, routeKey }) {
 
   const scale = entranceProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.94, 1],
+    outputRange: [0.98, 1],
   });
   const translateY = entranceProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [22, 0],
+    outputRange: [8, 0],
   });
   const opacity = entranceProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.78, 1],
+    outputRange: [0.92, 1],
   });
 
   return (

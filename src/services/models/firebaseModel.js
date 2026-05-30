@@ -182,20 +182,6 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.completedSessionProgressByKey,
       model.forumProfile,
     ];
-    console.log('[firebaseModel.modelDataToCheckACB] Tracked data:', {
-      questionnaire: model.questionnaire ? 'exists' : 'null',
-      primaryCombatSport: model.primaryCombatSport,
-      sessionsPerWeek: model.sessionsPerWeek,
-      subscription: model.subscription,
-      subscriptionEndDate: model.subscriptionEndDate,
-      subscriptionStartDate: model.subscriptionStartDate,
-      subscriptionType: model.subscriptionType,
-      stripePriceLookupKey: model.stripePriceLookupKey,
-      trainingPlan: model.trainingPlan ? 'exists' : 'null',
-      trainingPlanBatch: model.trainingPlanBatch,
-      completedWeeks: model.completedWeeks,
-      forumProfile: model.forumProfile,
-    });
     return data;
   }
 
@@ -206,10 +192,6 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       // Client saves only user-owned state. Subscription fields are synced by
       // trusted server functions and are protected by Firestore rules.
       const data = buildClientPersistableUserData(model);
-      console.log('[firebaseModel.saveToCloudACB] Saving to Firestore:', {
-        ...data,
-        trainingPlan: data.trainingPlan ? 'exists' : 'null',
-      });
       try {
         if (!isSameAuthenticatedUser(model, saveUid) || !model.ready) {
           console.log(
@@ -223,18 +205,14 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         if (!saveResult.success) {
           throw saveResult.error;
         }
-        console.log('[firebaseModel.saveToCloudACB] ✅ Successfully saved to Firestore');
       } catch (error) {
         console.warn('[firebaseModel.saveToCloudACB] Firestore save unavailable, will retry on next change:', error);
       }
-    } else {
-      console.log('[firebaseModel.saveToCloudACB] Skipping save - user:', !!model.user, 'ready:', model.ready);
     }
   }
 
   // When the data in modelDataToCheckACB changes, we call saveToCloudACB
-  console.log('[firebaseModel] Setting up MobX reaction to watch for subscription changes');
-  sideEffectWatcherFunction(modelDataToCheckACB, saveToCloudACB);
+  sideEffectWatcherFunction(modelDataToCheckACB, saveToCloudACB, { delay: 700 });
 
   async function onAuthStateChangedACB(user) {
     const authRequestId = authRequestSequence + 1;

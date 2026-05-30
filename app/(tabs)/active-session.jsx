@@ -1,7 +1,8 @@
 import {
   useCallback,
   useEffect,
-  useMemo } from "react";
+  useMemo,
+  useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { useFocusEffect,
   useLocalSearchParams,
@@ -21,6 +22,8 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const returnTo = getSafeReturnToPath(params, "/(tabs)/overview");
+  const pendingSessionProgressRef = useRef(null);
+  const sessionProgressSaveTimerRef = useRef(null);
 
   const weekNumber = Number.parseInt(params.week, 10);
   const dayNumber = Number.parseInt(params.day, 10);
@@ -83,6 +86,13 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
 
   useAndroidBackHandler(handleBack, [model, returnTo, router]);
 
+  useEffect(
+    () => () => {
+      flushSessionProgress();
+    },
+    []
+  );
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -105,11 +115,12 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
   }
 
   function handleBack() {
+    flushSessionProgress();
     model.setForumTabBarHidden?.(false);
     router.replace(returnTo);
   }
 
-  function saveSessionProgress(progress) {
+  function commitSessionProgress(progress) {
     if (!sessionProgressKey || !progress) {
       return;
     }
@@ -120,9 +131,47 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
     };
   }
 
+  function flushSessionProgress() {
+    if (sessionProgressSaveTimerRef.current) {
+      clearTimeout(sessionProgressSaveTimerRef.current);
+      sessionProgressSaveTimerRef.current = null;
+    }
+
+    if (!pendingSessionProgressRef.current) {
+      return;
+    }
+
+    commitSessionProgress(pendingSessionProgressRef.current);
+    pendingSessionProgressRef.current = null;
+  }
+
+  function saveSessionProgress(progress) {
+    if (!sessionProgressKey || !progress) {
+      return;
+    }
+
+    pendingSessionProgressRef.current = progress;
+
+    if (sessionProgressSaveTimerRef.current) {
+      clearTimeout(sessionProgressSaveTimerRef.current);
+    }
+
+    sessionProgressSaveTimerRef.current = setTimeout(() => {
+      sessionProgressSaveTimerRef.current = null;
+      flushSessionProgress();
+    }, 350);
+  }
+
   function clearSessionProgress() {
     if (!sessionProgressKey) {
       return;
+    }
+
+    pendingSessionProgressRef.current = null;
+
+    if (sessionProgressSaveTimerRef.current) {
+      clearTimeout(sessionProgressSaveTimerRef.current);
+      sessionProgressSaveTimerRef.current = null;
     }
 
     const {
@@ -134,6 +183,8 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
   }
 
   function handleFinish(trackedResults = [], completedProgress = {}) {
+    flushSessionProgress();
+
     if (sessionProgressKey) {
       model.saveCompletedSessionProgress?.(sessionProgressKey, {
         completedStepKeys: completedProgress.completedStepKeys || [],

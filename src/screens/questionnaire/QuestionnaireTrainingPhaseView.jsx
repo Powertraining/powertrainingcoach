@@ -6,7 +6,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { TRAINING_PHASE_OPTIONS } from "../../constants/appLogicSettings.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
@@ -14,6 +14,7 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const PHASE_BUTTON_TRAVEL = 12;
 const PHASE_BUTTON_FACE_HEIGHT = 116;
 const PHASE_BUTTON_HEIGHT = PHASE_BUTTON_FACE_HEIGHT + 18;
+const PHASE_SELECTION_DURATION = 118;
 const SHADOW_COLOR = "#F3E7A6";
 
 const PHASE_BUTTON_LABELS = Object.freeze({
@@ -24,32 +25,15 @@ const PHASE_BUTTON_LABELS = Object.freeze({
 function TrainingPhaseOptionButton({ option, isSelected, onPress }) {
   const selectionProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
   const pressScale = useRef(new Animated.Value(1)).current;
-  const isSelectedRef = useRef(isSelected);
-  isSelectedRef.current = isSelected;
 
-  function animateSelection(toValue, isTapFeedback = false) {
+  function animateSelection(toValue) {
     selectionProgress.stopAnimation();
 
-    if (isTapFeedback) {
-      Animated.timing(selectionProgress, {
-        toValue,
-        duration: 90,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }).start(({ finished }) => {
-        if (finished && toValue === 1 && !isSelectedRef.current) {
-          animateSelection(isSelectedRef.current ? 1 : 0);
-        }
-      });
-      return;
-    }
-
-    Animated.spring(selectionProgress, {
+    Animated.timing(selectionProgress, {
       toValue,
-      damping: 18,
-      stiffness: 320,
-      mass: 0.62,
-      useNativeDriver: false,
+      duration: PHASE_SELECTION_DURATION,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
     }).start();
   }
 
@@ -58,24 +42,26 @@ function TrainingPhaseOptionButton({ option, isSelected, onPress }) {
   }, [isSelected, selectionProgress]);
 
   function handlePressIn() {
-    animateSelection(isSelected ? 0 : 1, true);
-    Animated.spring(pressScale, {
-      toValue: isSelected ? 0.99 : 1.015,
-      damping: 18,
-      stiffness: 420,
-      mass: 0.5,
-      useNativeDriver: false,
+    const nextSelected = !isSelected;
+    animateSelection(nextSelected ? 1 : 0);
+
+    pressScale.stopAnimation();
+    Animated.timing(pressScale, {
+      toValue: nextSelected ? 1.01 : 0.995,
+      duration: 70,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
     }).start();
     onPress?.();
   }
 
   function handlePressOut() {
-    Animated.spring(pressScale, {
+    pressScale.stopAnimation();
+    Animated.timing(pressScale, {
       toValue: 1,
-      damping: 16,
-      stiffness: 250,
-      mass: 0.75,
-      useNativeDriver: false,
+      duration: 90,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
     }).start();
   }
 
@@ -84,15 +70,15 @@ function TrainingPhaseOptionButton({ option, isSelected, onPress }) {
       inputRange: [0, 1],
       outputRange: [0, 1],
     }),
-    top: selectionProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: [PHASE_BUTTON_TRAVEL, 0],
-    }),
-    height: selectionProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: [PHASE_BUTTON_FACE_HEIGHT, PHASE_BUTTON_HEIGHT],
-    }),
     backgroundColor: SHADOW_COLOR,
+    transform: [
+      {
+        translateY: selectionProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [PHASE_BUTTON_TRAVEL, 0],
+        }),
+      },
+    ],
   };
 
   const animatedButtonStyle = {
@@ -155,6 +141,17 @@ export default function QuestionnaireTrainingPhaseView({
   onChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
+  const [visualValue, setVisualValue] = useState(value ?? null);
+
+  useEffect(() => {
+    setVisualValue(value ?? null);
+  }, [value]);
+
+  function handleChange(nextValue) {
+    setVisualValue(nextValue);
+    onChange?.(nextValue);
+  }
+
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
       <IBMPlexText titleBlock height={130}>Training phase</IBMPlexText>
@@ -164,14 +161,14 @@ export default function QuestionnaireTrainingPhaseView({
 
       <View style={styles.phaseButtonRow}>
         {TRAINING_PHASE_OPTIONS.map((option) => {
-          const isSelected = value === option.value;
+          const isSelected = visualValue === option.value;
 
           return (
             <TrainingPhaseOptionButton
               key={option.value}
               option={option}
               isSelected={isSelected}
-              onPress={() => onChange?.(isSelected ? null : option.value)}
+              onPress={() => handleChange(isSelected ? null : option.value)}
             />
           );
         })}
@@ -206,6 +203,7 @@ const styles = StyleSheet.create({
   },
   phaseButtonShadow: {
     borderRadius: 22,
+    height: PHASE_BUTTON_HEIGHT,
     left: 0,
     position: "absolute",
     right: 0,

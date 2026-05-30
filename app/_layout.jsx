@@ -62,7 +62,7 @@ const RootLayout = observer(function RootLayout() {
           <StatusBar style="light" backgroundColor="transparent" hidden/>
           <View style={styles.container}>
             {isLoading && (
-              <View style={styles.loadingOverlay}>
+              <View pointerEvents="none" style={styles.loadingOverlay}>
                 <LoadingView />
               </View>
             )}

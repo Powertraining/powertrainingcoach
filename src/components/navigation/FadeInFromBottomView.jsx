@@ -4,8 +4,8 @@ import { Animated, Easing, StyleSheet } from "react-native";
 export default function FadeInFromBottomView({
   children,
   delay = 0,
-  distance = 24,
-  duration = 280,
+  distance = 12,
+  duration = 160,
   style,
 }) {
   const progress = useRef(new Animated.Value(0)).current;

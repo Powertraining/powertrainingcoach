@@ -8,7 +8,7 @@ const SECTION_PROGRESS_RING_RADIUS = 110;
 const SECTION_PROGRESS_RING_STROKE = 12;
 const SECTION_PROGRESS_RING_CIRCUMFERENCE =
   2 * Math.PI * SECTION_PROGRESS_RING_RADIUS;
-const SECTION_PROGRESS_RING_ANIMATION_DURATION_MS = 360;
+const SECTION_PROGRESS_RING_ANIMATION_DURATION_MS = 160;
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function clampProgressCount(value, total) {
