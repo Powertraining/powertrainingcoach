@@ -4,7 +4,7 @@ import {
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams,
   useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
@@ -145,6 +145,36 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
     } catch (error) {
       console.warn(`Could not toggle the forum save for ${postId}:`, error);
     }
+  }
+
+  function handleDeletePost(postId) {
+    if (!postId) {
+      return;
+    }
+
+    Alert.alert(
+      "Delete post?",
+      "This permanently removes the post from the forum.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await model.deleteForumPost(postId);
+
+              if (selectedPostId === postId) {
+                hidePostView();
+              }
+            } catch (error) {
+              console.warn(`Could not delete the forum post ${postId}:`, error);
+              model.showError?.(error, "Could not delete the forum post. Please try again.");
+            }
+          },
+        },
+      ]
+    );
   }
 
   function showPostView(postId) {
@@ -318,6 +348,8 @@ const ProfileSavedPostsScreen = observer(function ProfileSavedPostsScreen() {
           onTogglePostLike={handleTogglePostLike}
           onTogglePostSave={handleTogglePostSave}
           onToggleCoachResponse={showCoachResponseView}
+          onDeletePost={handleDeletePost}
+          currentUserId={model.user?.uid || ""}
           onPressComments={showCommentsView}
         />
       ) : null}

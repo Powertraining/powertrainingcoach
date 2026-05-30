@@ -86,6 +86,8 @@ export default function PostView({
   onTogglePostLike,
   onTogglePostSave,
   onToggleCoachResponse,
+  onDeletePost,
+  currentUserId = "",
 }) {
   const { height: windowHeight } = useWindowDimensions();
   const openProgress = useRef(new Animated.Value(0)).current;
@@ -101,6 +103,7 @@ export default function PostView({
 
   const isPostLiked = Boolean(post?.isLiked);
   const isPostSaved = Boolean(post?.isSaved);
+  const canDeletePost = Boolean(post?.id && post?.authorId === currentUserId);
   const postAvatarSource =
     post?.authorAvatarUrl ?
       { uri: post.authorAvatarUrl } :
@@ -320,6 +323,15 @@ export default function PostView({
                       Coach Response
                     </IBMPlexText>
                   </GoldGradient>
+                </TouchableOpacity>
+              ) : null}
+              {canDeletePost ? (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={() => onDeletePost?.(post.id)}
+                  style={styles.deleteButton}
+                >
+                  <IBMPlexText style={styles.deleteButtonText}>Delete</IBMPlexText>
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -1000,5 +1012,21 @@ const styles = StyleSheet.create({
   },
   countTextActive: {
     color: "#111111",
+  },
+  deleteButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderColor: "rgba(252,165,165,0.45)",
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+  },
+  deleteButtonText: {
+    color: COLORS.error,
+    fontSize: 11, fontWeight: "900",
+    lineHeight: 14,
+    textTransform: "uppercase",
   },
 });

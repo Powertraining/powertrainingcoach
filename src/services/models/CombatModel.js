@@ -22,6 +22,7 @@ import {
   createForumComment as persistForumComment,
   createForumPost as persistForumPost,
   createForumReply as persistForumReply,
+  deleteForumPost as persistDeleteForumPost,
   getForumComments,
   getForumPost,
   getForumPosts,
@@ -761,6 +762,54 @@ export const model = {
     this.resetForumComposer();
 
     return normalizedPost;
+  },
+
+  removeForumPostFromState(postId) {
+    const withoutPost = (posts = []) =>
+      (Array.isArray(posts) ? posts : []).filter((post) => post?.id !== postId);
+
+    this.forumFeed = withoutPost(this.forumFeed);
+    this.myForumPosts = withoutPost(this.myForumPosts);
+    this.forumAnalysisPosts = withoutPost(this.forumAnalysisPosts);
+    this.savedForumPosts = withoutPost(this.savedForumPosts);
+
+    if (this.forumSelectedPost?.id === postId) {
+      this.forumSelectedPost = null;
+      this.forumComments = [];
+    }
+  },
+
+  async deleteForumPost(postId) {
+    this.assertForumAuthenticated();
+
+    const existingPost =
+      this.forumSelectedPost?.id === postId ?
+        this.forumSelectedPost :
+        [
+          ...this.forumFeed,
+          ...this.myForumPosts,
+          ...this.forumAnalysisPosts,
+          ...this.savedForumPosts,
+        ].find((post) => post?.id === postId);
+
+    if (existingPost && existingPost.authorId !== this.user?.uid) {
+      throw new Error("You can only delete your own forum posts.");
+    }
+
+    const result = await persistDeleteForumPost(postId);
+
+    if (!result.success) {
+      throw result.error || new Error("Could not delete the forum post.");
+    }
+
+    const forumProfile = this.getNormalizedForumProfile();
+    this.updateForumProfile({
+      likedPostIds: forumProfile.likedPostIds.filter((id) => id !== postId),
+      savedPostIds: forumProfile.savedPostIds.filter((id) => id !== postId),
+    });
+    this.removeForumPostFromState(postId);
+
+    return true;
   },
 
   async addForumComment(postId, body) {

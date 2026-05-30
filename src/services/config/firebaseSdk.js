@@ -19,6 +19,7 @@ export {
 export {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,

@@ -8,6 +8,7 @@ import {
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -564,6 +565,23 @@ export async function createForumPost(postData) {
   } catch (error) {
     console.error("DB create forum post error:", error);
     return { success: false, data: null, error };
+  }
+}
+
+export async function deleteForumPost(postId) {
+  try {
+    assertAuthenticatedForumAccess();
+
+    const safePostId = assertSafeFirestoreDocumentId(postId, "postId");
+    await deleteDoc(doc(db, FORUM_POSTS_COLLECTION, safePostId));
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error(
+      `[dbService.deleteForumPost] Could not delete ${getForumPostDocPath(postId)}:`,
+      error
+    );
+    return { success: false, error };
   }
 }
 

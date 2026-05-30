@@ -298,6 +298,10 @@ service cloud.firestore {
             request.resource.data.searchIndex.size() <= 30));
     }
 
+    function forumPostExists(postId) {
+      return exists(/databases/$(database)/documents/forumPosts/$(postId));
+    }
+
     function isForumCommentCreate(postId) {
       return isSignedIn()
         && request.resource.data.keys().hasOnly([
@@ -366,13 +370,13 @@ service cloud.firestore {
       allow delete: if isSignedIn() && request.auth.uid == resource.data.authorId;
 
       match /comments/{commentId} {
-        allow read: if isSignedIn();
+        allow read: if isSignedIn() && forumPostExists(postId);
         allow create: if isForumCommentCreate(postId);
         allow update: if isValidForumCommentUpdate();
         allow delete: if isSignedIn() && request.auth.uid == resource.data.authorId;
 
         match /{replyPath=**} {
-          allow read: if isSignedIn();
+          allow read: if isSignedIn() && forumPostExists(postId);
           allow create: if isForumCommentCreate(postId);
           allow update: if isValidForumCommentUpdate();
           allow delete: if isSignedIn() && request.auth.uid == resource.data.authorId;
