@@ -1,12 +1,51 @@
 import {
   useRef,
   useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
-const METER_HEIGHT = 290;
+const METER_HEIGHT = 220;
 const METER_WIDTH = 76;
+const DRAG_SENSITIVITY = 0.62;
+const SECTION_TOP_PADDING = 120;
+const TITLE_BLOCK_HEIGHT = 130;
+const COMPONENT_VERTICAL_GAP = 24;
 const INTENSITY_VALUES = ["light", "moderate", "intense"];
+const INTENSITY_LEGEND = Object.freeze([
+  {
+    value: "light",
+    label: "Light",
+    meaning:
+      "Mostly technical work, drilling, pad work, positional work, or low-stress classes. Little to no hard sparring/live rounds. You usually feel recovered within 24 hours.",
+    load: "1-3 sessions/week or <4 total hours. Average session difficulty 3-5/10.",
+  },
+  {
+    value: "moderate",
+    label: "Moderate",
+    meaning:
+      "A mix of technical training and harder rounds. Some sparring, wrestling, rolling, clinch, or conditioning, but recovery is still manageable.",
+    load: "3-5 sessions/week or 4-7 total hours. 1-2 hard sessions/week. Average session difficulty 5-7/10.",
+  },
+  {
+    value: "intense",
+    label: "Intense",
+    meaning:
+      "Fight camp, competition prep, frequent sparring/live rounds, hard wrestling/rolling, clinch rounds, heavy pad rounds, or added sport conditioning. You may feel sore, drained, or need 48+ hours to recover.",
+    load: "5+ sessions/week or 8+ total hours. 2+ hard sessions/week. Average session difficulty 7-9+/10.",
+  },
+]);
+
+function getSelectedLegendItem(value) {
+  return (
+    INTENSITY_LEGEND.find((item) => item.value === value) ||
+    INTENSITY_LEGEND[1]
+  );
+}
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -38,24 +77,54 @@ export default function CombatTrainingIntensityView({
   );
   const dragStartYRef = useRef(0);
   const dragStartFillRatioRef = useRef(fillRatio);
+  const previousSelectedIntensityRef = useRef(getValueFromFillRatio(fillRatio));
+  const legendTransitionProgress = useRef(new Animated.Value(1)).current;
   const { height: screenHeight } = useWindowDimensions();
-  const meterTop = Math.max(280, screenHeight / 2 - 60);
+  const meterTop = SECTION_TOP_PADDING + TITLE_BLOCK_HEIGHT + COMPONENT_VERTICAL_GAP;
   const selectedIntensity = getValueFromFillRatio(fillRatio);
-  const selectedLabelTop = meterTop + METER_HEIGHT * (1 - fillRatio) - 12;
+  const selectedLegendItem = getSelectedLegendItem(selectedIntensity);
+  const legendTop = meterTop + METER_HEIGHT + COMPONENT_VERTICAL_GAP;
+  const contentMinHeight = Math.max(screenHeight, legendTop + 170);
 
   function updateFillFromDy(dy) {
     const nextFillRatio = clamp(
-      dragStartFillRatioRef.current - dy / METER_HEIGHT,
+      dragStartFillRatioRef.current - (dy / METER_HEIGHT) * DRAG_SENSITIVITY,
       0,
       1
     );
+    const nextIntensity = getValueFromFillRatio(nextFillRatio);
 
     setFillRatio(nextFillRatio);
-    onChange?.(getValueFromFillRatio(nextFillRatio));
+    onChange?.(nextIntensity);
+
+    if (nextIntensity !== previousSelectedIntensityRef.current) {
+      previousSelectedIntensityRef.current = nextIntensity;
+      legendTransitionProgress.setValue(0);
+      Animated.timing(legendTransitionProgress, {
+        toValue: 1,
+        duration: 120,
+        useNativeDriver: true,
+      }).start();
+    }
   }
 
+  const legendAnimatedStyle = {
+    opacity: legendTransitionProgress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.35, 1],
+    }),
+    transform: [
+      {
+        translateY: legendTransitionProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [8, 0],
+        }),
+      },
+    ],
+  };
+
   return (
-    <View style={[styles.container, { minHeight: screenHeight }]}>
+    <View style={[styles.container, { minHeight: contentMinHeight }]}>
       <View
         style={styles.touchLayer}
         onTouchStart={(event) => {
@@ -67,7 +136,7 @@ export default function CombatTrainingIntensityView({
         }}
       />
       <View style={styles.section}>
-        <IBMPlexText titleBlock height={130}>
+        <IBMPlexText titleBlock height={TITLE_BLOCK_HEIGHT}>
           Combat training intensity
         </IBMPlexText>
       </View>
@@ -81,19 +150,20 @@ export default function CombatTrainingIntensityView({
           />
         </View>
       </View>
-      <IBMPlexText
-        defaultWhite
+      <Animated.View
         pointerEvents="none"
-        style={[
-          styles.selectedValueText,
-          {
-            top: selectedLabelTop,
-            transform: [{ translateX: -(METER_WIDTH / 2 + 104) }],
-          },
-        ]}
+        style={[styles.legend, { top: legendTop }, legendAnimatedStyle]}
       >
-        {selectedIntensity}
-      </IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.legendLabel}>
+          {selectedLegendItem.label}
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.legendMeaning}>
+          {selectedLegendItem.meaning}
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.legendLoad}>
+          {selectedLegendItem.load}
+        </IBMPlexText>
+      </Animated.View>
     </View>
   );
 }
@@ -112,7 +182,7 @@ const styles = StyleSheet.create({
   },
   section: {
     justifyContent: "flex-start",
-    paddingTop: 120,
+    paddingTop: SECTION_TOP_PADDING,
   },
   intensityOutline: {
     borderColor: "#ffffff",
@@ -135,14 +205,33 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     width: "100%",
   },
-  selectedValueText: {
-    color: "#C9B259",
-    fontSize: 20,
-    lineHeight: 24,
-    left: "50%",
+  legend: {
+    alignSelf: "center",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+    gap: 6,
+    left: "6%",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     position: "absolute",
-    textAlign: "right",
-    textTransform: "capitalize",
-    width: 92,
+    right: "6%",
+  },
+  legendLabel: {
+    color: "#d1d5db",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 18,
+    textTransform: "uppercase",
+  },
+  legendMeaning: {
+    color: "#d1d5db",
+    fontSize: 12,
+    lineHeight: 15,
+  },
+  legendLoad: {
+    color: "#C9B259",
+    fontSize: 11,
+    fontWeight: "700",
+    lineHeight: 14,
   },
 });

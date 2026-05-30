@@ -262,7 +262,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     return (
       <View style={[styles.container, styles.planGenerationContainer]}>
         <BlackGradient />
-        <LoadingView label="Generating" />
+        <LoadingView label="Generating" progress />
       </View>
     );
   }

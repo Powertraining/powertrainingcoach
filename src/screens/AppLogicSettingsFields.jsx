@@ -3,6 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { getAppLogicSettingsFormState } from "../constants/appLogicSettings.js";
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
+import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
@@ -74,18 +75,15 @@ export default function AppLogicSettingsFields({
             percentageReferenceMethod: null,
           })
         }
-        percentageReferenceValue={percentageReferenceMethodValue}
-        onPercentageReferenceChange={(sectionValue) => {
-          const isSelected =
-            liftIntensityMethodValue === "percentage" &&
-            percentageReferenceMethodValue === sectionValue;
-
-          updateFields({
-            liftIntensityMethod: isSelected ? null : "percentage",
-            percentageReferenceMethod: isSelected ? null : sectionValue,
-          });
-        }}
       />
+      {liftIntensityMethodValue === "percentage" ? (
+        <PercentageReferenceMethodView
+          value={percentageReferenceMethodValue}
+          onChange={(sectionValue) =>
+            updateField("percentageReferenceMethod", sectionValue)
+          }
+        />
+      ) : null}
       <DeloadStrategyView
         value={deloadStrategyValue}
         onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}

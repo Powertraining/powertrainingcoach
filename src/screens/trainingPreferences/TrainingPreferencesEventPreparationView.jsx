@@ -31,6 +31,8 @@ const DESCRIPTION_EDITOR_CARD_HEIGHT = 224;
 const DESCRIPTION_EDITOR_ACTIONS_HEIGHT = 44;
 const DESCRIPTION_EDITOR_ACTIONS_GAP = 10;
 const DESCRIPTION_EDITOR_TOP_OFFSET = 72;
+const EVENT_DESCRIPTION_PLACEHOLDER =
+  "Fight/competition or test...\nEstimated rounds, constraints...";
 
 function getInitialDate(value = "") {
   return parseEventPreparation(value).date;
@@ -276,7 +278,7 @@ export default function TrainingPreferencesEventPreparationView({
                         !eventDescription ? styles.descriptionPreviewEmpty : null,
                       ]}
                     >
-                      {eventDescription || "Name, location, type..."}
+                      {eventDescription || EVENT_DESCRIPTION_PLACEHOLDER}
                     </IBMPlexText>
                   </View>
                 </Pressable>
@@ -319,7 +321,7 @@ export default function TrainingPreferencesEventPreparationView({
                     autoFocus
                     value={draftEventDescription}
                     onChangeText={setDraftEventDescription}
-                    placeholder="Name, location, type..."
+                    placeholder={EVENT_DESCRIPTION_PLACEHOLDER}
                     placeholderTextColor="#9ca3af"
                     multiline
                     returnKeyType="done"

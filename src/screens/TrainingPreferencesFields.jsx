@@ -28,6 +28,7 @@ import TrainingPreferencesInjuriesView from "./trainingPreferences/TrainingPrefe
 import TrainingPreferencesPreferredWeekdaysView from "./trainingPreferences/TrainingPreferencesPreferredWeekdaysView.jsx";
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
+import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
@@ -38,7 +39,8 @@ export const TRAINING_PHASE_STEP_INDEX = 17;
 export const EVENT_DESCRIPTION_STEP_INDEX = 18;
 export const INJURIES_STEP_INDEX = 20;
 export const LIFT_INTENSITY_METHOD_STEP_INDEX = 22;
-export const DELOAD_STRATEGY_STEP_INDEX = 23;
+export const PERCENTAGE_REFERENCE_METHOD_STEP_INDEX = 23;
+export const DELOAD_STRATEGY_STEP_INDEX = 24;
 
 function shouldShowEnduranceMethods(values = {}) {
   return (
@@ -81,11 +83,13 @@ const CAPABILITY_CONFIDENCE_GROUPS = [
       },
       {
         key: "pullingWork",
-        item: TRAINING_CAPABILITY_GROUPS[0].items[2],
+        item: {
+          ...TRAINING_CAPABILITY_GROUPS[0].items[2],
+          exerciseExamples: ["Pull-ups", "Chin-ups"],
+        },
         exerciseImages: {
           "pull-ups": require("../assets/icons/sports/pullUp.png"),
           "chin-ups": require("../assets/icons/sports/chinUp.png"),
-          rows: require("../assets/icons/sports/row.png"),
         },
       },
     ],
@@ -314,6 +318,9 @@ export function getTrainingPreferencesStepKeys(values = {}) {
     "injuries",
     "combatTrainingIntensity",
     "liftIntensityMethod",
+    ...(resolvedValues.liftIntensityMethod === "percentage"
+      ? ["percentageReferenceMethod"]
+      : []),
     "deloadStrategy",
     "loadingStrategy",
     "preferredWeekdays"
@@ -644,19 +651,20 @@ export default function TrainingPreferencesFields({
             percentageReferenceMethod: null,
           })
         }
-        percentageReferenceValue={percentageReferenceMethodValue}
-        onPercentageReferenceChange={(sectionValue) => {
-          const isSelected =
-            liftIntensityMethodValue === "percentage" &&
-            percentageReferenceMethodValue === sectionValue;
-
-          updateFields({
-            liftIntensityMethod: isSelected ? null : "percentage",
-            percentageReferenceMethod: isSelected ? null : sectionValue,
-          });
-        }}
       />
     ),
+    ...(resolvedValues.liftIntensityMethod === "percentage"
+      ? [
+          () => (
+            <PercentageReferenceMethodView
+              value={percentageReferenceMethodValue}
+              onChange={(sectionValue) =>
+                updateField("percentageReferenceMethod", sectionValue)
+              }
+            />
+          ),
+        ]
+      : []),
     () => (
       <DeloadStrategyView
         value={deloadStrategyValue}

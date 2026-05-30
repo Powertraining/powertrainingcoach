@@ -14,6 +14,10 @@ const OPTION_BUTTON_HEIGHT = 48;
 const OPTION_SHADOW_OFFSET = 6;
 
 function getExerciseExamples(description = "") {
+  if (Array.isArray(description)) {
+    return description;
+  }
+
   return description
     .split(",")
     .map((exercise) => exercise.trim())
@@ -84,7 +88,9 @@ export default function TrainingCapabilityConfidenceView({
   onChange,
   exerciseImages = {},
 }) {
-  const exerciseExamples = getExerciseExamples(item?.description);
+  const exerciseExamples = getExerciseExamples(
+    item?.exerciseExamples ?? item?.description
+  );
   const exerciseRows = getExerciseRows(exerciseExamples);
 
   return (
@@ -143,7 +149,7 @@ const styles = StyleSheet.create({
   },
   titleWrap: {
     width: "75%",
-    height: 132,
+    minHeight: 160,
     justifyContent: "flex-start",
     alignItems: "center",
     paddingTop: 35,

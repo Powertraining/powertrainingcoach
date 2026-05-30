@@ -138,8 +138,12 @@ export default function InputFormView({
     const isEquipmentStep = activeStepKey === "equipment";
     const equipmentStepSelected = Boolean(trainingPreferences.equipment);
     const isLiftIntensityMethodStep = activeStepKey === "liftIntensityMethod";
+    const isPercentageReferenceMethodStep = activeStepKey === "percentageReferenceMethod";
     const isDeloadStrategyStep = activeStepKey === "deloadStrategy";
     const liftIntensityMethodStepSelected = Boolean(trainingPreferences.liftIntensityMethod);
+    const percentageReferenceMethodStepSelected = Boolean(
+        trainingPreferences.percentageReferenceMethod
+    );
     const deloadStrategyStepSelected = Boolean(trainingPreferences.deloadStrategy);
     const eventDescriptionStepSelected = Boolean(
         getEventDescription(trainingPreferences.eventPreparation)
@@ -150,6 +154,7 @@ export default function InputFormView({
         isTrainingPhaseStep ||
         isEventDescriptionStep ||
         isLiftIntensityMethodStep ||
+        isPercentageReferenceMethodStep ||
         isDeloadStrategyStep;
     const canContinue =
         activeConfidenceKey ? confidenceStepSelected :
@@ -157,8 +162,9 @@ export default function InputFormView({
                 isTrainingPhaseStep ? trainingPhaseStepSelected :
                     isEventDescriptionStep ? eventDescriptionStepSelected :
                         isLiftIntensityMethodStep ? liftIntensityMethodStepSelected :
-                            isDeloadStrategyStep ? deloadStrategyStepSelected :
-                undefined;
+                            isPercentageReferenceMethodStep ? percentageReferenceMethodStepSelected :
+                                isDeloadStrategyStep ? deloadStrategyStepSelected :
+                                    undefined;
 
     useEffect(() => {
         setActiveStep((currentStep) =>
@@ -278,6 +284,7 @@ export default function InputFormView({
                     isEnduranceStyleStep ||
                     isEnduranceCircuitGoalStep ||
                     isLiftIntensityMethodStep ||
+                    isPercentageReferenceMethodStep ||
                     isDeloadStrategyStep
                         ? styles.centerFullHeight
                         : null,

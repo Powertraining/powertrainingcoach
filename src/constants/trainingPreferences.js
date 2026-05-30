@@ -195,9 +195,9 @@ export const TRAINING_CAPABILITY_GROUPS = Object.freeze([
         description: "Split squat, lunge, step-up",
       },
       {
-        label: "Pulling work",
+        label: "Pull-Ups and Chin-Ups",
         value: "pullingWork",
-        description: "Pull-ups, chin-ups, rows",
+        description: "How confident are you in your ability to perform them?",
       },
     ]),
   },

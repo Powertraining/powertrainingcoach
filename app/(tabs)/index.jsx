@@ -472,7 +472,7 @@ const HomeScreen = observer(function HomeScreen() {
     return (
       <View style={[styles.container, styles.planGenerationContainer]}>
         <BlackGradient />
-        <LoadingView label="Generating" />
+        <LoadingView label="Generating" progress />
       </View>
     );
   }
