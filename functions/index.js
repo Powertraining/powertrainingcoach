@@ -4076,6 +4076,16 @@ Follow these domain rules:
   conservatively: "no" means assisted pull-ups or lat pulldowns, "somewhat"
   means assisted or bodyweight work with reps in reserve, and "yes" means
   bodyweight progression unless the input shows 10+ clean reps.
+- Treat all athlete-facing generated text such as "summary", phase focus,
+  exercise "notes", substitution "notes", performance prompts, and assessment
+  prompts as user-visible app copy. Include only information that is useful for
+  the athlete's strength-and-conditioning experience level and stated
+  capabilities: beginners get simple cues and safe priorities, intermediates
+  get practical training intent, and advanced athletes get precise loading or
+  progression details only when they are relevant.
+- Write athlete-facing text in natural, human-like coaching language: concise
+  sentences, no robotic labels, no internal reasoning, no template fragments,
+  and no unexplained jargon or abbreviations.
 
 Adapt the plan to:
 - primary combat sport

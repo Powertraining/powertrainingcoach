@@ -80,6 +80,36 @@ test("training prompt embeds endurance rules and prescription schema", () => {
   assert.match(prompt, /Assault Bike Intervals/i);
 });
 
+test("training prompt requires experience-relevant natural user-visible text", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "Boxing",
+    daysPerWeek: 3,
+    experience: "beginner",
+  });
+
+  assert.match(prompt, /USER-VISIBLE TEXT RULES/i);
+  assert.match(prompt, /strength-and-conditioning experience level/i);
+  assert.match(prompt, /natural, human-like coaching language/i);
+  assert.match(prompt, /no unexplained jargon or abbreviations/i);
+});
+
+test("missed-session prompt requires experience-relevant natural user-visible text", () => {
+  const prompt = buildMissedSessionAdjustmentPrompt({
+    questionnaire: {
+      primaryCombatSport: "MMA",
+      experience: "advanced",
+    },
+    targetDay: {
+      day: 2,
+      preferredWeekday: "Thursday",
+    },
+  });
+
+  assert.match(prompt, /USER-VISIBLE TEXT RULES/i);
+  assert.match(prompt, /adjustment summaries as text the athlete may read/i);
+  assert.match(prompt, /advanced athletes can see precise loading/i);
+});
+
 test("RPE prompt explicitly blocks percentage prescriptions and strength assessments", () => {
   const prompt = buildTrainingPrompt({
     primaryCombatSport: "MMA",

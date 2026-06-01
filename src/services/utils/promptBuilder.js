@@ -114,6 +114,15 @@ ${includePercentageSchema ? `- On percentage-based primary lifts, include "perce
 `;
 }
 
+function buildUserVisibleTextInstructions() {
+  return `
+### USER-VISIBLE TEXT RULES
+- Treat "summary", "phaseOverview.focus", exercise "notes", substitution "notes", "performanceTarget.prompt", "strengthAssessment.prompt", and adjustment summaries as text the athlete may read in the app.
+- Only include information that is useful for the athlete's strength-and-conditioning experience level and stated capabilities. Beginners should see simple cues and safe priorities; intermediates can see practical training intent; advanced athletes can see precise loading or progression details when they are relevant.
+- Use natural, human-like coaching language in user-visible text: concise sentences, no robotic labels, no internal reasoning, no template fragments, and no unexplained jargon or abbreviations.
+`;
+}
+
 function buildPlanJsonExample(userInput = {}) {
   const includePercentageSchema = shouldIncludePercentageSchema(userInput);
   const includeEnduranceSchema = shouldIncludeEnduranceSchema(userInput);
@@ -229,6 +238,7 @@ Given two equally valid exercise choices, prefer the option that is safer, easie
 Follow all of the rules below:
 ${guidelines}
 ${schemaInstructions}
+${buildUserVisibleTextInstructions()}
 
 ### USER INPUT (JSON)
 ${JSON.stringify(userInput, null, 2)}
@@ -325,6 +335,7 @@ You are PowerTrainingCoach, updating one training day after missed sessions.
 Follow all of the rules below:
 ${guidelines}
 ${schemaInstructions}
+${buildUserVisibleTextInstructions()}
 
 ### ADJUSTMENT GOAL
 - Rewrite only the target training-day object.
