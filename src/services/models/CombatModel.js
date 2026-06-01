@@ -1359,6 +1359,7 @@ export const model = {
     const parsedSessionsPerWeek = Number.parseInt(source.sessionsPerWeek, 10);
     const fallbackSessionsPerWeek = Number.parseInt(this.sessionsPerWeek, 10);
     const parsedNumWeeks = Number.parseInt(source.numWeeks, 10);
+    const parsedParentCycleWeeks = Number.parseInt(source.parentCycleWeeks, 10);
     const parsedTrainingPlanBatch = Number.parseInt(source.trainingPlanBatch, 10);
 
     const daysPerWeek =
@@ -1387,6 +1388,34 @@ export const model = {
       getNormalizedWeekday(rawPreferredWeekdays[index])
     );
 
+    const parentCycleWeeks = resolveTrainingCycleWeeks({
+      trainingPhase: normalizedAppLogicSettings.trainingPhase,
+      competitionTimeline: normalizedAppLogicSettings.competitionTimeline,
+      eventPreparation:
+        typeof source.eventPreparation === "string" ?
+          source.eventPreparation :
+          "",
+      requestedWeeks:
+        Number.isFinite(parsedParentCycleWeeks) && parsedParentCycleWeeks > 0 ?
+          parsedParentCycleWeeks :
+          Number.isFinite(parsedNumWeeks) && parsedNumWeeks > 0 ?
+            parsedNumWeeks :
+            null,
+      subscriptionWeeks:
+        Number.isFinite(parsedParentCycleWeeks) && parsedParentCycleWeeks > 0 ?
+          null :
+          Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
+            weeksFromSubscription :
+            null,
+    });
+    const completedWeeksInParentCycle =
+      parentCycleWeeks > 0 ? this.completedWeeks % parentCycleWeeks : 0;
+    const blockStartWeek = completedWeeksInParentCycle + 1;
+    const generatedBlockWeeks = Math.min(
+      4,
+      Math.max(parentCycleWeeks - completedWeeksInParentCycle, 1)
+    );
+
     return {
       ...source,
       ...normalizedAppLogicSettings,
@@ -1413,22 +1442,11 @@ export const model = {
           "off_season"),
       trainingPerformanceSummary: this.getTrainingPerformanceSummary(),
       strengthAssessmentSummary: this.getStrengthAssessmentSummary(),
-      numWeeks: resolveTrainingCycleWeeks({
-        trainingPhase: normalizedAppLogicSettings.trainingPhase,
-        competitionTimeline: normalizedAppLogicSettings.competitionTimeline,
-        eventPreparation:
-          typeof source.eventPreparation === "string" ?
-            source.eventPreparation :
-            "",
-        requestedWeeks:
-          Number.isFinite(parsedNumWeeks) && parsedNumWeeks > 0 ?
-            parsedNumWeeks :
-            null,
-        subscriptionWeeks:
-          Number.isFinite(weeksFromSubscription) && weeksFromSubscription > 0 ?
-            weeksFromSubscription :
-            null,
-      }),
+      numWeeks: parentCycleWeeks,
+      parentCycleWeeks,
+      generatedBlockWeeks,
+      blockStartWeek,
+      blockEndWeek: blockStartWeek + generatedBlockWeeks - 1,
       trainingPlanBatch:
         Number.isFinite(parsedTrainingPlanBatch) && parsedTrainingPlanBatch > 0 ?
           parsedTrainingPlanBatch :
@@ -1452,6 +1470,12 @@ export const model = {
       if (isCurrentRequest && isSameUser) {
         const createdAt = new Date().toISOString();
         this.archiveCurrentTrainingPlan?.(createdAt);
+        this.questionnaire = mergeTrainingPreferences(this.questionnaire, {
+          parentCycleWeeks: userInput.parentCycleWeeks,
+          generatedBlockWeeks: userInput.generatedBlockWeeks,
+          blockStartWeek: userInput.blockStartWeek,
+          blockEndWeek: userInput.blockEndWeek,
+        });
 
         this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
           applySportLoadLevelToPlanWeek(

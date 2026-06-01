@@ -2,6 +2,132 @@ import {
   getGuidelinesText,
 } from "./instructionRules.js";
 
+const DEFAULT_PARENT_CYCLE_WEEKS = 12;
+const TRAINING_PLAN_BLOCK_WEEKS = 4;
+
+function parsePositiveInteger(value) {
+  const parsedValue =
+    typeof value === "number" ? value : Number.parseInt(value, 10);
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function clampPositiveInteger(value, min, max) {
+  const parsedValue = parsePositiveInteger(value);
+
+  if (!parsedValue) {
+    return min;
+  }
+
+  return Math.min(Math.max(parsedValue, min), max);
+}
+
+function resolvePlanGenerationScope(userInput = {}) {
+  const parentCycleWeeks =
+    parsePositiveInteger(userInput?.parentCycleWeeks) ||
+    parsePositiveInteger(userInput?.numWeeks) ||
+    DEFAULT_PARENT_CYCLE_WEEKS;
+  const blockStartWeek = clampPositiveInteger(
+    userInput?.blockStartWeek,
+    1,
+    parentCycleWeeks
+  );
+  const remainingWeeks = Math.max(parentCycleWeeks - blockStartWeek + 1, 1);
+  const generatedBlockWeeks = Math.min(
+    parsePositiveInteger(userInput?.generatedBlockWeeks) ||
+      TRAINING_PLAN_BLOCK_WEEKS,
+    TRAINING_PLAN_BLOCK_WEEKS,
+    remainingWeeks
+  );
+
+  return {
+    parentCycleWeeks,
+    blockStartWeek,
+    generatedBlockWeeks,
+    blockEndWeek: blockStartWeek + generatedBlockWeeks - 1,
+  };
+}
+
+function buildPhaseRangeText(parentCycleWeeks = DEFAULT_PARENT_CYCLE_WEEKS) {
+  const ranges = [];
+
+  for (
+    let startWeek = 1;
+    startWeek <= parentCycleWeeks;
+    startWeek += TRAINING_PLAN_BLOCK_WEEKS
+  ) {
+    const endWeek = Math.min(
+      startWeek + TRAINING_PLAN_BLOCK_WEEKS - 1,
+      parentCycleWeeks
+    );
+    ranges.push(`Weeks ${startWeek}-${endWeek}`);
+  }
+
+  return ranges.join(", ");
+}
+
+function buildPhaseOverviewScaffold(parentCycleWeeks = DEFAULT_PARENT_CYCLE_WEEKS) {
+  const labels = ["Building", "Intensifying", "Expressing"];
+  const phases = [];
+
+  for (
+    let startWeek = 1;
+    startWeek <= parentCycleWeeks;
+    startWeek += TRAINING_PLAN_BLOCK_WEEKS
+  ) {
+    const phaseIndex = phases.length;
+    const endWeek = Math.min(
+      startWeek + TRAINING_PLAN_BLOCK_WEEKS - 1,
+      parentCycleWeeks
+    );
+
+    phases.push({
+      label: labels[phaseIndex] || `Block ${phaseIndex + 1}`,
+      weekStart: startWeek,
+      weekEnd: endWeek,
+      focus: "",
+    });
+  }
+
+  return phases;
+}
+
+export function buildTrainingPlanScaffold(userInput = {}) {
+  const {
+    parentCycleWeeks,
+    generatedBlockWeeks,
+    blockStartWeek,
+  } = resolvePlanGenerationScope(userInput);
+  const daysPerWeek =
+    parsePositiveInteger(userInput?.daysPerWeek) ||
+    parsePositiveInteger(userInput?.sessionsPerWeek) ||
+    3;
+  const preferredWeekdays = Array.isArray(userInput?.preferredWeekdays)
+    ? userInput.preferredWeekdays
+    : [];
+
+  return {
+    phaseOverview: buildPhaseOverviewScaffold(parentCycleWeeks),
+    weeks: Array.from({ length: generatedBlockWeeks }, (_, weekOffset) => {
+      const weekNumber = blockStartWeek + weekOffset;
+
+      return {
+        week: weekNumber,
+        days: Array.from({ length: daysPerWeek }, (_, dayIndex) => {
+          const dayNumber = dayIndex + 1;
+
+          return {
+            day: dayNumber,
+            originalDayNumber: dayNumber,
+            sessionLabel: `Day ${dayNumber}`,
+            preferredWeekday: preferredWeekdays[dayIndex] || "",
+          };
+        }),
+      };
+    }),
+  };
+}
+
 function shouldIncludePercentageSchema(userInput = {}) {
   return (userInput?.liftIntensityMethod || "percentage") === "percentage";
 }
@@ -72,30 +198,29 @@ function shouldIncludeEnduranceSchema(userInput = {}) {
 function buildPlanSchemaInstructions(userInput = {}) {
   const includePercentageSchema = shouldIncludePercentageSchema(userInput);
   const includeEnduranceSchema = shouldIncludeEnduranceSchema(userInput);
-  const requestedWeekCount = Number.parseInt(userInput?.numWeeks, 10);
-  const weekCountInstruction =
-    Number.isFinite(requestedWeekCount) && requestedWeekCount > 0
-      ? `Include exactly ${requestedWeekCount} week objects in "weeks".`
-      : 'Include the requested number of week objects in "weeks".';
-  const phaseOverviewInstruction =
-    requestedWeekCount === 12
-      ? '- For a 12-week plan, describe the phaseOverview as Weeks 1-4, Weeks 5-8, and Weeks 9-12.'
-      : "";
+  const {
+    parentCycleWeeks,
+    generatedBlockWeeks,
+    blockStartWeek,
+    blockEndWeek,
+  } = resolvePlanGenerationScope(userInput);
+  const phaseRangeText = buildPhaseRangeText(parentCycleWeeks);
 
   return `
 ### APP JSON CONTRACT
 - Return exactly one direct training plan object. No wrapper keys, commentary, markdown, or alternatives.
 - Include top-level "summary" and "phaseOverview".
-- ${weekCountInstruction}
-${phaseOverviewInstruction}
+- Treat "phaseOverview" as the compact parent-cycle overview: cover the full ${parentCycleWeeks}-week cycle as ${phaseRangeText}. Keep each phase focus to one concise sentence.
+- Use the provided scaffold for week numbers, day numbers, session labels, and preferred weekdays. Do not invent or reorder week/day shells.
+- Include exactly ${generatedBlockWeeks} week objects in "weeks", numbered ${blockStartWeek}-${blockEndWeek}. Do not generate week objects outside this block.
 - Each generated week must contain exactly ${userInput?.daysPerWeek || "the requested"} sessions in "days".
-- Keep the plan session-based: use "day" and "sessionLabel" for order, and use "preferredWeekday" only as secondary scheduling guidance.
+- You may omit "sessionLabel" and "preferredWeekday" because the app fills them from the scaffold.
 - Every training day must include "sessionProfile" with:
   - "regions": one or more of "upper_body", "lower_body", "full_body", "core"
   - "qualities": one or more of "force", "power", "fatigue", "speed", "hypertrophy", "recovery"
   - "stressLevel": "low", "moderate", or "high"
-- Every exercise must include "name", "sets", "reps", "notes", and "substitutionOptions".
-- Use "substitutionOptions" for comparable replacements the UI can swap in directly. Use an empty array when no substitute is needed.
+- Every exercise must include "name", "sets", "reps", and "notes".
+- Add "substitutionOptions" only when there are useful comparable replacements. Omit it when no substitute is needed; the app will create the default option array.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
 - If "performanceTarget" is included, its "strategy" must be exactly one of "e1rm", "best_set", or "fixed_rpe".
 ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, include "endurancePrescription" with:
@@ -126,25 +251,56 @@ function buildUserVisibleTextInstructions() {
 function buildPlanJsonExample(userInput = {}) {
   const includePercentageSchema = shouldIncludePercentageSchema(userInput);
   const includeEnduranceSchema = shouldIncludeEnduranceSchema(userInput);
+  const {
+    parentCycleWeeks,
+    blockStartWeek,
+    blockEndWeek,
+  } = resolvePlanGenerationScope(userInput);
+  const secondPhaseStart = Math.min(
+    TRAINING_PLAN_BLOCK_WEEKS + 1,
+    parentCycleWeeks
+  );
+  const secondPhaseEnd = Math.min(
+    TRAINING_PLAN_BLOCK_WEEKS * 2,
+    parentCycleWeeks
+  );
 
   return `{
-  "summary": "Brief explanation of the overall program direction and rationale.",
+  "summary": "Brief explanation of the current ${blockStartWeek}-${blockEndWeek} training block and how it fits the parent cycle.",
   "phaseOverview": [
     {
       "label": "Building",
       "weekStart": 1,
-      "weekEnd": 4,
+      "weekEnd": ${Math.min(TRAINING_PLAN_BLOCK_WEEKS, parentCycleWeeks)},
       "focus": "Build the main strength and power qualities before the next phase shifts emphasis."
+    }${
+      parentCycleWeeks > TRAINING_PLAN_BLOCK_WEEKS
+        ? `,
+    {
+      "label": "Intensifying",
+      "weekStart": ${secondPhaseStart},
+      "weekEnd": ${secondPhaseEnd},
+      "focus": "Progress the most important qualities while keeping fatigue recoverable."
+    }`
+        : ""
+    }${
+      parentCycleWeeks > TRAINING_PLAN_BLOCK_WEEKS * 2
+        ? `,
+    {
+      "label": "Expressing",
+      "weekStart": ${TRAINING_PLAN_BLOCK_WEEKS * 2 + 1},
+      "weekEnd": ${parentCycleWeeks},
+      "focus": "Convert the earlier work into sharper sport-relevant output."
+    }`
+        : ""
     }
   ],
   "weeks": [
     {
-      "week": 1,
+      "week": ${blockStartWeek},
       "days": [
         {
           "day": 1,
-          "sessionLabel": "Day 1",
-          "preferredWeekday": "Monday",
           "sessionProfile": {
             "regions": ["lower_body"],
             "qualities": ["force", "power"],
@@ -155,16 +311,9 @@ function buildPlanJsonExample(userInput = {}) {
               "name": "Exercise Name",
               "sets": "3-5",
               "reps": "3-6",
-              "notes": "Short coaching cue.",
-              "performanceTarget": {
-                "strategy": "fixed_rpe",
-                "liftName": "Back Squat",
-                "repTarget": 5,
-                "targetRpe": 8,
-                "prompt": "Log the top set load, reps, and RPE so the app can track your squat trend."
-              },${
+              "notes": "Short coaching cue."${
                 includePercentageSchema
-                  ? `
+                  ? `,
               "percentagePrescription": {
                 "referenceLiftName": "Back Squat",
                 "loadingStrategy": "flat_loading",
@@ -181,17 +330,9 @@ function buildPlanJsonExample(userInput = {}) {
                 "method": "rpe_based_1rm",
                 "liftName": "Back Squat",
                 "prompt": "Log the load, reps, and RPE of the top set so the app can estimate 1RM from reps in reserve."
-              },`
+              }`
                   : ""
               }
-              "substitutionOptions": [
-                {
-                  "name": "Comparable Alternative",
-                  "sets": "3-5",
-                  "reps": "3-6",
-                  "notes": "Same category and emphasis."
-                }
-              ]
             }${
               includeEnduranceSchema
                 ? `,
@@ -210,8 +351,7 @@ function buildPlanJsonExample(userInput = {}) {
                 "rounds": 5,
                 "target": "Repeatable hard aerobic intervals without leg impact",
                 "notes": "Use this object only for dedicated endurance work."
-              },
-              "substitutionOptions": []
+              }
             }`
                 : ""
             }
@@ -229,6 +369,13 @@ export function buildTrainingPrompt(userInput, oldPlan = null) {
     purpose: "plan",
   });
   const schemaInstructions = buildPlanSchemaInstructions(userInput);
+  const {
+    parentCycleWeeks,
+    generatedBlockWeeks,
+    blockStartWeek,
+    blockEndWeek,
+  } = resolvePlanGenerationScope(userInput);
+  const scaffold = buildTrainingPlanScaffold(userInput);
 
   return `
 You are PowerTrainingCoach, an expert combat-sport S&C coach.
@@ -240,11 +387,10 @@ ${guidelines}
 ${schemaInstructions}
 ${buildUserVisibleTextInstructions()}
 
-### USER INPUT (JSON)
-${JSON.stringify(userInput, null, 2)}
-
-### PREVIOUS PLAN
-${oldPlan ? JSON.stringify(oldPlan, null, 2) : "No previous plan provided."}
+### GENERATION SCOPE
+- Parent cycle length: ${parentCycleWeeks} weeks.
+- Generate only the next ${generatedBlockWeeks}-week block: Weeks ${blockStartWeek}-${blockEndWeek}.
+- Do not generate future week objects yet. Capture future direction only in the compact phaseOverview.
 
 ### OUTPUT
 - Respond with valid JSON only.
@@ -252,7 +398,17 @@ ${oldPlan ? JSON.stringify(oldPlan, null, 2) : "No previous plan provided."}
 
 ${buildPlanJsonExample(userInput)}
 
-Now generate exactly one training plan JSON object.
+### PLAN SCAFFOLD (APP-CREATED)
+Use this scaffold exactly for week numbers, day numbers, session labels, and preferred weekdays. Fill the coaching choices inside each session.
+${JSON.stringify(scaffold, null, 2)}
+
+### USER INPUT (JSON)
+${JSON.stringify(userInput, null, 2)}
+
+### PREVIOUS PLAN
+${oldPlan ? JSON.stringify(oldPlan, null, 2) : "No previous plan provided."}
+
+Now generate exactly one training plan JSON object for Weeks ${blockStartWeek}-${blockEndWeek} only.
 `;
 }
 

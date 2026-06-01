@@ -7,6 +7,7 @@ import {
 import { db } from "../services/config/firebase.js";
 import { getFunctions, httpsCallable } from "../services/config/firebaseSdk.js";
 import {
+    buildTrainingPlanScaffold,
     buildMissedSessionAdjustmentPrompt,
     buildTrainingPrompt,
 } from "../services/utils/promptBuilder.js";
@@ -15,8 +16,68 @@ import {
     parseGeneratedTrainingPlan,
 } from "../services/utils/trainingPlan.js";
 
-function normalizeGeneratedPlan(plan = {}) {
-    return parseGeneratedTrainingPlan(plan);
+function findGeneratedWeek(generatedWeeks = [], scaffoldWeek = {}, weekIndex = 0) {
+    return (
+        generatedWeeks.find((week) => week?.week === scaffoldWeek.week) ||
+        generatedWeeks[weekIndex] ||
+        {}
+    );
+}
+
+function findGeneratedDay(generatedDays = [], scaffoldDay = {}, dayIndex = 0) {
+    return (
+        generatedDays.find((day) => day?.day === scaffoldDay.day) ||
+        generatedDays[dayIndex] ||
+        {}
+    );
+}
+
+function applyTrainingPlanScaffold(plan = {}, scaffold = null) {
+    if (!scaffold?.weeks?.length) {
+        return plan;
+    }
+
+    const generatedWeeks = Array.isArray(plan?.weeks) ? plan.weeks : [];
+
+    return {
+        ...plan,
+        phaseOverview: Array.isArray(plan?.phaseOverview) && plan.phaseOverview.length > 0
+            ? plan.phaseOverview
+            : scaffold.phaseOverview,
+        weeks: scaffold.weeks.map((scaffoldWeek, weekIndex) => {
+            const generatedWeek = findGeneratedWeek(
+                generatedWeeks,
+                scaffoldWeek,
+                weekIndex
+            );
+            const generatedDays = Array.isArray(generatedWeek?.days)
+                ? generatedWeek.days
+                : [];
+
+            return {
+                ...generatedWeek,
+                week: scaffoldWeek.week,
+                days: scaffoldWeek.days.map((scaffoldDay, dayIndex) => {
+                    const generatedDay = findGeneratedDay(
+                        generatedDays,
+                        scaffoldDay,
+                        dayIndex
+                    );
+
+                    return {
+                        ...generatedDay,
+                        ...scaffoldDay,
+                        sessionProfile: generatedDay.sessionProfile,
+                        exercises: generatedDay.exercises,
+                    };
+                }),
+            };
+        }),
+    };
+}
+
+function normalizeGeneratedPlan(plan = {}, scaffold = null) {
+    return parseGeneratedTrainingPlan(applyTrainingPlanScaffold(plan, scaffold));
 }
 
 const TRAINING_PLAN_CALL_TIMEOUT_MS = 300000;
@@ -43,6 +104,7 @@ async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLA
 }
 
 export async function generatePlan(userInput, oldPlan = null) {
+    const scaffold = buildTrainingPlanScaffold(userInput);
     const prompt = buildTrainingPrompt(userInput, oldPlan);
     const messages = [
         {
@@ -54,7 +116,7 @@ export async function generatePlan(userInput, oldPlan = null) {
     return getTrainingCallableResponse(
         messages,
         OPENAI_PLAN_GENERATION_MODEL
-    ).then((plan) => normalizeGeneratedPlan(plan));
+    ).then((plan) => normalizeGeneratedPlan(plan, scaffold));
 }
 
 export async function adjustTrainingDayForMissedSession(adjustmentInput = {}) {
