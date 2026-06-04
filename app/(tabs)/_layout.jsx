@@ -159,6 +159,8 @@ const GLOBAL_HIDDEN_TAB_ROUTES = new Set([
   "/(tabs)/index",
   "/forum",
   "/(tabs)/forum",
+  "/day-detail",
+  "/(tabs)/day-detail",
   "/active-session",
   "/(tabs)/active-session",
 ]);

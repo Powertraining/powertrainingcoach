@@ -223,19 +223,8 @@ export const model = {
   finishedWorkout: 0,
 
   // action to create an account
-  showToast(message, options = {}) {
-    const safeMessage = String(message || "").trim();
-
-    if (!safeMessage) {
-      return;
-    }
-
-    this.appToastId += 1;
-    this.appToast = {
-      id: this.appToastId,
-      message: safeMessage,
-      type: options.type || "error",
-    };
+  showToast() {
+    this.appToast = null;
   },
 
   showError(error, fallback) {

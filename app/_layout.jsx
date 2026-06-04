@@ -11,7 +11,6 @@ import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../src/screens/LoadingView.jsx";
 import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
 import BlackGradient from "../src/components/colorComponents/BlackGradient.jsx";
-import ToastHost from "../src/components/feedback/ToastHost.jsx";
 import { preloadQuestionnaireImages } from "../src/services/utils/preloadAssets.js";
 import { fonts } from "../src/theme/colors.js";
 
@@ -85,7 +84,6 @@ const RootLayout = observer(function RootLayout() {
                 }}
               />
             </Stack>
-            <ToastHost model={model} />
           </View>
         </SafeAreaProvider>
       </View>

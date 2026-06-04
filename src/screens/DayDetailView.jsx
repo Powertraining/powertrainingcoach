@@ -1410,7 +1410,12 @@ export default function DayDetailView({
                                                                     ) : null}
                                                                     {hasExerciseTips ? (
                                                                         <TouchableOpacity
-                                                                            style={styles.tabButtonActionButton}
+                                                                            style={[
+                                                                                styles.tabButtonActionButton,
+                                                                                !canSwapExercise
+                                                                                    ? styles.tabButtonActionButtonWide
+                                                                                    : null,
+                                                                            ]}
                                                                             onPress={(event) => {
                                                                                 event.stopPropagation?.();
                                                                                 openTips(exerciseIndex);
@@ -2264,6 +2269,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         width: 30,
         height: 30,
+    },
+    tabButtonActionButtonWide: {
+        width: 65,
     },
     tabButtonActionIcon: {
         color: '#000',
