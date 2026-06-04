@@ -2,7 +2,7 @@ import {
   Tabs,
   Redirect } from "expo-router";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -18,6 +18,13 @@ import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const TAB_BAR_ANIMATION_DURATION = 220;
+const TAB_SCREEN_TRANSITION = {
+  animation: "timing",
+  config: {
+    duration: TAB_BAR_ANIMATION_DURATION,
+    easing: Easing.out(Easing.cubic),
+  },
+};
 
 function HomeNavIcon({ size, color }) {
   return (
@@ -414,14 +421,16 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
 
             const options = descriptors[route.key]?.options ?? {};
 
-            return typeof options.tabBarIcon === "function"
-              ? options.tabBarIcon({
+            return typeof options.tabBarIcon === "function" ? (
+              <Fragment key={`${route.key}:active-icon`}>
+                {options.tabBarIcon({
                   focused: true,
                   showLabel: labelVisibleTabName === route.name,
                   color: "#fff",
                   size: 24,
-                })
-              : null;
+                })}
+              </Fragment>
+            ) : null;
           })}
         </Animated.View>
       ) : null}
@@ -577,7 +586,9 @@ const TabsLayout = observer(function TabsLayout() {
         )}
         screenOptions={{
           headerShown: false,
+          animation: "shift",
           sceneStyle: { backgroundColor: "transparent" },
+          transitionSpec: TAB_SCREEN_TRANSITION,
         }}
       >
         <Tabs.Screen
