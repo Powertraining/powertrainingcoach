@@ -3968,9 +3968,33 @@ function buildOpenAiMessagesFromData(data) {
  * @return {string} - The complete prompt string
  */
 function buildTrainingPlanPrompt(userInput) {
-  const numWeeks = userInput.numWeeks || 4;
+  const parentCycleWeeks = userInput.parentCycleWeeks || userInput.numWeeks || 12;
+  const numWeeks = Math.min(userInput.generatedBlockWeeks || 4, 4);
   const batch = userInput.trainingPlanBatch || 1;
-  const startingWeek = (batch - 1) * 8 + 1;
+  const blockCount = Math.max(1, Math.ceil(parentCycleWeeks / 4));
+  const startingWeek = userInput.blockStartWeek ||
+    (((batch - 1) % blockCount) * 4) + 1;
+  const endingWeek = Math.min(startingWeek + numWeeks - 1, parentCycleWeeks);
+  const phaseOverviewExample = [
+    {
+      label: "Building",
+      weekStart: 1,
+      weekEnd: Math.min(4, parentCycleWeeks),
+      focus: "Build the main qualities for the parent cycle.",
+    },
+    ...(parentCycleWeeks > 4 ? [{
+      label: "Intensifying",
+      weekStart: 5,
+      weekEnd: Math.min(8, parentCycleWeeks),
+      focus: "Progress the most important qualities while controlling fatigue.",
+    }] : []),
+    ...(parentCycleWeeks > 8 ? [{
+      label: "Expressing",
+      weekStart: 9,
+      weekEnd: parentCycleWeeks,
+      focus: "Convert the earlier work into sharper sport-relevant output.",
+    }] : []),
+  ];
   const enduranceSettings = isPlainObject(userInput.enduranceTraining) ?
     userInput.enduranceTraining :
     isPlainObject(userInput.endurancePreferences) ?
@@ -3993,9 +4017,8 @@ function buildTrainingPlanPrompt(userInput) {
 
   let batchContext = "";
   if (batch > 1) {
-    const endWeek = startingWeek + numWeeks - 1;
     batchContext = `\nThis is BATCH ${batch} of the training plan. ` +
-      `Weeks ${startingWeek}-${endWeek} are being generated. ` +
+      `Weeks ${startingWeek}-${endingWeek} are being generated. ` +
       "Progress from the previous batch and increase difficulty/" +
       "complexity accordingly.";
   }
@@ -4076,6 +4099,16 @@ Follow these domain rules:
   conservatively: "no" means assisted pull-ups or lat pulldowns, "somewhat"
   means assisted or bodyweight work with reps in reserve, and "yes" means
   bodyweight progression unless the input shows 10+ clean reps.
+- Treat all athlete-facing generated text such as "summary", phase focus,
+  exercise "notes", substitution "notes", performance prompts, and assessment
+  prompts as user-visible app copy. Include only information that is useful for
+  the athlete's strength-and-conditioning experience level and stated
+  capabilities: beginners get simple cues and safe priorities, intermediates
+  get practical training intent, and advanced athletes get precise loading or
+  progression details only when they are relevant.
+- Write athlete-facing text in natural, human-like coaching language: concise
+  sentences, no robotic labels, no internal reasoning, no template fragments,
+  and no unexplained jargon or abbreviations.
 
 Adapt the plan to:
 - primary combat sport
@@ -4124,6 +4157,9 @@ ${JSON.stringify(userInput, null, 2)}
 - Never return multiple plans, comparisons, or wrapper keys such as "plans",
   "options", or "planChoices".
 - Week numbers should start at ${startingWeek}
+- Include a compact "phaseOverview" for the full ${parentCycleWeeks}-week
+  parent cycle, but generate week objects only for Weeks
+  ${startingWeek}-${endingWeek}.
 - **IMPORTANT: Each week MUST have EXACTLY ${userInput.daysPerWeek} days**
   **in the days array.**
 - **IMPORTANT: Every exercise MUST include a videoUrl with a real**
@@ -4136,6 +4172,7 @@ ${JSON.stringify(userInput, null, 2)}
 
 {
   "summary": "Brief description of this training phase (batch ${batch})",
+  "phaseOverview": ${JSON.stringify(phaseOverviewExample, null, 4)},
   "weeks": [
     {
       "week": ${startingWeek},
@@ -4179,14 +4216,16 @@ ${JSON.stringify(userInput, null, 2)}
 
 ---
 
-Now generate exactly one training plan JSON object with ${numWeeks} weeks total.
+Now generate exactly one training plan JSON object for Weeks
+${startingWeek}-${endingWeek} only.
 **CRITICAL: Each week must include EXACTLY ${userInput.daysPerWeek}**
 **training days (${userInput.daysPerWeek} days objects in the "days" array).**
 **CRITICAL: Every exercise MUST have a valid videoUrl field with a real**
 **YouTube URL (https://www.youtube.com/watch?v=...) for that exercise.**
 **CRITICAL: Every exercise MUST include a substitutionOptions array.**
 Start week numbering at ${startingWeek}.
-Follow periodization principles for ${numWeeks} weeks of training.
+Follow periodization principles for the full ${parentCycleWeeks}-week parent
+cycle, but only emit the current ${numWeeks}-week block in "weeks".
 `;
 
   return prompt;

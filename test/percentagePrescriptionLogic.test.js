@@ -121,8 +121,9 @@ test("training prompt instructs percentage users to emit structured percentage p
   assert.match(prompt, /percentagePrescription/);
   assert.match(prompt, /relativeIntensity/);
   assert.match(prompt, /loadingStrategy/);
-  assert.match(prompt, /exactly 12 week objects/i);
-  assert.match(prompt, /Weeks 1-4, Weeks 5-8, and Weeks 9-12/);
+  assert.match(prompt, /exactly 4 week objects/i);
+  assert.match(prompt, /Weeks 1-4, Weeks 5-8, Weeks 9-12/);
+  assert.match(prompt, /Do not generate future week objects yet/i);
 });
 
 test("RPE questionnaires strip percentage prescriptions and strength assessments from plans", () => {

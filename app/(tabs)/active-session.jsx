@@ -224,8 +224,23 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
     if (remaining <= 0 && totalDays > 0) {
       const totalWeeksAvailable = model.getPlannedWeeksFromSubscription?.() || 0;
       const weeksInCurrentPlan = plan?.weeks?.length || 0;
+      const currentBlockEndWeek = Math.max(
+        0,
+        ...(Array.isArray(plan?.weeks)
+          ? plan.weeks.map((week) => Number.parseInt(week?.week, 10) || 0)
+          : [])
+      );
+      const parentCycleEndWeek = Math.max(
+        0,
+        ...(Array.isArray(plan?.phaseOverview)
+          ? plan.phaseOverview.map(
+              (phase) => Number.parseInt(phase?.weekEnd, 10) || 0
+            )
+          : [])
+      );
+      const hasFutureGeneratedBlocks = parentCycleEndWeek > currentBlockEndWeek;
 
-      if (totalWeeksAvailable > weeksInCurrentPlan) {
+      if (hasFutureGeneratedBlocks || totalWeeksAvailable > weeksInCurrentPlan) {
         model.completeCurrentBatch?.(weeksInCurrentPlan);
         model.setForumTabBarHidden?.(false);
         router.replace("/(tabs)?resume=questionnaireSport");

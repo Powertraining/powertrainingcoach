@@ -257,6 +257,8 @@ const HomeScreen = observer(function HomeScreen() {
       daysPerWeek: model.sessionsPerWeek,
       primaryCombatSport: model.primaryCombatSport,
       sessionsPerWeek: model.sessionsPerWeek,
+      parentCycleWeeks:
+        input.parentCycleWeeks || model.questionnaire?.parentCycleWeeks,
       trainingPlanBatch: model.getTrainingPlanBatch?.() || 1,
       pendingPlanGeneration,
       pendingCycleReview: false,
@@ -273,6 +275,10 @@ const HomeScreen = observer(function HomeScreen() {
       const generatedPlan = await model.generateTrainingPlan?.(normalizedQuestionnaire);
       model.setQuestionnaire?.({
         ...questionnaire,
+        parentCycleWeeks: normalizedQuestionnaire.parentCycleWeeks,
+        generatedBlockWeeks: normalizedQuestionnaire.generatedBlockWeeks,
+        blockStartWeek: normalizedQuestionnaire.blockStartWeek,
+        blockEndWeek: normalizedQuestionnaire.blockEndWeek,
         pendingPlanGeneration: false,
         pendingCycleReview: false,
       });

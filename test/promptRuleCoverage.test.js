@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildTrainingPlanScaffold,
   buildMissedSessionAdjustmentPrompt,
   buildTrainingPrompt,
 } from "../src/services/utils/promptBuilder.js";
@@ -80,6 +81,36 @@ test("training prompt embeds endurance rules and prescription schema", () => {
   assert.match(prompt, /Assault Bike Intervals/i);
 });
 
+test("training prompt requires experience-relevant natural user-visible text", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "Boxing",
+    daysPerWeek: 3,
+    experience: "beginner",
+  });
+
+  assert.match(prompt, /USER-VISIBLE TEXT RULES/i);
+  assert.match(prompt, /strength-and-conditioning experience level/i);
+  assert.match(prompt, /natural, human-like coaching language/i);
+  assert.match(prompt, /no unexplained jargon or abbreviations/i);
+});
+
+test("missed-session prompt requires experience-relevant natural user-visible text", () => {
+  const prompt = buildMissedSessionAdjustmentPrompt({
+    questionnaire: {
+      primaryCombatSport: "MMA",
+      experience: "advanced",
+    },
+    targetDay: {
+      day: 2,
+      preferredWeekday: "Thursday",
+    },
+  });
+
+  assert.match(prompt, /USER-VISIBLE TEXT RULES/i);
+  assert.match(prompt, /adjustment summaries as text the athlete may read/i);
+  assert.match(prompt, /advanced athletes can see precise loading/i);
+});
+
 test("RPE prompt explicitly blocks percentage prescriptions and strength assessments", () => {
   const prompt = buildTrainingPrompt({
     primaryCombatSport: "MMA",
@@ -137,6 +168,65 @@ test("striking prompt resolves off-camp and in-camp from competition timing", ()
   assert.match(inCampPrompt, /Status: In-camp/i);
   assert.match(inCampPrompt, /confirmed striking competition is about 8 week/i);
   assert.match(inCampPrompt, /30-60%/i);
+});
+
+test("training prompt generates only the next block with a parent-cycle overview", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    numWeeks: 12,
+    parentCycleWeeks: 12,
+    generatedBlockWeeks: 4,
+    blockStartWeek: 5,
+    blockEndWeek: 8,
+  });
+
+  assert.match(prompt, /Parent cycle length: 12 weeks/i);
+  assert.match(prompt, /Generate only the next 4-week block: Weeks 5-8/i);
+  assert.match(
+    prompt,
+    /cover the full 12-week cycle as Weeks 1-4, Weeks 5-8, Weeks 9-12/i
+  );
+  assert.match(
+    prompt,
+    /Include exactly 4 week objects in "weeks", numbered 5-8/i
+  );
+  assert.match(prompt, /Do not generate future week objects yet/i);
+  assert.match(prompt, /PLAN SCAFFOLD \(APP-CREATED\)/i);
+  assert.match(prompt, /Use this scaffold exactly for week numbers/i);
+});
+
+test("training scaffold fixes week and preferred weekday shells", () => {
+  const scaffold = buildTrainingPlanScaffold({
+    daysPerWeek: 2,
+    parentCycleWeeks: 12,
+    generatedBlockWeeks: 4,
+    blockStartWeek: 5,
+    preferredWeekdays: ["Tuesday", "Friday"],
+  });
+
+  assert.deepEqual(
+    scaffold.weeks.map((week) => week.week),
+    [5, 6, 7, 8]
+  );
+  assert.deepEqual(scaffold.weeks[0].days, [
+    {
+      day: 1,
+      originalDayNumber: 1,
+      sessionLabel: "Day 1",
+      preferredWeekday: "Tuesday",
+    },
+    {
+      day: 2,
+      originalDayNumber: 2,
+      sessionLabel: "Day 2",
+      preferredWeekday: "Friday",
+    },
+  ]);
+  assert.deepEqual(
+    scaffold.phaseOverview.map((phase) => [phase.weekStart, phase.weekEnd]),
+    [[1, 4], [5, 8], [9, 12]]
+  );
 });
 
 test("training prompt includes newly added striking periodization instructions", () => {
