@@ -1,9 +1,12 @@
 import {
+  Animated,
+  Easing,
   Image,
   StyleSheet,
   View,
   useWindowDimensions,
 } from "react-native";
+import { useEffect, useMemo, useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -15,8 +18,10 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const ARROW_IMAGE = require("../../assets/icons/arrow.png");
 const LOADING_VISUAL_HEIGHT = 211;
+const LOADING_VISUAL_WIDTH = 250;
 const OPTION_LABEL_HEIGHT = 28;
 const DESCRIPTION_HEIGHT = 78;
+const LOADING_VISUAL_ANIMATION_MS = 260;
 
 function getActiveIndex(value) {
   const foundIndex = LOADING_STRATEGY_OPTIONS.findIndex(
@@ -81,17 +86,43 @@ function getLabelsFromWidths(widths) {
   return labels;
 }
 
+function getWidthRatio(width) {
+  const parsedWidth = parseFloat(width);
+
+  return Number.isFinite(parsedWidth) ? parsedWidth / 100 : 0;
+}
+
 function LoadingBlock({ width, label }) {
   const isHidden = parseFloat(width) <= 0;
+  const targetWidth = getWidthRatio(width) * LOADING_VISUAL_WIDTH;
+  const animatedWidth = useRef(new Animated.Value(targetWidth)).current;
+  const animatedOpacity = useRef(new Animated.Value(isHidden ? 0 : 1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(animatedWidth, {
+        toValue: targetWidth,
+        duration: LOADING_VISUAL_ANIMATION_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.timing(animatedOpacity, {
+        toValue: isHidden ? 0 : 1,
+        duration: LOADING_VISUAL_ANIMATION_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [animatedOpacity, animatedWidth, isHidden, targetWidth]);
 
   return (
     <View style={styles.loadingBlockSlot}>
-      <View
+      <Animated.View
         style={[
           styles.loadingBlock,
           {
-            opacity: isHidden ? 0 : 1,
-            width,
+            opacity: animatedOpacity,
+            width: animatedWidth,
           },
         ]}
       >
@@ -106,20 +137,20 @@ function LoadingBlock({ width, label }) {
             {label}
           </IBMPlexText>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
 
 function LoadingVisual({ value }) {
-  const barWidths = getLoadingBarWidths(value);
-  const labels = getLabelsFromWidths(barWidths);
+  const barWidths = useMemo(() => getLoadingBarWidths(value), [value]);
+  const labels = useMemo(() => getLabelsFromWidths(barWidths), [barWidths]);
 
   return (
     <View style={styles.loadingVisual}>
       {barWidths.map((barWidth, index) => (
         <LoadingBlock
-          key={`${value}-${index}`}
+          key={`loading-block-${index}`}
           width={barWidth}
           label={labels[index]}
         />
@@ -227,7 +258,7 @@ const styles = StyleSheet.create({
     gap: 20,
     height: LOADING_VISUAL_HEIGHT,
     marginTop: 36,
-    width: 250,
+    width: LOADING_VISUAL_WIDTH,
   },
   selectionArea: {
     alignItems: "center",

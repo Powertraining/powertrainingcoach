@@ -1748,6 +1748,30 @@ function getStrictSubstitutionSource(exercise = {}) {
   return [];
 }
 
+function normalizeGeneratedExerciseOption(option, fallbackExercise = {}, optionIndex = 0) {
+  if (isPlainObject(option)) {
+    return normalizeExerciseOption(option, fallbackExercise);
+  }
+
+  const optionName = normalizeString(option);
+
+  if (!optionName) {
+    throw new Error(
+      `Training plan substitution option ${optionIndex + 1} must be an object.`
+    );
+  }
+
+  return normalizeExerciseOption(
+    {
+      name: optionName,
+      sets: fallbackExercise.sets,
+      reps: fallbackExercise.reps,
+      notes: fallbackExercise.notes,
+    },
+    fallbackExercise
+  );
+}
+
 function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
   if (!isPlainObject(exercise)) {
     throw new Error(
@@ -1763,15 +1787,8 @@ function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
   };
 
   const substitutionOptions = getStrictSubstitutionSource(exercise).map(
-    (option, optionIndex) => {
-      if (!isPlainObject(option)) {
-        throw new Error(
-          `Training plan substitution option ${optionIndex + 1} must be an object.`
-        );
-      }
-
-      return normalizeExerciseOption(option, fallbackExercise);
-    }
+    (option, optionIndex) =>
+      normalizeGeneratedExerciseOption(option, fallbackExercise, optionIndex)
   );
 
   return normalizeExercise({

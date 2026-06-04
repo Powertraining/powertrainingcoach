@@ -20,6 +20,14 @@ function normalizeGeneratedPlan(plan = {}) {
 }
 
 const TRAINING_PLAN_CALL_TIMEOUT_MS = 300000;
+const GENERATED_PLAN_RETRY_ATTEMPTS = 2;
+
+function isRecoverableGeneratedPlanError(error) {
+    return (
+        /substitution option \d+ must be an object/i.test(error?.message || "") ||
+        /exercise field "(substitutionOptions|substitutes|alternatives)" must be an array/i.test(error?.message || "")
+    );
+}
 
 async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLAN_GENERATION_MODEL) {
     const functions = getFunctions(db.app, "us-central1");
@@ -42,6 +50,26 @@ async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLA
     });
 }
 
+async function getNormalizedTrainingPlanResponse(messages = [], modelName = OPENAI_PLAN_GENERATION_MODEL) {
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= GENERATED_PLAN_RETRY_ATTEMPTS; attempt += 1) {
+        const plan = await getTrainingCallableResponse(messages, modelName);
+
+        try {
+            return normalizeGeneratedPlan(plan);
+        } catch (error) {
+            lastError = error;
+
+            if (!isRecoverableGeneratedPlanError(error) || attempt === GENERATED_PLAN_RETRY_ATTEMPTS) {
+                throw error;
+            }
+        }
+    }
+
+    throw lastError || new Error("Failed to generate training plan.");
+}
+
 export async function generatePlan(userInput, oldPlan = null) {
     const prompt = buildTrainingPrompt(userInput, oldPlan);
     const messages = [
@@ -51,10 +79,10 @@ export async function generatePlan(userInput, oldPlan = null) {
         }
     ];
 
-    return getTrainingCallableResponse(
+    return getNormalizedTrainingPlanResponse(
         messages,
         OPENAI_PLAN_GENERATION_MODEL
-    ).then((plan) => normalizeGeneratedPlan(plan));
+    );
 }
 
 export async function adjustTrainingDayForMissedSession(adjustmentInput = {}) {

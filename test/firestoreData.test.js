@@ -95,6 +95,52 @@ test("parseGeneratedTrainingPlan returns a Firestore-safe plan shape", () => {
   );
 });
 
+test("parseGeneratedTrainingPlan repairs string substitution options", () => {
+  const normalizedPlan = parseGeneratedTrainingPlan({
+    summary: "Simple base phase.",
+    weeks: [
+      {
+        week: 1,
+        days: [
+          {
+            day: 1,
+            sessionLabel: "Day 1",
+            exercises: [
+              {
+                name: "Back Squat",
+                sets: "3",
+                reps: "5",
+                notes: "Smooth reps.",
+                substitutionOptions: ["Front Squat"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    normalizedPlan.weeks[0].days[0].exercises[0].substitutionOptions,
+    [
+      {
+        name: "Back Squat",
+        sets: "3",
+        reps: "5",
+        notes: "Smooth reps.",
+        id: "back_squat",
+      },
+      {
+        name: "Front Squat",
+        sets: "3",
+        reps: "5",
+        notes: "Smooth reps.",
+        id: "front_squat",
+      },
+    ]
+  );
+});
+
 test("parseGeneratedTrainingPlan preserves the expanded endurance modalities", () => {
   const normalizedPlan = parseGeneratedTrainingPlan({
     summary: "Expanded conditioning phase.",
