@@ -245,6 +245,27 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     return activeLayout.x + activeLayout.unitWidth;
   }
 
+  function getRouteHitTarget(routeName, tabName) {
+    const activeLayout = getPillTarget(tabName);
+    const routeIndex = visibleRoutes.findIndex((route) => route.name === routeName);
+
+    if (!activeLayout || routeIndex < 0) {
+      return null;
+    }
+
+    if (routeIndex === activeLayout.activeIndex) {
+      return {
+        x: activeLayout.x,
+        width: activeLayout.width,
+      };
+    }
+
+    return {
+      x: getRouteIconX(routeName, tabName),
+      width: activeLayout.unitWidth,
+    };
+  }
+
   function setTabBarPosition(tabName) {
     const activeLayout = getPillTarget(tabName);
 
@@ -440,6 +461,7 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
         const options = descriptors[route.key]?.options ?? {};
         const routeFocused = activeTabName === route.name;
         const focused = resolvedActiveTabName === route.name;
+        const hitTarget = getRouteHitTarget(route.name, resolvedActiveTabName);
 
         function onPress() {
           const event = navigation.emit({
@@ -473,7 +495,15 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={styles.tabBarButton}
+            style={[
+              styles.tabBarButton,
+              hitTarget
+                ? {
+                    transform: [{ translateX: hitTarget.x }],
+                    width: hitTarget.width,
+                  }
+                : null,
+            ]}
           />
         );
       })}
@@ -756,10 +786,12 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   tabBarButton: {
-    flex: 1,
-    height: "100%",
+    bottom: 6,
     borderRadius: 120,
+    left: 0,
     overflow: "hidden",
+    position: "absolute",
+    top: 6,
     zIndex: 2,
   },
   tabIcon: {
