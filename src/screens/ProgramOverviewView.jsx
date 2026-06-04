@@ -15,6 +15,9 @@ import Svg, { Circle, Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionView from "./ActiveSessionView.jsx";
 import DayDetailView from "./DayDetailView.jsx";
+import LaunchGateCheckInModal, {
+  LAUNCH_GATE_CHECK_IN_TESTS,
+} from "./LaunchGateCheckInModal.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
 import { getWeekdayNameFromIndex } from "../constants/weekdays.js";
@@ -464,11 +467,20 @@ export default function ProgramOverviewView({
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
   const [selectedTrainingSlotKey, setSelectedTrainingSlotKey] = useState("");
   const [swapEditorVisible, setSwapEditorVisible] = useState(false);
+  const [launchGatePromptKey, setLaunchGatePromptKey] = useState("");
   const overviewScrollRef = useRef(null);
   const weekScheduleScrollRef = useRef(null);
   const lastInitialScrollToTopKeyRef = useRef("");
   const initialScrollToTopPassesRemainingRef = useRef(0);
   const lastWeekScheduleScrollDateRef = useRef("");
+
+  function openLaunchGatePrompt(promptKey) {
+    setLaunchGatePromptKey(promptKey);
+  }
+
+  function closeLaunchGatePrompt() {
+    setLaunchGatePromptKey("");
+  }
 
   useEffect(() => {
     if (
@@ -505,6 +517,11 @@ export default function ProgramOverviewView({
 
     if (completeConfirmVisible) {
       closeCompleteConfirm();
+      return;
+    }
+
+    if (launchGatePromptKey) {
+      closeLaunchGatePrompt();
       return;
     }
 
@@ -1290,6 +1307,17 @@ export default function ProgramOverviewView({
                 </IBMPlexText>
               </TouchableOpacity>
             ) : null}
+            {LAUNCH_GATE_CHECK_IN_TESTS.map((testPrompt) => (
+              <TouchableOpacity
+                key={testPrompt.key}
+                style={styles.testSessionButton}
+                onPress={() => openLaunchGatePrompt(testPrompt.key)}
+              >
+                <IBMPlexText defaultWhite lines={1} style={styles.testSessionButtonText}>
+                  {testPrompt.label}
+                </IBMPlexText>
+              </TouchableOpacity>
+            ))}
             <TouchableOpacity
               style={styles.programDetailsFooterLink}
               onPress={() => setDetailsVisible(true)}
@@ -1387,6 +1415,11 @@ export default function ProgramOverviewView({
             </IBMPlexText>
           ) : null
         }
+      />
+      <LaunchGateCheckInModal
+        promptKey={launchGatePromptKey}
+        visible={Boolean(launchGatePromptKey)}
+        onClose={closeLaunchGatePrompt}
       />
       <WhiteBottomMenu
         visible={pushBackConfirmVisible}

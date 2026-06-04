@@ -282,7 +282,12 @@ function getCombatIntensityValueFromFillRatio(fillRatio) {
   return "intense";
 }
 
-export function ProfileSessionDurationSelector({ options, value, onChange }) {
+export function ProfileSessionDurationSelector({
+  colorScheme = "dark",
+  options,
+  value,
+  onChange,
+}) {
   const scrollRef = useRef(null);
   const isInteractingRef = useRef(false);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -396,17 +401,19 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
                 >
                   <IBMPlexText defaultWhite
                     style={[
-                      styles.durationNumberText,
-                      isSelected ? styles.durationNumberTextSelected : null,
-                    ]}
+                    styles.durationNumberText,
+                    colorScheme === "light" ? styles.durationNumberTextLight : null,
+                    isSelected ? styles.durationNumberTextSelected : null,
+                  ]}
                   >
                     {minuteLabelParts.number}
                   </IBMPlexText>
                   <IBMPlexText defaultWhite
                     style={[
-                      styles.durationUnitText,
-                      isSelected ? styles.durationUnitTextSelected : null,
-                    ]}
+                    styles.durationUnitText,
+                    colorScheme === "light" ? styles.durationUnitTextLight : null,
+                    isSelected ? styles.durationUnitTextSelected : null,
+                  ]}
                   >
                     {minuteLabelParts.unit}
                   </IBMPlexText>
@@ -417,6 +424,7 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
                   adjustsFontSizeToFit
                   style={[
                     styles.durationText,
+                    colorScheme === "light" ? styles.durationTextLight : null,
                     isSelected ? styles.durationTextSelected : null,
                   ]}
                 >
@@ -427,7 +435,13 @@ export function ProfileSessionDurationSelector({ options, value, onChange }) {
           );
         })}
       </ScrollView>
-      <View pointerEvents="none" style={styles.durationSelectedFrame} />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.durationSelectedFrame,
+          colorScheme === "light" ? styles.durationSelectedFrameLight : null,
+        ]}
+      />
     </View>
   );
 }
@@ -491,7 +505,12 @@ function DesiredTrainingPills({ value, onChange, allowDeselect = true }) {
   );
 }
 
-function EquipmentPills({ value, onChange, allowDeselect = true }) {
+function EquipmentPills({
+  allowDeselect = true,
+  colorScheme = "dark",
+  value,
+  onChange,
+}) {
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
 
@@ -519,8 +538,12 @@ function EquipmentPills({ value, onChange, allowDeselect = true }) {
             }}
             style={[
               styles.connectedPill,
+              colorScheme === "light" ? styles.connectedPillLight : null,
               optionPositionStyle,
               isSelected ? styles.connectedPillSelected : null,
+              isSelected && colorScheme === "light" ?
+                styles.connectedPillSelectedLight :
+                null,
             ]}
           >
             <View style={styles.connectedPillImageSlot}>
@@ -528,7 +551,11 @@ function EquipmentPills({ value, onChange, allowDeselect = true }) {
                 source={EQUIPMENT_IMAGES[option.value]}
                 style={[
                   styles.connectedPillImage,
+                  colorScheme === "light" ? styles.connectedPillImageLight : null,
                   isSelected ? styles.connectedPillImageSelected : null,
+                  isSelected && colorScheme === "light" ?
+                    styles.connectedPillImageSelectedLight :
+                    null,
                 ]}
                 resizeMode="contain"
               />
@@ -538,7 +565,11 @@ function EquipmentPills({ value, onChange, allowDeselect = true }) {
               adjustsFontSizeToFit
               style={[
                 styles.connectedPillText,
+                colorScheme === "light" ? styles.connectedPillTextLight : null,
                 isSelected ? styles.connectedPillTextSelected : null,
+                isSelected && colorScheme === "light" ?
+                  styles.connectedPillTextSelectedLight :
+                  null,
               ]}
             >
               {EQUIPMENT_LABELS[option.value] ?? option.label}
@@ -1417,6 +1448,7 @@ export default function ProfileTrainingPreferencesFields({
   onChange,
   onCombatIntensityDragChange,
   allowDeselect = true,
+  colorScheme = "dark",
   endurancePreferencesBare = false,
   endurancePreferencesLabel = "Endurance preferences",
 }) {
@@ -1661,11 +1693,15 @@ export default function ProfileTrainingPreferencesFields({
           ) : null}
 
           {shouldShowPlanField("equipment") ? (
-            <FieldPanel label="Equipment" bare>
+            <FieldPanel
+              label={colorScheme === "light" ? null : "Equipment"}
+              bare
+            >
               <EquipmentPills
                 value={resolvedValues.equipment}
                 onChange={(value) => updateField("equipment", value)}
                 allowDeselect={allowDeselect}
+                colorScheme={colorScheme}
               />
             </FieldPanel>
           ) : null}
@@ -1720,7 +1756,10 @@ export default function ProfileTrainingPreferencesFields({
           ) : null}
 
           {shouldShowPlanField("preferredWeekdays") ? (
-            <FieldPanel label="Preferred weekdays">
+            <FieldPanel
+              bare={colorScheme === "light"}
+              label={colorScheme === "light" ? null : "Preferred weekdays"}
+            >
               <View style={styles.weekdayButtonRow}>
                 {WEEKDAY_CHIP_OPTIONS.map((option) => {
                   const selectedIndex = resolvedValues.preferredWeekdays.findIndex(
@@ -1751,24 +1790,44 @@ export default function ProfileTrainingPreferencesFields({
                         }
                         style={({ pressed }) => [
                           styles.weekdayButton,
+                          colorScheme === "light" ? styles.weekdayButtonLight : null,
                           isSelected ? styles.weekdayButtonSelected : null,
+                          isSelected && colorScheme === "light" ?
+                            styles.weekdayButtonSelectedLight :
+                            null,
                           !hasMenuOptions ? styles.weekdayButtonDisabled : null,
                           pressed ? styles.weekdayButtonPressed : null,
                         ]}
                       >
                         <IBMPlexText
+                          adjustsFontSizeToFit={colorScheme === "light"}
+                          minimumFontScale={colorScheme === "light" ? 0.7 : undefined}
+                          numberOfLines={colorScheme === "light" ? 1 : undefined}
                           style={[
                             styles.weekdayAssignmentText,
+                            colorScheme === "light" ?
+                              styles.weekdayAssignmentTextLight :
+                              null,
                             isSelected ? styles.weekdayAssignmentTextSelected : null,
+                            isSelected && colorScheme === "light" ?
+                              styles.weekdayAssignmentTextSelectedLight :
+                              null,
                             !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
                           ]}
                         >
                           {isSelected ? `Day ${selectedIndex + 1}` : " "}
                         </IBMPlexText>
                         <IBMPlexText
+                          adjustsFontSizeToFit={colorScheme === "light"}
+                          minimumFontScale={colorScheme === "light" ? 0.7 : undefined}
+                          numberOfLines={colorScheme === "light" ? 1 : undefined}
                           style={[
                             styles.weekdayButtonText,
+                            colorScheme === "light" ? styles.weekdayButtonTextLight : null,
                             isSelected ? styles.weekdayButtonTextSelected : null,
+                            isSelected && colorScheme === "light" ?
+                              styles.weekdayButtonTextSelectedLight :
+                              null,
                             !hasMenuOptions ? styles.weekdayButtonTextDisabled : null,
                           ]}
                         >
@@ -1777,7 +1836,12 @@ export default function ProfileTrainingPreferencesFields({
                       </Pressable>
 
                       {isMenuOpen ? (
-                        <View style={styles.weekdayDropdown}>
+                        <View
+                          style={[
+                            styles.weekdayDropdown,
+                            colorScheme === "light" ? styles.weekdayDropdownLight : null,
+                          ]}
+                        >
                           {assignableDayIndexes.map((dayIndex) => {
                             const isCurrentAssignment = selectedIndex === dayIndex;
 
@@ -1789,17 +1853,32 @@ export default function ProfileTrainingPreferencesFields({
                                 }
                                 style={({ pressed }) => [
                                   styles.weekdayDropdownItem,
+                                  colorScheme === "light" ?
+                                    styles.weekdayDropdownItemLight :
+                                    null,
                                   isCurrentAssignment
                                     ? styles.weekdayDropdownItemSelected
+                                    : null,
+                                  isCurrentAssignment && colorScheme === "light"
+                                    ? styles.weekdayDropdownItemSelectedLight
                                     : null,
                                   pressed ? styles.weekdayDropdownItemPressed : null,
                                 ]}
                               >
                                 <IBMPlexText
+                                  adjustsFontSizeToFit={colorScheme === "light"}
+                                  minimumFontScale={colorScheme === "light" ? 0.74 : undefined}
+                                  numberOfLines={colorScheme === "light" ? 1 : undefined}
                                   style={[
                                     styles.weekdayDropdownText,
+                                    colorScheme === "light" ?
+                                      styles.weekdayDropdownTextLight :
+                                      null,
                                     isCurrentAssignment
                                       ? styles.weekdayDropdownTextSelected
+                                      : null,
+                                    isCurrentAssignment && colorScheme === "light"
+                                      ? styles.weekdayDropdownTextSelectedLight
                                       : null,
                                   ]}
                                 >
@@ -1814,13 +1893,22 @@ export default function ProfileTrainingPreferencesFields({
                               style={({ pressed }) => [
                                 styles.weekdayDropdownItem,
                                 styles.weekdayDropdownClearItem,
+                                colorScheme === "light" ?
+                                  styles.weekdayDropdownClearItemLight :
+                                  null,
                                 pressed ? styles.weekdayDropdownItemPressed : null,
                               ]}
                             >
                               <IBMPlexText
+                                adjustsFontSizeToFit={colorScheme === "light"}
+                                minimumFontScale={colorScheme === "light" ? 0.74 : undefined}
+                                numberOfLines={colorScheme === "light" ? 1 : undefined}
                                 style={[
                                   styles.weekdayDropdownText,
                                   styles.weekdayDropdownClearText,
+                                  colorScheme === "light" ?
+                                    styles.weekdayDropdownClearTextLight :
+                                    null,
                                 ]}
                               >
                                 Clear
@@ -2069,9 +2157,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     width: 100,
   },
+  connectedPillLight: {
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+  },
   connectedPillSelected: {
     borderColor: "#C9B259",
     borderWidth: 0.5,
+  },
+  connectedPillSelectedLight: {
+    backgroundColor: "#141414",
+    borderColor: "#141414",
+    borderWidth: 2,
   },
   connectedPillLeft: {
     borderRadius: 24,
@@ -2093,7 +2190,13 @@ const styles = StyleSheet.create({
     tintColor: "#8E8E8E",
     width: 34,
   },
+  connectedPillImageLight: {
+    tintColor: "#141414",
+  },
   connectedPillImageSelected: {
+    tintColor: "#ffffff",
+  },
+  connectedPillImageSelectedLight: {
     tintColor: "#ffffff",
   },
   connectedPillText: {
@@ -2102,7 +2205,13 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textAlign: "center",
   },
+  connectedPillTextLight: {
+    color: "#141414",
+  },
   connectedPillTextSelected: {
+    color: "#ffffff",
+  },
+  connectedPillTextSelectedLight: {
     color: "#ffffff",
   },
   phasePills: {
@@ -2341,6 +2450,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     textAlign: "center",
   },
+  durationTextLight: {
+    color: "#141414",
+  },
   durationTextSelected: {
     fontSize: 20,
     opacity: 1,
@@ -2357,12 +2469,18 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 24,
   },
+  durationNumberTextLight: {
+    color: "#141414",
+  },
   durationNumberTextSelected: {
     fontSize: 28,
   },
   durationUnitText: {
     color: "#C9B259",
     fontSize: 12,
+  },
+  durationUnitTextLight: {
+    color: "#4f4f4f",
   },
   durationUnitTextSelected: {
     fontSize: 14,
@@ -2377,6 +2495,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     width: SESSION_DURATION_ITEM_WIDTH,
+  },
+  durationSelectedFrameLight: {
+    borderColor: "#141414",
   },
   deloadVisualCompact: {
     alignItems: "center",
@@ -2498,9 +2619,16 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     width: "100%",
   },
+  weekdayButtonLight: {
+    borderColor: "transparent",
+  },
   weekdayButtonSelected: {
     backgroundColor: "#ffffff",
     borderColor: "#ffffff",
+  },
+  weekdayButtonSelectedLight: {
+    backgroundColor: "#141414",
+    borderColor: "#141414",
   },
   weekdayButtonDisabled: {
     opacity: 1,
@@ -2512,8 +2640,17 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14, fontWeight: "700",
   },
+  weekdayButtonTextLight: {
+    color: "#141414",
+    flexShrink: 1,
+    maxWidth: "100%",
+    textAlign: "center",
+  },
   weekdayButtonTextSelected: {
     color: "#000000",
+  },
+  weekdayButtonTextSelectedLight: {
+    color: "#ffffff",
   },
   weekdayButtonTextDisabled: {
     opacity: 0.2,
@@ -2525,8 +2662,16 @@ const styles = StyleSheet.create({
     minHeight: 13,
     textAlign: "center",
   },
+  weekdayAssignmentTextLight: {
+    color: "#141414",
+    flexShrink: 1,
+    maxWidth: "100%",
+  },
   weekdayAssignmentTextSelected: {
     color: "#000000",
+  },
+  weekdayAssignmentTextSelectedLight: {
+    color: "#ffffff",
   },
   weekdayDropdown: {
     backgroundColor: "#141414",
@@ -2541,6 +2686,10 @@ const styles = StyleSheet.create({
     bottom: 58,
     zIndex: 20,
   },
+  weekdayDropdownLight: {
+    backgroundColor: "#ffffff",
+    borderColor: "#141414",
+  },
   weekdayDropdownItem: {
     alignItems: "center",
     borderColor: "transparent",
@@ -2549,9 +2698,16 @@ const styles = StyleSheet.create({
     minHeight: 35,
     paddingHorizontal: 9,
   },
+  weekdayDropdownItemLight: {
+    borderColor: "#e3e3e3",
+  },
   weekdayDropdownItemSelected: {
     backgroundColor: "#ffffff",
     borderColor: "#ffffff",
+  },
+  weekdayDropdownItemSelectedLight: {
+    backgroundColor: "#141414",
+    borderColor: "#141414",
   },
   weekdayDropdownItemPressed: {
     opacity: 0.78,
@@ -2560,14 +2716,29 @@ const styles = StyleSheet.create({
     borderColor: "#1E1E1E",
     borderTopWidth: 2,
   },
+  weekdayDropdownClearItemLight: {
+    borderColor: "#d7d7d7",
+  },
   weekdayDropdownText: {
     color: "#ffffff",
     fontSize: 14, fontWeight: "700",
   },
+  weekdayDropdownTextLight: {
+    color: "#141414",
+    flexShrink: 1,
+    maxWidth: "100%",
+    textAlign: "center",
+  },
   weekdayDropdownTextSelected: {
     color: "#000000",
   },
+  weekdayDropdownTextSelectedLight: {
+    color: "#ffffff",
+  },
   weekdayDropdownClearText: {
     color: "#8E8E8E",
+  },
+  weekdayDropdownClearTextLight: {
+    color: "#6f6f6f",
   },
 });

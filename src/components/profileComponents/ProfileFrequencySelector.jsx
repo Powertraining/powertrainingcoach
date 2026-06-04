@@ -9,7 +9,11 @@ const MAX_SESSIONS = 5;
 const THUMB_SIZE = 18;
 const SLIDER_TOUCH_HEIGHT = 38;
 
-export default function ProfileFrequencySelector({ value = 3, onChange }) {
+export default function ProfileFrequencySelector({
+  colorScheme = "dark",
+  value = 3,
+  onChange,
+}) {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [dragValue, setDragValue] = useState(value);
   const activeTouchIdRef = useRef(null);
@@ -123,7 +127,14 @@ export default function ProfileFrequencySelector({ value = 3, onChange }) {
 
           return (
             <View key={sessions} style={styles.numberSlot}>
-              <IBMPlexText style={[styles.number, isActive ? styles.numberActive : null]}>
+              <IBMPlexText
+                style={[
+                  styles.number,
+                  colorScheme === "light" ? styles.numberLight : null,
+                  isActive ? styles.numberActive : null,
+                  isActive && colorScheme === "light" ? styles.numberActiveLight : null,
+                ]}
+              >
                 {sessions}
               </IBMPlexText>
             </View>
@@ -146,21 +157,48 @@ export default function ProfileFrequencySelector({ value = 3, onChange }) {
           {...sliderPanResponder.panHandlers}
         />
 
-        <View style={styles.sliderTrack}>
+        <View
+          style={[
+            styles.sliderTrack,
+            colorScheme === "light" ? styles.sliderTrackLight : null,
+          ]}
+        >
           <View
             style={[
               styles.sliderTrackFill,
+              colorScheme === "light" ? styles.sliderTrackFillLight : null,
               { width: `${sliderProgress * 100}%` },
             ]}
           />
         </View>
 
-        <View pointerEvents="none" style={[styles.sliderThumb, { left: thumbLeft }]} />
+        <View
+          pointerEvents="none"
+          style={[
+            styles.sliderThumb,
+            colorScheme === "light" ? styles.sliderThumbLight : null,
+            { left: thumbLeft },
+          ]}
+        />
       </View>
 
       <View style={styles.sliderLabels}>
-        <IBMPlexText style={styles.sliderLabel}>Full body</IBMPlexText>
-        <IBMPlexText style={styles.sliderLabel}>Precise</IBMPlexText>
+        <IBMPlexText
+          style={[
+            styles.sliderLabel,
+            colorScheme === "light" ? styles.sliderLabelLight : null,
+          ]}
+        >
+          Full body
+        </IBMPlexText>
+        <IBMPlexText
+          style={[
+            styles.sliderLabel,
+            colorScheme === "light" ? styles.sliderLabelLight : null,
+          ]}
+        >
+          Precise
+        </IBMPlexText>
       </View>
     </View>
   );
@@ -195,6 +233,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 22,
   },
+  numberLight: {
+    color: "#8a8a8a",
+  },
+  numberActiveLight: {
+    color: "#141414",
+  },
   sliderShell: {
     height: SLIDER_TOUCH_HEIGHT,
     position: "relative",
@@ -213,10 +257,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#2A2A2A",
     overflow: "hidden",
   },
+  sliderTrackLight: {
+    backgroundColor: "#e3e3e3",
+  },
   sliderTrackFill: {
     height: "100%",
     borderRadius: 999,
     backgroundColor: "#ffffff",
+  },
+  sliderTrackFillLight: {
+    backgroundColor: "#141414",
   },
   sliderThumb: {
     position: "absolute",
@@ -227,6 +277,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     zIndex: 1,
   },
+  sliderThumbLight: {
+    backgroundColor: "#141414",
+  },
   sliderLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -235,5 +288,8 @@ const styles = StyleSheet.create({
   sliderLabel: {
     color: "#585858",
     fontSize: 11, fontWeight: "600",
+  },
+  sliderLabelLight: {
+    color: "#6f6f6f",
   },
 });
