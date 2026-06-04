@@ -13,30 +13,8 @@ import {
   View,
 } from "react-native";
 
-import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-import { SESSION_DURATION_OPTIONS } from "../constants/trainingPreferences.js";
-import ProfileTrainingPreferencesFields, {
-  ProfileSessionDurationSelector,
-} from "./ProfileTrainingPreferencesFields.jsx";
-
-const SPORT_LOAD_OPTIONS = Object.freeze([
-  { label: "Not very", value: "light" },
-  { label: "Balanced", value: "moderate" },
-  { label: "Very", value: "intense" },
-]);
-
-const PAIN_OPTIONS = Object.freeze([
-  { label: "None", value: "none" },
-  { label: "Mild", value: "mild" },
-  { label: "Affects training", value: "affects_training" },
-]);
-
-const TREND_OPTIONS = Object.freeze([
-  { label: "Bad", value: "regressing" },
-  { label: "Okay", value: "flat" },
-  { label: "Great", value: "improving" },
-]);
+import { TRAINING_CHECK_IN_FIELD_OPTIONS } from "../services/utils/trainingCheckIn.js";
 
 const CHOICE_BASE_HEIGHT = 82;
 const CHOICE_MEDIUM_HEIGHT = 103;
@@ -58,201 +36,53 @@ const STACKED_CHOICE_HEIGHT = Math.round(CHOICE_BASE_HEIGHT * 0.8);
 const STACKED_CHOICE_SELECTED_HEIGHT = STACKED_CHOICE_HEIGHT * 2;
 const STACKED_CHOICE_REDUCED_HEIGHT = Math.round(STACKED_CHOICE_HEIGHT * 0.5);
 
+const SUBJECTIVE_CHECK_IN_QUESTIONS = Object.freeze([
+  {
+    key: "progress",
+    label: "Progress",
+    type: "choice",
+    options: TRAINING_CHECK_IN_FIELD_OPTIONS.progress,
+  },
+  {
+    key: "fatigue",
+    label: "Effort / fatigue",
+    type: "choice",
+    options: TRAINING_CHECK_IN_FIELD_OPTIONS.fatigue,
+  },
+  {
+    key: "enjoyment",
+    label: "Enjoyment / motivation",
+    type: "choice",
+    options: TRAINING_CHECK_IN_FIELD_OPTIONS.enjoyment,
+  },
+  {
+    key: "pain",
+    label: "Pain / irritation",
+    layout: "stacked",
+    type: "choice",
+    options: TRAINING_CHECK_IN_FIELD_OPTIONS.pain,
+  },
+]);
+
 const LAUNCH_GATE_PROMPTS = Object.freeze({
   weekly: {
     title: "Weekly check-in",
-    questions: Object.freeze([
-      {
-        key: "progress",
-        label: "How do you feel like you are progressing?",
-        type: "choice",
-        options: TREND_OPTIONS,
-      },
-      {
-        key: "fatigue",
-        label: "How recovered do you feel?",
-        type: "choice",
-        options: Object.freeze([
-          { label: "Not very", value: "beat_up" },
-          { label: "Okay", value: "normal" },
-          { label: "Very", value: "fresh" },
-        ]),
-      },
-      {
-        key: "sportLoad",
-        label: "How difficult is the current combat-sport load?",
-        type: "choice",
-        options: SPORT_LOAD_OPTIONS,
-      },
-      {
-        key: "pain",
-        label: "Any pain or irritation affecting training?",
-        layout: "stacked",
-        type: "choice",
-        options: PAIN_OPTIONS,
-      },
-    ]),
+    questions: SUBJECTIVE_CHECK_IN_QUESTIONS,
   },
   week4: {
-    title: "Week 4 check-in",
-    questions: Object.freeze([
-      {
-        key: "recovery",
-        label: "How is recovery after the first block?",
-        type: "choice",
-        initialChoiceHeight: CHOICE_MEDIUM_HEIGHT,
-        options: Object.freeze([
-          { label: "Poor", value: "poor" },
-          { label: "Okay", value: "okay" },
-          { label: "Good", value: "good" },
-        ]),
-      },
-      {
-        key: "goal",
-        label: "What should the next block emphasize?",
-        layout: "stacked",
-        type: "choice",
-        options: Object.freeze([
-          { label: "Strength/power", value: "strength_power" },
-          { label: "Endurance", value: "endurance" },
-          { label: "Both", value: "both" },
-        ]),
-      },
-      {
-        key: "sportLoad",
-        label: "How difficult is the current combat-sport load?",
-        type: "choice",
-        options: SPORT_LOAD_OPTIONS,
-      },
-      {
-        key: "pain",
-        label: "Pain or injury concern",
-        layout: "stacked",
-        type: "choice",
-        options: PAIN_OPTIONS,
-      },
-      {
-        key: "performanceTrend",
-        label: "How do you feel like your performances are improving?",
-        type: "choice",
-        options: TREND_OPTIONS,
-      },
-      {
-        key: "nextStep",
-        label: "What should the app do next?",
-        layout: "stacked",
-        type: "choice",
-        options: Object.freeze([
-          { label: "Keep course", value: "keep_course" },
-          { label: "Reduce volume", value: "reduce_volume" },
-          { label: "Increase emphasis", value: "increase_emphasis" },
-        ]),
-      },
-    ]),
+    title: "End-of-block check-in",
+    questions: SUBJECTIVE_CHECK_IN_QUESTIONS,
   },
   week8: {
-    title: "Week 8 check-in",
-    questions: Object.freeze([
-      {
-        key: "campDirection",
-        label: "What should the next block do?",
-        layout: "stacked",
-        type: "choice",
-        options: Object.freeze([
-          { label: "Continue build", value: "continue" },
-          { label: "Deload then resume", value: "deload_resume" },
-          { label: "Transition toward peaking", value: "peak" },
-        ]),
-      },
-      {
-        key: "specificity",
-        label: "Should general work reduce while specificity increases?",
-        type: "choice",
-        options: Object.freeze([
-          { label: "Yes", value: "yes" },
-          { label: "No", value: "no" },
-        ]),
-      },
-      {
-        key: "sportLoad",
-        label: "How difficult is the current combat-sport load?",
-        type: "choice",
-        options: SPORT_LOAD_OPTIONS,
-      },
-      {
-        key: "peakingNotes",
-        label: "Anything the app should protect going into the next block?",
-        type: "text",
-        placeholder: "e.g. hard sparring on Fridays, sore knee, speed feels flat",
-      },
-    ]),
-  },
-  week12: {
-    title: "Week 12 re-input",
-    questions: Object.freeze([
-      {
-        key: "updatedGoals",
-        label: "Updated goals",
-        type: "text",
-        emptyButtonLabel: "Keep the same",
-        optional: true,
-        placeholder: "e.g. power, grip endurance, aerobic base, fight camp",
-      },
-      {
-        key: "daysPerWeek",
-        label: "Training Frequency",
-        type: "frequency",
-        defaultValue: 3,
-      },
-      {
-        key: "preferredWeekdays",
-        label: "Preferred Weekdays",
-        type: "preferredWeekdays",
-        defaultValue: [],
-      },
-      {
-        key: "sessionDuration",
-        label: "Session Duration",
-        type: "sessionDuration",
-        defaultValue: "60_min",
-      },
-      {
-        key: "sportLoad",
-        label: "How difficult is the current combat-sport load?",
-        type: "choice",
-        options: SPORT_LOAD_OPTIONS,
-      },
-      {
-        key: "equipment",
-        label: "Available equipment",
-        type: "equipment",
-        defaultValue: "full_gym",
-      },
-      {
-        key: "painInjury",
-        label: "Pain, injury, or movement restrictions",
-        type: "text",
-        emptyButtonLabel: "No injury",
-        optional: true,
-        placeholder: "e.g. shoulder pain on pressing, avoid sprinting",
-      },
-      {
-        key: "eventInfo",
-        label: "Event or competition info",
-        type: "text",
-        emptyButtonLabel: "No event",
-        optional: true,
-        placeholder: "e.g. fight in 8 weeks, amateur boxing, 3x3 rounds",
-      },
-    ]),
+    title: "End-of-block check-in",
+    questions: SUBJECTIVE_CHECK_IN_QUESTIONS,
   },
 });
 
 export const LAUNCH_GATE_CHECK_IN_TESTS = Object.freeze([
   { key: "weekly", label: "Test weekly check-in" },
-  { key: "week4", label: "Test Week 4 check-in" },
-  { key: "week8", label: "Test Week 8 check-in" },
-  { key: "week12", label: "Test Week 12 re-input" },
+  { key: "week4", label: "Test end-of-block check-in" },
+  { key: "week8", label: "Test end-of-block check-in" },
 ]);
 
 function createDefaultAnswers(prompt = {}) {
@@ -315,13 +145,7 @@ function isManualAdvanceQuestion(question = {}) {
     return false;
   }
 
-  return [
-    "frequency",
-    "preferredWeekdays",
-    "sessionDuration",
-    "equipment",
-    "text",
-  ].includes(question.type);
+  return question.type === "text";
 }
 
 function hasManualAnswer(question = {}, answer) {
@@ -346,7 +170,6 @@ function hasManualAnswer(question = {}, answer) {
 
 function LaunchGateQuestionForm({
   answer = "",
-  answers = {},
   animationProgress,
   answersEntranceStyle,
   disabled = false,
@@ -429,54 +252,6 @@ function LaunchGateQuestionForm({
                 </Pressable>
               );
             })}
-          </Animated.View>
-        ) : question.type === "frequency" ? (
-          <Animated.View style={[styles.profileControlPanel, answersEntranceStyle]}>
-            <ProfileFrequencySelector
-              colorScheme="light"
-              value={Number.isFinite(answer) ? answer : 3}
-              onChange={onChange}
-            />
-          </Animated.View>
-        ) : question.type === "preferredWeekdays" ? (
-          <Animated.View style={[styles.profileWeekdayControl, answersEntranceStyle]}>
-            <ProfileTrainingPreferencesFields
-              sections="plan"
-              visiblePlanFields={["preferredWeekdays"]}
-              values={{
-                daysPerWeek: Number.isFinite(answers.daysPerWeek) ?
-                  answers.daysPerWeek :
-                  3,
-                preferredWeekdays: Array.isArray(answer) ? answer : [],
-              }}
-              onChange={(values) => onChange?.(values?.preferredWeekdays || [])}
-              allowDeselect={false}
-              colorScheme="light"
-            />
-          </Animated.View>
-        ) : question.type === "sessionDuration" ? (
-          <Animated.View style={[styles.profileControlPanel, answersEntranceStyle]}>
-            <ProfileSessionDurationSelector
-              colorScheme="light"
-              options={SESSION_DURATION_OPTIONS}
-              value={typeof answer === "string" && answer ? answer : "60_min"}
-              onChange={onChange}
-            />
-          </Animated.View>
-        ) : question.type === "equipment" ? (
-          <Animated.View style={[styles.profileEquipmentControl, answersEntranceStyle]}>
-            <ProfileTrainingPreferencesFields
-              sections="plan"
-              visiblePlanFields={["equipment"]}
-              values={{
-                equipment: typeof answer === "string" && answer ?
-                  answer :
-                  "full_gym",
-              }}
-              onChange={(values) => onChange?.(values?.equipment || "")}
-              allowDeselect={false}
-              colorScheme="light"
-            />
           </Animated.View>
         ) : (
           <Animated.View style={answersEntranceStyle}>
@@ -922,7 +697,6 @@ export default function LaunchGateCheckInModal({
           ) : (
             <LaunchGateQuestionForm
               answer={activeAnswer}
-              answers={answers}
               animationProgress={choiceAnimationProgress}
               answersEntranceStyle={answersEntranceStyle}
               disabled={Boolean(selectedChoiceValue)}
@@ -1128,16 +902,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 22,
     textAlign: "center",
-  },
-  profileControlPanel: {
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-  },
-  profileWeekdayControl: {
-    marginTop: -4,
-  },
-  profileEquipmentControl: {
-    marginTop: -2,
   },
   question: {
     gap: 20,
