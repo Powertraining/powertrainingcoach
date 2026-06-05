@@ -36,16 +36,24 @@ const STACKED_CHOICE_HEIGHT = Math.round(CHOICE_BASE_HEIGHT * 0.8);
 const STACKED_CHOICE_SELECTED_HEIGHT = STACKED_CHOICE_HEIGHT * 2;
 const STACKED_CHOICE_REDUCED_HEIGHT = Math.round(STACKED_CHOICE_HEIGHT * 0.5);
 
+function getVisibleChoiceOptions(question = {}) {
+  return (question.options || []).filter((option) => option?.value !== "not_sure");
+}
+
+function shouldUseStackedChoiceLayout(question = {}) {
+  return question.layout === "stacked" && getVisibleChoiceOptions(question).length === 3;
+}
+
 const SUBJECTIVE_CHECK_IN_QUESTIONS = Object.freeze([
   {
     key: "progress",
-    label: "Progress",
+    label: "How do you feel like your performances are improving?",
     type: "choice",
     options: TRAINING_CHECK_IN_FIELD_OPTIONS.progress,
   },
   {
     key: "fatigue",
-    label: "Effort / fatigue",
+    label: "How recovered do you feel?",
     type: "choice",
     options: TRAINING_CHECK_IN_FIELD_OPTIONS.fatigue,
   },
@@ -95,7 +103,7 @@ function createDefaultAnswers(prompt = {}) {
 }
 
 function getChoiceBaseHeight(optionIndex = 0, question = {}) {
-  if (question.layout === "stacked") {
+  if (shouldUseStackedChoiceLayout(question)) {
     return STACKED_CHOICE_HEIGHT;
   }
 
@@ -115,7 +123,7 @@ function getChoiceBaseHeight(optionIndex = 0, question = {}) {
 }
 
 function shouldUseBadTextOffset(optionIndex = 0, question = {}) {
-  if (question.layout === "stacked") {
+  if (shouldUseStackedChoiceLayout(question)) {
     return false;
   }
 
@@ -127,7 +135,7 @@ function shouldUseBadTextOffset(optionIndex = 0, question = {}) {
 }
 
 function getSelectedChoiceTextTopOffset(optionIndex = 0, question = {}) {
-  if (question.layout === "stacked") {
+  if (shouldUseStackedChoiceLayout(question)) {
     return null;
   }
 
@@ -182,7 +190,8 @@ function LaunchGateQuestionForm({
     return null;
   }
 
-  const isStackedChoice = question.layout === "stacked";
+  const isStackedChoice = shouldUseStackedChoiceLayout(question);
+  const visibleOptions = getVisibleChoiceOptions(question);
 
   return (
     <View style={styles.promptContent}>
@@ -198,7 +207,7 @@ function LaunchGateQuestionForm({
               answersEntranceStyle,
             ]}
           >
-            {(question.options || []).map((option, optionIndex) => {
+            {visibleOptions.map((option, optionIndex) => {
               const selected = selectedChoiceValue === option.value;
               const baseHeight = getChoiceBaseHeight(optionIndex, question);
               const selectedTextTopOffset = selected ?
@@ -226,6 +235,7 @@ function LaunchGateQuestionForm({
                   onPress={() => onChange?.(option.value)}
                   style={[
                     styles.choicePressable,
+                    !isStackedChoice ? styles.choicePressableWrapped : null,
                     isStackedChoice ? styles.choicePressableStacked : null,
                   ]}
                 >
@@ -914,12 +924,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   choiceRow: {
+    alignContent: "center",
     alignItems: "flex-end",
+    alignSelf: "stretch",
     flexDirection: "row",
-    flexWrap: "nowrap",
+    flexWrap: "wrap",
     gap: 8,
-    height: CHOICE_SELECTED_HEIGHT,
     justifyContent: "center",
+    minHeight: CHOICE_SELECTED_HEIGHT,
   },
   choiceRowStacked: {
     alignItems: "stretch",
@@ -930,6 +942,10 @@ const styles = StyleSheet.create({
   choicePressable: {
     alignItems: "center",
     justifyContent: "flex-end",
+  },
+  choicePressableWrapped: {
+    minWidth: 82,
+    width: "30%",
   },
   choicePressableStacked: {
     position: "relative",

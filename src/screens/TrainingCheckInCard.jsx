@@ -10,11 +10,15 @@ import {
 } from "../services/utils/trainingCheckIn.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const DEFAULT_ANSWERS = Object.freeze({
-  progress: "not_sure",
+  progress: "flat",
   fatigue: "normal",
   enjoyment: "ok",
   pain: "none",
 });
+
+function getVisibleOptions(options = []) {
+  return options.filter((option) => option?.value !== "not_sure");
+}
 
 function ChoiceGroup({ label, value, options, onChange }) {
   return (
@@ -93,14 +97,14 @@ export default function TrainingCheckInCard({
       ) : null}
 
       <ChoiceGroup
-        label="Progress"
+        label="How do you feel like your performances are improving?"
         value={answers.progress}
-        options={TRAINING_CHECK_IN_FIELD_OPTIONS.progress}
+        options={getVisibleOptions(TRAINING_CHECK_IN_FIELD_OPTIONS.progress)}
         onChange={(value) => setAnswers((current) => ({ ...current, progress: value }))}
       />
 
       <ChoiceGroup
-        label="Effort / fatigue"
+        label="How recovered do you feel?"
         value={answers.fatigue}
         options={TRAINING_CHECK_IN_FIELD_OPTIONS.fatigue}
         onChange={(value) => setAnswers((current) => ({ ...current, fatigue: value }))}
