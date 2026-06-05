@@ -219,6 +219,12 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
 
     model.updateSportLoadAfterWeekCompletion?.(selectedDay.week);
 
+    if (model.getPendingTrainingCheckIn?.()) {
+      model.setForumTabBarHidden?.(false);
+      router.replace("/(tabs)/overview");
+      return;
+    }
+
     const remaining = Math.max(totalDays - currentCompleted.size, 0);
 
     if (remaining <= 0 && totalDays > 0) {

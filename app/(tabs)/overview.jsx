@@ -362,6 +362,11 @@ const OverviewScreen = observer(function OverviewScreen() {
 
     model.updateSportLoadAfterWeekCompletion?.(selectedDay.week);
 
+    if (model.getPendingTrainingCheckIn?.()) {
+      setSelectedDayPointer(null);
+      return;
+    }
+
     const remaining = Math.max(totalDays - currentCompleted.size, 0);
 
     if (remaining <= 0 && totalDays > 0) {

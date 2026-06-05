@@ -193,6 +193,11 @@ const DayDetailScreen = observer(function DayDetailScreen() {
 
     model.updateSportLoadAfterWeekCompletion?.(selectedDay.week);
 
+    if (model.getPendingTrainingCheckIn?.()) {
+      router.replace("/(tabs)/overview");
+      return;
+    }
+
     const remaining = Math.max(totalDays - currentCompleted.size, 0);
     console.log("Days remaining in batch:", remaining);
 
