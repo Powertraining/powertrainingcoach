@@ -219,7 +219,7 @@ function buildPlanSchemaInstructions(userInput = {}) {
   - "regions": one or more of "upper_body", "lower_body", "full_body", "core"
   - "qualities": one or more of "force", "power", "fatigue", "speed", "hypertrophy", "recovery"
   - "stressLevel": "low", "moderate", or "high"
-- Every exercise must include "name", "sets", "reps", and "notes".
+- Every exercise must include "name", "sets", "reps", and "notes", except exercises with an "endurancePrescription": those must include "name" and "notes" but must omit "sets" and "reps" — all prescription details belong in "endurancePrescription".
 - Add "substitutionOptions" only when there are useful comparable replacements. Omit it when no substitute is needed; the app will create the default option array.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
 - If "performanceTarget" is included, its "strategy" must be exactly one of "e1rm", "best_set", or "fixed_rpe".
@@ -342,8 +342,6 @@ function buildPlanJsonExample(userInput = {}) {
                 ? `,
             {
               "name": "Assault Bike Intervals",
-              "sets": "5",
-              "reps": "2 min hard / 2 min easy",
               "notes": "Dedicated endurance work with low impact.",
               "endurancePrescription": {
                 "modality": "assault_bike",

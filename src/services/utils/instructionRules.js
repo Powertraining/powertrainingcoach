@@ -120,7 +120,8 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Keep ballistic work explosive, high quality, and well rested.
 - Medicine-ball throw reps should be pragmatic rather than ultra-low: usually 3-10 reps depending on the throw.
 - Chest passes can use the higher end, while rotational punches or hip throws usually sit around 3-5 per side.
-- Rarely prescribe fewer than 3 reps for a medicine-ball throw variation.`,
+- Rarely prescribe fewer than 3 reps for a medicine-ball throw variation.
+- Include prescription about rebound - low-, moderate- or non-bouncing`,
   superset_complexes: `# Superset and complex rules
 - When weekly S&C frequency is low or session time is short, compress the session with low-interference supersets.
 - Favor pairings such as push plus pull, lower-body strength plus upper accessory, and core plus grip or neck.
