@@ -231,8 +231,9 @@ ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, incl
 - For heavy bag endurance exercises, also include "heavyBagPrescription" with "target", "roundLength", "rest", "rounds" or "bouts", "sessionType", "technicalFocus", and "overloadConstraint" when fight-camp simulation is used.
 - For sprinting exercises, also include "sprintPrescription" with "target", "distanceMeters", "repsPerSet", "sets", "restBetweenReps", "restBetweenSets", and "stopRule".` : ""}
 ${includePercentageSchema ? `- On percentage-based primary lifts, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets".
-- Add "strengthAssessment" only when the lift includes a planned RPE-based 1RM estimation top set, 2-5RM test, or true 1RM event the app should log for future percentage updates.
-- If "strengthAssessment" is included, its "method" must be exactly one of "rpe_based_1rm", "multi_rm", or "true_1rm".` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
+- Add "strengthAssessment" only on primary lifts in a planned test session (multi_rm or true_1rm). Never use "rpe_based_1rm" — it is archived.
+- If "strengthAssessment" is included, its "method" must be exactly one of "multi_rm" or "true_1rm".
+${blockStartWeek === 1 ? `- Week 1 is the assessment week: use it to test each primary percentage lift. Spread tests across the week's sessions (one lift per session). Set each test session's sessionLabel to clearly name the lift being assessed (e.g. "Assessment – Back Squat"). The plan "summary" must state that Week 1 is for establishing training maxes and that the main program starts in Week 2.` : ""}` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
 - Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based; never add "percentagePrescription" or "strengthAssessment" to those exercises.
 - When a field is not needed, omit it instead of filling it with placeholders.
@@ -245,6 +246,8 @@ function buildUserVisibleTextInstructions() {
 - Treat "summary", "phaseOverview.focus", exercise "notes", substitution "notes", "performanceTarget.prompt", "strengthAssessment.prompt", and adjustment summaries as text the athlete may read in the app.
 - Only include information that is useful for the athlete's strength-and-conditioning experience level and stated capabilities. Beginners should see simple cues and safe priorities; intermediates can see practical training intent; advanced athletes can see precise loading or progression details when they are relevant.
 - Use natural, human-like coaching language in user-visible text: concise sentences, no robotic labels, no internal reasoning, no template fragments, and no unexplained jargon or abbreviations.
+- Exercise "notes" must contain only information directly relevant to that specific exercise: technique cues, intent, safety notes, or loading guidance that applies to that lift or drill. Do not include plan-level context, session summaries, or information about other exercises.
+- Only describe RPE or include RPE guidance in exercise "notes" when RPE is the actual loading method for that exercise. Do not mention RPE in notes for percentage-based sets, assessment sets (strengthAssessment), or endurance exercises that use their own prescription format.
 `;
 }
 
@@ -327,10 +330,11 @@ function buildPlanJsonExample(userInput = {}) {
                 ]
               },
               "strengthAssessment": {
-                "method": "rpe_based_1rm",
+                "method": "multi_rm",
                 "liftName": "Back Squat",
-                "prompt": "Log the load, reps, and RPE of the top set so the app can estimate 1RM from reps in reserve."
+                "prompt": "Warm up progressively, then work up to your heaviest set of 3–5 reps. Log the load and reps so the app can estimate your 1RM."
               }`
+                  // ARCHIVED: rpe_based_1rm example removed
                   : ""
               }
             }${
@@ -427,7 +431,7 @@ function buildMissedSessionSchemaInstructions(adjustmentInput = {}) {
 - Preserve "performanceTarget" when the main tracked exposure is still present.
 - Preserve "endurancePrescription" when the rescued exposure is dedicated endurance work, adjusting duration, work/rest, rounds, or intensity if the rescue mode trims fatigue.
 ${includePercentageSchema ? `- Preserve percentage-based main-lift logic with an updated "percentagePrescription" when the main lift stays in the session.
-- Preserve "strengthAssessment" only when the rescued or re-entry session should still include the planned assessment exposure.` : `- Do not add or preserve percentagePrescription or strengthAssessment on RPE-based plans.`}
+- Preserve "strengthAssessment" (multi_rm or true_1rm only) when the rescued session should still include the planned assessment. Never use "rpe_based_1rm".` : `- Do not add or preserve percentagePrescription or strengthAssessment on RPE-based plans.`}
 `;
 }
 

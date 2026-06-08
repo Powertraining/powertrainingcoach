@@ -48,13 +48,14 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Percentage-based working sets must show both percent1RM and relativeIntensity for rep targets from 1-10 using the standard rep-max table.
 - If reps fall outside 1-10, keep percent1RM and omit relativeIntensity instead of inventing one.
 - Accessories, most rows, RDL-style secondary work, isolation lifts, and stability drills stay on RPE, RIR, feel, time, or quality-based notes even if the athlete selected percentage loading.`,
+  // ARCHIVED: rpe_based_1rm (RPE-based 1RM estimation) — do not restore without updating the prompt instructions.
   rm_attempts: `# Strength-reference rules
-- Percentage-based plans must respect percentageReferenceMethod.
-- rpe_based_1rm is the default and lowest-fatigue option: prescribe "work up to 3 reps @RPE 8" as the normal-session top set, usually once per loading block, never in deload weeks, and soften or remove it near competition.
-- For rpe_based_1rm, estimate 1RM from logged load, completed reps, and RPE by adding reps in reserve to completed reps, then using Epley. Interpret RPE 10 as 0 RIR, RPE 9 as 1 RIR, RPE 8 as 2 RIR, and RPE 7 as 3 RIR.
-- Keep rpe_based_1rm calibration attempts to 1-3 reps at RPE 8-9 only. The athlete may change the default to 1 @RPE 8, 1 @RPE 9, 2 @RPE 8, 2 @RPE 9, or 3 @RPE 9, but do not prescribe RPE 10 or more than 3 reps for this feature.
-- multi_rm uses a hard top set of 2-5 reps, updates 1RM with Epley, and should usually appear every 4-6 weeks in off-season or early camp, not in the final 3-4 weeks before competition.
-- true_1rm is rare, only for experienced athletes in off-camp general-strength phases, never close to competition, and never more than one true 1RM test in a week.
+- Percentage-based plans must respect percentageReferenceMethod. Only multi_rm and true_1rm are active; rpe_based_1rm is archived — never prescribe it.
+- Testing week: if blockStartWeek is 1 (first block of the parent cycle), dedicate Week 1 to strength assessment. Place one test set per primary lift spread across the week's sessions — never stack two test lifts in the same session.
+- Make the testing week visible to the athlete: set each test day's sessionLabel to something like "Assessment – Back Squat" and include a plain-language note in the exercise that this session establishes the baseline for future percentage work. The plan summary must also mention that Week 1 is a strength assessment week before the main program begins.
+- For test exercises, describe only a warm-up progression and the top set in the "notes" field. Do not list numbered working sets (e.g. Set 1, Set 2, Set 3, Set 4) for a testing session — the session is a ramp to one top set.
+- multi_rm: prescribe a hard top set of 2–5 reps @RPE 9–10. Schedule every 4–6 weeks in off-season or early/mid camp. Block in the final 5 weeks before competition.
+- true_1rm: rare; only for intermediate/advanced athletes confirmed to be in an off-season or general strength phase; never within 8 weeks of competition; max one true 1RM test per week across all lifts.
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,
   rpe_rationale: `# RPE adjustment rules
 - For ordinary low-rep load adjustments, 1 RPE point is roughly a 2.5% load change.
