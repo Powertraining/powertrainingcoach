@@ -36,6 +36,7 @@ import {
   isSameCalendarDay,
 } from "../services/utils/programOverview.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
+import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const WEEK_SCHEDULE_ITEM_WIDTH = 58;
 const WEEK_SCHEDULE_TODAY_OFFSET =
@@ -902,6 +903,7 @@ export default function ProgramOverviewView({
     }
 
     onSelectDay(nextWeekNumber, nextTrainingDay.day);
+    reactiveModel.setForumTabBarHidden?.(true);
     setActiveSessionDay(
       activeSelectedDay || buildSessionDayPayload(nextTrainingDay, nextWeekNumber)
     );
