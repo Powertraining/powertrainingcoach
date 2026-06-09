@@ -1,0 +1,601 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:14:59.633Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-striking__period-pre-season__equipment-full-gym__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "c04bc6e5120003b2e0e6887416e45d6ac5d2f4dbd6d10cb4c850e5867ab0269e",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "striking",
+    "competitionPeriod": "pre_season",
+    "equipment": "full_gym",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "sessionDuration": "no_time_limit",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 has sessionLabel \"Assessment – Trap Bar Deadlift\" that does not start with \"Day N\".",
+      "Week 1 day 1 exercise 2 is missing \"sets\".",
+      "Week 1 day 1 exercise 2 is missing \"reps\".",
+      "Week 1 day 1 exercise 5 is missing \"sets\".",
+      "Week 1 day 1 exercise 5 is missing \"reps\".",
+      "Week 2 day 1 exercise 6 is missing \"sets\".",
+      "Week 2 day 1 exercise 6 is missing \"reps\".",
+      "Week 3 day 1 exercise 6 is missing \"sets\".",
+      "Week 3 day 1 exercise 6 is missing \"reps\".",
+      "Week 4 day 1 exercise 6 is missing \"sets\".",
+      "Week 4 day 1 exercise 6 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5788,
+    "completion_tokens": 4155,
+    "total_tokens": 9943,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 1-4 block is an off-camp boxing build with one weekly S&C session, so the plan keeps the highest-value work: power first, then main strength, then practical accessories, then short conditioning. Week 1 establishes training maxes for the main percentage-based lift, and the main training starts in Week 2. Because your boxing load matters more than gym volume, this block uses low exercise count, clear technique, and steady progression you can recover from.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build general lower-body power, foundational strength, and work capacity with simple high-value lifts."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress strength and power with slightly heavier work while keeping fatigue controlled around boxing practice."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength topped up and express faster, sharper power with lower fatigue."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Assessment – Trap Bar Deadlift",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Use a box height that lets you land quietly and stable every rep. Step down between reps and stay explosive.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if boxes are limited. Reset between reps and jump for height with a clean landing."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use if you want the simplest jump option. Start from a still position and keep reps crisp."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "notes": "Warm up in small jumps, then work up to one hard set of 3-5 reps with clean form. Stop at the heaviest set you can complete without hitching or losing position. This sets your baseline for future percentage work.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Trap Bar Deadlift",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can estimate your training max."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if trap bar setup is unavailable. Pull from just below the knee with the same hard but clean top set."
+                  }
+                ]
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Use a load you can control with a full pause at the top for each rep. Keep the chest glued to the pad.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if no chest-supported row is available. Keep the torso still and finish with the elbows."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Use if machines are busy. Brace well and avoid twisting."
+                  }
+                ]
+              },
+              {
+                "name": "Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Only roll out as far as you can while keeping ribs down and lower back flat. Move slowly and stay braced.",
+                "substitutionOptions": [
+                  {
+                    "name": "Stability Ball Rollout",
+                    "notes": "Use if the ab wheel is too difficult. Keep the same braced trunk position."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use if you need a simpler trunk option. Move the spine with control and avoid yanking the rope."
+                  }
+                ]
+              },
+              {
+                "name": "Air Bike Intervals",
+                "notes": "Push hard but keep the first round under control so the quality stays high.",
+                "endurancePrescription": {
+                  "mode": "intervals",
+                  "format": "8 rounds of 15 seconds hard, 45 seconds easy",
+                  "intensity": "Hard on work bouts, easy spin on recovery",
+                  "duration": "8 minutes"
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Row Erg Intervals",
+                    "notes": "Use the same work-rest format. Drive hard with the legs and relax on recovery."
+                  },
+                  {
+                    "name": "Sled Push Intervals",
+                    "notes": "Use 8 rounds of 15 seconds fast push, 45 seconds walk back and recover. Keep the load light enough to move quickly."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Jump with full intent and land softly. Stop the set if height drops or landings get noisy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if no box is available. Reset between reps and jump for height."
+                  },
+                  {
+                    "name": "Trap Bar Jump",
+                    "notes": "Use only with a light load and fast reps. Keep it springy, not heavy."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Drive hard from the floor, keep the chest tall, and finish with full hip extension. Rest enough to keep every set clean.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 5,
+                      "percent1RM": 70,
+                      "relativeIntensity": 81
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track bar speed, load, and rep quality on all work sets. If all sets feel sharp and clean, add a small jump next week."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if a trap bar is unavailable. Keep the same flat loading and crisp technique."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Use a steady load you can control with a full range. Keep shoulders down and elbows slightly tucked.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use if you prefer a barbell and have a spotter. Keep the reps smooth and controlled."
+                  },
+                  {
+                    "name": "Push-Up",
+                    "notes": "Use if you want a simpler option. Elevate hands if needed to keep clean reps."
+                  }
+                ]
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Pull hard, pause briefly, and lower under control. Do not shrug into the top.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if the row bench is busy. Keep the torso quiet and pull through the elbows."
+                  },
+                  {
+                    "name": "T-Bar Row",
+                    "notes": "Use if available and comfortable. Keep the chest supported if possible."
+                  }
+                ]
+              },
+              {
+                "name": "Farmer Carry",
+                "sets": "3",
+                "reps": "20-30 m",
+                "notes": "Walk tall with short fast steps and keep the ribs stacked over the hips. Use challenging but controlled loads.",
+                "substitutionOptions": [
+                  {
+                    "name": "Trap Bar Carry",
+                    "notes": "Use if dumbbells are limited. Stay upright and move with control."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use one side at a time if you want more anti-rotation demand. Walk evenly and do both sides."
+                  }
+                ]
+              },
+              {
+                "name": "Air Bike Intervals",
+                "notes": "Work hard on each bout without turning the session into a sprint death march. Keep output consistent.",
+                "endurancePrescription": {
+                  "mode": "intervals",
+                  "format": "10 rounds of 15 seconds hard, 45 seconds easy",
+                  "intensity": "Hard but repeatable work bouts",
+                  "duration": "10 minutes"
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Row Erg Intervals",
+                    "notes": "Use the same work-rest format. Keep the stroke powerful and relaxed on recovery."
+                  },
+                  {
+                    "name": "Ski Erg Intervals",
+                    "notes": "Use if preferred. Stay smooth and avoid muscling the first few rounds."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Every rep should look the same. If jump height or landing quality drops, end the drill there.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if needed. Reset fully between jumps and chase clean height."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use if you want a lower-skill option. Stay explosive off the floor."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Brace before every rep and push the floor away. Keep the bar path steady and do not rush the setup.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 5,
+                      "percent1RM": 72.5,
+                      "relativeIntensity": 83
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track whether all sets stay crisp at the target load. If technique slips, hold the load steady instead of forcing progression."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if needed. Match the same set and loading structure."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Add load only if all sets stay smooth and balanced. Keep the shoulder blades set on the bench.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use with a spotter if preferred. Keep the same rep target and controlled tempo."
+                  },
+                  {
+                    "name": "Push-Up",
+                    "notes": "Use if you need a simpler press. Add a small plate or band only after clean sets are easy."
+                  }
+                ]
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "3",
+                "reps": "10",
+                "notes": "Pull to the same point every rep and keep the neck relaxed. Do not bounce off the pad.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if needed. Pause at the body and lower with control."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Use if equipment is busy. Brace well and avoid rotation."
+                  }
+                ]
+              },
+              {
+                "name": "Farmer Carry",
+                "sets": "4",
+                "reps": "20-30 m",
+                "notes": "Use slightly heavier loads than last week if posture stays solid. Grip hard and keep the walk controlled.",
+                "substitutionOptions": [
+                  {
+                    "name": "Trap Bar Carry",
+                    "notes": "Use if dumbbells are limited. Stay stacked and avoid rushing."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if you want a unilateral carry option. Walk the same distance on each side."
+                  }
+                ]
+              },
+              {
+                "name": "Air Bike Intervals",
+                "notes": "Keep the effort strong but even across the full set of rounds. Finish feeling worked, not wrecked.",
+                "endurancePrescription": {
+                  "mode": "intervals",
+                  "format": "12 rounds of 15 seconds hard, 45 seconds easy",
+                  "intensity": "Hard repeatable effort",
+                  "duration": "12 minutes"
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Row Erg Intervals",
+                    "notes": "Use the same timing. Drive hard with the legs and recover smoothly."
+                  },
+                  {
+                    "name": "Sled Push Intervals",
+                    "notes": "Use a light enough load to move quickly for each work bout."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Keep the jumps fast and fresh. This week is about quality, not chasing fatigue.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if needed. Reset between reps and keep them sharp."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Move every rep with intent and leave the gym feeling better than you walked in. Keep setup and lockout clean.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 3,
+                      "reps": 5,
+                      "percent1RM": 67.5,
+                      "relativeIntensity": 78
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Use this lighter week to groove technique and check recovery. If the bar feels unusually slow, hold here and rebuild next block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if needed. Keep the lighter deload structure."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Bench Press",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Use a comfortable load and keep the reps smooth. Stop well before grindy reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use with a spotter if preferred. Keep the same easy quality."
+                  },
+                  {
+                    "name": "Push-Up",
+                    "notes": "Use if you want an even simpler deload option. Clean reps only."
+                  }
+                ]
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Keep tension through the full range and do not chase failure. Smooth and controlled only.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if needed. Keep the same easy quality focus."
+                  }
+                ]
+              },
+              {
+                "name": "Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "6",
+                "notes": "Stay braced and stop each rep before the lower back takes over. Quality over range.",
+                "substitutionOptions": [
+                  {
+                    "name": "Stability Ball Rollout",
+                    "notes": "Use if you want an easier trunk option this week."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use if the rollout bothers the shoulders. Move with control."
+                  }
+                ]
+              },
+              {
+                "name": "Air Bike Tempo Intervals",
+                "notes": "This is a lighter conditioning dose to freshen up while keeping some engine work in place.",
+                "endurancePrescription": {
+                  "mode": "intervals",
+                  "format": "8 rounds of 20 seconds strong, 40 seconds easy",
+                  "intensity": "Strong but submaximal work bouts",
+                  "duration": "8 minutes"
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Row Erg Tempo Intervals",
+                    "notes": "Use the same format and keep the pace controlled."
+                  },
+                  {
+                    "name": "Easy Sled March",
+                    "notes": "Use 8 rounds of 20 seconds steady march, 40 seconds easy walk back. Keep it rhythmic."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

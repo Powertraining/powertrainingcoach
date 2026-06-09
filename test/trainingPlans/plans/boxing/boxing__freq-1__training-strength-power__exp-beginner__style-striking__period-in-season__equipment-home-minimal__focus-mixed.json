@@ -1,0 +1,479 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:16:10.189Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-striking__period-in-season__equipment-home-minimal__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "3561fd11ffa2bf401be6e85ee1fcd447cc549ce79209ad07722801826b3386c2",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "striking",
+    "competitionPeriod": "in_season",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "30_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5783,
+    "completion_tokens": 3131,
+    "total_tokens": 8914,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 1-4 block is a simple off-camp boxing strength-and-power start built for one 30-minute home session each week. Week 1 establishes a baseline on the main lower-body lift so later loading can stay practical and repeatable. Weeks 2-4 build general force and explosive intent with low exercise count, safe movement choices, and just enough accessory work to support punching posture and trunk stiffness. Main program loading begins in Week 2.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build general lower-body strength, basic explosive intent, and trunk support with simple repeatable work."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress strength and power with slightly harder loading while keeping weekly fatigue easy to recover from beside boxing."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength with a lower dose and express it through faster crisp jumps and throws."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Reset between reps and jump as fast as possible. Land softly and stop if height drops off.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low stable box and land quietly in a solid stance."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Pause briefly at the bottom and jump straight up without a dip-and-rebound."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "1 top set",
+                "reps": "3-5",
+                "notes": "Warm up with a few progressively heavier sets, then work up to one hard clean top set of 3-5 reps. This establishes your starting strength baseline for later weeks. Keep torso tall and depth consistent.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Goblet Squat",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can set your starting numbers."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if one dumbbell is too light or awkward to hold."
+                  }
+                ]
+              },
+              {
+                "name": "1a. Push-Up",
+                "sets": "2",
+                "reps": "6-10",
+                "notes": "Use a variation that keeps 1-2 clean reps in reserve. Move fast up and stay braced.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use hands on a bench, box, or table if floor reps are too hard."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use a neutral grip and pause lightly on the floor each rep."
+                  }
+                ]
+              },
+              {
+                "name": "1b. One-Arm Dumbbell Row",
+                "sets": "2",
+                "reps": "8-10 each side",
+                "notes": "Pull elbow toward hip and keep the torso steady. Use a load that leaves 1-2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if lower-back support is needed."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Use a loaded backpack if dumbbells are limited."
+                  }
+                ]
+              },
+              {
+                "name": "Front Plank",
+                "sets": "2",
+                "reps": "20-30 seconds",
+                "notes": "Brace hard, keep ribs down, and stop before the low back sags.",
+                "substitutionOptions": [
+                  {
+                    "name": "Body Saw Plank",
+                    "notes": "Use sliders or towels to make the plank more demanding without adding much setup."
+                  },
+                  {
+                    "name": "Hardstyle Dead Bug",
+                    "notes": "Use this if standard planks irritate the back or shoulders."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "hypertrophy"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Reset between reps and attack each jump with maximal speed. Land softly and keep quality high.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low stable box and step down between reps."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Use the Week 1 result to choose a load you can repeat cleanly across all sets. Smooth down, drive up hard, and keep 1-2 reps in reserve on early sets.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the heaviest clean set of 5 you complete with solid depth and posture."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Good option if you have two lighter dumbbells instead of one heavy one."
+                  }
+                ]
+              },
+              {
+                "name": "1a. Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Explode up without losing body line. Stop the set before your hips sag or range shortens.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Raise the hands to keep reps clean."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use a neutral grip and steady control."
+                  }
+                ]
+              },
+              {
+                "name": "1b. One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "8-10 each side",
+                "notes": "Pause briefly at the top and lower under control. Keep the neck relaxed and shoulder away from the ear.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Good if you want less lower-back involvement."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Works well in a minimal home setup."
+                  }
+                ]
+              },
+              {
+                "name": "Front Plank",
+                "sets": "2",
+                "reps": "25-35 seconds",
+                "notes": "Make each hold hard and crisp rather than long and sloppy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Body Saw Plank",
+                    "notes": "Use short controlled slides."
+                  },
+                  {
+                    "name": "Suitcase Hold",
+                    "notes": "Hold one dumbbell at your side and stay tall without leaning."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "hypertrophy"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Treat every rep like a max effort. Rest enough to keep jump height and landing quality consistent.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use the same height as last week unless reps were very easy and sharp."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Good low-impact option for home training."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Use a small load increase from Week 2 if all sets were strong. Stay tight at the bottom and stand up fast.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the best clean set of 4 so you can compare strength progress week to week."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if the goblet hold limits loading before the legs are challenged."
+                  }
+                ]
+              },
+              {
+                "name": "1a. Push-Up",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Use the hardest variation you can do with clean range and 1-2 reps left in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Feet-Elevated Push-Up",
+                    "notes": "Use only if standard push-ups are comfortably strong."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Good option if wrists dislike push-ups."
+                  }
+                ]
+              },
+              {
+                "name": "1b. One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "8 each side",
+                "notes": "Use a slightly heavier load if form stays solid. Do not twist through the torso to finish reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Keeps the pull strict and easy to coach."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Add books or plates to progress loading."
+                  }
+                ]
+              },
+              {
+                "name": "Suitcase Hold",
+                "sets": "2",
+                "reps": "20-30 seconds each side",
+                "notes": "Stand tall, ribs down, and do not lean toward or away from the weight.",
+                "substitutionOptions": [
+                  {
+                    "name": "Front Plank",
+                    "notes": "Use this if you do not have enough load for a meaningful suitcase hold."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Keep the jumps fast and easy. Stop while they still feel springy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low box and smooth landings."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "A simple low-impact option for deload week."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Deload this week. Use about 5-10% less load than Week 3 and make every rep sharp and controlled.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the smoothest strong set rather than chasing fatigue this week."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use the same deload idea if this is your squat variation."
+                  }
+                ]
+              },
+              {
+                "name": "1a. Push-Up",
+                "sets": "2",
+                "reps": "6-8",
+                "notes": "Leave clear reps in reserve and keep speed on the way up.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Good choice if upper body feels beat up from boxing."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use a comfortable grip and easy effort."
+                  }
+                ]
+              },
+              {
+                "name": "1b. One-Arm Dumbbell Row",
+                "sets": "2",
+                "reps": "8 each side",
+                "notes": "Use a moderate load and clean pauses. This week is for quality, not grinding.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Very good for an easy deload pull."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Keep the weight moderate and the movement strict."
+                  }
+                ]
+              },
+              {
+                "name": "Front Plank",
+                "sets": "2",
+                "reps": "20-25 seconds",
+                "notes": "Short hard holds only. Finish feeling fresher than when you started.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hardstyle Dead Bug",
+                    "notes": "Use controlled breaths and full-body tension."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

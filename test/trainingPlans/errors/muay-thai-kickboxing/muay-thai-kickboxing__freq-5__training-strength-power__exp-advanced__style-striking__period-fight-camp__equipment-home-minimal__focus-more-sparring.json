@@ -1,0 +1,32 @@
+{
+  "status": "error",
+  "generatedAt": "2026-06-09T08:57:19.158Z",
+  "caseId": "muay-thai-kickboxing__freq-5__training-strength-power__exp-advanced__style-striking__period-fight-camp__equipment-home-minimal__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "7c656e691a52fbe63e65b0e98cf1666dd70fe83178059fd33ad0c23d6c610e22",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Muay Thai / Kickboxing",
+    "sessionsPerWeek": 5,
+    "daysPerWeek": 5,
+    "desiredTraining": "strength_power",
+    "experience": "advanced",
+    "weightClass": "70 kg",
+    "primaryStyle": "striking",
+    "competitionPeriod": "fight_camp",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "sessionDuration": "45_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "error": {
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "status": "error",
+  "generatedAt": "2026-06-09T08:57:14.627Z",
+  "caseId": "boxing__freq-5__training-endurance__exp-advanced__style-clinching__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "a3c4d88ce9e672d172dab87429133d1ef15dc080f842cad7d548945cf7c7fd71",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 5,
+    "daysPerWeek": 5,
+    "desiredTraining": "endurance",
+    "experience": "advanced",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "pre_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "sessionDuration": "no_time_limit",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "error": {
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors."
+  }
+}

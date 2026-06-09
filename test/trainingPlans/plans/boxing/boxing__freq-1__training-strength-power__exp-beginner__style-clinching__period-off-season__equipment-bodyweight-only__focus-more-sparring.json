@@ -1,0 +1,545 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:17:11.324Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-clinching__period-off-season__equipment-bodyweight-only__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "4e269fb5859e25c598cd7335c6efeb227ba7205bfabbe925aaa01838d08fdf12",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "sessionDuration": "45_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 exercise 8 is missing \"sets\".",
+      "Week 1 day 1 exercise 8 is missing \"reps\".",
+      "Week 2 day 1 exercise 8 is missing \"sets\".",
+      "Week 2 day 1 exercise 8 is missing \"reps\".",
+      "Week 3 day 1 exercise 8 is missing \"sets\".",
+      "Week 3 day 1 exercise 8 is missing \"reps\".",
+      "Week 4 day 1 exercise 7 is missing \"sets\".",
+      "Week 4 day 1 exercise 7 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5789,
+    "completion_tokens": 3847,
+    "total_tokens": 9636,
+    "prompt_tokens_details": {
+      "cached_tokens": 5504,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block fits an off-camp 12-week boxing build with one short S&C session per week alongside higher sparring. Week 1 establishes simple bodyweight performance baselines for the main movements, then Weeks 2-4 build lower-body power, upper-body pushing and pulling strength, trunk strength, and short conditioning without adding unnecessary fatigue. With only bodyweight equipment and beginner experience, the plan uses safe, coachable movements performed with crisp intent and clean reps.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build basic full-body strength, landing mechanics, trunk strength, and simple explosive intent with low-equipment work."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress harder bodyweight variations and slightly denser power-strength work while keeping recovery available for boxing."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength while shifting more work toward sharper speed, fast contacts, and low-fatigue power expression."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Reset between reps. Jump as high and fast as you can, land softly, and stop if height drops off.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the countermovement makes timing inconsistent. Start from a still quarter squat and jump fast."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Push-Up Assessment Set",
+                "sets": "1",
+                "reps": "AMRAP leaving 1 rep in reserve",
+                "notes": "Use strict form. Body stays straight, chest reaches the floor level, and stop before reps get sloppy. This sets your baseline for future progress.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Log your best clean set so we can track pushing strength over time."
+                }
+              },
+              {
+                "name": "2a. Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Use a controlled lower, slight forward torso lean, and drive up hard through the front foot. Keep balance clean on both sides.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squats bother the knees or feel awkward. Step back under control and keep the front foot planted."
+                  }
+                ]
+              },
+              {
+                "name": "2b. Prone Y-T Raise",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Move slowly and keep the shoulders down. This should feel like upper-back work, not lower-back swinging."
+              },
+              {
+                "name": "3a. Tempo Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Lower for 3 seconds, pause 1 second near the bottom, then press up hard. Stop with 1-2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this if full push-ups cannot stay clean through the full range."
+                  },
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use a bench, box, or sturdy surface if available to keep reps crisp and controlled."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Side Plank",
+                "sets": "3",
+                "reps": "20-30 sec+20-30 sec",
+                "notes": "Keep ribs down, hips tall, and head in line. Do not let the top shoulder roll forward."
+              },
+              {
+                "name": "4. Bear Crawl",
+                "sets": "3",
+                "reps": "20 m",
+                "notes": "Take short quiet steps and keep the hips level. This is controlled trunk and shoulder work, not a sprint.",
+                "substitutionOptions": [
+                  {
+                    "name": "Mountain Climber Hold with Shoulder Taps",
+                    "notes": "Use this if space is limited. Stay braced and keep the hips steady."
+                  }
+                ]
+              },
+              {
+                "name": "5. Shadowboxing Conditioning",
+                "notes": "Stay relaxed and sharp. Move your feet, change levels, and keep punch volume smooth rather than frantic.",
+                "endurancePrescription": {
+                  "format": "intervals",
+                  "work": "5 x 1 min",
+                  "rest": "30 sec",
+                  "intensity": "moderate",
+                  "mode": "shadowboxing"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Reset between reps. Jump with maximal intent and land softly in the same stance each time.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the countermovement makes timing inconsistent. Stay crisp and explosive."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Plyo Push-Up from Knees",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Push the floor away fast so the hands leave the ground slightly. Keep reps snappy and stop before speed drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Fast Incline Push-Up",
+                    "notes": "Use a bench or sturdy surface if available. Drive up as fast as possible with clean body position."
+                  },
+                  {
+                    "name": "Explosive Regular Push-Up",
+                    "notes": "Use this if you can move fast without losing shape, even if the hands do not leave the floor."
+                  }
+                ]
+              },
+              {
+                "name": "2a. Split Squat",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Control the way down and stand up with intent. Keep the front knee tracking over the foot.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squats feel unstable. Keep the step smooth and balanced."
+                  }
+                ]
+              },
+              {
+                "name": "2b. Push-Up",
+                "sets": "4",
+                "reps": "6-12",
+                "notes": "Use full range and stop with 1-2 reps in reserve. If you hit 12 clean reps on all sets, progress to a harder variation next block.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Log your strongest clean set to track bodyweight pressing progress."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this if full push-ups cannot stay clean for the target reps."
+                  },
+                  {
+                    "name": "Feet-Elevated Push-Up",
+                    "notes": "Use this only if standard push-ups are clearly too easy and reps stay controlled."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Bear Crawl",
+                "sets": "3",
+                "reps": "25 m",
+                "notes": "Move slowly enough to keep the trunk stable. Keep steps short and shoulders active.",
+                "substitutionOptions": [
+                  {
+                    "name": "Beast Hold Shoulder Taps",
+                    "notes": "Use this if space is limited. Stay square and avoid hip sway."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Hollow Body Hold",
+                "sets": "3",
+                "reps": "20-30 sec",
+                "notes": "Flatten the lower back to the floor and keep the ribs down. Shorten the lever if you lose position.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if hollow holds are too difficult to keep clean."
+                  }
+                ]
+              },
+              {
+                "name": "4. Neck Flexion and Extension Isometric",
+                "sets": "2",
+                "reps": "15 sec front + 15 sec back",
+                "notes": "Use your hands for light resistance only. Build gentle tension and keep the neck in a neutral position."
+              },
+              {
+                "name": "5. Shadowboxing Conditioning",
+                "notes": "Stay smooth and technical. Work crisp footwork and short punch bursts without turning it into all-out conditioning.",
+                "endurancePrescription": {
+                  "format": "intervals",
+                  "work": "6 x 1 min",
+                  "rest": "30 sec",
+                  "intensity": "moderate",
+                  "mode": "shadowboxing"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Aim for the same or better jump quality than last week. Rest enough to keep every rep sharp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the countermovement still feels inconsistent."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Plyo Push-Up from Knees",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Every rep should be fast and clean. Stop the set if hand lift or speed clearly drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Fast Incline Push-Up",
+                    "notes": "Use this if you need a safer way to keep high speed."
+                  },
+                  {
+                    "name": "Explosive Regular Push-Up",
+                    "notes": "Use this if you can stay powerful without losing alignment."
+                  }
+                ]
+              },
+              {
+                "name": "2a. Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Use a low support only if balance stays clean. Lower under control and drive up through the front leg.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if rear-foot-elevated work is too unstable or too stressful."
+                  }
+                ]
+              },
+              {
+                "name": "2b. Tempo Push-Up",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Lower for 3 seconds, pause briefly, then press up hard. Stop with 1 rep in reserve on the last clean set.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Log your best strict set so we can see if strength-endurance is moving up."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Standard Push-Up",
+                    "notes": "Use this if tempo reps become too slow or break position."
+                  },
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this if you cannot hold the tempo cleanly."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Bear Crawl",
+                "sets": "4",
+                "reps": "20 m",
+                "notes": "Stay low, keep hips quiet, and breathe behind the brace.",
+                "substitutionOptions": [
+                  {
+                    "name": "Beast Hold Shoulder Taps",
+                    "notes": "Use this if space is limited. Make each tap slow and controlled."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Side Plank with Reach",
+                "sets": "3",
+                "reps": "6+6",
+                "notes": "Reach under and back through without losing hip height. Move slowly and stay stacked.",
+                "substitutionOptions": [
+                  {
+                    "name": "Side Plank",
+                    "notes": "Use this if the reach variation makes you twist too much."
+                  }
+                ]
+              },
+              {
+                "name": "4. Reverse Snow Angel",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Keep the forehead down and move from the shoulders. Use smooth reps and avoid shrugging."
+              },
+              {
+                "name": "5. Shadowboxing Conditioning",
+                "notes": "Keep the pace honest but technical. Add short 3-5 punch bursts inside each round and recover back to smooth movement.",
+                "endurancePrescription": {
+                  "format": "intervals",
+                  "work": "6 x 75 sec",
+                  "rest": "30 sec",
+                  "intensity": "moderate",
+                  "mode": "shadowboxing"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Keep these crisp and easy. The goal is speed and freshness, not fatigue.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if it helps you stay cleaner and faster."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Fast Push-Up",
+                "sets": "3",
+                "reps": "4-6",
+                "notes": "Move up as fast as possible with clean shape. Stop well before speed slows.",
+                "substitutionOptions": [
+                  {
+                    "name": "Knee Fast Push-Up",
+                    "notes": "Use this if standard reps lose speed or body position."
+                  },
+                  {
+                    "name": "Incline Fast Push-Up",
+                    "notes": "Use a sturdy surface if available to keep the reps explosive."
+                  }
+                ]
+              },
+              {
+                "name": "2a. Split Squat",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Smooth and controlled. Leave a few reps in reserve and focus on balanced positions.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if it feels more comfortable on the knees."
+                  }
+                ]
+              },
+              {
+                "name": "2b. Push-Up",
+                "sets": "2",
+                "reps": "6-10",
+                "notes": "Clean full-range reps only. Finish feeling fresh, not drained.",
+                "substitutionOptions": [
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this if needed to keep quality high."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Side Plank",
+                "sets": "2",
+                "reps": "20 sec+20 sec",
+                "notes": "Stay long through the body and keep the hips stacked."
+              },
+              {
+                "name": "3b. Neck Flexion and Extension Isometric",
+                "sets": "1-2",
+                "reps": "15 sec front + 15 sec back",
+                "notes": "Very light hand resistance. Just enough tension to maintain the pattern without fatigue."
+              },
+              {
+                "name": "4. Shadowboxing Conditioning",
+                "notes": "Treat this like a quality flush. Stay light on your feet and finish feeling better than when you started.",
+                "endurancePrescription": {
+                  "format": "steady_intervals",
+                  "work": "4 x 1 min",
+                  "rest": "30 sec",
+                  "intensity": "easy_moderate",
+                  "mode": "shadowboxing"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

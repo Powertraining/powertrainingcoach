@@ -1,0 +1,616 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:10:17.294Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "b5afacce74b1af917eed1b5f61e32934e0bc6efc2867917ecf15e68272f5752a",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "sessionDuration": "60_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 exercise 7 is missing \"sets\".",
+      "Week 1 day 1 exercise 7 is missing \"reps\".",
+      "Week 2 day 1 exercise 7 is missing \"sets\".",
+      "Week 2 day 1 exercise 7 is missing \"reps\".",
+      "Week 3 day 1 exercise 7 is missing \"sets\".",
+      "Week 3 day 1 exercise 7 is missing \"reps\".",
+      "Week 4 day 1 exercise 6 is missing \"sets\".",
+      "Week 4 day 1 exercise 6 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5786,
+    "completion_tokens": 4219,
+    "total_tokens": 10005,
+    "prompt_tokens_details": {
+      "cached_tokens": 5504,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block starts the 12-week off-camp build for boxing with one weekly bodyweight-only session. Week 1 establishes simple baseline performance on the main lower-body strength pattern so later work can be progressed clearly, and the main training block starts in Week 2. Because boxing is off-camp and you want strength-power with a bit more conditioning, the plan keeps one quality strength-power session each week and finishes with short conditioning that supports the sport without creating unnecessary fatigue.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build basic lower-body strength, trunk stiffness, and explosive intent with simple bodyweight work and short conditioning."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress unilateral strength and explosive output while keeping the weekly workload recoverable around boxing practice."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength topped up and shift more of the session toward crisp speed, jumps, and sharp conditioning."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Jump as high as you can with a quick dip and a quiet landing. Rest fully between sets and stop if height drops off.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if space is tight. Start from a still quarter squat and drive straight up."
+                  },
+                  {
+                    "name": "Low Box Jump",
+                    "notes": "Use a low safe box if landing mechanics are better with a target."
+                  }
+                ]
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "1 top set each side",
+                "reps": "max clean reps",
+                "notes": "Use a controlled tempo and stop when depth or balance breaks. This establishes your baseline for future progression on the main strength pattern.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Rear-Foot-Elevated Split Squat",
+                  "prompt": "Warm up with easy bodyweight reps, then perform one hard set per side for as many clean reps as possible in the 5-15 rep range. Log reps for each side so the app can set your starting progression."
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean rep count per side with full depth and steady balance."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if rear-foot elevation irritates your hips, knees, or balance."
+                  },
+                  {
+                    "name": "Step-Up",
+                    "notes": "Use a stable box or bench if split squat setup is awkward."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "6-12",
+                "notes": "Leave 1-2 good reps in reserve. Keep ribs down, body straight, and lower under control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use a bench, table, or bar if full push-ups are not yet clean."
+                  },
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this if you need a simpler option and keep the torso braced."
+                  }
+                ]
+              },
+              {
+                "name": "Towel Row",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Use a sturdy anchor and pull elbows back without shrugging. Make each rep smooth and controlled.",
+                "substitutionOptions": [
+                  {
+                    "name": "Inverted Row",
+                    "notes": "Use a stable bar or rings if available."
+                  },
+                  {
+                    "name": "Backpack Bent-Over Row",
+                    "notes": "Use a loaded backpack if a safe row anchor is not available."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "3",
+                "reps": "20-30 seconds",
+                "notes": "Press the low back into the floor and keep the position tight. Shorten the lever if you cannot hold shape.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if the full hollow hold is too difficult to keep clean."
+                  },
+                  {
+                    "name": "Reverse Crunch",
+                    "notes": "Use this if you need a dynamic trunk option instead of a hold."
+                  }
+                ]
+              },
+              {
+                "name": "Alternating Reverse Lunge",
+                "sets": "2",
+                "reps": "10+10",
+                "notes": "Move smoothly and keep the front foot flat. This is extra leg volume, not a max-effort drill.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if stepping back bothers your balance."
+                  },
+                  {
+                    "name": "Bodyweight Step-Up",
+                    "notes": "Use a low stable box if lunges are uncomfortable."
+                  }
+                ]
+              },
+              {
+                "name": "Conditioning Finisher",
+                "notes": "6 rounds of 20 seconds fast shadowboxing and 40 seconds easy movement. Keep punches crisp and relaxed, and finish feeling worked but not cooked.",
+                "endurancePrescription": {
+                  "type": "intervals",
+                  "duration": "6 rounds",
+                  "workInterval": "20 seconds",
+                  "restInterval": "40 seconds",
+                  "intensity": "moderate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Jump high, land softly, and take enough rest to keep every rep explosive.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if you want a simpler version with less countermovement."
+                  },
+                  {
+                    "name": "Low Box Jump",
+                    "notes": "Use a low safe box if that helps you organize the landing."
+                  }
+                ]
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "4",
+                "reps": "6-8 each side",
+                "notes": "Use the baseline from Week 1 and stop with 1-2 strong reps left. Keep the front foot rooted and the torso steady.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the cleanest hardest set per side and add reps before making the variation harder."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if the rear-foot-elevated version is too unstable."
+                  },
+                  {
+                    "name": "Step-Up",
+                    "notes": "Use a stable bench or box if split squats feel awkward."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Keep 1-2 reps in reserve and drive up fast. Choose an elevation if needed so all reps stay clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if full push-ups drop below the target range."
+                  },
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this if you need a simpler progression."
+                  }
+                ]
+              },
+              {
+                "name": "Towel Row",
+                "sets": "4",
+                "reps": "8-12",
+                "notes": "Pull with the back, not the neck. Keep your body rigid and pause briefly at the top.",
+                "substitutionOptions": [
+                  {
+                    "name": "Inverted Row",
+                    "notes": "Use this if you have access to a bar or rings."
+                  },
+                  {
+                    "name": "Backpack Bent-Over Row",
+                    "notes": "Use a loaded backpack if no safe anchor is available."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Drive through the heel and finish with the glute, not the low back. Pause briefly at the top.",
+                "substitutionOptions": [
+                  {
+                    "name": "Glute Bridge",
+                    "notes": "Use both legs if single-leg reps are too unstable."
+                  },
+                  {
+                    "name": "Hip Thrust off Bench",
+                    "notes": "Use this if a bench setup is available and comfortable."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "3",
+                "reps": "25-35 seconds",
+                "notes": "Keep the ribs down and the legs only as low as you can control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if you cannot keep the hollow position tight."
+                  },
+                  {
+                    "name": "Reverse Crunch",
+                    "notes": "Use this if you want a dynamic option."
+                  }
+                ]
+              },
+              {
+                "name": "Conditioning Finisher",
+                "notes": "8 rounds of 20 seconds fast shadowboxing and 40 seconds easy movement. Keep hand speed high and breathing under control.",
+                "endurancePrescription": {
+                  "type": "intervals",
+                  "duration": "8 rounds",
+                  "workInterval": "20 seconds",
+                  "restInterval": "40 seconds",
+                  "intensity": "moderate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Every rep should look springy and fast. Stop a set early if jump height fades.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if you want a simpler jump pattern."
+                  },
+                  {
+                    "name": "Low Box Jump",
+                    "notes": "Use a low box if that helps keep landing quality high."
+                  }
+                ]
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "4",
+                "reps": "8-10 each side",
+                "notes": "Stay 1 rep shy of technical failure. Full depth and control matter more than chasing extra reps.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set per side and aim to beat last week with one more rep or better control."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if balance limits the quality of the rear-foot-elevated version."
+                  },
+                  {
+                    "name": "Step-Up",
+                    "notes": "Use a stable box if that lets you train the legs harder and cleaner."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "8-12",
+                "notes": "Lower under control and drive up with intent. Change to an incline only if rep quality drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if full push-ups cannot stay in the target range."
+                  },
+                  {
+                    "name": "Tempo Knee Push-Up",
+                    "notes": "Use this if you need a simpler but still challenging option."
+                  }
+                ]
+              },
+              {
+                "name": "Towel Row",
+                "sets": "4",
+                "reps": "10-12",
+                "notes": "Pull shoulder blades back and down, then control the lowering phase fully.",
+                "substitutionOptions": [
+                  {
+                    "name": "Inverted Row",
+                    "notes": "Use this if a bar or rings are available."
+                  },
+                  {
+                    "name": "Backpack Bent-Over Row",
+                    "notes": "Use a backpack if you do not have a safe towel row setup."
+                  }
+                ]
+              },
+              {
+                "name": "Alternating Reverse Lunge",
+                "sets": "3",
+                "reps": "12+12",
+                "notes": "Stay smooth and upright. Use this as leg endurance support, not as a grind.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if stepping work bothers your knees or balance."
+                  },
+                  {
+                    "name": "Bodyweight Step-Up",
+                    "notes": "Use a low stable box if lunges do not feel good."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "25-35 seconds each side",
+                "notes": "Keep hips high and body straight. Do not let the top shoulder roll forward.",
+                "substitutionOptions": [
+                  {
+                    "name": "Short-Lever Side Plank",
+                    "notes": "Use bent knees if the full version is too difficult."
+                  },
+                  {
+                    "name": "Suitcase March Hold",
+                    "notes": "Use this if you have a backpack or other offset load."
+                  }
+                ]
+              },
+              {
+                "name": "Conditioning Finisher",
+                "notes": "10 rounds of 15 seconds hard shadowboxing and 45 seconds easy movement. Stay sharp and snappy rather than sloppy.",
+                "endurancePrescription": {
+                  "type": "intervals",
+                  "duration": "10 rounds",
+                  "workInterval": "15 seconds",
+                  "restInterval": "45 seconds",
+                  "intensity": "moderately_hard"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Keep every rep fast and relaxed. This is a crisp deload week, not a volume week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if you want the simplest jump option."
+                  },
+                  {
+                    "name": "Low Box Jump",
+                    "notes": "Use a low safe box if landings feel cleaner."
+                  }
+                ]
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "6 each side",
+                "notes": "Move smoothly and leave 2-3 good reps in reserve. Keep tension and clean depth without pushing fatigue.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track one clean reference set per side and use it to judge readiness before the next block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if you need a more stable deload option."
+                  },
+                  {
+                    "name": "Step-Up",
+                    "notes": "Use a low stable box if split squats feel beaten up."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Stop early and keep all reps smooth. Save some energy this week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if you want an easier deload variation."
+                  },
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this if shoulders or wrists need a lighter week."
+                  }
+                ]
+              },
+              {
+                "name": "Towel Row",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Controlled pull and controlled return. Keep the neck relaxed.",
+                "substitutionOptions": [
+                  {
+                    "name": "Inverted Row",
+                    "notes": "Use this if available and comfortable."
+                  },
+                  {
+                    "name": "Backpack Bent-Over Row",
+                    "notes": "Use a backpack if no anchor is available."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "2",
+                "reps": "20-25 seconds",
+                "notes": "Own the position and finish feeling fresh.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if you want an easier trunk option this week."
+                  },
+                  {
+                    "name": "Reverse Crunch",
+                    "notes": "Use this if holds feel too taxing."
+                  }
+                ]
+              },
+              {
+                "name": "Conditioning Finisher",
+                "notes": "6 rounds of 15 seconds brisk shadowboxing and 45 seconds easy movement. Finish refreshed, not drained.",
+                "endurancePrescription": {
+                  "type": "intervals",
+                  "duration": "6 rounds",
+                  "workInterval": "15 seconds",
+                  "restInterval": "45 seconds",
+                  "intensity": "easy_moderate"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

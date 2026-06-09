@@ -1,0 +1,579 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:09:21.216Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "103a0d98114ed9649bf551d344ae9cb85b3b91ef1f689260f3fd39500922323a",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "full_gym",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "sessionDuration": "45_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5788,
+    "completion_tokens": 3778,
+    "total_tokens": 9566,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block is the opening build phase of a 12-week off-camp boxing plan. With only one 45-minute S&C session each week and sparring taking priority, the work stays focused on explosive lower-body power, simple full-body strength, and a small amount of trunk and neck work. Week 1 establishes a baseline squat training max for future loading, and the main build starts in Week 2.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build basic strength and general power with simple, repeatable lifts that do not interfere with sparring."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the main lifts and keep power work sharp while holding total fatigue in check."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength with lower volume and express faster, sharper power for boxing-specific output."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Use a box height you can land on quietly and cleanly. Reset between reps and focus on fast takeoff and controlled landing.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if box setup is awkward. Jump for height and stick the landing."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use bodyweight only and keep each rep crisp."
+                  }
+                ]
+              },
+              {
+                "name": "Back Squat",
+                "sets": "1 top set",
+                "reps": "3-5",
+                "notes": "Warm up progressively, then work up to one hard set with clean form. Stop if depth or bracing breaks.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Back Squat",
+                  "prompt": "This session sets your baseline for future percentage work. Warm up in small jumps, then complete one hard top set of 3-5 reps and log the load and reps."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Safety Bar Squat",
+                    "notes": "Use this if it feels more stable on the shoulders and upper back."
+                  },
+                  {
+                    "name": "Goblet Squat",
+                    "notes": "Use only if barbell squatting is not yet comfortable. Make the top set technically hard, not sloppy."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the heaviest clean top set of 3-5 reps."
+                }
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Drive elbows back and pause briefly at the top. Keep the torso glued to the pad and control the lowering.",
+                "substitutionOptions": [
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Use a bench for support and avoid twisting."
+                  },
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use a neutral or close grip and keep the chest tall."
+                  }
+                ]
+              },
+              {
+                "name": "Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Only roll as far as you can keep ribs down and lower back flat. Move slowly out, then pull back under control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Rollout",
+                    "notes": "Use this if no ab wheel is available."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use this if rollouts are too difficult. Keep the trunk doing the work."
+                  }
+                ]
+              },
+              {
+                "name": "Plate Neck Flexion and Extension",
+                "sets": "2",
+                "reps": "12 each direction",
+                "notes": "Use very light load and smooth tempo. Stop well before strain and keep the range controlled.",
+                "substitutionOptions": [
+                  {
+                    "name": "Harness Neck Extension and Flexion",
+                    "notes": "Use a very light load and strict control."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "hypertrophy"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Keep every rep springy and clean. Stop a set early if jump height drops or landings get noisy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Jump for height and reset between reps."
+                  },
+                  {
+                    "name": "Trap Bar Jump",
+                    "notes": "Use only a light load and move fast."
+                  }
+                ]
+              },
+              {
+                "name": "Back Squat",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Brace hard, reach full depth you can control, and drive up fast. Leave 1-2 good reps in reserve on the final set.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Back Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 5,
+                      "percent1RM": 70,
+                      "relativeIntensity": 75
+                    }
+                  ]
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Safety Bar Squat",
+                    "notes": "Use this if it keeps position cleaner and easier to coach."
+                  },
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use only if front rack and depth are comfortable."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track bar weight and reps from the best-looking work set."
+                }
+              },
+              {
+                "name": "Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Use a steady lower, light pause, and strong drive up. Keep shoulders packed and feet planted.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use this if you are comfortable with the setup and have a spotter or safeties."
+                  },
+                  {
+                    "name": "Push-Up",
+                    "notes": "Use bodyweight or elevate hands to keep reps clean."
+                  }
+                ]
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Pull through the elbows and keep the neck relaxed. Do not bounce off the pad.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Keep the torso still and finish with shoulder blades moving back."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Use a stable bench support and avoid rotation."
+                  }
+                ]
+              },
+              {
+                "name": "Farmer Carry",
+                "sets": "2",
+                "reps": "20-30 m",
+                "notes": "Walk tall with short, controlled steps. Keep ribs stacked and do not let the weights swing.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use one side at a time if space or implements are limited."
+                  },
+                  {
+                    "name": "Trap Bar Carry",
+                    "notes": "Use this if heavy dumbbells are not available."
+                  }
+                ]
+              },
+              {
+                "name": "Plate Neck Flexion and Extension",
+                "sets": "2",
+                "reps": "12 each direction",
+                "notes": "Keep the load very light and motion smooth. This should feel like controlled work, not grinding.",
+                "substitutionOptions": [
+                  {
+                    "name": "Harness Neck Extension and Flexion",
+                    "notes": "Use a small load and clean range."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "hypertrophy"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Rotational Medicine Ball Scoop Throw",
+                "sets": "3",
+                "reps": "4+4",
+                "notes": "Throw each rep hard with full hip turn. Use a non-bouncing or low-bouncing ball and reset between reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Medicine Ball Shot-Put Throw",
+                    "notes": "Use this if wall space is limited. Drive from the floor and finish through the hand."
+                  },
+                  {
+                    "name": "Half-Kneeling Rotational Throw",
+                    "notes": "Use this if standing throws feel too loose."
+                  }
+                ]
+              },
+              {
+                "name": "Back Squat",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Stay tight from walkout to lockout and move the bar with intent. Rest enough to keep every set clean and strong.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Back Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 4,
+                      "percent1RM": 75,
+                      "relativeIntensity": 80
+                    }
+                  ]
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Safety Bar Squat",
+                    "notes": "Use this if it keeps your torso position more stable."
+                  },
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use this only if technique stays solid across all sets."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the strongest clean set of 4."
+                }
+              },
+              {
+                "name": "Romanian Deadlift",
+                "sets": "3",
+                "reps": "6",
+                "notes": "Push hips back, keep the bar close, and stop where hamstrings stay loaded without losing your back position.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dumbbell Romanian Deadlift",
+                    "notes": "Use this if barbell setup is crowded or uncomfortable."
+                  },
+                  {
+                    "name": "45-Degree Back Extension",
+                    "notes": "Hold a plate or dumbbell and keep the hinge pattern strict."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Lower under control and drive evenly with both arms. Keep shoulders down and back on the bench.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use if setup is safe and familiar."
+                  },
+                  {
+                    "name": "Push-Up",
+                    "notes": "Add load only if bodyweight reps are very easy."
+                  }
+                ]
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Pull to the lower ribs and keep the chest connected to the bench. Control the return each rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "T-Bar Row",
+                    "notes": "Use chest support if possible."
+                  },
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Keep the motion smooth and avoid leaning back."
+                  }
+                ]
+              },
+              {
+                "name": "Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Move only through a range you can own. Keep glutes lightly on and avoid arching the lower back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Rollout",
+                    "notes": "Use the same strict trunk position."
+                  },
+                  {
+                    "name": "Hanging Knee Raise",
+                    "notes": "Use this if rollout control is not there yet."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "2",
+                "notes": "Treat each rep like practice for crisp explosiveness. Full reset between reps and land softly.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if box access is limited."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use bodyweight only and keep quality high."
+                  }
+                ]
+              },
+              {
+                "name": "Back Squat",
+                "sets": "3",
+                "reps": "4",
+                "notes": "This is a lighter consolidation week. Keep technique sharp and move the bar fast without grinding.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Back Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 3,
+                      "reps": 4,
+                      "percent1RM": 70,
+                      "relativeIntensity": 75
+                    }
+                  ]
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Safety Bar Squat",
+                    "notes": "Use this if it feels smoother on tired shoulders or upper back."
+                  },
+                  {
+                    "name": "Goblet Squat",
+                    "notes": "Use this if you need a simple deload variation."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "fixed_rpe",
+                  "prompt": "The goal is crisp, repeatable sets with speed and control."
+                }
+              },
+              {
+                "name": "Dumbbell Bench Press",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Use clean, smooth reps and stop well before form slows down.",
+                "substitutionOptions": [
+                  {
+                    "name": "Push-Up",
+                    "notes": "Use a variation that keeps 2 clean reps in reserve."
+                  },
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use a lighter load and keep the bar path tidy."
+                  }
+                ]
+              },
+              {
+                "name": "Seated Cable Row",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Tall chest, smooth squeeze, and controlled return. Keep the low back quiet.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Row",
+                    "notes": "Use this if you prefer firmer support."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Use bench support and keep the torso still."
+                  }
+                ]
+              },
+              {
+                "name": "Farmer Carry",
+                "sets": "2",
+                "reps": "20 m",
+                "notes": "Move with posture and control. This should feel solid and braced, not exhausting.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Alternate sides and keep the torso from leaning."
+                  },
+                  {
+                    "name": "Trap Bar Carry",
+                    "notes": "Use a moderate load and steady pace."
+                  }
+                ]
+              },
+              {
+                "name": "Plate Neck Flexion and Extension",
+                "sets": "1-2",
+                "reps": "12 each direction",
+                "notes": "Very light and easy this week. Keep the motion controlled and stop before any strain.",
+                "substitutionOptions": [
+                  {
+                    "name": "Harness Neck Extension and Flexion",
+                    "notes": "Use a very small load and smooth reps."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

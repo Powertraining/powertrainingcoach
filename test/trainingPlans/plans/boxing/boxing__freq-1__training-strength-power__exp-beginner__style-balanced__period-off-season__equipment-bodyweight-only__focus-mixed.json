@@ -1,0 +1,427 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:09:53.932Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-bodyweight-only__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "7465ac2c0e9e35b8d2083564927c4920f1a9630a9d35f3cba959810564aa74ca",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "30_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5782,
+    "completion_tokens": 2857,
+    "total_tokens": 8639,
+    "prompt_tokens_details": {
+      "cached_tokens": 5504,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block starts the 12-week off-camp build for boxing with one short full-body session each week. Week 1 establishes a simple strength baseline with a push-up assessment so future work can be progressed cleanly, and the main training starts in Week 2. With bodyweight-only equipment, the focus is crisp power first, then basic strength, then trunk work, while keeping fatigue low enough to fit around boxing practice.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build general strength and basic explosive ability with simple bodyweight movements that are easy to recover from alongside boxing."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the same patterns with slightly harder variations and tighter quality standards while keeping volume recoverable."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength in place and express it with faster, sharper bodyweight power work that supports boxing speed."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Land softly and reset between reps. Jump fast and high without letting the reps turn sloppy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if squat jumps feel awkward. Same intent: fast takeoff, soft landing, full reset."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Plyo Push-Up to Hands-Elevated Surface",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Use a bench, box, or sturdy step height that lets you leave the surface slightly and land cleanly. Keep the reps quick and crisp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Fast Incline Push-Up",
+                    "notes": "Use this if you cannot leave the surface cleanly yet. Drive up as fast as possible and control the return."
+                  }
+                ]
+              },
+              {
+                "name": "2. Push-Up",
+                "sets": "1",
+                "reps": "AMRAP stopping 1 rep before form breaks",
+                "notes": "This set establishes your starting strength level. Use a clean straight body line, chest close to the floor, and stop before the hips sag or range shortens.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Push-Up",
+                  "prompt": "Warm up with a few easy sets, then do one hard max-rep set while stopping just before form breaks. Log the reps so the app can use this as your starting strength baseline."
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean push-up set and only count reps with full range and solid body position."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor push-ups are not yet clean. Pick a height that allows strong full-range reps."
+                  }
+                ]
+              },
+              {
+                "name": "3. Split Squat",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Use a controlled lower and stand up hard. Keep the front foot flat and the torso tall.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squats are uncomfortable to set up. Keep the reps smooth and balanced."
+                  }
+                ]
+              },
+              {
+                "name": "4. Side Plank",
+                "sets": "2",
+                "reps": "20-30 seconds per side",
+                "notes": "Keep a straight line from shoulder to ankle and do not let the hips roll back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Front Plank",
+                    "notes": "Use this if side planks are too unstable right now. Keep the ribs down and squeeze glutes."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Each rep should look the same. Stop the set if jump height drops clearly.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if it feels more natural. Keep the landing quiet and balanced."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Fast Incline Push-Up",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Drive up explosively and lower under control. Use a height that keeps every rep fast.",
+                "substitutionOptions": [
+                  {
+                    "name": "Plyo Push-Up to Hands-Elevated Surface",
+                    "notes": "Use this if you can leave the surface cleanly without losing shape."
+                  }
+                ]
+              },
+              {
+                "name": "2. Push-Up",
+                "sets": "3",
+                "reps": "5-8",
+                "notes": "Leave 1-2 clean reps in reserve on every set. If floor reps are too hard, elevate the hands and stay in the same rep range.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the strongest clean set in the target range and improve reps before making the variation harder."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use a stable surface and keep the same rep target with clean full range."
+                  }
+                ]
+              },
+              {
+                "name": "3. Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Pause briefly at the bottom, then stand up with intent. Keep balance and knee tracking clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "A good swap if space or balance is limited."
+                  }
+                ]
+              },
+              {
+                "name": "4. Bear Crawl Hold",
+                "sets": "2",
+                "reps": "20-30 seconds",
+                "notes": "Hover knees just off the floor, push the ground away, and breathe quietly while staying braced.",
+                "substitutionOptions": [
+                  {
+                    "name": "Front Plank",
+                    "notes": "Use this if the bear position bothers wrists or feels too unstable."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Jump with full intent but keep every landing soft and organized. Reset between reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if it helps you move faster and cleaner."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Fast Push-Up",
+                "sets": "4",
+                "reps": "3-5",
+                "notes": "Use the fastest variation you can perform cleanly. If speed slows down, stop the set.",
+                "substitutionOptions": [
+                  {
+                    "name": "Fast Incline Push-Up",
+                    "notes": "Best option if floor speed drops or technique breaks."
+                  },
+                  {
+                    "name": "Plyo Push-Up to Hands-Elevated Surface",
+                    "notes": "Use this if you can leave the surface slightly and land under control."
+                  }
+                ]
+              },
+              {
+                "name": "2. Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Stay one rep shy of form breakdown. If all sets reach 10 clean reps, progress next block by lowering the hand elevation or using a harder variation.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean work set and aim to own the top of the rep range before progressing."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Keep the body straight and use a lower surface than last week if you are ready."
+                  }
+                ]
+              },
+              {
+                "name": "3. Reverse Lunge",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Step back under control and push firmly through the front foot. Keep the torso steady.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if lunges bother your balance or knees."
+                  }
+                ]
+              },
+              {
+                "name": "4. Side Plank",
+                "sets": "2",
+                "reps": "25-35 seconds per side",
+                "notes": "Stay long through the body and keep the top shoulder stacked over the bottom shoulder.",
+                "substitutionOptions": [
+                  {
+                    "name": "Bear Crawl Hold",
+                    "notes": "Use this if you want a simpler trunk brace variation."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Deload week. Keep the jumps snappy and stop well before fatigue.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if it feels fresher and easier to repeat cleanly."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Fast Incline Push-Up",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Move fast with clean mechanics. This week is about freshness, not chasing fatigue.",
+                "substitutionOptions": [
+                  {
+                    "name": "Fast Push-Up",
+                    "notes": "Use this only if every rep stays quick and sharp."
+                  }
+                ]
+              },
+              {
+                "name": "2. Push-Up",
+                "sets": "2",
+                "reps": "5-6",
+                "notes": "Use the same variation as last week but stop comfortably short of fatigue. Clean reps only.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the easiest strong set this week and use it to judge readiness going into the next block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor reps feel grindy or slow this week."
+                  }
+                ]
+              },
+              {
+                "name": "3. Split Squat",
+                "sets": "2",
+                "reps": "6+6",
+                "notes": "Smooth reps, full control, no burn chasing. Save your legs for boxing work.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if it feels more natural and easier to perform well."
+                  }
+                ]
+              },
+              {
+                "name": "4. Front Plank",
+                "sets": "2",
+                "reps": "20-25 seconds",
+                "notes": "Brace lightly, breathe normally, and finish feeling better than when you started.",
+                "substitutionOptions": [
+                  {
+                    "name": "Side Plank",
+                    "notes": "Use this if you prefer the lateral trunk challenge."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

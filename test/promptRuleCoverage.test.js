@@ -30,7 +30,7 @@ test("training prompt embeds the key striking and percentage instruction rules",
   );
   assert.match(
     prompt,
-    /"method" must be exactly one of "rpe_based_1rm", "multi_rm", or "true_1rm"/i
+    /"method" must be exactly one of "multi_rm" or "true_1rm"/i
   );
 });
 
@@ -243,6 +243,59 @@ test("training prompt includes newly added striking periodization instructions",
   assert.match(prompt, /Far from the fight, train what the athlete lacks/i);
   assert.match(prompt, /move violently fast with maximal concentric intent/i);
   assert.match(prompt, /scissor jumps, split-squat jumps, single-leg bounds/i);
+});
+
+test("training prompt includes hard endurance separation from sparring and lower-body strength", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 4,
+    desiredTraining: "strength_power_endurance",
+    enduranceTraining: {
+      include: true,
+      modalities: ["running"],
+    },
+  });
+
+  assert.match(prompt, /hard endurance.*lower-body|lower-body.*hard endurance/i);
+  assert.match(prompt, /important sparring/i);
+  assert.match(prompt, /48 hours/i);
+});
+
+test("training prompt instructs true 1RM to be blocked for beginners and near competition", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "BJJ",
+    daysPerWeek: 3,
+    experience: "beginner",
+    liftIntensityMethod: "percentage",
+    percentageReferenceMethod: "multi_rm",
+  });
+
+  assert.match(prompt, /intermediate\/advanced/i);
+  assert.match(prompt, /never within 8 weeks of competition/i);
+});
+
+test("training prompt includes session spacing advisory for same-day or back-to-back sessions", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "Judo",
+    daysPerWeek: 4,
+    desiredTraining: "strength_power",
+  });
+
+  assert.match(prompt, /session.spacing|spacing.*session/i);
+  assert.match(prompt, /48 hours/i);
+  assert.match(prompt, /advisory/i);
+});
+
+test("training prompt for endurance plan forbids conditioning before power and strength work", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    desiredTraining: "strength_power_endurance",
+    enduranceTraining: { include: true, modalities: ["assault_bike"] },
+  });
+
+  assert.match(prompt, /power first.*main strength|power.*before.*strength/i);
+  assert.match(prompt, /conditioning/i);
 });
 
 test("training prompt includes pull-up and chin-up prescription rules", () => {

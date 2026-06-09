@@ -1,0 +1,32 @@
+{
+  "status": "error",
+  "generatedAt": "2026-06-09T08:57:16.099Z",
+  "caseId": "wrestling__freq-3__training-strength-power__exp-advanced__style-balanced__period-in-season__equipment-home-minimal__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "cf8c9f784d01a0489f66a4ad15febc4a312f3aa6d97da30e73172e76e829f3e8",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Wrestling",
+    "sessionsPerWeek": 3,
+    "daysPerWeek": 3,
+    "desiredTraining": "strength_power",
+    "experience": "advanced",
+    "weightClass": "74 kg",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "in_season",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "sessionDuration": "90_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "error": {
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors."
+  }
+}

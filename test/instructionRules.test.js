@@ -115,6 +115,55 @@ test("striking sport with confirmed peak-window competition resolves as in-camp"
   assert.match(guidelines, /30-60%/i);
 });
 
+test("general rules include safety guidance for pain, acute injury, and weight cutting", () => {
+  const guidelines = getGuidelinesText({ userInput: {}, purpose: "plan" });
+
+  assert.match(guidelines, /pain/i);
+  assert.match(guidelines, /acute injury/i);
+  assert.match(guidelines, /weight cutting/i);
+});
+
+test("heavy bag endurance rules appear only when endurance is requested for striking sports", () => {
+  const strikingGuidelines = getGuidelinesText({
+    userInput: {
+      primaryCombatSport: "Boxing",
+      desiredTraining: "strength_power_endurance",
+      enduranceTraining: { include: true, modalities: ["heavy_bag"] },
+      trainingCapabilities: { heavyBag: "yes" },
+    },
+    purpose: "plan",
+  });
+  const grapplingGuidelines = getGuidelinesText({
+    userInput: {
+      primaryCombatSport: "Wrestling",
+      desiredTraining: "strength_power_endurance",
+      enduranceTraining: { include: true, modalities: ["assault_bike"] },
+    },
+    purpose: "plan",
+  });
+
+  assert.match(strikingGuidelines, /Heavy bag endurance is for strikers/i);
+  assert.match(grapplingGuidelines, /Heavy bag endurance is for strikers/i);
+});
+
+test("true 1RM instruction blocks beginners and fights within 8 weeks", () => {
+  const guidelines = getGuidelinesText({
+    userInput: { liftIntensityMethod: "percentage" },
+    purpose: "plan",
+  });
+
+  assert.match(guidelines, /true_1rm.*rare|rare.*true_1rm/i);
+  assert.match(guidelines, /never within 8 weeks of competition/i);
+  assert.match(guidelines, /intermediate\/advanced/i);
+});
+
+test("session spacing rules include 48-hour recovery advisory", () => {
+  const guidelines = getGuidelinesText({ userInput: {}, purpose: "plan" });
+
+  assert.match(guidelines, /48 hours/i);
+  assert.match(guidelines, /advisory/i);
+});
+
 test("striking sport with event outside peak window stays build-focused", () => {
   const context = getStrikingCampContext({
     primaryCombatSport: "Boxing",

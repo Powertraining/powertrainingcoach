@@ -1,0 +1,520 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:15:10.079Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-striking__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "781102924731067dee586996aabeb9f16d2e928ac441c818a143bcfa278276e4",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "striking",
+    "competitionPeriod": "pre_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "sessionDuration": "no_time_limit",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 exercise 6 is missing \"sets\".",
+      "Week 1 day 1 exercise 6 is missing \"reps\".",
+      "Week 2 day 1 exercise 7 is missing \"sets\".",
+      "Week 2 day 1 exercise 7 is missing \"reps\".",
+      "Week 3 day 1 exercise 7 is missing \"sets\".",
+      "Week 3 day 1 exercise 7 is missing \"reps\".",
+      "Week 4 day 1 exercise 6 is missing \"sets\".",
+      "Week 4 day 1 exercise 6 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5788,
+    "completion_tokens": 3542,
+    "total_tokens": 9330,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block is the first part of a 12-week off-camp boxing plan built for one weekly S&C session with bodyweight-only equipment. Week 1 establishes a simple strength baseline with a push-up assessment so later work has a clear starting point. The main program starts in Week 2 and builds general lower-body power, upper-body strength endurance, trunk strength, and short conditioning without creating too much soreness for boxing practice.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build general strength, power, trunk stiffness, and repeat-effort conditioning with simple bodyweight work that is easy to recover from."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the same movement patterns with slightly harder variations and tighter work density while keeping quality high."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength and power, then express them with faster, sharper, lower-fatigue work that supports boxing speed."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Land softly and reset between reps. Jump fast and crisp, not tired.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the countermovement jump feels uncoordinated. Pause briefly at the bottom, then jump hard."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "1",
+                "reps": "AMRAP stopping 1 rep before form breaks",
+                "notes": "This set establishes your current pressing baseline. Warm up with a few easy sets first, then do one best clean set with full-body tension and a straight line from head to heel.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Push-Up",
+                  "prompt": "Warm up with a few easy sets, then perform one hard set of clean push-ups and stop one rep before form breaks. Log the reps completed so the app can track your baseline."
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Beat your Week 1 clean rep total over time without shortening range or losing body position."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor push-ups are not yet clean. Choose a height that lets you get strong, full-range reps."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Use a slow lower and stay balanced. Front foot stays flat and torso stays tall.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squats bother your knees or feel awkward. Step back under control and drive up smoothly."
+                  }
+                ]
+              },
+              {
+                "name": "Table Row",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Pull your chest toward the edge and keep your body rigid. Stop each set before your hips sag or you have to jerk.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Towel Row",
+                    "notes": "Use a secure setup only. Keep the reps smooth and controlled."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Use this if you do not have a safe row setup. Brace hard and row the load to your hip."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "3",
+                "reps": "20-30 seconds",
+                "notes": "Press your lower back into the floor and keep your ribs down. Shorten the lever if you lose position.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if the hold is too hard to keep clean. Move slowly and keep your back flat."
+                  }
+                ]
+              },
+              {
+                "name": "Shadowboxing Conditioning",
+                "notes": "Stay relaxed and sharp. Move your feet, change levels, and keep the punches snappy rather than muscular.",
+                "endurancePrescription": {
+                  "format": "intervals",
+                  "work": "6 x 2 minutes",
+                  "rest": "1 minute easy walk and breathing between rounds",
+                  "intensity": "moderate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Every rep should look the same. Stop if the jump height clearly drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the countermovement jump still feels too uncoordinated. Keep it simple and explosive."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "5-8",
+                "notes": "Leave 1-2 reps in reserve on every set. Full range and solid trunk position on every rep.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Build the top clean set toward the high end of the range before making the variation harder."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor push-ups are not yet strong enough for clean sets in this range."
+                  },
+                  {
+                    "name": "Tempo Push-Up",
+                    "notes": "Use a 3-second lower if regular push-ups are too easy but you do not have load."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "4",
+                "reps": "8+8",
+                "notes": "Control the descent, pause briefly at the bottom, then stand up with intent.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squats feel cramped or uncomfortable. Keep the front leg stable."
+                  }
+                ]
+              },
+              {
+                "name": "Table Row",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Lead with the chest and squeeze at the top. Keep the neck neutral and the hips up.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Towel Row",
+                    "notes": "Only use a solid, safe anchor point. Keep tension through the whole body."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Use this if no safe row setup is available. Brace and avoid twisting."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Drive through the whole foot and finish with the glute, not your lower back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Two-Leg Glute Bridge",
+                    "notes": "Use this if single-leg work feels unstable. Pause at the top for a full second."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "20-30 seconds per side",
+                "notes": "Stay long from head to heel and do not let the hips roll back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hard Front Plank",
+                    "notes": "Use this if the side plank position is too shaky. Squeeze glutes and abs hard."
+                  }
+                ]
+              },
+              {
+                "name": "Shadowboxing Conditioning",
+                "notes": "Stay technical while breathing under control. Keep the feet active and the hands returning fast.",
+                "endurancePrescription": {
+                  "format": "intervals",
+                  "work": "8 x 2 minutes",
+                  "rest": "1 minute easy walk and breathing between rounds",
+                  "intensity": "moderate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Explode on each rep and stick the landing. Rest enough to keep the jumps quick.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the countermovement jump still feels messy. Prioritize clean takeoff and landing."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Stop with 1-2 reps in reserve. If all sets are easy and clean, elevate the feet slightly next block rather than rushing now.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Own the high end of the range with clean reps and steady body position."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if the floor variation still breaks down before the target range."
+                  },
+                  {
+                    "name": "Tempo Push-Up",
+                    "notes": "Use a slower lower if standard push-ups are too easy and you need more challenge."
+                  }
+                ]
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Only use this if you can stay balanced and pain-free. Move under control and drive up hard.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if the elevated version feels unstable. Clean reps matter more than difficulty."
+                  }
+                ]
+              },
+              {
+                "name": "Table Row",
+                "sets": "4",
+                "reps": "8-10",
+                "notes": "Pause briefly at the top and lower under control. No kicking or shrugging.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Towel Row",
+                    "notes": "Use a secure setup and keep the movement smooth."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Use this if you still do not have a safe body row option."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "12+12",
+                "notes": "Keep the pelvis level and avoid twisting. Squeeze hard at the top for a full second.",
+                "substitutionOptions": [
+                  {
+                    "name": "Two-Leg Glute Bridge",
+                    "notes": "Use this if single-leg reps lose control. Make the squeeze stronger instead."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "3",
+                "reps": "25-35 seconds",
+                "notes": "Keep the lower back pressed down the whole time. If that position goes, end the set.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if the hollow hold is still too demanding to keep clean."
+                  }
+                ]
+              },
+              {
+                "name": "Shadowboxing Conditioning",
+                "notes": "Make this look like relaxed boxing, not survival work. Hands come back fast and breathing stays steady.",
+                "endurancePrescription": {
+                  "format": "intervals",
+                  "work": "10 x 2 minutes",
+                  "rest": "1 minute easy walk and breathing between rounds",
+                  "intensity": "moderate_to_hard"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Keep the jumps fast and fresh. This week is for quality, not fatigue.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if it feels cleaner. Keep every rep crisp."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "5-6",
+                "notes": "Leave 2 reps in reserve and keep every rep clean. This is a lighter week to recover and absorb the work.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Match strong, clean reps without grinding. Save a little in the tank this week."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if you need an easier variation to stay crisp and fresh."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Smooth reps only. Keep balance and control from start to finish.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if it feels friendlier on the knees."
+                  }
+                ]
+              },
+              {
+                "name": "Table Row",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Own the positions and stop well before form slips.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Towel Row",
+                    "notes": "Use this if it is your safest row option."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Use this if no body row setup is available."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "20-25 seconds per side",
+                "notes": "Stay stacked and breathe behind the brace.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hard Front Plank",
+                    "notes": "Use this if side planks are still too shaky."
+                  }
+                ]
+              },
+              {
+                "name": "Shadowboxing Conditioning",
+                "notes": "Keep this light and smooth. Finish feeling better than when you started.",
+                "endurancePrescription": {
+                  "format": "intervals",
+                  "work": "6 x 2 minutes",
+                  "rest": "1 minute easy walk and breathing between rounds",
+                  "intensity": "easy_to_moderate"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

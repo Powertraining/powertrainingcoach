@@ -1,0 +1,535 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:18:29.248Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "d27ef6e2288ba826bb6ff7f04caf8a760b19a668be240506febdb217117aebc4",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "fight_camp",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "sessionDuration": "45_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5789,
+    "completion_tokens": 3584,
+    "total_tokens": 9373,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block is a simple off-camp build for a beginner boxer with only one 45-minute S&C session each week and higher sparring priorities. Week 1 establishes a bodyweight strength baseline with a push-up assessment so the app can track progress, and the main training starts in Week 2. The block keeps power first, then basic strength, then trunk and neck work, with low equipment demands and controlled fatigue so it does not interfere with boxing.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build general bodyweight strength, trunk stiffness, and low-impact power without adding excess fatigue to sparring."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress bodyweight strength and explosive intent through harder variations and tighter quality standards."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength while expressing faster, sharper bodyweight power and clean repeat efforts."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Jump as high as you can and land softly. Reset between reps so each jump stays crisp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if repeated landings feel awkward. Start from a still quarter squat and explode up."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "1",
+                "reps": "AMRAP leaving 1 rep in reserve",
+                "notes": "Use strict form and stop before your hips sag or your head reaches first. This set establishes your baseline for future progress.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Push-Up",
+                  "prompt": "Warm up with a few easy sets, then perform one hard max-quality set while stopping with about 1 rep left in the tank. Log the reps completed with clean form so the app can track your baseline."
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean push-up set and beat it over time without sacrificing form."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use hands on a bench, box, or sturdy surface if floor push-ups are not yet clean."
+                  },
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this only if incline setup is not available and keep a straight line from knees to shoulders."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Use a controlled lower and drive up hard. Keep the front foot flat and the torso tall.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squat balance is a problem. Step back under control and push through the front leg."
+                  }
+                ]
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "3",
+                "reps": "20 seconds",
+                "notes": "Move slowly with knees hovering just off the floor. Keep the trunk stiff and avoid side-to-side sway.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank Shoulder Tap",
+                    "notes": "Use this if space is limited. Stay square and resist hip rotation."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "20-30 seconds per side",
+                "notes": "Make a straight line from head to heel. Stop before the hips drop.",
+                "substitutionOptions": [
+                  {
+                    "name": "Bent-Knee Side Plank",
+                    "notes": "Use this easier option if full side planks are not yet stable."
+                  }
+                ]
+              },
+              {
+                "name": "Supine Neck Lift",
+                "sets": "2",
+                "reps": "12-15 seconds",
+                "notes": "Lift the head slightly and hold with a long neck. Keep it easy and smooth with no shaking.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Chin Tuck Hold",
+                    "notes": "Use this if direct neck work feels too demanding. Gently tuck the chin and hold without straining."
+                  }
+                ]
+              },
+              {
+                "name": "Prone Neck Lift",
+                "sets": "2",
+                "reps": "12-15 seconds",
+                "notes": "Lift the forehead slightly from the floor and hold with light tension. Do not crank the neck up hard.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Chin Tuck Hold",
+                    "notes": "Use this if prone neck work feels uncomfortable."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Jump fast with full intent. End the set if height drops off noticeably.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the jump pattern is easier to control."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "5-8",
+                "notes": "Leave 1-2 clean reps in reserve each set. Move down under control and drive up fast.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your strongest clean set in the target range and build total reps over the block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Raise the hands if you cannot keep crisp reps in the target range."
+                  },
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this only if incline setup is not available."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Stay balanced and own the bottom position. Drive up with intent but keep the reps smooth.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if stepping feels more natural than holding a split stance."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Pause briefly at the top and keep the pelvis level. Do not arch the lower back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Glute Bridge",
+                    "notes": "Use both legs if single-leg control is not there yet."
+                  }
+                ]
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "3",
+                "reps": "20-25 seconds",
+                "notes": "Take small steps and stay quiet through the trunk. Keep the hips low and steady.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank Shoulder Tap",
+                    "notes": "Use this if floor space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "2",
+                "reps": "15-25 seconds",
+                "notes": "Press the lower back gently into the floor and breathe behind the brace. Shorten the lever if needed.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug Hold",
+                    "notes": "Use this easier option if you cannot keep the lower back down."
+                  }
+                ]
+              },
+              {
+                "name": "Supine Neck Lift",
+                "sets": "2",
+                "reps": "15 seconds",
+                "notes": "Light effort only. Keep the face relaxed and stop if you feel pinching.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Chin Tuck Hold",
+                    "notes": "Use this if direct neck holds feel too strong."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Attack the floor quickly and land under control. Rest enough to keep every rep explosive.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if it helps you produce cleaner takeoffs."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Stay one rep shy of form breakdown. If all sets are easy, slow the lowering slightly and still drive up fast.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best strict set and aim to improve reps or quality from Week 2."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Feet-Elevated Push-Up",
+                    "notes": "Use this only if standard push-ups are clearly too easy and your body line stays solid."
+                  },
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if standard push-ups still break down before the target range."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Keep the front knee tracking over the foot and own the full range. The last reps should feel challenging but clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if it is easier to stay stable."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Finish with the glute, not the lower back. Pause at the top for a clean lockout.",
+                "substitutionOptions": [
+                  {
+                    "name": "Glute Bridge",
+                    "notes": "Use both legs if the single-leg version causes pelvic twist."
+                  }
+                ]
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "3",
+                "reps": "25 seconds",
+                "notes": "Stay braced and move with control. Do not rush the pattern.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank Shoulder Tap",
+                    "notes": "Use this if crawl space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "25-35 seconds per side",
+                "notes": "Keep the ribs stacked and the top hip slightly forward. End the hold before posture slips.",
+                "substitutionOptions": [
+                  {
+                    "name": "Bent-Knee Side Plank",
+                    "notes": "Use this if full-length holds are not yet steady."
+                  }
+                ]
+              },
+              {
+                "name": "Prone Neck Lift",
+                "sets": "2",
+                "reps": "15 seconds",
+                "notes": "Small lift, light tension, smooth breathing. Keep the work easy enough to recover fast for boxing.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Chin Tuck Hold",
+                    "notes": "Use this if the floor position is uncomfortable."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Stay sharp and springy. Keep this easy and explosive, not tiring.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if it feels more natural and cleaner."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "5-6",
+                "notes": "Use your standard variation and leave 2 reps in reserve on every set. Crisp reps only.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Use this lighter week to move cleanly and set up a stronger next block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if you need cleaner reps with less fatigue."
+                  },
+                  {
+                    "name": "Knee Push-Up",
+                    "notes": "Use this only if incline setup is not available."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Smooth tempo and clean positions. This week is about keeping the pattern without extra soreness.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if it feels easier on balance."
+                  }
+                ]
+              },
+              {
+                "name": "Glute Bridge",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Squeeze at the top and keep the ribs down. Easy quality work only.",
+                "substitutionOptions": [
+                  {
+                    "name": "Single-Leg Glute Bridge",
+                    "notes": "Use this if the regular version feels too easy and you stay level."
+                  }
+                ]
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "2",
+                "reps": "20 seconds",
+                "notes": "Controlled steps, quiet trunk, no rushing. Finish fresher than you started.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank Shoulder Tap",
+                    "notes": "Use this if space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "2",
+                "reps": "15-20 seconds",
+                "notes": "Keep the lower back gently pressed down and stop before shaking takes over.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug Hold",
+                    "notes": "Use this easier version if full hollow holds are not clean."
+                  }
+                ]
+              },
+              {
+                "name": "Supine Neck Lift",
+                "sets": "1",
+                "reps": "12-15 seconds",
+                "notes": "Very light tension. This is just enough neck work to maintain the habit without adding fatigue.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Chin Tuck Hold",
+                    "notes": "Use this if direct neck lifting feels awkward."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
