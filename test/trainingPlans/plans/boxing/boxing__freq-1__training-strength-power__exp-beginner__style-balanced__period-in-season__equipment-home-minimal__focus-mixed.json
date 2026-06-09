@@ -1,0 +1,479 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:13:19.688Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-balanced__period-in-season__equipment-home-minimal__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "f80f154fe38b2bb48ae3129535bd2f2ff597ea7f07cea9525451d3f327af044b",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "in_season",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "30_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 exercise 6 is missing \"sets\".",
+      "Week 1 day 1 exercise 6 is missing \"reps\".",
+      "Week 2 day 1 exercise 6 is missing \"sets\".",
+      "Week 2 day 1 exercise 6 is missing \"reps\".",
+      "Week 3 day 1 exercise 6 is missing \"sets\".",
+      "Week 3 day 1 exercise 6 is missing \"reps\".",
+      "Week 4 day 1 exercise 6 is missing \"sets\".",
+      "Week 4 day 1 exercise 6 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5782,
+    "completion_tokens": 3185,
+    "total_tokens": 8967,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block starts a 12-week off-camp boxing strength and power build with one short weekly session that fits around skill work. Week 1 establishes a baseline on the main lower-body lift, then Weeks 2-4 build simple explosive work, squat strength, upper-body support, trunk strength, and brief conditioning without adding unnecessary fatigue. Week 4 trims volume for a light deload before the next block.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build basic lower-body strength and simple explosive qualities while keeping the sessions short, safe, and repeatable."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the main strength work and keep power output crisp with slightly heavier but still manageable training."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Hold onto strength and express it faster with more emphasis on sharp jumps, throws, and sport-friendly power."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Use a low box and land softly. Step down each rep and keep every jump fast and clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if no sturdy box is available. Reset between reps and jump for height."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "1 top set",
+                "reps": "3-5",
+                "notes": "This session sets your starting baseline for future squat work. Warm up gradually, then work up to one hard set of 3-5 good reps with solid depth and no grinding.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Goblet Squat",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can set your starting numbers for the next weeks."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if the goblet load is too light. Keep the torso tall and squat to a consistent depth."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "2",
+                "reps": "6-10",
+                "notes": "Keep the body straight and stop 1-2 reps before form breaks.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use this if floor push-ups are too hard. Keep the same body line and full range."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use this if wrist discomfort makes push-ups awkward. Lower under control and drive up hard."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "2",
+                "reps": "8 each side",
+                "notes": "Pull the elbow toward the hip and keep the torso still. Use a load you can control cleanly.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if lower-back support is needed. Keep the pull smooth and strict."
+                  }
+                ]
+              },
+              {
+                "name": "Front Plank",
+                "sets": "2",
+                "reps": "20-30 seconds",
+                "notes": "Brace hard, squeeze glutes, and keep ribs down. Stop before the low back sags.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if planks bother the shoulders. Move slowly and keep the low back flat."
+                  }
+                ]
+              },
+              {
+                "name": "Jump Rope",
+                "notes": "Stay relaxed and light on the feet. Keep this easy to moderate so you finish fresher than you started.",
+                "endurancePrescription": {
+                  "type": "steady_state",
+                  "duration": "5 minutes",
+                  "intensity": "easy to moderate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "hypertrophy"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Use a low box and land softly. Step down each rep and keep every jump explosive.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if no sturdy box is available. Reset each rep and chase height, not fatigue."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Use the baseline from Week 1 and keep all sets smooth. Add a small amount of load only if depth and speed stay solid.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the heaviest clean set of 5 with full depth and strong control."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if the goblet load tops out too soon. Keep the elbows up and torso tall."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Leave 1-2 reps in reserve and keep the reps crisp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use this if you need a simpler version. Keep full-body tension and controlled depth."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use this if you have dumbbells and want a more stable pressing option."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "8 each side",
+                "notes": "Pause briefly at the top and lower with control. Do not twist the body.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if you want more support and less lower-back demand."
+                  }
+                ]
+              },
+              {
+                "name": "Suitcase Carry",
+                "sets": "2",
+                "reps": "20-30 meters each side",
+                "notes": "Stand tall and do not lean toward the weight. Walk under control and brace the trunk hard.",
+                "substitutionOptions": [
+                  {
+                    "name": "Single-Arm Farmer Carry",
+                    "notes": "Use this if space is limited and you can walk shorter trips back and forth."
+                  }
+                ]
+              },
+              {
+                "name": "Jump Rope",
+                "notes": "Keep the rhythm smooth and breathing steady. This should support recovery, not bury you.",
+                "endurancePrescription": {
+                  "type": "intervals",
+                  "format": "6 rounds of 30 seconds on and 30 seconds easy",
+                  "intensity": "moderate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Keep the jump height honest and the landing quiet. Stop a set early if jump quality drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if no box is available. Rest fully between reps and jump with max intent."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Aim for a small load increase from Week 2 if technique stays clean. Do not grind the last reps.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best smooth set of 5 and beat Week 2 only if form stays sharp."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if you need more loading room while keeping the same squat pattern."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Move fast on the way up and control the lowering. Stop before the hips sag.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use this if needed to keep the reps clean in the target range."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use this if you want a simple loaded pressing option."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "10 each side",
+                "notes": "Keep the shoulder down and back and finish each rep without jerking.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if you want a stricter row with less setup."
+                  }
+                ]
+              },
+              {
+                "name": "Suitcase Carry",
+                "sets": "3",
+                "reps": "20-30 meters each side",
+                "notes": "Brace hard and walk smoothly. The goal is trunk stiffness, not speed.",
+                "substitutionOptions": [
+                  {
+                    "name": "Single-Arm Farmer Carry",
+                    "notes": "Use this if your space is tight. Make short trips and stay tall."
+                  }
+                ]
+              },
+              {
+                "name": "Jump Rope",
+                "notes": "Stay springy and relaxed through the ankles. Keep the effort moderate and finish with good rhythm.",
+                "endurancePrescription": {
+                  "type": "intervals",
+                  "format": "8 rounds of 30 seconds on and 30 seconds easy",
+                  "intensity": "moderate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "2",
+                "notes": "Keep the reps snappy and stop while the jump still feels springy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if no box is available. Keep the volume low and the jumps crisp."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Use the same weight as Week 3 or slightly lighter. This is a deload week, so keep every rep smooth and fast.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the cleanest set, not the hardest set, and finish feeling fresh."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if needed, but keep the effort easy to moderate this week."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "2",
+                "reps": "6-8",
+                "notes": "Easy clean reps only. Leave extra reps in reserve this week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use this if you want an easier deload option."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use this if it feels more comfortable on the wrists or shoulders."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "2",
+                "reps": "8 each side",
+                "notes": "Smooth reps and no body English. Keep this supportive, not tiring.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if you want a simple low-fatigue row."
+                  }
+                ]
+              },
+              {
+                "name": "Front Plank",
+                "sets": "2",
+                "reps": "20 seconds",
+                "notes": "Brace hard and keep the position clean. End the set before any shaking or sagging.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if you want a lower-fatigue core option this week."
+                  }
+                ]
+              },
+              {
+                "name": "Jump Rope",
+                "notes": "Keep this easy and relaxed. The goal is to leave the session fresher.",
+                "endurancePrescription": {
+                  "type": "steady_state",
+                  "duration": "4 minutes",
+                  "intensity": "easy"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,595 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:16:54.322Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-clinching__period-off-season__equipment-home-minimal__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "fe9050b07a0d6ee296c8921e1c8f76eb52a35b7c81e8992f3bac140f64b2173f",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "off_season",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "sessionDuration": "90_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5789,
+    "completion_tokens": 4033,
+    "total_tokens": 9822,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block starts the 12-week off-camp build for boxing with one focused S&C session each week around your higher sparring load. Week 1 establishes training maxes for the main lower-body lift so later percentage work is grounded in a real baseline, and the main training starts in Week 2. The emphasis in this block is simple, beginner-friendly force and power work with low equipment demands, keeping quality high without adding too much fatigue on top of boxing.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build basic lower-body strength and simple explosive ability with recoverable volume that fits around sparring."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the same main lifts steadily while trimming unnecessary volume and keeping power output crisp."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength in place and express it faster with more ballistic and boxing-friendly power work."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Reset between reps and jump as high and fast as you can. Land softly and stop if height drops off.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if space is tight. Start from a still quarter squat and jump straight up."
+                  },
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low safe box and step down each rep. Keep takeoffs fast and landings quiet."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "1 top set",
+                "reps": "3-5",
+                "notes": "Warm up in small jumps, then work up to one hard clean set of 3-5 reps. This sets your baseline for future percentage work, so stop with solid form and no grinding.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Goblet Squat",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can estimate your baseline for later work."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if one dumbbell is too light. Keep elbows up and depth consistent."
+                  },
+                  {
+                    "name": "Kettlebell Goblet Squat",
+                    "notes": "Same setup and intent if you have a kettlebell instead of a dumbbell."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Lower with control, keep the back flat, and feel the hamstrings load. Leave 2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Use the same hinge pattern and controlled lowering."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use bodyweight or light load if your available weights are limited."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "8-10 each side",
+                "notes": "Drive the elbow back, pause briefly at the top, and keep the torso still. Leave 1-2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if you have a bench and want a more stable row."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Use a loaded backpack if dumbbells are not available."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "6-12",
+                "notes": "Keep the body straight and lower under control. Stop 1-2 reps before form breaks.",
+                "substitutionOptions": [
+                  {
+                    "name": "Feet-Elevated Push-Up",
+                    "notes": "Use this if regular push-ups are too easy in the target rep range."
+                  },
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if you need a simpler version to keep reps clean."
+                  }
+                ]
+              },
+              {
+                "name": "Suitcase Carry",
+                "sets": "3",
+                "reps": "20-30 meters each side",
+                "notes": "Walk tall, keep ribs down, and do not lean toward the weight. Use a load that challenges your trunk without twisting.",
+                "substitutionOptions": [
+                  {
+                    "name": "Single-Arm Hold",
+                    "notes": "Use a timed hold if you do not have space to walk."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Reset between reps and jump with max intent. Keep every rep crisp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if space is tight and keep each rep explosive."
+                  },
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low safe box and step down each rep."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "4",
+                "reps": "6",
+                "notes": "Use the baseline from Week 1 and move each rep with control on the way down and strong intent on the way up.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Goblet Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 6,
+                      "percent1RM": 70,
+                      "relativeIntensity": 75
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the heaviest clean set of 6 completed with stable depth and no form breakdown."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if you need more loading than one dumbbell allows."
+                  },
+                  {
+                    "name": "Kettlebell Goblet Squat",
+                    "notes": "Use the same loading target if you have a kettlebell instead."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Hinge back, keep the weights close, and stop before the low back takes over. Leave 2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Use the same hinge pattern if kettlebells fit your setup better."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use this if your available load is limited and you still want a good hinge stimulus."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "10 each side",
+                "notes": "Pull toward the hip, keep the neck relaxed, and control the lowering. Leave 1-2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if you want a more stable setup."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "A practical option if heavier dumbbells are not available."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Smooth reps only. Keep shoulders down and away from the ears and stop before your body line breaks.",
+                "substitutionOptions": [
+                  {
+                    "name": "Feet-Elevated Push-Up",
+                    "notes": "Use this if you can exceed the rep range easily."
+                  },
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if you need to keep the reps cleaner and more repeatable."
+                  }
+                ]
+              },
+              {
+                "name": "Weighted Sit-Up",
+                "sets": "3",
+                "reps": "10-12",
+                "notes": "Move under control and avoid yanking with the neck. Hold a light plate, dumbbell, or backpack to the chest.",
+                "substitutionOptions": [
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use this if you have a cable setup available."
+                  },
+                  {
+                    "name": "Deadbug",
+                    "notes": "Use this only if loaded trunk work is not practical today."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Jump with max speed and height. Take enough rest to keep the output high.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if you want a simple low-impact option."
+                  },
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low safe box and step down every rep."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "5",
+                "reps": "5",
+                "notes": "Stay braced, hit the same depth each rep, and stand up fast. If the load feels one full step too hard, drop it slightly and keep the reps clean.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Goblet Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 5,
+                      "reps": 5,
+                      "percent1RM": 75,
+                      "relativeIntensity": 80
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the strongest clean set of 5 with stable posture and full control."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if one implement is too light for the target work."
+                  },
+                  {
+                    "name": "Kettlebell Goblet Squat",
+                    "notes": "Use the same prescription if a kettlebell is your main load."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Keep shins nearly vertical, hinge back hard, and own the bottom position. Leave 1-2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Use the same rep target and tempo."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use this if you need more challenge from lighter weights."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "4",
+                "reps": "8 each side",
+                "notes": "Pull hard without twisting the torso and lower under control. Keep one good rep in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "A stable option if you have a bench."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "Use a loaded backpack if equipment is minimal."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "8-12",
+                "notes": "Explode up while keeping the body rigid. Stop before shoulder position or trunk control slips.",
+                "substitutionOptions": [
+                  {
+                    "name": "Feet-Elevated Push-Up",
+                    "notes": "Use this to keep the set challenging in the target range."
+                  },
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if regular reps become messy."
+                  }
+                ]
+              },
+              {
+                "name": "Suitcase Carry",
+                "sets": "3",
+                "reps": "25-35 meters each side",
+                "notes": "Walk tall and steady. The goal is anti-rotation control, not rushing.",
+                "substitutionOptions": [
+                  {
+                    "name": "Single-Arm Hold",
+                    "notes": "Use a 20-30 second hold per side if space is limited."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Keep the jumps snappy and stop while they still feel springy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if you want the simplest option."
+                  },
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low safe box and treat this as sharp practice, not fatigue work."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Deload week. Keep the movement sharp and smooth and finish feeling fresher than you started.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Goblet Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 3,
+                      "reps": 5,
+                      "percent1RM": 70,
+                      "relativeIntensity": 80
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the cleanest set of 5 this week and note how fast and controlled it feels."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if one implement is too light."
+                  },
+                  {
+                    "name": "Kettlebell Goblet Squat",
+                    "notes": "Use the same percentage target off your established baseline."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Controlled hinge, easy quality reps, and leave 2-3 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Use the same easy quality approach."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use a light version if equipment is limited."
+                  }
+                ]
+              },
+              {
+                "name": "One-Arm Dumbbell Row",
+                "sets": "2",
+                "reps": "8-10 each side",
+                "notes": "Smooth, clean reps only. Do not chase fatigue this week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use this if you want a more supported setup."
+                  },
+                  {
+                    "name": "Backpack Row",
+                    "notes": "A practical minimal-equipment option."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "2",
+                "reps": "8-10",
+                "notes": "Leave a couple of clean reps in reserve and keep the body line tight.",
+                "substitutionOptions": [
+                  {
+                    "name": "Feet-Elevated Push-Up",
+                    "notes": "Use this if standard reps are very easy."
+                  },
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if you want an easier recovery-week option."
+                  }
+                ]
+              },
+              {
+                "name": "Weighted Sit-Up",
+                "sets": "2",
+                "reps": "10",
+                "notes": "Controlled reps and easy trunk work to finish. No grinding.",
+                "substitutionOptions": [
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use this if available."
+                  },
+                  {
+                    "name": "Deadbug",
+                    "notes": "Use this if you need the lowest-fatigue option."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

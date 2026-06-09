@@ -1,0 +1,509 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:17:05.278Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-clinching__period-off-season__equipment-bodyweight-only__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "b56b4c2a4644712beef2239ca3beba68afd8f95a1b0bf46e86f1b9a1720ed3f9",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "30_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5783,
+    "completion_tokens": 3539,
+    "total_tokens": 9322,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block is a simple off-camp build for a beginner boxer with one 30-minute S&C session per week and bodyweight-only equipment. Week 1 establishes a baseline on the main lower-body strength pattern with a safe multi-rep assessment, then Weeks 2-4 build general force, power, trunk strength, and a small dose of safe neck work. The wider 12-week cycle keeps building through Week 8, then shifts toward sharper speed and power expression in Weeks 9-12 without forcing a fight-camp peak.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build basic lower-body strength, simple power, trunk stiffness, and safe foundational work with recoverable fatigue."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the same key patterns with slightly harder variations and tighter quality control while keeping fatigue manageable."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep strength in place and express it with faster, sharper jumping and boxing-supportive power outputs."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Jump as high as you can with a soft landing. Reset between reps and stop if height drops off.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if the countermovement jump feels uncoordinated. Start from a still quarter squat and jump fast."
+                  },
+                  {
+                    "name": "Pogo Jumps",
+                    "notes": "Use this if space is limited or impact tolerance is low. Keep contacts light and springy."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "1 top set",
+                "reps": "3-5 per side",
+                "notes": "Use a controlled warm-up, then build to one hard set per side with clean form. Log the reps achieved on the harder side to set your starting point for the next weeks.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Split Squat",
+                  "prompt": "Warm up progressively, then work up to your hardest clean set of 3-5 reps per side using a tempo or range that makes the set challenging. Log the reps and variation used so the app can track your baseline."
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Beat the quality of this top set next time with better control, range, or reps before moving to a harder variation."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Rear-Foot-Elevated Split Squat",
+                    "notes": "Use this if a regular split squat is too easy. Keep the front foot planted and torso steady."
+                  },
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squat setup is uncomfortable. Step back under control and drive up through the front leg."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Use a variation that leaves 1-2 clean reps in reserve. Keep the body straight and move with full control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use hands on a bench, table, or sturdy surface if floor push-ups are too hard."
+                  },
+                  {
+                    "name": "Tempo Push-Up",
+                    "notes": "Use a 3-second lower if regular push-ups are too easy with bodyweight only."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "20-30 seconds per side",
+                "notes": "Stay long from head to heel and do not let the hips sag.",
+                "substitutionOptions": [
+                  {
+                    "name": "Front Plank",
+                    "notes": "Use this if side planks are too difficult to hold cleanly."
+                  }
+                ]
+              },
+              {
+                "name": "Supine Neck Isometric Hold",
+                "sets": "2",
+                "reps": "15-20 seconds",
+                "notes": "Lie on your back and gently press the head into the floor without straining. Keep the effort smooth and submaximal.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Towel Neck Flexion Isometric",
+                    "notes": "Use a towel for light hand resistance if floor setup is awkward. Keep the effort easy and pain-free."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Jump fast and land quietly. Take enough rest so every rep stays crisp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if you need a simpler jump pattern. Pause briefly in the start position before takeoff."
+                  },
+                  {
+                    "name": "Pogo Jumps",
+                    "notes": "Use this if impact tolerance is low. Keep the rhythm elastic and light."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "3",
+                "reps": "6-8 per side",
+                "notes": "Use the variation from Week 1 that was challenging but clean. Control the bottom and drive up hard.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Aim to improve one set with more reps, better depth, or a harder variation while keeping form solid."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Rear-Foot-Elevated Split Squat",
+                    "notes": "Use this if the base version is too easy. Keep the front leg doing the work."
+                  },
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if you move better with a stepping pattern. Keep balance steady."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Stop before the hips sag or the neck reaches forward. Use a harder or easier variation to stay in the target range.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if standard floor reps are not yet clean."
+                  },
+                  {
+                    "name": "Tempo Push-Up",
+                    "notes": "Use this if standard reps are too easy. Lower for 3 seconds and press up hard."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "2",
+                "reps": "8-10 per side",
+                "notes": "Drive through the heel and pause briefly at the top without arching the lower back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Two-Leg Glute Bridge",
+                    "notes": "Use this if single-leg control is not there yet."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "2",
+                "reps": "20-25 seconds",
+                "notes": "Keep the ribs down and lower back gently pressed toward the floor. Shorten the lever if needed.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if the hollow hold cannot be maintained cleanly."
+                  }
+                ]
+              },
+              {
+                "name": "Side-Lying Neck Isometric Hold",
+                "sets": "2",
+                "reps": "15-20 seconds per side",
+                "notes": "Gently press the side of the head into the floor or your hand. Keep the effort controlled and pain-free.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Hand-Resisted Lateral Neck Isometric",
+                    "notes": "Use light hand pressure only. Do not strain or hold your breath."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Squat Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Start from a still quarter squat and explode up. Land soft and reset each rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if the paused start feels awkward. Still prioritize jump height and landing control."
+                  },
+                  {
+                    "name": "Pogo Jumps",
+                    "notes": "Use this if impact needs to stay very low."
+                  }
+                ]
+              },
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "5-6 per side",
+                "notes": "Use this only if your regular split squat is now clearly too easy. Stay balanced and keep the front knee tracking well.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set per side and improve control or reps before adding more difficulty."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if the rear-foot-elevated version is too unstable or too hard."
+                  },
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if setup space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Press fast on the way up while keeping the body rigid. Use the variation that keeps all reps clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if full push-ups still break down."
+                  },
+                  {
+                    "name": "Tempo Push-Up",
+                    "notes": "Use this if regular reps are too easy."
+                  }
+                ]
+              },
+              {
+                "name": "Reverse Lunge",
+                "sets": "2",
+                "reps": "6-8 per side",
+                "notes": "Step back quietly, stay tall, and drive through the front leg.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if balance is better in a stationary stance."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "25-35 seconds per side",
+                "notes": "Keep the top hip stacked and the trunk braced the whole time.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hollow Body Hold",
+                    "notes": "Use this if shoulder support is uncomfortable in the side plank."
+                  }
+                ]
+              },
+              {
+                "name": "Prone Neck Isometric Hold",
+                "sets": "2",
+                "reps": "15-20 seconds",
+                "notes": "Lie face down and gently press the forehead into a folded towel or your hands. Keep the neck long and do not strain.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Hand-Resisted Neck Extension Isometric",
+                    "notes": "Use very light pressure and keep the effort smooth."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Countermovement Jump",
+                "sets": "3",
+                "reps": "2",
+                "notes": "Keep every rep snappy and stop while you still feel springy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if you prefer the simpler paused start."
+                  },
+                  {
+                    "name": "Pogo Jumps",
+                    "notes": "Use this if legs feel beaten up and you need a lighter option."
+                  }
+                ]
+              },
+              {
+                "name": "Split Squat",
+                "sets": "2",
+                "reps": "5-6 per side",
+                "notes": "Use the same variation as last week but leave extra reps in the tank. Smooth reps only.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Use this week to move cleanly and finish fresh rather than chasing fatigue."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Rear-Foot-Elevated Split Squat",
+                    "notes": "Use this only if it is already stable and comfortable."
+                  },
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if your hips or knees prefer the stepping pattern."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "2",
+                "reps": "8-10",
+                "notes": "Keep the reps smooth and leave a little in reserve. No grinders this week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if you need cleaner reps with less effort."
+                  },
+                  {
+                    "name": "Tempo Push-Up",
+                    "notes": "Use this only if regular reps are still too easy without adding fatigue."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "2",
+                "reps": "6-8 per side",
+                "notes": "Pause briefly at the top and keep the pelvis level.",
+                "substitutionOptions": [
+                  {
+                    "name": "Two-Leg Glute Bridge",
+                    "notes": "Use this if the single-leg version causes cramping or poor control."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "2",
+                "reps": "15-20 seconds",
+                "notes": "Keep this crisp and braced, not shaky and exhausted.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if you need a lower-fatigue trunk option."
+                  }
+                ]
+              },
+              {
+                "name": "Supine Neck Isometric Hold",
+                "sets": "1-2",
+                "reps": "15 seconds",
+                "notes": "Easy effort only. Finish feeling better, not strained.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Towel Neck Flexion Isometric",
+                    "notes": "Use light pressure and stop well before fatigue builds."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

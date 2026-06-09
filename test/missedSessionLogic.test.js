@@ -104,6 +104,53 @@ test("missing half of a 2-day week expires the slot and repeats the week target 
   assert.equal(weekTwo.days[1].sessionLabel, "Day 2");
 });
 
+test("illness miss creates a conservative re-entry session and repeats the week", () => {
+  const result = applyMissedSessionAdjustment(createPlan(3, 2), {
+    completedDays: ["1-1"],
+    weekNumber: 1,
+    dayNumber: 2,
+    reason: "illness_injury",
+  });
+
+  const weekOne = result.plan.weeks[0];
+  const reentrySlot = weekOne.days.find((day) => day.day === 3);
+
+  assert.equal(result.action, "repeat_next_week");
+  assert.equal(weekOne.days.find((day) => day.day === 2)?.status, "skipped");
+  assert.equal(reentrySlot?.status, "rescheduled");
+  assert.equal(reentrySlot?.rescueMode, "re_entry");
+});
+
+test("three missed sessions out of four marks the week failed and repeats the week", () => {
+  const firstMiss = applyMissedSessionAdjustment(createPlan(4, 2), {
+    completedDays: ["1-1"],
+    weekNumber: 1,
+    dayNumber: 2,
+    reason: "schedule_travel",
+  });
+
+  const secondMiss = applyMissedSessionAdjustment(firstMiss.plan, {
+    completedDays: firstMiss.completedDays,
+    weekNumber: 1,
+    dayNumber: 3,
+    reason: "schedule_travel",
+  });
+
+  const rescueSlotDayNumber = secondMiss.plan.weeks[0].days
+    .find((day) => day.status === "rescheduled")?.day;
+
+  const thirdMiss = applyMissedSessionAdjustment(secondMiss.plan, {
+    completedDays: secondMiss.completedDays,
+    weekNumber: 1,
+    dayNumber: rescueSlotDayNumber || 4,
+    reason: "schedule_travel",
+  });
+
+  assert.equal(thirdMiss.action, "repeat_next_week");
+  assert.equal(thirdMiss.plan.weeks[1].days[0].sessionLabel, "Day 1");
+  assert.equal(thirdMiss.plan.weeks[1].days[1].sessionLabel, "Day 2");
+});
+
 test("two missed sessions collapse the remainder of the week to one priority rescue and freeze progression", () => {
   const firstMiss = applyMissedSessionAdjustment(createPlan(4, 2), {
     completedDays: ["1-1"],

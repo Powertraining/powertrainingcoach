@@ -1,0 +1,439 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:10:48.548Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-balanced__period-pre-season__equipment-home-minimal__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "75afce7cc89ae9bd7b432949b4fc13ea50af4a02f238c064aa63f0e05dbc71f3",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "pre_season",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "30_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5782,
+    "completion_tokens": 2748,
+    "total_tokens": 8530,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block is a simple off-camp build phase for boxing with one short weekly S&C session. Week 1 establishes a baseline on the main lower-body strength lift, then Weeks 2-4 build force and power with low exercise count, clear intent, and recoverable volume that fits around skill work. The parent 12-week cycle keeps building through Week 8, then shifts toward sharper power and speed expression in Weeks 9-12. Week 1 is for establishing training maxes, and the main program starts in Week 2.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build general lower-body strength and simple explosive qualities with beginner-friendly exercises that fit short off-camp sessions."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the same main patterns with slightly heavier strength work and crisp power output while keeping fatigue controlled."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep enough strength while shifting more emphasis toward fast, sharp, boxing-friendly power and speed expression."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Use a low box and land quietly. Step down each rep and keep every jump fast and clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use bodyweight only and reset between reps."
+                  },
+                  {
+                    "name": "Broad Jump",
+                    "notes": "Stick the landing and keep the distance controlled."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "1 top set",
+                "reps": "3-5",
+                "notes": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps with solid depth and posture.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Goblet Squat",
+                  "prompt": "Warm up progressively, then work up to your heaviest set of 3-5 clean reps. Log the load and reps so the app can estimate your baseline for future work."
+                },
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Record the heaviest clean top set with full depth and stable control."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if the goblet hold limits load too early."
+                  },
+                  {
+                    "name": "Kettlebell Front Squat",
+                    "notes": "Keep the torso tall and elbows under the weight."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "6",
+                "notes": "Move with control, keep a soft knee bend, and feel the stretch in the hamstrings without rounding your back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Keep the bell close to the legs."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use a lighter load and prioritize balance and hip control."
+                  }
+                ]
+              },
+              {
+                "name": "Weighted Sit-Up",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Control the lower down and keep the reps strong and smooth.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dumbbell Floor Sit-Up",
+                    "notes": "Hold the load close to the chest."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "If cable equipment becomes available, use a full trunk curl."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Use the same low box height if jump quality stays high. Stop before landings get noisy or slow.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Reset between reps and jump violently."
+                  },
+                  {
+                    "name": "Broad Jump",
+                    "notes": "Stick each landing before the next rep."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Use a load that leaves 1-2 reps in reserve. Keep full depth and the same tempo on every set.",
+                "performanceTarget": {
+                  "strategy": "fixed_rpe",
+                  "prompt": "Track the heaviest load you can hold for all sets while keeping 1-2 reps in reserve."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if the goblet hold limits load too early."
+                  },
+                  {
+                    "name": "Kettlebell Front Squat",
+                    "notes": "Brace hard and stay upright."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Use a steady hinge and keep the dumbbells close. Stop each set with clean back position still intact.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Match the same hinge pattern and tempo."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use lighter weight and controlled balance."
+                  }
+                ]
+              },
+              {
+                "name": "Farmer Carry",
+                "sets": "3",
+                "reps": "20-30 m",
+                "notes": "Walk tall, brace the trunk, and keep the handles quiet.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Do both sides evenly and avoid leaning."
+                  },
+                  {
+                    "name": "Front Rack Carry",
+                    "notes": "Use lighter loads and keep ribs down."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Jump with full intent and keep the box height conservative so speed stays high.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use bodyweight only and reset every rep."
+                  },
+                  {
+                    "name": "Broad Jump",
+                    "notes": "Use crisp takeoffs and quiet landings."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Use a slightly heavier load than last week if form stays solid. Leave about 1 rep in reserve on the final sets.",
+                "performanceTarget": {
+                  "strategy": "fixed_rpe",
+                  "prompt": "Aim to beat last week slightly with clean reps and one good rep left."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use this if you need more loading without losing position."
+                  },
+                  {
+                    "name": "Kettlebell Front Squat",
+                    "notes": "Keep elbows up and stay balanced through mid-foot."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "6",
+                "notes": "Go a little heavier than Week 2 if the hinge stays clean. No bouncing at the bottom.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Use the same controlled hinge and pause briefly at the top."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Keep the pelvis square and move under control."
+                  }
+                ]
+              },
+              {
+                "name": "Weighted Sit-Up",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Drive up strongly and lower under control. Keep the reps clean rather than rushed.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dumbbell Floor Sit-Up",
+                    "notes": "Hold the load close and keep feet stable."
+                  },
+                  {
+                    "name": "Farmer Carry",
+                    "notes": "Use this if direct trunk flexion feels uncomfortable."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "2",
+                "notes": "Keep the jumps snappy and stop while they still feel sharp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Stay explosive and reset each rep."
+                  },
+                  {
+                    "name": "Broad Jump",
+                    "notes": "Use easy crisp reps and stick the landing."
+                  }
+                ]
+              },
+              {
+                "name": "Goblet Squat",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Use the same movement pattern but reduce load slightly from Week 3. Move each rep smoothly and leave 2 reps in reserve.",
+                "performanceTarget": {
+                  "strategy": "fixed_rpe",
+                  "prompt": "Treat this as a clean reset week and note what load feels crisp and repeatable."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Double Dumbbell Front Squat",
+                    "notes": "Use a moderate load and keep positions tidy."
+                  },
+                  {
+                    "name": "Kettlebell Front Squat",
+                    "notes": "Stay upright and controlled."
+                  }
+                ]
+              },
+              {
+                "name": "Dumbbell Romanian Deadlift",
+                "sets": "2",
+                "reps": "6",
+                "notes": "Use a lighter load and keep the hinge smooth. This week is for freshness, not pushing strain.",
+                "substitutionOptions": [
+                  {
+                    "name": "Kettlebell Romanian Deadlift",
+                    "notes": "Keep tension in the hamstrings and move with control."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use light load and own the balance."
+                  }
+                ]
+              },
+              {
+                "name": "Farmer Carry",
+                "sets": "2",
+                "reps": "20 m",
+                "notes": "Use a controlled walk and finish feeling fresh, not cooked.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Do both sides and stay tall."
+                  },
+                  {
+                    "name": "Front Rack Carry",
+                    "notes": "Use a lighter load and steady breathing."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

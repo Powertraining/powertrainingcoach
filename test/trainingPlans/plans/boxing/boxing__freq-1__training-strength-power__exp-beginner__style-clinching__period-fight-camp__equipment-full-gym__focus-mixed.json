@@ -1,0 +1,466 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-08T18:17:49.618Z",
+  "caseId": "boxing__freq-1__training-strength-power__exp-beginner__style-clinching__period-fight-camp__equipment-full-gym__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "4ce674a5753f9c62e32893d463aa72d70c5972928673a7496a71ee693616e234",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "fight_camp",
+    "equipment": "full_gym",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "30_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 has sessionLabel \"Assessment – Trap Bar Deadlift\" that does not start with \"Day N\".",
+      "Week 1 day 1 exercise 2 is missing \"sets\".",
+      "Week 1 day 1 exercise 2 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5783,
+    "completion_tokens": 2923,
+    "total_tokens": 8706,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block starts the 12-week off-camp parent cycle for boxing with a simple build-first approach: a little explosive work, one main strength lift, then brief upper-body pulling and trunk work. Week 1 establishes a training max for the primary lift so percentage work can start cleanly in Week 2. With only one 30-minute S&C session per week, the plan keeps volume tight and quality high so it supports boxing without adding unnecessary fatigue.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build basic force and power with simple lifts and crisp explosive work that fit around boxing practice."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the main strength work and keep power output sharp without letting fatigue drift up."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Shift more of the work toward fast, sharp outputs while holding onto the strength built earlier."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Assessment – Trap Bar Deadlift",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Use a box height that lets every rep stay clean and quiet. Step down each rep and reset fully before the next jump.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if box setup is awkward. Jump for height and land softly."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use if you want an even simpler option. Start from a controlled shallow dip."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "notes": "Warm up with small jumps in load, then work up to one hard top set of 3-5 reps with solid form. This session establishes your baseline for future percentage work, so stop if technique slips.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Trap Bar Deadlift",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can estimate your training max."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if the trap bar is unavailable. Keep the same hard but clean top set of 3-5 reps."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the heaviest clean top set and keep the bar path smooth."
+                }
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Use a steady load and pause briefly at the top of each rep. Keep the chest planted and do not yank the weight.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if the chest-supported bench is taken. Keep the torso still."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Use if you need a simple free-weight option. Match reps on both sides."
+                  }
+                ]
+              },
+              {
+                "name": "Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "6-8",
+                "notes": "Only roll as far as you can keep the ribs down and lower back quiet. Move slow out, strong back in.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Rollout",
+                    "notes": "Use if no ab wheel is available. Keep the range short and controlled."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use if rollouts irritate the shoulders or lower back."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Jump with intent and land softly. Stop the set if height drops or landings get noisy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if the box is not practical. Focus on crisp takeoff and balanced landing."
+                  },
+                  {
+                    "name": "Trap Bar Jump",
+                    "notes": "Use only with a light load and clean mechanics. Keep every rep fast."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Drive hard from the floor and finish tall without leaning back. Rest enough to keep all reps clean.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 3,
+                      "reps": 5,
+                      "percent1RM": 72,
+                      "relativeIntensity": 77
+                    }
+                  ]
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if the trap bar is unavailable. Match the same loading pattern."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best clean work set and keep bar speed steady across all sets."
+                }
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "2",
+                "reps": "8-10",
+                "notes": "Use a load you can control for all reps. Pull elbows back and keep the neck relaxed.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if you need a quicker setup."
+                  },
+                  {
+                    "name": "T-Bar Row",
+                    "notes": "Use if a chest-supported row station is unavailable."
+                  }
+                ]
+              },
+              {
+                "name": "Cable Pallof Press",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Press straight out and resist rotation. Keep the ribs down and hips square.",
+                "substitutionOptions": [
+                  {
+                    "name": "Half-Kneeling Pallof Press",
+                    "notes": "Use if the standing version feels unstable."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if cables are busy. Walk slow and stay tall."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Same box as last week unless every rep was easy and sharp. Quality first, no grinding for height.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if the box is unavailable."
+                  },
+                  {
+                    "name": "Broad Jump",
+                    "notes": "Use only if landings stay balanced and controlled."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Brace before each rep and keep the chest tall through the pull. The last set should still look clean, not sloppy.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 4,
+                      "percent1RM": 77,
+                      "relativeIntensity": 81
+                    }
+                  ]
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if needed and keep the same set and rep structure."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track your strongest clean set and aim to keep technique identical across all work sets."
+                }
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Slightly heavier than Week 2 if all reps stay strict. No torso movement.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if you need a faster setup."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Use if benches are limited. Match both sides."
+                  }
+                ]
+              },
+              {
+                "name": "Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Keep the body long and tight. If you lose position, shorten the range and finish the reps well.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Rollout",
+                    "notes": "Use if no ab wheel is available."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use if rollouts are too demanding today."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Box Jump",
+                "sets": "2",
+                "reps": "3",
+                "notes": "Keep these snappy and easy. Treat every rep like practice, not a test.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if the box setup is inconvenient."
+                  }
+                ]
+              },
+              {
+                "name": "Trap Bar Deadlift",
+                "sets": "2",
+                "reps": "4",
+                "notes": "Deload week. Move the bar fast with perfect positions and leave the session feeling fresh.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 2,
+                      "reps": 4,
+                      "percent1RM": 70,
+                      "relativeIntensity": 76
+                    }
+                  ]
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Block Pull",
+                    "notes": "Use if the trap bar is unavailable."
+                  }
+                ],
+                "performanceTarget": {
+                  "strategy": "fixed_rpe",
+                  "prompt": "Keep these clean and comfortable this week so you are ready to build again next block."
+                }
+              },
+              {
+                "name": "Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Use a comfortable load and keep the reps smooth. No need to push fatigue this week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use if needed."
+                  }
+                ]
+              },
+              {
+                "name": "Cable Pallof Press",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Stay square and controlled. Treat this as trunk practice, not a max effort drill.",
+                "substitutionOptions": [
+                  {
+                    "name": "Half-Kneeling Pallof Press",
+                    "notes": "Use if you want a more stable position."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if cables are busy."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
-import { OPENAI_API_MODEL, OPENAI_API_TEMPERATURE } from "../src/services/config/apiConfig.js";
+import { OPENAI_PLAN_GENERATION_MODEL, OPENAI_API_TEMPERATURE } from "../src/services/config/apiConfig.js";
 import { buildTrainingPrompt } from "../src/services/utils/promptBuilder.js";
 import { getEmbeddedInstructionKeys } from "../src/services/utils/instructionRules.js";
 
@@ -38,9 +38,35 @@ const SPORT_OPTIONS = Object.freeze([
 ]);
 
 const SESSIONS_PER_WEEK_OPTIONS = Object.freeze([1, 2, 3, 4, 5]);
-const GOAL_OPTIONS = Object.freeze(["hypertrophy", "strength", "power"]);
+const DESIRED_TRAINING_OPTIONS = Object.freeze([
+  "strength_power",
+  "endurance",
+  "strength_power_endurance",
+]);
+const SESSION_DURATION_OPTIONS = Object.freeze([
+  "30_min",
+  "45_min",
+  "60_min",
+  "75_min",
+  "90_min",
+  "no_time_limit",
+]);
 const EXPERIENCE_OPTIONS = Object.freeze(["beginner", "intermediate", "advanced"]);
 const PRIMARY_STYLE_OPTIONS = Object.freeze(["balanced", "striking", "grappling", "clinching"]);
+
+// Only test styles that are meaningful for each sport.
+// Grappling-only sports (Wrestling, BJJ) don't have striking or clinching.
+// Striking-only sports (Boxing, Muay Thai) don't have grappling.
+// Judo is clinch-and-throw so striking doesn't apply.
+// MMA is mixed so all styles apply.
+const VALID_STYLES_BY_SPORT = Object.freeze({
+  Boxing: ["balanced", "striking", "clinching"],
+  Wrestling: ["balanced", "grappling"],
+  BJJ: ["balanced", "grappling"],
+  "Muay Thai / Kickboxing": ["balanced", "striking", "clinching"],
+  Judo: ["balanced", "grappling", "clinching"],
+  MMA: ["balanced", "striking", "grappling", "clinching"],
+});
 const COMPETITION_PERIOD_OPTIONS = Object.freeze([
   "off_season",
   "pre_season",
@@ -70,10 +96,11 @@ const DEFAULT_OPTIONS = Object.freeze({
   overwrite: false,
   includeImages: false,
   limit: null,
+  casesPerSport: 100,
   sports: SPORT_OPTIONS,
   concurrency: 1,
   instructionsSource: "local",
-  model: OPENAI_API_MODEL || "gpt-5.4-mini",
+  model: OPENAI_PLAN_GENERATION_MODEL,
   temperature: toNumber(OPENAI_API_TEMPERATURE, 1),
   numWeeks: 12,
   trainingPlanBatch: 1,
@@ -91,12 +118,15 @@ Options:
   --run                      Call the OpenAI API. Without this flag the script only writes a manifest.
   --overwrite                Regenerate cases even when a successful output file already exists.
   --include-images           Attach local instruction images as data URLs.
-  --limit <n>                Only process the first n matching questionnaire combinations.
+  --limit <n>                Only process the first n cases globally (overrides --cases-per-sport for quick testing).
+  --cases-per-sport <n>      Maximum cases per sport. Default: ${DEFAULT_OPTIONS.casesPerSport}.
   --sport <name[,name]>      Restrict the run to one or more sports.
   --concurrency <n>          Number of concurrent API calls when --run is used. Default: 1.
   --model <name>             Override the OpenAI model. Default: ${DEFAULT_OPTIONS.model}.
   --temperature <number>     Override temperature. Default: ${DEFAULT_OPTIONS.temperature}.
   --num-weeks <n>            Value written into the request payload. Default: ${DEFAULT_OPTIONS.numWeeks}.
+                             Session duration cycles through: ${SESSION_DURATION_OPTIONS.join(", ")}.
+                             Desired training options: ${DESIRED_TRAINING_OPTIONS.join(", ")}.
   --batch <n>                Training plan batch number. Default: ${DEFAULT_OPTIONS.trainingPlanBatch}.
   --output-dir <path>        Output directory. Default: test/trainingPlans
   --instructions-dir <path>  Override the local instructions directory.
@@ -106,6 +136,13 @@ Options:
   --instructions-source <mode>
                              "local" reads docs/instructions/*.md, "fallback" uses promptBuilder fallbacks.
   --help                     Show this message.
+
+API key resolution (--run only):
+  The script resolves OPENAI_API_KEY in this order:
+    1. OPENAI_API_KEY environment variable (or functions/.secret.local loaded via --env-file-if-exists)
+    2. firebase functions:secrets:access  (uses your "firebase login" session — same credential as deployment)
+    3. gcloud secrets versions access     (fallback if gcloud is available)
+    4. GCP Secret Manager REST API        (fallback for service-account or GCP VM environments)
 
 Examples:
   node scripts/simulateTrainingPlans.js
@@ -167,6 +204,13 @@ function parseArgs(argv) {
         options.limit = parsePositiveInteger(
           requireOptionValue(flag, nextValue),
           null
+        );
+        if (inlineValue === undefined) index += 1;
+        break;
+      case "--cases-per-sport":
+        options.casesPerSport = parsePositiveInteger(
+          requireOptionValue(flag, nextValue),
+          options.casesPerSport
         );
         if (inlineValue === undefined) index += 1;
         break;
@@ -299,12 +343,13 @@ function toPosixRelativePath(filePath) {
 function buildScenarioInput({
   primaryCombatSport,
   sessionsPerWeek,
-  goal,
+  desiredTraining,
   experience,
   primaryStyle,
   competitionPeriod,
   equipment,
   focusEmphasis,
+  sessionDuration,
   numWeeks,
   trainingPlanBatch,
 }) {
@@ -312,7 +357,7 @@ function buildScenarioInput({
     primaryCombatSport,
     sessionsPerWeek,
     daysPerWeek: sessionsPerWeek,
-    goal,
+    desiredTraining,
     experience,
     weightClass: DEFAULT_SPORT_WEIGHT_CLASS[primaryCombatSport] || "",
     primaryStyle,
@@ -321,6 +366,7 @@ function buildScenarioInput({
     injuries: [],
     focusEmphasis,
     preferences: [focusEmphasis],
+    sessionDuration: sessionDuration || "60_min",
     numWeeks,
     trainingPlanBatch,
   };
@@ -330,7 +376,7 @@ function buildCaseId(input) {
   return [
     slugify(input.primaryCombatSport),
     `freq-${input.sessionsPerWeek}`,
-    `goal-${slugify(input.goal)}`,
+    `training-${slugify(input.desiredTraining)}`,
     `exp-${slugify(input.experience)}`,
     `style-${slugify(input.primaryStyle)}`,
     `period-${slugify(input.competitionPeriod)}`,
@@ -341,53 +387,72 @@ function buildCaseId(input) {
 
 function buildScenarioMatrix(options) {
   const scenarios = [];
-  let sequence = 0;
+  let globalSequence = 0;
 
   for (const primaryCombatSport of options.sports) {
     const sportSlug = slugify(primaryCombatSport);
+    const validStyles = VALID_STYLES_BY_SPORT[primaryCombatSport] || PRIMARY_STYLE_OPTIONS;
+    const sportScenarios = [];
+    let sportSequence = 0;
 
-    for (const sessionsPerWeek of SESSIONS_PER_WEEK_OPTIONS) {
-      for (const goal of GOAL_OPTIONS) {
-        for (const experience of EXPERIENCE_OPTIONS) {
-          for (const primaryStyle of PRIMARY_STYLE_OPTIONS) {
-            for (const competitionPeriod of COMPETITION_PERIOD_OPTIONS) {
-              for (const equipment of EQUIPMENT_OPTIONS) {
-                for (const focusEmphasis of FOCUS_EMPHASIS_OPTIONS) {
-                  const input = buildScenarioInput({
-                    primaryCombatSport,
-                    sessionsPerWeek,
-                    goal,
-                    experience,
-                    primaryStyle,
-                    competitionPeriod,
-                    equipment,
-                    focusEmphasis,
-                    numWeeks: options.numWeeks,
-                    trainingPlanBatch: options.trainingPlanBatch,
-                  });
+    // Enumerate the four highest-impact dimensions so every combination of
+    // experience, desiredTraining, competitionPeriod, and equipment is covered.
+    // Lower-impact dimensions (primaryStyle, sessionsPerWeek, focusEmphasis)
+    // cycle round-robin so all values appear across the 108 rows.
+    for (const experience of EXPERIENCE_OPTIONS) {
+      for (const desiredTraining of DESIRED_TRAINING_OPTIONS) {
+        for (const competitionPeriod of COMPETITION_PERIOD_OPTIONS) {
+          for (const equipment of EQUIPMENT_OPTIONS) {
+            const primaryStyle = validStyles[sportSequence % validStyles.length];
+            const sessionsPerWeek = SESSIONS_PER_WEEK_OPTIONS[sportSequence % SESSIONS_PER_WEEK_OPTIONS.length];
+            const focusEmphasis = FOCUS_EMPHASIS_OPTIONS[sportSequence % FOCUS_EMPHASIS_OPTIONS.length];
+            const sessionDuration = SESSION_DURATION_OPTIONS[globalSequence % SESSION_DURATION_OPTIONS.length];
 
-                  const caseId = buildCaseId(input);
-                  const outputPath = path.resolve(
-                    options.outputDir,
-                    sportSlug,
-                    `${caseId}.json`
-                  );
+            const input = buildScenarioInput({
+              primaryCombatSport,
+              sessionsPerWeek,
+              desiredTraining,
+              experience,
+              primaryStyle,
+              competitionPeriod,
+              equipment,
+              focusEmphasis,
+              sessionDuration,
+              numWeeks: options.numWeeks,
+              trainingPlanBatch: options.trainingPlanBatch,
+            });
 
-                  scenarios.push({
-                    sequence: sequence + 1,
-                    caseId,
-                    sportSlug,
-                    outputPath,
-                    input,
-                  });
-                  sequence += 1;
-                }
-              }
-            }
+            const caseId = buildCaseId(input);
+            const successOutputPath = path.resolve(
+              options.outputDir,
+              "plans",
+              sportSlug,
+              `${caseId}.json`
+            );
+            const errorOutputPath = path.resolve(
+              options.outputDir,
+              "errors",
+              sportSlug,
+              `${caseId}.json`
+            );
+
+            sportScenarios.push({
+              sequence: globalSequence + 1,
+              caseId,
+              sportSlug,
+              successOutputPath,
+              errorOutputPath,
+              input,
+            });
+            sportSequence += 1;
+            globalSequence += 1;
           }
         }
       }
     }
+
+    const perSportLimit = options.casesPerSport;
+    scenarios.push(...(perSportLimit ? sportScenarios.slice(0, perSportLimit) : sportScenarios));
   }
 
   return options.limit ? scenarios.slice(0, options.limit) : scenarios;
@@ -576,6 +641,30 @@ async function getSecretManagerAccessToken() {
   };
 }
 
+async function readSecretViaFirebaseCli({projectId, secretName}) {
+  try {
+    const {stdout} = await execFileAsync("firebase", [
+      "functions:secrets:access",
+      secretName,
+      "--project",
+      projectId,
+    ]);
+
+    const trimmed = stdout.trim();
+    return trimmed || null;
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return null;
+    }
+
+    throw new Error(
+      error?.stderr?.trim() ||
+        error?.message ||
+        "firebase functions:secrets:access failed."
+    );
+  }
+}
+
 async function readSecretViaGcloud({projectId, secretName, secretVersion}) {
   try {
     const {stdout} = await execFileAsync("gcloud", [
@@ -657,6 +746,22 @@ async function resolveOpenAiApiKey(options) {
   }
 
   const errors = [];
+  const firebaseKey = await readSecretViaFirebaseCli({
+    projectId: options.gcpProjectId,
+    secretName: options.secretName,
+  }).catch((error) => {
+    errors.push(`firebase CLI: ${error.message}`);
+    return null;
+  });
+
+  if (firebaseKey) {
+    return {
+      apiKey: firebaseKey,
+      source: "firebase-cli",
+      projectId: options.gcpProjectId,
+    };
+  }
+
   const gcloudKey = await readSecretViaGcloud({
     projectId: options.gcpProjectId,
     secretName: options.secretName,
@@ -692,7 +797,8 @@ async function resolveOpenAiApiKey(options) {
   }
 
   const hintParts = [
-    "Set OPENAI_API_KEY locally",
+    "run \"firebase login\" to authenticate the Firebase CLI (same credential path as the app)",
+    "or set OPENAI_API_KEY in your environment / functions/.secret.local",
     "or install/authenticate gcloud",
     "or provide Google credentials via GOOGLE_APPLICATION_CREDENTIALS",
   ];
@@ -759,12 +865,26 @@ function validateTrainingPlan(plan, input) {
     };
   }
 
+  if (typeof plan.summary !== "string" || plan.summary.trim().length === 0) {
+    issues.push("Plan is missing a non-empty summary string.");
+  }
+
+  if (!Array.isArray(plan.phaseOverview) || plan.phaseOverview.length === 0) {
+    issues.push("Plan does not include a non-empty phaseOverview array.");
+  }
+
   if (!Array.isArray(plan.weeks) || plan.weeks.length === 0) {
     issues.push("Plan does not include a non-empty weeks array.");
     return {
       passed: false,
       issues,
     };
+  }
+
+  if (plan.weeks.length !== input.numWeeks) {
+    issues.push(
+      `Plan has ${plan.weeks.length} week(s) but ${input.numWeeks} were requested.`
+    );
   }
 
   plan.weeks.forEach((week, weekIndex) => {
@@ -780,6 +900,26 @@ function validateTrainingPlan(plan, input) {
     }
 
     week.days.forEach((day, dayIndex) => {
+      const label = day?.sessionLabel;
+      if (label !== undefined && (typeof label !== "string" || !label.match(/^Day\s+\d+/i))) {
+        issues.push(
+          `Week ${weekIndex + 1} day ${dayIndex + 1} has sessionLabel "${label}" that does not start with "Day N".`
+        );
+      }
+
+      if (!day?.sessionProfile || typeof day.sessionProfile !== "object") {
+        issues.push(
+          `Week ${weekIndex + 1} day ${dayIndex + 1} is missing a sessionProfile object.`
+        );
+      } else if (
+        typeof day.sessionProfile.stressLevel !== "string" ||
+        day.sessionProfile.stressLevel.trim().length === 0
+      ) {
+        issues.push(
+          `Week ${weekIndex + 1} day ${dayIndex + 1} sessionProfile is missing stressLevel.`
+        );
+      }
+
       if (!Array.isArray(day?.exercises) || day.exercises.length === 0) {
         issues.push(
           `Week ${weekIndex + 1} day ${dayIndex + 1} has no exercises array.`
@@ -798,6 +938,12 @@ function validateTrainingPlan(plan, input) {
             );
           }
         });
+
+        if (exercise?.substitutionOptions !== undefined && !Array.isArray(exercise.substitutionOptions)) {
+          issues.push(
+            `Week ${weekIndex + 1} day ${dayIndex + 1} exercise ${exerciseIndex + 1} ("${exercise?.name || ""}") has a non-array substitutionOptions.`
+          );
+        }
       });
     });
   });
@@ -849,6 +995,7 @@ async function createManifest({
     generatedAt: new Date().toISOString(),
     mode: options.run ? "run" : "dry-run",
     totalCaseCount: scenarios.length,
+    casesPerSport: options.casesPerSport,
     selectedSports: options.sports,
     instructionsSource: options.instructionsSource,
     includeImages: options.includeImages,
@@ -865,7 +1012,7 @@ async function createManifest({
     cases: scenarios.map((scenario) => ({
       sequence: scenario.sequence,
       caseId: scenario.caseId,
-      outputFile: path.relative(outputDir, scenario.outputPath).split(path.sep).join("/"),
+      outputFile: path.relative(outputDir, scenario.successOutputPath).split(path.sep).join("/"),
       input: scenario.input,
     })),
   });
@@ -910,7 +1057,7 @@ async function main() {
     scenarios,
     options.concurrency,
     async (scenario, index) => {
-      const existingRecord = await readJsonIfPresent(scenario.outputPath);
+      const existingRecord = await readJsonIfPresent(scenario.successOutputPath);
       if (!options.overwrite && existingRecord?.status === "success") {
         summary.skipped += 1;
         console.log(
@@ -932,7 +1079,7 @@ async function main() {
         });
         const validation = validateTrainingPlan(plan, scenario.input);
 
-        await writeJson(scenario.outputPath, {
+        await writeJson(scenario.successOutputPath, {
           status: "success",
           generatedAt: new Date().toISOString(),
           caseId: scenario.caseId,
@@ -952,7 +1099,7 @@ async function main() {
           `[${index + 1}/${scenarios.length}] generated ${scenario.caseId}`
         );
       } catch (error) {
-        await writeJson(scenario.outputPath, {
+        await writeJson(scenario.errorOutputPath, {
           status: "error",
           generatedAt: new Date().toISOString(),
           caseId: scenario.caseId,
