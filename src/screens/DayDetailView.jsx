@@ -1035,7 +1035,7 @@ export default function DayDetailView({
     }
 
     return (
-        <QuestionnaireShell hideTabBar={isSwapEditorVisible}>
+        <QuestionnaireShell hideTabBar={!onSwapEditorVisibilityChange && isSwapEditorVisible}>
             <Modal
                 visible={isSwapEditorVisible}
                 transparent

@@ -751,6 +751,8 @@ export default function ProgramOverviewView({
     selectedTrainingSlotIsFuture &&
     !selectedDayIsComplete &&
     !selectedDayIsPushedBack;
+  const showSelectedTrainingActions =
+    showTodayTrainingActions || showFutureTrainingPushBack;
   const showCompletedSessionStatus =
     Boolean(activeSelectedDay) &&
     selectedDayIsComplete &&
@@ -765,19 +767,16 @@ export default function ProgramOverviewView({
   const showPushedBackSessionStatus =
     Boolean(activeSelectedDay) && selectedDayIsPushedBack && !selectedRestSlot;
   const showRestSessionStatus = Boolean(selectedRestSlot);
-  const showFutureSessionStatus = showFutureTrainingPushBack && !showTodayTrainingActions;
-  const showStartButton = showTodayTrainingActions;
-  const showCompleteButton = showTodayTrainingActions && Boolean(onFinishDay);
+  const showStartButton = showSelectedTrainingActions;
+  const showCompleteButton = showSelectedTrainingActions && Boolean(onFinishDay);
   const showPushBackButton =
-    (showTodayTrainingActions || showFutureTrainingPushBack) &&
-    Boolean(onMissedDay);
+    showSelectedTrainingActions && Boolean(onMissedDay);
   const hasKnownHeaderActionContent =
     showStartButton ||
     showCompletedSessionStatus ||
     showPreviousSessionStatus ||
     showPushedBackSessionStatus ||
-    showRestSessionStatus ||
-    showFutureSessionStatus;
+    showRestSessionStatus;
   const showFallbackSessionStatus = !hasKnownHeaderActionContent;
   const showHeaderActionContent =
     hasKnownHeaderActionContent || showFallbackSessionStatus;
@@ -986,7 +985,7 @@ export default function ProgramOverviewView({
   }
 
   return (
-    <QuestionnaireShell hideTabBar={false}>
+    <QuestionnaireShell hideTabBar={swapEditorVisible}>
       <ScrollView
         ref={overviewScrollRef}
         style={swapEditorVisible ? styles.blurredContent : null}
@@ -1170,30 +1169,6 @@ export default function ProgramOverviewView({
                     </IBMPlexText>
                   </View>
                 )
-              ) : null}
-              {showFutureSessionStatus ? (
-                <View style={styles.restSessionContent}>
-                  <IBMPlexText numberOfLines={1} style={styles.currentSessionTitle}>
-                    This session
-                  </IBMPlexText>
-                  {showPushBackButton ? (
-                    <TouchableOpacity
-                      style={[
-                        styles.futureSessionPushBackButton,
-                        updatingPlan && styles.currentSessionSecondaryButtonDisabled,
-                      ]}
-                      onPress={openPushBackConfirm}
-                      disabled={updatingPlan}
-                    >
-                      <IBMPlexText defaultWhite
-                        lines={1}
-                        style={styles.futureSessionPushBackButtonText}
-                      >
-                        {updatingPlan ? "Updating" : "Push back"}
-                      </IBMPlexText>
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
               ) : null}
               {showStartButton ? (
                 <View style={styles.currentSessionContent}>
@@ -1658,21 +1633,6 @@ const styles = StyleSheet.create({
     fontSize: 13, fontWeight: "700",
     lineHeight: 16,
     textAlign: "center",
-  },
-  futureSessionPushBackButton: {
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 120,
-    height: 34,
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    width: 112,
-  },
-  futureSessionPushBackButtonText: {
-    color: "#000",
-    fontSize: 13, fontWeight: "700",
-    textAlign: "center",
-    textTransform: "uppercase",
   },
   currentSessionContent: {
     alignItems: "center",
