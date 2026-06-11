@@ -1268,12 +1268,8 @@ export default function ProgramOverviewView({
             />
           ) : null}
 
-          {detailSelectedDay && !selectedRestSlot ? (
-            <SelectedDaySlide
-              animationKey={selectedScheduleAnimationKey}
-              direction={selectedScheduleSlideDirection}
-              style={styles.dayDetailEdgeToEdge}
-            >
+          {detailSelectedDay ? (
+            <View style={styles.dayDetailEdgeToEdge}>
               <DayDetailView
                 week={detailSelectedDay.week}
                 day={detailSelectedDay.dayData}
@@ -1304,7 +1300,7 @@ export default function ProgramOverviewView({
                 updatingPlan={selectedArchivedDay ? true : updatingPlan}
                 showRescheduledNotice={false}
               />
-            </SelectedDaySlide>
+            </View>
           ) : null}
 
           <View style={styles.programDetailsFooter}>

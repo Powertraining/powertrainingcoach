@@ -2089,6 +2089,7 @@ const styles = StyleSheet.create({
         bottom: 6,
         left: 6,
         alignItems: 'center',
+        backgroundColor: '#141414',
         borderColor: 'rgba(180,180,180,0.7)',
         borderRadius: 999,
         borderWidth: 1,
