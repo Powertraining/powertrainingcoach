@@ -16,7 +16,7 @@ import {
   Animated,
   Easing,
 } from "react-native";
-import Svg, { Circle } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
@@ -93,16 +93,7 @@ function buildTrackingDrafts(
     return drafts;
 }
 
-const EXERCISE_SECTION_LABELS = Object.freeze({
-    power: "Power",
-    compound: "Compound",
-    primary_pull: "Primary pull",
-    core: "Core",
-    accessory: "Accessory",
-});
 const CARD_HORIZONTAL_PADDING = 28;
-const EXERCISE_TAB_COLLAPSED_WIDTH = 128;
-const EXERCISE_TAB_EXPANDED_WIDTH = 240;
 const COMPLETED_EXERCISE_RING_SIZE = 65;
 const COMPLETED_EXERCISE_RING_CENTER = COMPLETED_EXERCISE_RING_SIZE / 2;
 const COMPLETED_EXERCISE_RING_RADIUS = 26;
@@ -756,101 +747,32 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
     };
 }
 
-function includesAnyKeyword(text, keywords = []) {
-    return keywords.some((keyword) => text.includes(keyword));
+function ForumActionIcon({ width = 25, color = "#000" }) {
+    const height = Math.round((width * 182) / 252);
+
+    return (
+        <Svg width={width} height={height} viewBox="0 0 252 182" fill="none">
+            <Path d="M234.653 182C244.234 182 252 174.234 252 164.653C252 127.289 221.711 97 184.347 97H117.5C94.0279 97 75 116.028 75 139.5C75 162.972 94.0279 182 117.5 182H234.653Z" fill={color} />
+            <Path d="M134.5 85C157.972 85 177 65.9721 177 42.5C177 19.0279 157.972 0 134.5 0H67.6531C30.2893 0 0 30.2893 0 67.6531C0 77.2335 7.76649 85 17.3469 85H134.5Z" fill={color} />
+        </Svg>
+    );
 }
 
-function getExplicitExerciseSection(exercise = {}) {
-    const exerciseText = getExerciseSearchText(exercise);
-
-    if (
-        includesAnyKeyword(exerciseText, [
-            " med ball",
-            " medicine ball",
-            " plyo",
-            " box jump",
-            " broad jump",
-            " vertical jump",
-            " squat jump",
-            " hurdle jump",
-            " bound",
-            " throw",
-            " slam",
-            " sprint",
-            " ballistic",
-            " clean",
-            " snatch",
-        ])
-    ) {
-        return "power";
+function getInlineRecommendationDisplay(recommendation = {}) {
+    if (recommendation.primary) {
+        return recommendation.primary;
     }
 
-    if (
-        includesAnyKeyword(exerciseText, [
-            " pull-up",
-            " pull up",
-            " chin-up",
-            " chin up",
-            " row",
-            " lat pulldown",
-        ])
-    ) {
-        return "primary_pull";
-    }
-
-    if (
-        includesAnyKeyword(exerciseText, [
-            " plank",
-            " anti rotation",
-            " rollout",
-            " pallof",
-            " hollow",
-            " hanging knee raise",
-            " hanging leg raise",
-            " suitcase carry",
-            " farmer carry",
-        ])
-    ) {
-        return "core";
-    }
-
-    if (
-        getExercisePerformanceTarget(exercise) ||
-        getExercisePercentagePrescription(exercise) ||
-        getExerciseStrengthAssessment(exercise) ||
-        includesAnyKeyword(exerciseText, [
-            " squat",
-            " deadlift",
-            " bench",
-            " press",
-            " split squat",
-            " lunge",
-        ])
-    ) {
-        return "compound";
-    }
-
-    return "accessory";
+    return String(recommendation.details || "")
+        .split(" * ")
+        .find((detail) => /\b(?:RPE|RIR|RI)\b/i.test(detail)) || "";
 }
 
-function buildExerciseSectionRuns(exercises = []) {
-    return exercises.reduce((runs, exercise, exerciseIndex) => {
-        const section = getExplicitExerciseSection(exercise);
-        const previousRun = runs[runs.length - 1];
-        const exerciseItem = { exercise, exerciseIndex };
-
-        if (previousRun?.section === section) {
-            previousRun.exercises.push(exerciseItem);
-            return runs;
-        }
-
-        runs.push({
-            section,
-            exercises: [exerciseItem],
-        });
-
-        return runs;
-    }, []);
+function getSecondaryRecommendationDetails(recommendation = {}, inlineRecommendation = "") {
+    return String(recommendation.details || "")
+        .split(" * ")
+        .filter((detail) => detail && detail !== inlineRecommendation)
+        .join(" * ");
 }
 
 export default function DayDetailView({
@@ -883,7 +805,6 @@ export default function DayDetailView({
     const [highlightedExerciseIndex, setHighlightedExerciseIndex] = useState(null);
     const [swapExerciseIndex, setSwapExerciseIndex] = useState(null);
     const [tipsExerciseIndex, setTipsExerciseIndex] = useState(null);
-    const tabTouchStartedRef = useRef(false);
     const exerciseTabAnimationsRef = useRef(new Map());
     const normalizedExercises = useMemo(
         () =>
@@ -963,11 +884,6 @@ export default function DayDetailView({
     const assessmentExercises = trackedExercises.filter(
         (item) => item.strengthAssessment
     );
-    const exerciseSectionRuns = useMemo(
-        () => buildExerciseSectionRuns(normalizedExercises),
-        [normalizedExercises]
-    );
-
     function getExerciseTabAnimation(exerciseIndex) {
         const animations = exerciseTabAnimationsRef.current;
 
@@ -1067,14 +983,7 @@ export default function DayDetailView({
     }
 
     function handleTabTouchStart(event) {
-        tabTouchStartedRef.current = true;
         event.stopPropagation?.();
-    }
-
-    function handleTabScrollerDragStart() {
-        if (tabTouchStartedRef.current) {
-            tabTouchStartedRef.current = false;
-        }
     }
 
     function openSwapOptions(exerciseIndex) {
@@ -1282,32 +1191,25 @@ export default function DayDetailView({
 
                     {normalizedExercises.length === 0 ? null : (
                         <>
-                    <View style={styles.exerciseTabs}>
-                        {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
-                            return (
-                                <View key={`tabs-${dayIdentity}-${section}-${sectionIndex}`} style={styles.exerciseSection}>
-                                    <View style={styles.exerciseSectionHeader}>
-                                        <IBMPlexText defaultWhite
-                                            style={styles.exerciseSectionTitle}
-                                        >
-                                            {EXERCISE_SECTION_LABELS[section]}
-                                        </IBMPlexText>
-                                    </View>
-                                    <ScrollView
-                                        horizontal
-                                        showsHorizontalScrollIndicator={false}
-                                        style={[
-                                            styles.tabsScroller,
-                                            { marginHorizontal: -exerciseListHorizontalBleed },
-                                        ]}
-                                        contentContainerStyle={styles.tabsContainer}
-                                        onScrollBeginDrag={handleTabScrollerDragStart}
-                                    >
-                                        {sectionExercises.map(({ exercise: ex, exerciseIndex }) => {
+                    <View
+                        style={[
+                            styles.exerciseTabs,
+                            { marginHorizontal: -exerciseListHorizontalBleed },
+                        ]}
+                    >
+                        <View style={styles.tabsContainer}>
+                                        {normalizedExercises.map((ex, exerciseIndex) => {
                                             const recommendation = getExerciseRecommendationDisplay(
                                                 ex,
                                                 strengthReferenceOneRepMaxByLift
                                             );
+                                            const inlineRecommendation =
+                                                getInlineRecommendationDisplay(recommendation);
+                                            const secondaryRecommendationDetails =
+                                                getSecondaryRecommendationDetails(
+                                                    recommendation,
+                                                    inlineRecommendation
+                                                );
                                             const isHighlighted =
                                                 exerciseIndex === highlightedExerciseIndex;
                                             const exerciseSubstitutionOptions =
@@ -1316,8 +1218,7 @@ export default function DayDetailView({
                                                 exerciseSubstitutionOptions.length > 1 &&
                                                 onReplaceExercise;
                                             const hasExerciseTips = Boolean(ex.notes);
-                                            const showActionRail =
-                                                isHighlighted;
+                                            const showActionRail = true;
                                             const totalSetCount = parsePrescribedSetCount(ex);
                                             const completedSetCount =
                                                 completedSessionStepKeys.size > 0
@@ -1327,36 +1228,18 @@ export default function DayDetailView({
                                                     : totalSetCount;
                                             const reportedResults =
                                                 reportedResultsByExercise.get(exerciseIndex) || [];
-                                            const tabAnimation = getExerciseTabAnimation(exerciseIndex);
-                                            const tabWidth = tabAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [
-                                                    EXERCISE_TAB_COLLAPSED_WIDTH,
-                                                    EXERCISE_TAB_EXPANDED_WIDTH,
-                                                ],
-                                            });
                                             const actionRailStyle = {
-                                                opacity: tabAnimation,
-                                                transform: [
-                                                    {
-                                                        translateX: tabAnimation.interpolate({
-                                                            inputRange: [0, 1],
-                                                            outputRange: [18, 0],
-                                                        }),
-                                                    },
-                                                ],
+                                                opacity: 1,
+                                                transform: [{ translateX: 0 }],
                                             };
-                                            const tabTextPadding = tabAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [0, 74],
-                                            });
+                                            const tabTextBottomPadding = 42;
 
                                             return (
                                                 <AnimatedTouchableOpacity
                                                     key={exerciseIndex}
                                                     style={[
                                                         styles.tabButton,
-                                                        { width: tabWidth },
+                                                        styles.verticalTabButton,
                                                         isHighlighted
                                                             ? styles.tabButtonActive
                                                             : styles.tabButtonInactive,
@@ -1446,13 +1329,13 @@ export default function DayDetailView({
                                                                     handleTabTouchStart(event);
                                                                 }}
                                                             >
-                                                                <IBMPlexText style={styles.tabButtonForumText}>Forum</IBMPlexText>
+                                                                <ForumActionIcon width={22} color="#fff" />
                                                             </TouchableOpacity>
                                                         </Animated.View>
                                                         <Animated.View
                                                             style={[
                                                                 styles.tabButtonMainText,
-                                                                { paddingRight: tabTextPadding },
+                                                                { paddingBottom: tabTextBottomPadding },
                                                             ]}
                                                         >
                                                             <View style={styles.tabButtonText}>
@@ -1463,15 +1346,25 @@ export default function DayDetailView({
                                                                 >
                                                                     {getExerciseDisplayName(ex)}
                                                                 </IBMPlexText>
-                                                                <IBMPlexText defaultWhite
-                                                                    style={styles.tabButtonSets}
-                                                                    lines={isHighlighted ? 3 : 1}
-                                                                    adjustsFontSizeToFit={isHighlighted}
-                                                                    minimumFontScale={0.82}
-                                                                    textColor="#C9B259"
-                                                                >
-                                                                    {getExercisePrescriptionDisplay(ex)}
-                                                                </IBMPlexText>
+                                                                <View style={styles.tabButtonPrescriptionRow}>
+                                                                    <IBMPlexText defaultWhite
+                                                                        style={styles.tabButtonSets}
+                                                                        lines={1}
+                                                                        minimumFontScale={0.82}
+                                                                        textColor="#C9B259"
+                                                                    >
+                                                                        {getExercisePrescriptionDisplay(ex)}
+                                                                    </IBMPlexText>
+                                                                    {inlineRecommendation ? (
+                                                                        <IBMPlexText defaultWhite
+                                                                            style={styles.tabButtonSets}
+                                                                            lines={1}
+                                                                            textColor="#C9B259"
+                                                                        >
+                                                                            {inlineRecommendation}
+                                                                        </IBMPlexText>
+                                                                    ) : null}
+                                                                </View>
                                                                 {reportedResults.length > 0 ? (
                                                                     <View style={styles.tabButtonReportedList}>
                                                                         {reportedResults.map(({ setIndex, result }) => (
@@ -1485,33 +1378,21 @@ export default function DayDetailView({
                                                                         ))}
                                                                     </View>
                                                                 ) : null}
-                                                                {recommendation.primary ? (
-                                                                    <IBMPlexText defaultWhite
-                                                                        style={styles.tabButtonRecommendationPrimary}
-                                                                        lines={1}
-                                                                        textColor="#fff"
-                                                                    >
-                                                                        {recommendation.primary}
-                                                                    </IBMPlexText>
-                                                                ) : null}
                                                             </View>
                                                         </Animated.View>
-                                                        {recommendation.details ? (
+                                                        {secondaryRecommendationDetails ? (
                                                             <IBMPlexText defaultWhite
                                                                 style={styles.tabButtonRecommendationDetails}
                                                                 lines={2}
                                                             >
-                                                                {recommendation.details}
+                                                                {secondaryRecommendationDetails}
                                                             </IBMPlexText>
                                                         ) : null}
                                                     </View>
                                                 </AnimatedTouchableOpacity>
                                             );
                                         })}
-                                    </ScrollView>
-                                </View>
-                            );
-                        })}
+                        </View>
                     </View>
 
                     {trackedExercises.length > 0 ? (
@@ -1761,28 +1642,6 @@ export default function DayDetailView({
                         </View>
                     ) : null}
 
-                    {/* <View style={styles.listBlock}>
-                        <IBMPlexText style={styles.listLabel}>Complete workout breakdown:</IBMPlexText>
-                        {exerciseSectionRuns.map(({ section, exercises: sectionExercises }, sectionIndex) => {
-                            return (
-                                <View key={`${section}-${sectionIndex}`} style={styles.exerciseSection}>
-                                    <View style={styles.exerciseSectionHeader}>
-                                        <IBMPlexText style={styles.exerciseSectionTitle}>
-                                            {EXERCISE_SECTION_LABELS[section]}
-                                        </IBMPlexText>
-                                    </View>
-                                    {sectionExercises.map(({ exercise: ex, exerciseIndex }) => (
-                                        <View key={exerciseIndex} style={styles.exerciseRow}>
-                                            <View>
-                                                <IBMPlexText style={styles.exerciseName}>{getExerciseDisplayName(ex)}</IBMPlexText>
-                                                {ex.notes ? <IBMPlexText style={styles.exerciseNotes}>{ex.notes}</IBMPlexText> : null}
-                                            </View>
-                                        </View>
-                                    ))}
-                                </View>
-                            );
-                        })}
-                    </View> */}
                         </>
                     )}
                 </Pressable>
@@ -2210,16 +2069,13 @@ const styles = StyleSheet.create({
         paddingTop: 0,
     },
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
-    tabsScroller: {
-        flexGrow: 0,
-        alignSelf: "stretch",
-    },
-    tabsContainer: { flexDirection: 'row', gap: 10, paddingLeft: 28, paddingRight: 28 },
+    tabsContainer: { flexDirection: 'column', gap: 10, paddingLeft: 28, paddingRight: 28 },
     tabButton: {backgroundColor: '#141414', borderRadius: 22, height: 150, width:128,
         borderWidth: 1, borderColor: "#1E1E1E",
      },
-    tabButtonSelected: {
-        width: 240,
+    verticalTabButton: {
+        alignSelf: "stretch",
+        width: "100%",
     },
     tabButtonContent: {
         flex: 1,
@@ -2230,12 +2086,15 @@ const styles = StyleSheet.create({
     },
     tabButtonSwapRail: {
         position: 'absolute',
-        top: 0,
-        right: 0,
-        width: 74,
+        bottom: 6,
+        left: 6,
         alignItems: 'center',
-        paddingTop: 7,
-        gap: 7,
+        borderColor: 'rgba(180,180,180,0.7)',
+        borderRadius: 999,
+        borderWidth: 1,
+        flexDirection: 'row',
+        gap: 0,
+        paddingHorizontal: 2,
         zIndex: 2,
         elevation: 2,
     },
@@ -2264,17 +2123,15 @@ const styles = StyleSheet.create({
     },
     tabButtonActionButton: {
         alignItems: 'center',
-        borderRadius: 999,
-        backgroundColor: '#fff',
         justifyContent: 'center',
-        width: 30,
-        height: 30,
+        width: 42,
+        height: 36,
     },
     tabButtonActionButtonWide: {
-        width: 65,
+        width: 42,
     },
     tabButtonActionIcon: {
-        color: '#000',
+        color: '#fff',
         fontSize: 22, fontWeight: '800',
         height: 30,
         lineHeight: 30,
@@ -2291,17 +2148,9 @@ const styles = StyleSheet.create({
     },
     tabButtonForumButton: {
         alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 999,
-        height: 30,
+        height: 36,
         justifyContent: 'center',
-        width: 65,
-    },
-    tabButtonForumText: {
-        color: '#000',
-        fontSize: 13, fontWeight: '700',
-        lineHeight: 15,
-        textAlign: 'center',
+        width: 42,
     },
     tabButtonMainText: {
         gap: 6,
@@ -2311,6 +2160,13 @@ const styles = StyleSheet.create({
     },
     tabButtonText: { flexDirection: 'column', gap: 4},
     tabButtonName: { fontSize: 15, fontWeight: '700', color: 'white', marginBottom: 5, lineHeight: 18 },
+    tabButtonPrescriptionRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        columnGap: 18,
+        rowGap: 4,
+    },
     tabButtonSets: { fontSize: 14, color: "#C9B259", lineHeight: 17 },
     tabButtonReportedList: {
         gap: 2,
@@ -2321,7 +2177,7 @@ const styles = StyleSheet.create({
         fontSize: 11, fontWeight: "700",
         lineHeight: 13,
     },
-    tabButtonRecommendationPrimary: { fontSize: 17, fontWeight: '700', lineHeight: 20 },
+    tabButtonRecommendationPrimary: { fontSize: 14, fontWeight: '700', lineHeight: 17 },
     tabButtonRecommendationDetails: {
         color: '#fff',
         fontSize: 10, fontWeight: '700',
@@ -2329,13 +2185,6 @@ const styles = StyleSheet.create({
     },
     tabButtonActive: { },
     tabButtonInactive: { },
-    listBlock: {
-        gap: 10,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.08)',
-    },
-    listLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     emptyState: {
         gap: 8,
         padding: 18,
@@ -2353,34 +2202,4 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         color: '#4b5563',
     },
-    exerciseRow: {
-        padding: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.08)',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 10,
-        alignItems: 'center',
-    },
-    exerciseSection: {
-        gap: 8,
-    },
-    exerciseSectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        marginTop: 4,
-        marginBottom: 8,
-    },
-    exerciseSectionTitle: {
-        fontSize: 12, fontWeight: '700',
-        color: '#9ca3af',
-        opacity: 1,
-        textAlign: 'left',
-        textTransform: 'uppercase',
-    },
-    exerciseName: { fontSize: 16, fontWeight: '600' },
-    exerciseNotes: { fontSize: 14, opacity: 0.75 },
-    exerciseSets: { fontSize: 16, fontWeight: '600', minWidth: 70, textAlign: 'right' },
 });

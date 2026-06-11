@@ -190,6 +190,7 @@ function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
 
 function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {
   const pillTranslateX = useRef(new Animated.Value(0)).current;
+  const hiddenProgress = useRef(new Animated.Value(hidden ? 1 : 0)).current;
   const pillInitializedRef = useRef(false);
   const routeIconAnimationsRef = useRef({});
   const transitionIdRef = useRef(0);
@@ -361,6 +362,15 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
   }
 
   useEffect(() => {
+    Animated.timing(hiddenProgress, {
+      toValue: hidden ? 1 : 0,
+      duration: TAB_BAR_ANIMATION_DURATION,
+      easing: hidden ? Easing.in(Easing.cubic) : Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [hidden, hiddenProgress]);
+
+  useEffect(() => {
     if (!activeTabName) {
       setVisualActiveTabName(null);
       setLabelVisibleTabName(null);
@@ -389,19 +399,29 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     setVisualActiveTabName(null);
   }, [activeTabName, visualActiveTabName]);
 
-  if (hidden) {
-    return null;
-  }
-
   return (
-    <View
+    <Animated.View
       onLayout={(event) => {
         const { width } = event.nativeEvent.layout;
         setTabBarWidth((previousWidth) =>
           previousWidth === width ? previousWidth : width
         );
       }}
-      style={[styles.customTabBar, { bottom: bottomOffset }]}
+      pointerEvents={hidden ? "none" : "auto"}
+      style={[
+        styles.customTabBar,
+        {
+          bottom: bottomOffset,
+          transform: [
+            {
+              translateY: hiddenProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, bottomOffset + 96],
+              }),
+            },
+          ],
+        },
+      ]}
     >
       {activePillLayout ? (
         <Animated.View
@@ -516,7 +536,7 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
           />
         );
       })}
-    </View>
+    </Animated.View>
   );
 }
 

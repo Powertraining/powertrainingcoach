@@ -484,6 +484,12 @@ export default function ProgramOverviewView({
   }
 
   useEffect(() => {
+    if (selectedDay) {
+      setSelectedRestSlotKey("");
+    }
+  }, [selectedDay?.week, selectedDay?.day]);
+
+  useEffect(() => {
     if (
       !initialScrollToTopKey ||
       lastInitialScrollToTopKeyRef.current === initialScrollToTopKey
@@ -653,11 +659,11 @@ export default function ProgramOverviewView({
       isArchived: Boolean(archivedContext),
     };
   });
+  const hasSelectedTrainingDay = Boolean(activeSelectedDay || selectedArchivedDay);
   const hasExplicitScheduleSelection = Boolean(
     selectedRestSlotKey ||
       selectedTrainingSlotKey ||
-      activeSelectedDay ||
-      selectedArchivedDay
+      hasSelectedTrainingDay
   );
   const fallbackSelectedRestSlotKey =
     !hasExplicitScheduleSelection &&
@@ -666,8 +672,9 @@ export default function ProgramOverviewView({
     )
       ? todayDateKey
       : "";
-  const effectiveSelectedRestSlotKey =
-    selectedRestSlotKey || fallbackSelectedRestSlotKey;
+  const effectiveSelectedRestSlotKey = hasSelectedTrainingDay
+    ? ""
+    : selectedRestSlotKey || fallbackSelectedRestSlotKey;
   const selectedRestSlot = effectiveSelectedRestSlotKey
     ? currentWeekSchedule.find((slot) => slot.dateKey === effectiveSelectedRestSlotKey)
     : null;
@@ -677,11 +684,12 @@ export default function ProgramOverviewView({
           (slot) =>
             selectedTrainingSlotKey &&
             slot.dateKey === selectedTrainingSlotKey &&
+            slot.weekNumber === activeSelectedDay.week &&
             slot.trainingDay?.day === activeSelectedDay.day
         ) ||
         currentWeekSchedule.find(
           (slot) =>
-            isSameCalendarDay(slot.date, today) &&
+            slot.weekNumber === activeSelectedDay.week &&
             slot.trainingDay?.day === activeSelectedDay.day
         )
       : null;
@@ -691,6 +699,7 @@ export default function ProgramOverviewView({
           (slot) =>
             selectedTrainingSlotKey &&
             slot.dateKey === selectedTrainingSlotKey &&
+            slot.weekNumber === selectedArchivedDay.week &&
             slot.trainingDay?.day === selectedArchivedDay.day
         )
       : null;

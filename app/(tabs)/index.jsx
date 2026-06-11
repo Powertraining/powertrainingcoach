@@ -421,6 +421,7 @@ const HomeScreen = observer(function HomeScreen() {
       return;
     }
 
+    model.setForumTabBarHidden?.(true);
     router.push({
       pathname: "/(tabs)/active-session",
       params: {

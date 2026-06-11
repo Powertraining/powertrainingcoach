@@ -31,6 +31,7 @@ const OverviewScreen = observer(function OverviewScreen() {
   const [trainingCheckInSubmitting, setTrainingCheckInSubmitting] = useState(false);
   const [selectedDayPointer, setSelectedDayPointer] = useState(null);
   const [updatingPlan, setUpdatingPlan] = useState(false);
+  const lastResolvedSelectedDayRef = useRef(null);
   const lastRouteSelectedDayRef = useRef("");
 
   function getParamValue(value) {
@@ -70,15 +71,30 @@ const OverviewScreen = observer(function OverviewScreen() {
       : "";
 
   const selectedDay = useMemo(() => {
-    if (!plan || !selectedDayPointer) return null;
+    if (!selectedDayPointer) {
+      lastResolvedSelectedDayRef.current = null;
+      return null;
+    }
 
-    const week = plan.weeks?.find((candidateWeek) => candidateWeek.week === selectedDayPointer.week);
-    if (!week) return null;
+    const week = plan?.weeks?.find((candidateWeek) => candidateWeek.week === selectedDayPointer.week);
+    const cachedSelectedDay = lastResolvedSelectedDayRef.current;
+
+    if (!week) {
+      return cachedSelectedDay?.week === selectedDayPointer.week &&
+        cachedSelectedDay?.day === selectedDayPointer.day
+        ? cachedSelectedDay
+        : null;
+    }
 
     const day = week.days?.find((candidateDay) => candidateDay.day === selectedDayPointer.day);
-    if (!day) return null;
+    if (!day) {
+      return cachedSelectedDay?.week === selectedDayPointer.week &&
+        cachedSelectedDay?.day === selectedDayPointer.day
+        ? cachedSelectedDay
+        : null;
+    }
 
-    return {
+    const resolvedSelectedDay = {
       week: selectedDayPointer.week,
       day: selectedDayPointer.day,
       dayData: day,
@@ -89,6 +105,9 @@ const OverviewScreen = observer(function OverviewScreen() {
       rescueMode: day.rescueMode || "",
       adjustmentSummary: day.adjustmentSummary || "",
     };
+
+    lastResolvedSelectedDayRef.current = resolvedSelectedDay;
+    return resolvedSelectedDay;
   }, [plan, selectedDayPointer]);
 
   useEffect(() => {
@@ -229,6 +248,7 @@ const OverviewScreen = observer(function OverviewScreen() {
       return;
     }
 
+    model.setForumTabBarHidden?.(true);
     router.push({
       pathname: "/(tabs)/active-session",
       params: {
