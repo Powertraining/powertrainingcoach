@@ -37,7 +37,7 @@ export default function ProgramProgressRing({
     const countdownStatus = getProgramCountdownStatus({ questionnaire, plan });
     const currentPhaseText = getCurrentPhaseText(plan, completedDays);
 
-    if (!countdownStatus.hasEventDate && !countdownStatus.hasProgramEndDate) {
+    if (!countdownStatus.hasEventDate) {
         return (
             <View style={styles.plainStatus}>
                 <View style={styles.plainStatusLogoWrap}>

@@ -159,6 +159,15 @@ function buildCompletedStepKeysForExercises(exercises = []) {
   );
 }
 
+function isConditioningOnlyDay(day = {}) {
+  const exercises = Array.isArray(day?.exercises) ? day.exercises : [];
+
+  return (
+    exercises.length > 0 &&
+    exercises.every((exercise) => Boolean(exercise?.endurancePrescription))
+  );
+}
+
 function getSessionActionSummary(day = {}, progress = {}) {
   const steps = buildSessionSteps(day?.exercises);
   const completedStepKeys = new Set(
@@ -1031,6 +1040,7 @@ export default function ProgramOverviewView({
                 isSelectedTrainingDay ||
                 isSelectedArchivedDay ||
                 isSelectedRestDay;
+              const showConditioningMarker = isConditioningOnlyDay(trainingDay);
 
               return (
                 <View key={date.toISOString()} style={styles.weekScheduleItem}>
@@ -1052,6 +1062,9 @@ export default function ProgramOverviewView({
                         isToday && styles.weekScheduleToday,
                       ]}
                     >
+                      {showConditioningMarker ? (
+                        <View style={styles.weekScheduleConditioningMarker} />
+                      ) : null}
                       <IBMPlexText defaultWhite
                         style={styles.weekScheduleLabel}
                         textColor="#fff"
@@ -1758,6 +1771,7 @@ const styles = StyleSheet.create({
     width: WEEK_SCHEDULE_TILE_SMALL_WIDTH,
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
     borderRadius: 18,
     padding: 6,
     gap: 2,
@@ -1778,6 +1792,15 @@ const styles = StyleSheet.create({
     fontSize: 13, fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
+  },
+  weekScheduleConditioningMarker: {
+    position: "absolute",
+    top: 7,
+    left: 7,
+    width: 7,
+    height: 7,
+    borderRadius: 999,
+    backgroundColor: "#2F80ED",
   },
   weekScheduleDate: {
     marginTop: 3,
