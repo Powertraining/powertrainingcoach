@@ -30,6 +30,7 @@ const OverviewScreen = observer(function OverviewScreen() {
   const [completedDays, setCompletedDays] = useState(new Set());
   const [trainingCheckInSubmitting, setTrainingCheckInSubmitting] = useState(false);
   const [selectedDayPointer, setSelectedDayPointer] = useState(null);
+  const [selectionDismissed, setSelectionDismissed] = useState(false);
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const lastResolvedSelectedDayRef = useRef(null);
   const lastRouteSelectedDayRef = useRef("");
@@ -134,11 +135,12 @@ const OverviewScreen = observer(function OverviewScreen() {
     }
 
     lastRouteSelectedDayRef.current = routeDayKey;
+    setSelectionDismissed(false);
     setSelectedDayPointer({ week: routeWeekNumber, day: routeDayNumber });
   }, [plan, routeDayNumber, routeWeekNumber]);
 
   useEffect(() => {
-    if (!plan || selectedDayPointer) {
+    if (!plan || selectedDayPointer || selectionDismissed) {
       return;
     }
 
@@ -170,7 +172,14 @@ const OverviewScreen = observer(function OverviewScreen() {
     }
 
     setSelectedDayPointer({ week: currentWeek.week, day: todayTrainingDay.day });
-  }, [completedDays, plan, routeDayNumber, routeWeekNumber, selectedDayPointer]);
+  }, [
+    completedDays,
+    plan,
+    routeDayNumber,
+    routeWeekNumber,
+    selectedDayPointer,
+    selectionDismissed,
+  ]);
   const selectedDayAssessmentResults = useMemo(
     () =>
       selectedDay
@@ -230,10 +239,12 @@ const OverviewScreen = observer(function OverviewScreen() {
     if (!day) return;
 
     setSelectedDayPointer({ week: weekNumber, day: dayNumber });
+    setSelectionDismissed(false);
   }
 
   function handleClearSelectedDay() {
     setSelectedDayPointer(null);
+    setSelectionDismissed(true);
   }
 
   function handleTestSession() {

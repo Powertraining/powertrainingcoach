@@ -475,6 +475,7 @@ export default function ProgramOverviewView({
   const [activeSessionDay, setActiveSessionDay] = useState(null);
   const [selectedArchivedDay, setSelectedArchivedDay] = useState(null);
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
+  const [restSlotSelectionDismissed, setRestSlotSelectionDismissed] = useState(false);
   const [selectedTrainingSlotKey, setSelectedTrainingSlotKey] = useState("");
   const [swapEditorVisible, setSwapEditorVisible] = useState(false);
   const [launchGatePromptKey, setLaunchGatePromptKey] = useState("");
@@ -495,6 +496,7 @@ export default function ProgramOverviewView({
   useEffect(() => {
     if (selectedDay) {
       setSelectedRestSlotKey("");
+      setRestSlotSelectionDismissed(false);
     }
   }, [selectedDay?.week, selectedDay?.day]);
 
@@ -676,6 +678,7 @@ export default function ProgramOverviewView({
   );
   const fallbackSelectedRestSlotKey =
     !hasExplicitScheduleSelection &&
+    !restSlotSelectionDismissed &&
     currentWeekSchedule.some(
       (slot) => slot.dateKey === todayDateKey && !slot.trainingDay
     )
@@ -874,20 +877,32 @@ export default function ProgramOverviewView({
   function handleSelectTrainingDay(weekNumber, dayNumber, dateKey) {
     setSelectedArchivedDay(null);
     setSelectedRestSlotKey("");
+    setRestSlotSelectionDismissed(false);
     setSelectedTrainingSlotKey(dateKey);
     onSelectDay(weekNumber, dayNumber);
   }
 
   function handleSelectArchivedTrainingDay(weekNumber, dayData = {}, dateKey) {
     setSelectedRestSlotKey("");
+    setRestSlotSelectionDismissed(false);
     setSelectedTrainingSlotKey(dateKey);
     setSelectedArchivedDay(buildSessionDayPayload(dayData, weekNumber));
     onClearSelectedDay?.();
   }
 
   function handleSelectRestSlot(dateKey) {
+    if (effectiveSelectedRestSlotKey === dateKey) {
+      setSelectedArchivedDay(null);
+      setSelectedRestSlotKey("");
+      setRestSlotSelectionDismissed(true);
+      setSelectedTrainingSlotKey("");
+      onClearSelectedDay?.();
+      return;
+    }
+
     setSelectedArchivedDay(null);
     setSelectedRestSlotKey(dateKey);
+    setRestSlotSelectionDismissed(false);
     setSelectedTrainingSlotKey("");
     onClearSelectedDay?.();
   }

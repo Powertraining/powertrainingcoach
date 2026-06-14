@@ -1785,9 +1785,15 @@ export default function ProfileTrainingPreferencesFields({
                     >
                       <Pressable
                         disabled={!hasMenuOptions}
-                        onPress={() =>
-                          setActiveWeekdayMenu(isMenuOpen ? null : option.value)
-                        }
+                        onLongPress={() => setActiveWeekdayMenu(option.value)}
+                        onPress={() => {
+                          if (isSelected && !isMenuOpen) {
+                            clearPreferredWeekday(selectedIndex);
+                            return;
+                          }
+
+                          setActiveWeekdayMenu(isMenuOpen ? null : option.value);
+                        }}
                         style={({ pressed }) => [
                           styles.weekdayButton,
                           colorScheme === "light" ? styles.weekdayButtonLight : null,
