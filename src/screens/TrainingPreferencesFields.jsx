@@ -34,7 +34,7 @@ import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 22;
 const APP_LOGIC_SECTION_COUNT = 4;
-export const DESIRED_TRAINING_STEP_INDEX = 14;
+export const DESIRED_TRAINING_STEP_INDEX = 1;
 export const TRAINING_PHASE_STEP_INDEX = 17;
 export const EVENT_DESCRIPTION_STEP_INDEX = 18;
 export const INJURIES_STEP_INDEX = 20;
@@ -178,6 +178,23 @@ const CAPABILITY_CONFIDENCE_GROUPS = [
   },
 ];
 
+function getCapabilityConfidenceGroupsForDesiredTraining(desiredTraining) {
+  switch (desiredTraining) {
+    case "strength_power":
+      return CAPABILITY_CONFIDENCE_GROUPS.filter((group) =>
+        group.category === TRAINING_CAPABILITY_GROUPS[0].title ||
+        group.category === TRAINING_CAPABILITY_GROUPS[1].title
+      );
+    case "endurance":
+      return CAPABILITY_CONFIDENCE_GROUPS.filter(
+        (group) => group.category === TRAINING_CAPABILITY_GROUPS[2].title
+      );
+    case "strength_power_endurance":
+    default:
+      return CAPABILITY_CONFIDENCE_GROUPS;
+  }
+}
+
 const NULLABLE_FORM_KEYS = Object.freeze([
   "experience",
   "desiredTraining",
@@ -241,16 +258,16 @@ function preserveExplicitEmptyValues(normalizedValues, sourceValues = {}) {
 }
 
 export const CONFIDENCE_STEP_KEYS = Object.freeze({
-  2: "compoundLifts",
-  3: "singleLegLifts",
-  4: "pullingWork",
-  6: "olympicLiftVariations",
-  7: "plyometrics",
-  8: "ballisticTraining",
-  10: "runningSprinting",
-  11: "bikeRowerAssaultBike",
-  12: "circuitTraining",
-  13: "heavyBag",
+  3: "compoundLifts",
+  4: "singleLegLifts",
+  5: "pullingWork",
+  7: "olympicLiftVariations",
+  8: "plyometrics",
+  9: "ballisticTraining",
+  11: "runningSprinting",
+  12: "bikeRowerAssaultBike",
+  13: "circuitTraining",
+  14: "heavyBag",
 });
 
 export function getTrainingPreferencesStepKeys(values = {}) {
@@ -273,16 +290,16 @@ export function getTrainingPreferencesStepKeys(values = {}) {
       ? values.circuitTrainingSecondaryPriorities
       : [],
   };
-  const keys = ["experience"];
+  const keys = ["experience", "desiredTraining"];
 
-  CAPABILITY_CONFIDENCE_GROUPS.forEach((group) => {
+  getCapabilityConfidenceGroupsForDesiredTraining(
+    resolvedValues.desiredTraining
+  ).forEach((group) => {
     keys.push(`intro:${group.category}`);
     group.pages.forEach((page) => {
       keys.push(page.key);
     });
   });
-
-  keys.push("desiredTraining");
 
   if (shouldShowEnduranceMethods(resolvedValues)) {
     keys.push("enduranceMethods", "enduranceDays", "enduranceStyle");
@@ -469,7 +486,6 @@ export default function TrainingPreferencesFields({
         onChange={(sectionValue) => updateField("experience", sectionValue)}
       />
     ),
-    ...CAPABILITY_CONFIDENCE_GROUPS.flatMap(renderCapabilityConfidenceGroup),
     () => (
       <TrainingPreferencesDesiredTrainingView
         value={resolvedValues.desiredTraining}
@@ -520,6 +536,9 @@ export default function TrainingPreferencesFields({
         }
       />
     ),
+    ...getCapabilityConfidenceGroupsForDesiredTraining(
+      resolvedValues.desiredTraining
+    ).flatMap(renderCapabilityConfidenceGroup),
     ...(shouldShowEnduranceMethods(resolvedValues)
       ? [
           () => (

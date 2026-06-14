@@ -1,7 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 export default function TrainingPreferencesExerciseEvaluationView({
-  category = "Strength Training",
+  category = "Lifting confidence",
 }) {
   return (
     <View style={styles.container}>

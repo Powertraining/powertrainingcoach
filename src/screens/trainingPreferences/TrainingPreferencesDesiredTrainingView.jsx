@@ -3,7 +3,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Image,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -13,23 +12,12 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const DESIRED_TRAINING_LABELS = Object.freeze({
   endurance: "Endurance",
-  strength_power: "Strength",
-  strength_power_endurance: "Balance",
-});
-
-const DESIRED_TRAINING_IMAGES = Object.freeze({
-  endurance: [require("../../assets/icons/sports/stamina.png")],
-  strength_power: [require("../../assets/icons/sports/strength.png")],
-  strength_power_endurance: [require("../../assets/icons/sports/balance.png")],
+  strength_power: "Power",
+  strength_power_endurance: "Both",
 });
 
 const OPTION_FACE_HEIGHT = 288;
-const OPTION_IMAGE_SIZE = OPTION_FACE_HEIGHT * 0.85;
-const OPTION_IMAGE_OFFSET_STYLES = Object.freeze({
-  endurance: { transform: [{ translateX: -40 }] },
-  strength_power_endurance: { transform: [{ translateX: 28 }] },
-});
-const OPTION_IMAGE_SLIDE_OFFSET = OPTION_IMAGE_SIZE * 0.05;
+const OPTION_ICON_SLIDE_OFFSET = 10;
 const OPTION_ANIMATION_DURATION = 220;
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -39,8 +27,49 @@ function getOptionSlideOffset(optionIndex, selectedIndex) {
   }
 
   return optionIndex < selectedIndex
-    ? -OPTION_IMAGE_SLIDE_OFFSET
-    : OPTION_IMAGE_SLIDE_OFFSET;
+    ? -OPTION_ICON_SLIDE_OFFSET
+    : OPTION_ICON_SLIDE_OFFSET;
+}
+
+function FocusIcon({ type }) {
+  if (type === "endurance") {
+    return (
+      <View style={styles.iconCanvas}>
+        <View style={[styles.speedLine, styles.speedLineLong]} />
+        <View style={[styles.speedLine, styles.speedLineMedium]} />
+        <View style={[styles.speedLine, styles.speedLineShort]} />
+        <View style={styles.enduranceRing}>
+          <View style={styles.enduranceDot} />
+        </View>
+      </View>
+    );
+  }
+
+  if (type === "strength_power_endurance") {
+    return (
+      <View style={styles.iconCanvas}>
+        <View style={styles.balancePowerIcon}>
+          <View style={styles.miniPlate} />
+          <View style={styles.miniBar} />
+          <View style={styles.miniPlate} />
+        </View>
+        <View style={styles.balanceEnduranceIcon}>
+          <View style={[styles.balanceLine, styles.balanceLineLong]} />
+          <View style={[styles.balanceLine, styles.balanceLineShort]} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.iconCanvas}>
+      <View style={styles.powerIcon}>
+        <View style={styles.powerPlate} />
+        <View style={styles.powerBar} />
+        <View style={styles.powerPlate} />
+      </View>
+    </View>
+  );
 }
 
 export default function TrainingPreferencesDesiredTrainingView({
@@ -92,7 +121,6 @@ export default function TrainingPreferencesDesiredTrainingView({
       <View style={styles.options}>
         {DESIRED_TRAINING_OPTIONS.map((option, index) => {
           const isSelected = displayedValue === option.value;
-          const optionImages = DESIRED_TRAINING_IMAGES[option.value] ?? [];
           const optionAnimation = optionAnimations[index];
           const optionFlexStyle = {
             flex: optionAnimation.flex.interpolate({
@@ -100,7 +128,7 @@ export default function TrainingPreferencesDesiredTrainingView({
               outputRange: [1, 2],
             }),
           };
-          const optionImagePositionStyle = {
+          const optionIconPositionStyle = {
             transform: [
               {
                 translateX: optionAnimation.slide,
@@ -134,25 +162,9 @@ export default function TrainingPreferencesDesiredTrainingView({
                 ]}
               >
                 <Animated.View
-                  style={[
-                    styles.optionImageRow,
-                    optionImagePositionStyle,
-                  ]}
+                  style={[styles.optionIconRow, optionIconPositionStyle]}
                 >
-                  {optionImages.map((imageSource, imageIndex) => (
-                    <Image
-                      key={`${option.value}-image-${imageIndex}`}
-                      source={imageSource}
-                      style={[
-                        styles.optionImage,
-                        option.value === "strength_power"
-                          ? styles.optionImageStrength
-                          : null,
-                        OPTION_IMAGE_OFFSET_STYLES[option.value] ?? null,
-                      ]}
-                      resizeMode="cover"
-                    />
-                  ))}
+                  <FocusIcon type={option.value} />
                 </Animated.View>
               </View>
               <IBMPlexText defaultWhite
@@ -210,19 +222,103 @@ const styles = StyleSheet.create({
     zIndex: 1,
     overflow: "hidden",
   },
-  optionImageRow: {
-    flexDirection: "row",
+  optionIconRow: {
     justifyContent: "center",
     alignItems: "center",
-    gap: 8,
   },
-  optionImage: {
-    width: OPTION_IMAGE_SIZE,
-    height: OPTION_IMAGE_SIZE,
-    tintColor: "#000000",
+  iconCanvas: {
+    width: 128,
+    height: 128,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  optionImageStrength: {
-    marginTop: -10,
+  powerIcon: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    transform: [{ rotate: "-28deg" }],
+  },
+  powerBar: {
+    width: 78,
+    height: 12,
+    borderRadius: 999,
+    backgroundColor: "#000000",
+  },
+  powerPlate: {
+    width: 20,
+    height: 54,
+    borderRadius: 7,
+    backgroundColor: "#000000",
+  },
+  speedLine: {
+    position: "absolute",
+    height: 12,
+    borderRadius: 999,
+    backgroundColor: "#000000",
+    left: 14,
+  },
+  speedLineLong: {
+    top: 34,
+    width: 72,
+  },
+  speedLineMedium: {
+    top: 58,
+    width: 54,
+  },
+  speedLineShort: {
+    top: 82,
+    width: 36,
+  },
+  enduranceRing: {
+    width: 54,
+    height: 54,
+    borderRadius: 999,
+    borderWidth: 10,
+    borderColor: "#000000",
+    marginLeft: 52,
+  },
+  enduranceDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "#000000",
+    alignSelf: "center",
+    marginTop: 12,
+  },
+  balancePowerIcon: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    transform: [{ rotate: "-22deg" }, { translateY: -14 }],
+  },
+  miniBar: {
+    width: 58,
+    height: 9,
+    borderRadius: 999,
+    backgroundColor: "#000000",
+  },
+  miniPlate: {
+    width: 16,
+    height: 38,
+    borderRadius: 6,
+    backgroundColor: "#000000",
+  },
+  balanceEnduranceIcon: {
+    alignItems: "flex-start",
+    marginTop: 20,
+    transform: [{ translateX: 8 }],
+  },
+  balanceLine: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "#000000",
+    marginTop: 10,
+  },
+  balanceLineLong: {
+    width: 76,
+  },
+  balanceLineShort: {
+    width: 46,
   },
   optionFaceLeft: {
     borderTopLeftRadius: 8,

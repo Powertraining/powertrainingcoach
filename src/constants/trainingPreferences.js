@@ -21,12 +21,12 @@ export const STRENGTH_CONDITIONING_EXPERIENCE_OPTIONS = Object.freeze([
 ]);
 
 export const DESIRED_TRAINING_OPTIONS = Object.freeze([
-  { label: "Strength/Power only", value: "strength_power" },
-  { label: "Endurance only", value: "endurance" },
+  { label: "Power only", value: "strength_power" },
   {
-    label: "Strength/Power and Endurance",
+    label: "Power and Endurance",
     value: "strength_power_endurance",
   },
+  { label: "Endurance only", value: "endurance" },
 ]);
 
 export const ENDURANCE_MODALITY_OPTIONS = Object.freeze([
@@ -182,7 +182,7 @@ export const CAPABILITY_RATING_OPTIONS = Object.freeze([
 
 export const TRAINING_CAPABILITY_GROUPS = Object.freeze([
   {
-    title: "Strength training",
+    title: "Lifting confidence",
     items: Object.freeze([
       {
         label: "Compound lifts",
