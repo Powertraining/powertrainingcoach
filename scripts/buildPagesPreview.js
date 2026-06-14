@@ -101,11 +101,13 @@ function injectPhonePreviewShell(indexPath) {
       }
 
       .pages-phone-screen {
+        position: relative;
         width: 100%;
         height: 100%;
         overflow: hidden;
         border-radius: 30px;
         background: #000;
+        isolation: isolate;
       }
 
       .pages-phone-screen * {
@@ -131,6 +133,83 @@ function injectPhonePreviewShell(indexPath) {
       .pages-preview-toolbar {
         color: #cfcfcf;
         font: 14px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .pages-modal-root {
+        position: fixed;
+        top: var(--pages-phone-screen-top, 0);
+        left: var(--pages-phone-screen-left, 0);
+        width: var(--pages-phone-screen-width, 100vw);
+        height: var(--pages-phone-screen-height, 100vh);
+        overflow: hidden;
+        border-radius: 30px;
+        transform: translateZ(0);
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      .pages-modal-root > * {
+        pointer-events: auto;
+      }
+
+      .pages-test-menu {
+        position: fixed;
+        top: var(--pages-phone-screen-top, 28px);
+        left: calc(var(--pages-phone-screen-left, 50vw) + var(--pages-phone-screen-width, 393px) + 22px);
+        display: none;
+        width: 220px;
+        max-width: calc(100vw - var(--pages-phone-screen-left, 0px) - var(--pages-phone-screen-width, 393px) - 44px);
+        padding: 14px;
+        border: 1px solid #3a3a3a;
+        border-radius: 16px;
+        background: rgba(15, 15, 15, 0.94);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42);
+        color: #f5f5f5;
+        font: 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        z-index: 10000;
+      }
+
+      .pages-test-menu.has-actions {
+        display: grid;
+        gap: 10px;
+      }
+
+      .pages-test-menu-title {
+        color: #a3a3a3;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .pages-test-menu-section {
+        display: grid;
+        gap: 8px;
+      }
+
+      .pages-test-menu-section-title {
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .pages-test-menu-button {
+        min-height: 38px;
+        width: 100%;
+        border: 0;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #000000;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        padding: 9px 12px;
+        text-align: center;
+      }
+
+      .pages-test-menu-button:active {
+        transform: translateY(1px);
       }
 
       @media (max-width: 520px) {
@@ -159,17 +238,135 @@ function injectPhonePreviewShell(indexPath) {
           border-radius: 0;
         }
 
+        .pages-modal-root {
+          border-radius: 0;
+        }
+
         .pages-preview-toolbar {
           display: none;
+        }
+
+        .pages-test-menu {
+          display: none !important;
         }
       }
     </style>`;
   const previewScript = `
-    <script id="pages-phone-drag-scroll">
+    <script id="pages-phone-preview-runtime">
       (() => {
+        window.__PAGES_PHONE_PREVIEW__ = true;
+
         const screen = document.querySelector(".pages-phone-screen");
 
-        if (!screen || !window.PointerEvent) {
+        if (!screen) {
+          return;
+        }
+
+        const testActionSources = new Map();
+        const testMenu = document.createElement("aside");
+        testMenu.className = "pages-test-menu";
+        testMenu.setAttribute("aria-label", "Web test actions");
+        document.body.appendChild(testMenu);
+
+        function renderTestMenu() {
+          const sources = Array.from(testActionSources.values()).filter(
+            (source) => Array.isArray(source.actions) && source.actions.length > 0
+          );
+
+          testMenu.innerHTML = "";
+          testMenu.classList.toggle("has-actions", sources.length > 0);
+
+          if (!sources.length) {
+            return;
+          }
+
+          const title = document.createElement("div");
+          title.className = "pages-test-menu-title";
+          title.textContent = "Web test";
+          testMenu.appendChild(title);
+
+          sources.forEach((source) => {
+            const section = document.createElement("section");
+            section.className = "pages-test-menu-section";
+
+            if (source.title) {
+              const sectionTitle = document.createElement("div");
+              sectionTitle.className = "pages-test-menu-section-title";
+              sectionTitle.textContent = source.title;
+              section.appendChild(sectionTitle);
+            }
+
+            source.actions.forEach((action) => {
+              const button = document.createElement("button");
+              button.className = "pages-test-menu-button";
+              button.type = "button";
+              button.textContent = action.label;
+              button.addEventListener("click", () => action.onPress?.());
+              section.appendChild(button);
+            });
+
+            testMenu.appendChild(section);
+          });
+        }
+
+        window.addEventListener("pages-preview-test-actions", (event) => {
+          const sourceId = event.detail?.sourceId;
+
+          if (!sourceId) {
+            return;
+          }
+
+          const actions = Array.isArray(event.detail?.actions)
+            ? event.detail.actions
+            : [];
+
+          if (!actions.length) {
+            testActionSources.delete(sourceId);
+          } else {
+            testActionSources.set(sourceId, {
+              title: event.detail?.title || "",
+              actions,
+            });
+          }
+
+          renderTestMenu();
+        });
+
+        function updatePhoneScreenBounds() {
+          const rect = screen.getBoundingClientRect();
+          document.documentElement.style.setProperty("--pages-phone-screen-top", rect.top + "px");
+          document.documentElement.style.setProperty("--pages-phone-screen-left", rect.left + "px");
+          document.documentElement.style.setProperty("--pages-phone-screen-width", rect.width + "px");
+          document.documentElement.style.setProperty("--pages-phone-screen-height", rect.height + "px");
+        }
+
+        function isReactNativeModalPortal(node) {
+          return (
+            node instanceof HTMLDivElement &&
+            node.parentElement === document.body &&
+            !node.id &&
+            !node.classList.length
+          );
+        }
+
+        function constrainModalPortals() {
+          updatePhoneScreenBounds();
+          Array.from(document.body.children).forEach((child) => {
+            if (isReactNativeModalPortal(child)) {
+              child.classList.add("pages-modal-root");
+            }
+          });
+        }
+
+        constrainModalPortals();
+        window.addEventListener("resize", updatePhoneScreenBounds);
+        window.addEventListener("orientationchange", updatePhoneScreenBounds);
+        new ResizeObserver(updatePhoneScreenBounds).observe(screen);
+        new MutationObserver(constrainModalPortals).observe(document.body, {
+          childList: true,
+        });
+
+        if (!window.PointerEvent) {
           return;
         }
 

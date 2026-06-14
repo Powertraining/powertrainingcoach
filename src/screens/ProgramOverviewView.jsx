@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useState } from "react";
+import { usePathname } from "expo-router";
 import {
   View,
   TouchableOpacity,
@@ -36,6 +37,10 @@ import {
   isSameCalendarDay,
 } from "../services/utils/programOverview.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
+import {
+  isPagesPhonePreview,
+  useWebTestActions,
+} from "../services/utils/webTestActions.js";
 import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const WEEK_SCHEDULE_ITEM_WIDTH = 58;
@@ -468,6 +473,7 @@ export default function ProgramOverviewView({
   updatingPlan = false,
   initialScrollToTopKey = "",
 }) {
+  const pathname = usePathname();
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [rescheduleInfoVisible, setRescheduleInfoVisible] = useState(false);
@@ -484,6 +490,9 @@ export default function ProgramOverviewView({
   const lastInitialScrollToTopKeyRef = useRef("");
   const initialScrollToTopPassesRemainingRef = useRef(0);
   const lastWeekScheduleScrollDateRef = useRef("");
+  const isPhonePreview = isPagesPhonePreview();
+  const isOverviewRoute =
+    pathname === "/overview" || pathname === "/(tabs)/overview";
 
   function openLaunchGatePrompt(promptKey) {
     setLaunchGatePromptKey(promptKey);
@@ -492,6 +501,21 @@ export default function ProgramOverviewView({
   function closeLaunchGatePrompt() {
     setLaunchGatePromptKey("");
   }
+
+  useWebTestActions("program-overview", "Plan tests", [
+    ...(onTestSession
+      ? [
+          {
+            label: "Test session",
+            onPress: onTestSession,
+          },
+        ]
+      : []),
+    ...LAUNCH_GATE_CHECK_IN_TESTS.map((testPrompt) => ({
+      label: testPrompt.label,
+      onPress: () => openLaunchGatePrompt(testPrompt.key),
+    })),
+  ], isOverviewRoute && !activeSessionDay);
 
   useEffect(() => {
     if (selectedDay) {
@@ -1307,7 +1331,7 @@ export default function ProgramOverviewView({
           ) : null}
 
           <View style={styles.programDetailsFooter}>
-            {onTestSession ? (
+            {onTestSession && !isPhonePreview ? (
               <TouchableOpacity
                 style={styles.testSessionButton}
                 onPress={onTestSession}
@@ -1317,17 +1341,19 @@ export default function ProgramOverviewView({
                 </IBMPlexText>
               </TouchableOpacity>
             ) : null}
-            {LAUNCH_GATE_CHECK_IN_TESTS.map((testPrompt) => (
-              <TouchableOpacity
-                key={testPrompt.key}
-                style={styles.testSessionButton}
-                onPress={() => openLaunchGatePrompt(testPrompt.key)}
-              >
-                <IBMPlexText defaultWhite lines={1} style={styles.testSessionButtonText}>
-                  {testPrompt.label}
-                </IBMPlexText>
-              </TouchableOpacity>
-            ))}
+            {!isPhonePreview
+              ? LAUNCH_GATE_CHECK_IN_TESTS.map((testPrompt) => (
+                  <TouchableOpacity
+                    key={testPrompt.key}
+                    style={styles.testSessionButton}
+                    onPress={() => openLaunchGatePrompt(testPrompt.key)}
+                  >
+                    <IBMPlexText defaultWhite lines={1} style={styles.testSessionButtonText}>
+                      {testPrompt.label}
+                    </IBMPlexText>
+                  </TouchableOpacity>
+                ))
+              : null}
             <TouchableOpacity
               style={styles.programDetailsFooterLink}
               onPress={() => setDetailsVisible(true)}

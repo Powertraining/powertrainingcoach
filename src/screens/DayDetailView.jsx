@@ -758,6 +758,20 @@ function ForumActionIcon({ width = 25, color = "#000" }) {
     );
 }
 
+function SwapActionIcon({ size = 20, color = "#fff" }) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+            <Path
+                d="M8 7h9m0 0-3-3m3 3-3 3M16 17H7m0 0 3 3m-3-3 3-3"
+                stroke={color}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </Svg>
+    );
+}
+
 function getInlineRecommendationDisplay(recommendation = {}) {
     if (recommendation.primary) {
         return recommendation.primary;
@@ -1281,14 +1295,7 @@ export default function DayDetailView({
                                                                                 handleTabTouchStart(event);
                                                                             }}
                                                                         >
-                                                                            <IBMPlexText
-                                                                                style={[
-                                                                                    styles.tabButtonActionIcon,
-                                                                                    styles.tabButtonSwapActionIcon,
-                                                                                ]}
-                                                                            >
-                                                                                ⇅
-                                                                            </IBMPlexText>
+                                                                            <SwapActionIcon size={20} color="#fff" />
                                                                         </TouchableOpacity>
                                                                     ) : null}
                                                                     {hasExerciseTips ? (
@@ -2095,6 +2102,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         flexDirection: 'row',
         gap: 0,
+        minHeight: 40,
         paddingHorizontal: 2,
         zIndex: 2,
         elevation: 2,
@@ -2103,6 +2111,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         gap: 5,
+        height: 36,
         justifyContent: 'center',
     },
     completedExerciseProgressRing: {
@@ -2124,25 +2133,22 @@ const styles = StyleSheet.create({
     },
     tabButtonActionButton: {
         alignItems: 'center',
-        justifyContent: 'center',
-        width: 42,
         height: 36,
+        justifyContent: 'center',
+        width: 36,
     },
     tabButtonActionButtonWide: {
-        width: 42,
+        width: 36,
     },
     tabButtonActionIcon: {
         color: '#fff',
         fontSize: 22, fontWeight: '800',
-        height: 30,
-        lineHeight: 30,
+        height: 36,
+        lineHeight: 36,
         textAlign: 'center',
         textAlignVertical: 'center',
-        width: 30,
+        width: 36,
         includeFontPadding: false,
-    },
-    tabButtonSwapActionIcon: {
-        transform: [{ translateY: -3 }],
     },
     tabButtonTipsActionIcon: {
         fontSize: 18,
@@ -2151,7 +2157,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         height: 36,
         justifyContent: 'center',
-        width: 42,
+        width: 36,
     },
     tabButtonMainText: {
         gap: 6,

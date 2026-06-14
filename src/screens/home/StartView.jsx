@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from "react-native";
+import { usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
@@ -13,6 +14,10 @@ import StartProgramPrompt from "../../components/homeComponents/StartProgramProm
 import ProfileNavigationCard from "../../components/profileComponents/ProfileNavigationCard.jsx";
 import { getNormalizedWeekday } from "../../constants/weekdays.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import {
+    isPagesPhonePreview,
+    useWebTestActions,
+} from "../../services/utils/webTestActions.js";
 
 const SESSION_PROGRESS_RING_SIZE = 84;
 const SESSION_PROGRESS_RING_CENTER = SESSION_PROGRESS_RING_SIZE / 2;
@@ -40,6 +45,15 @@ function getHomeBottomPadding(bottomInset = 0) {
     return Math.max(Math.round(bottomInset / 2), MIN_TAB_BAR_BOTTOM_OFFSET) +
         TAB_BAR_HEIGHT +
         GRID_TO_TAB_BAR_GAP;
+}
+
+function getHomeContentHeight(windowHeight = 0, bottomInset = 0) {
+    return Math.max(
+        windowHeight -
+            (Math.max(Math.round(bottomInset / 2), MIN_TAB_BAR_BOTTOM_OFFSET) +
+                TAB_BAR_HEIGHT),
+        0
+    );
 }
 
 function getWeekdayIndex(weekday = "") {
@@ -264,11 +278,27 @@ export default function StartView({
     onAdjustPlan,
     onMyPosts,
 }) {
+    const pathname = usePathname();
     const insets = useSafeAreaInsets();
     const { height: windowHeight } = useWindowDimensions();
     const hasSessionToday = currentSession && isSessionScheduledToday(currentSession);
     const shouldObscureGrid = !hasProgram;
     const bottomPadding = getHomeBottomPadding(insets.bottom);
+    const contentHeight = getHomeContentHeight(windowHeight, insets.bottom);
+    const topHalfHeight = contentHeight / 2;
+    const isPhonePreview = isPagesPhonePreview();
+    const isHomeRoute =
+        pathname === "/" ||
+        pathname === "/index" ||
+        pathname === "/(tabs)" ||
+        pathname === "/(tabs)/index";
+
+    useWebTestActions("home", "Home tests", [
+        {
+            label: "Test questionnaire",
+            onPress: onStart,
+        },
+    ], isHomeRoute);
 
     return (
             <Dotted>
@@ -283,10 +313,10 @@ export default function StartView({
                     <View
                         style={[
                             styles.firstScreenContent,
-                            { minHeight: Math.max(windowHeight - bottomPadding, 0) },
+                            { minHeight: firstScreenHeight },
                         ]}
                     >
-                        <View style={styles.widgetArea}>
+                        <View style={[styles.widgetArea, { height: topHalfHeight }]}>
                             {hasProgram ? (
                                 <View style={styles.programStatus}>
                                     <ProgramProgressRing
@@ -338,11 +368,13 @@ export default function StartView({
                             </View>
                         </View>
                     </View>
-                    <TouchableOpacity style={styles.testButton} onPress={onStart}>
-                        <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
-                            Test questionnaire
-                        </IBMPlexText>
-                    </TouchableOpacity>
+                    {!isPhonePreview ? (
+                        <TouchableOpacity style={styles.testButton} onPress={onStart}>
+                            <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
+                                Test questionnaire
+                            </IBMPlexText>
+                        </TouchableOpacity>
+                    ) : null}
                 </ScrollView>
             </Dotted>
     );
@@ -378,15 +410,13 @@ const styles = StyleSheet.create({
     },
     firstScreenContent: {
         flexGrow: 1,
+        justifyContent: "flex-start",
     },
     widgetArea: {
         alignItems: "center",
-        flexGrow: 1,
-        flexShrink: 1,
         justifyContent: "center",
         minHeight: 0,
         paddingHorizontal: 20,
-        paddingTop: 18,
     },
     testButton: {
         alignSelf: "center",
