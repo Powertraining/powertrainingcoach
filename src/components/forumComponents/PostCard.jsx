@@ -112,7 +112,7 @@ export default function PostCard({
               <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                 <GoldGradient style={styles.coachResponseStatus}>
                   <IBMPlexText style={styles.coachResponseText}>
-                    Coach Response
+                    Coach
                   </IBMPlexText>
                 </GoldGradient>
               </TouchableOpacity>
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: "center",
     overflow: "hidden",
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     position: "relative",
   },
   coachResponseText: {

@@ -551,7 +551,9 @@ const TabsLayout = observer(function TabsLayout() {
   const isTabBarHidden = shouldHideTabBar(
     pathname,
     activeTabName,
-    model.forumTabBarHidden || model.planGenerationTabBarHidden
+    model.forumTabBarHidden ||
+      model.forumOverlayVisible ||
+      model.planGenerationTabBarHidden
   );
   const tabBarBottomOffset = getTabBarBottomOffset(insets.bottom);
 

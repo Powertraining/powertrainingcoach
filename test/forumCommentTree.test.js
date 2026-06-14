@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  ANALYSIS_FORUM_TAG,
   appendForumReply,
+  applyForumFilters,
   buildForumPostPayload,
   findForumCommentNode,
   flattenForumComments,
@@ -106,4 +108,63 @@ test("forum posts preserve uploaded video media type", () => {
   assert.equal(payload.mediaType, "video");
   assert.equal(normalizedPost.mediaType, "video");
   assert.equal(normalizedPost.contentType, "media");
+});
+
+test("forum feed excludes analysis posts unless the analysis tag is selected", () => {
+  const posts = [
+    {
+      id: "regular-post",
+      title: "Regular forum post",
+      body: "Open discussion",
+      tags: ["training"],
+      updatedAt: "2026-01-02T00:00:00.000Z",
+    },
+    {
+      id: "analysis-post",
+      title: "Analysis video",
+      body: "Form review",
+      tags: [ANALYSIS_FORUM_TAG],
+      mediaUrl: "https://example.com/analysis.mp4",
+      mediaType: "video",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    },
+  ];
+
+  const regularFeed = applyForumFilters(posts);
+  const analysisFeed = applyForumFilters(posts, {
+    topics: [ANALYSIS_FORUM_TAG],
+  });
+
+  assert.deepEqual(
+    regularFeed.map((post) => post.id),
+    ["regular-post"]
+  );
+  assert.deepEqual(
+    analysisFeed.map((post) => post.id),
+    ["analysis-post"]
+  );
+});
+
+test("forum feed keeps analysis posts hidden for non-analysis tag filters", () => {
+  const posts = [
+    {
+      id: "regular-training-post",
+      title: "Training post",
+      body: "General training",
+      tags: ["training"],
+    },
+    {
+      id: "analysis-training-post",
+      title: "Analysis training video",
+      body: "Form review",
+      tags: [ANALYSIS_FORUM_TAG, "training"],
+    },
+  ];
+
+  const filteredFeed = applyForumFilters(posts, { tag: "training" });
+
+  assert.deepEqual(
+    filteredFeed.map((post) => post.id),
+    ["regular-training-post"]
+  );
 });

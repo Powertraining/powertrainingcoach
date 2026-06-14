@@ -149,6 +149,7 @@ export default function ForumView({
   searchQuery = "",
   filters = {},
   isSearchFiltersVisible = false,
+  showAnalysisTopic = false,
   onChangeSearchQuery,
   onPressSearchFiltersButton,
   onCloseSearchFilters,
@@ -238,6 +239,7 @@ export default function ForumView({
           <SearchFiltersView
             visible={isSearchFiltersVisible}
             filters={filters}
+            showAnalysisTopic={showAnalysisTopic}
             onClose={onCloseSearchFilters}
             onChangeTopic={onChangeFilterTopic}
             onChangeSortBy={onChangeFilterSortBy}

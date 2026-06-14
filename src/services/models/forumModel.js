@@ -384,6 +384,13 @@ export function applyForumFilters(
       )
     : [];
   const legacyTopic = normalizeString(filters?.topic).toLowerCase();
+  const requestedTag = normalizeString(filters?.tag).toLowerCase();
+  const hasAnalysisTopicFilter = normalizedTopics.includes(ANALYSIS_FORUM_TAG);
+  const normalizedTag =
+    requestedTag || (hasAnalysisTopicFilter ? ANALYSIS_FORUM_TAG : "");
+  const filterTopics = normalizedTopics.filter(
+    (topic) => topic !== ANALYSIS_FORUM_TAG
+  );
 
   const normalizedFilters = {
     ...createDefaultForumFilters(),
@@ -391,13 +398,13 @@ export function applyForumFilters(
     searchQuery: normalizeString(filters?.searchQuery),
     topic: legacyTopic || "all",
     topics:
-      normalizedTopics.length > 0
-        ? normalizedTopics
+      filterTopics.length > 0
+        ? filterTopics
         : legacyTopic && legacyTopic !== "all"
           ? [legacyTopic]
           : [],
     exerciseId: normalizeString(filters?.exerciseId),
-    tag: normalizeString(filters?.tag).toLowerCase(),
+    tag: normalizedTag,
     followedOnly: Boolean(filters?.followedOnly),
     sortBy: normalizeSortBy(filters?.sortBy),
     limit:
@@ -436,6 +443,13 @@ export function applyForumFilters(
       if (
         normalizedFilters.tag &&
         !post.tags.includes(normalizedFilters.tag)
+      ) {
+        return false;
+      }
+
+      if (
+        normalizedFilters.tag !== ANALYSIS_FORUM_TAG &&
+        post.tags.includes(ANALYSIS_FORUM_TAG)
       ) {
         return false;
       }
