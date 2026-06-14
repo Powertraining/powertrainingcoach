@@ -2,11 +2,7 @@ import { useEffect, useRef } from "react";
 import { Animated, Easing, TouchableOpacity, Image } from "react-native";
 
 const googleIcon = require("../../assets/icons/google.png");
-const googleIconSource = Image.resolveAssetSource(googleIcon);
-const googleIconAspectRatio =
-  googleIconSource?.width && googleIconSource?.height
-    ? googleIconSource.width / googleIconSource.height
-    : 1;
+const googleIconAspectRatio = 1;
 
 export default function GoogleButtonComponent({ onPress, disabled, delay = 0 }) {
   const entranceProgress = useRef(new Animated.Value(0)).current;

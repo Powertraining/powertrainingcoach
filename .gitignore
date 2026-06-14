@@ -9,6 +9,7 @@ dist/*
 web-build/
 build/
 out/
+pages-dist/
 
 # Expo
 .expo/

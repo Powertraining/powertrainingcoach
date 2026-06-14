@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native";
 export default function BlackGradient({ children, style }) {
     return (
         <LinearGradient
+            pointerEvents="none"
             colors={['#C9B259', '#6A5500']}
             locations={[0, 1]}
             start={{ x: 0.4, y: 0 }}

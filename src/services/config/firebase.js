@@ -10,7 +10,7 @@ import {
   initializeAuth,
   initializeFirestore,
   setPersistence,
-} from "./firebaseSdk.js";
+} from "./firebaseSdk";
 
 const runtimeEnv = typeof process !== "undefined" ? process.env ?? {} : {};
 

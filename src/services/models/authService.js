@@ -14,7 +14,7 @@ import {
   signOut,
   setDoc,
   updateProfile,
-} from "../config/firebaseSdk.js";
+} from "../config/firebaseSdk";
 import { clearGoogleCredentialState } from "../auth/googleIdentity";
 import { createDefaultUserData, saveUserData } from "./dbService.js";
 import {

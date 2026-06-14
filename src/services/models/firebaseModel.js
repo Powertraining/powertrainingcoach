@@ -17,7 +17,7 @@ import { normalizeTrainingPerformanceState } from "../utils/trainingPerformance.
 import { normalizeStrengthAssessmentState } from "../utils/strengthAssessment.js";
 import { normalizeTrainingCheckInState } from "../utils/trainingCheckIn.js";
 import { requiresEmailVerification } from "../utils/emailVerification.js";
-import { reload } from "../config/firebaseSdk.js";
+import { reload } from "../config/firebaseSdk";
 import {
   buildClientPersistableUserData,
   isSameAuthenticatedUser,

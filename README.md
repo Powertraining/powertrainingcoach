@@ -80,6 +80,22 @@ npm run build:android
 npm run build:ios
 ```
 
+## GitHub Pages preview
+
+This branch includes a GitHub Actions workflow that builds a static web preview
+with the app shown inside a phone-sized frame.
+
+```bash
+npm run pages:build
+```
+
+The workflow publishes `pages-dist/` when the `pages` branch is pushed. In the
+repository settings, configure GitHub Pages to use GitHub Actions as the source.
+
+Expo Router expects the app to be served from a domain root. Use a custom domain
+for the Pages site if the default project URL shows an unmatched route at
+`/<repo>/`.
+
 ## Related docs
 
 - `docs/consultation-booking-backend.md`

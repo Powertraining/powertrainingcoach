@@ -1,7 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 
 import { storage } from "../config/firebase.js";
-import { getDownloadURL, ref, uploadBytes } from "../config/firebaseSdk.js";
+import { getDownloadURL, ref, uploadBytes } from "../config/firebaseSdk";
 import { assertSafeFirestoreDocumentId } from "./inputValidation.js";
 
 const DEFAULT_IMAGE_MIME_TYPE = "image/jpeg";

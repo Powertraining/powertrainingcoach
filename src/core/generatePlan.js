@@ -5,7 +5,7 @@ import {
     OPENAI_PROGRAM_UPDATE_MODEL,
 } from "../services/config/apiConfig.js";
 import { db } from "../services/config/firebase.js";
-import { getFunctions, httpsCallable } from "../services/config/firebaseSdk.js";
+import { getFunctions, httpsCallable } from "../services/config/firebaseSdk";
 import {
     buildTrainingPlanScaffold,
     buildMissedSessionAdjustmentPrompt,

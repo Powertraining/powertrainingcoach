@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Stack } from "expo-router";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { observer } from "mobx-react-lite";
 import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -9,11 +10,18 @@ import * as NavigationBar from "expo-navigation-bar";
 
 import { reactiveModel } from "../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../src/screens/LoadingView.jsx";
-import StripeProviderWrapper from "../src/StripeProviderWrapper.jsx";
+import StripeProviderWrapper from "../src/StripeProviderWrapper";
 import BlackGradient from "../src/components/colorComponents/BlackGradient.jsx";
 import { preloadQuestionnaireImages } from "../src/services/utils/preloadAssets.js";
 import { fonts } from "../src/theme/colors.js";
 
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "transparent",
+  },
+};
 
 // Make model globally available for debugging
 if (typeof global !== "undefined") {
@@ -57,35 +65,37 @@ const RootLayout = observer(function RootLayout() {
     <StripeProviderWrapper>
       <View style={styles.root}>
         <BlackGradient />
-        <SafeAreaProvider style={styles.provider}>
-          <StatusBar style="light" backgroundColor="transparent" hidden/>
-          <View style={styles.container}>
-            {isLoading && (
-              <View pointerEvents="none" style={styles.loadingOverlay}>
-                <LoadingView />
-              </View>
-            )}
+        <ThemeProvider value={navigationTheme}>
+          <SafeAreaProvider style={styles.provider}>
+            <StatusBar style="light" backgroundColor="transparent" hidden/>
+            <View style={styles.container}>
+              {isLoading && (
+                <View pointerEvents="none" style={styles.loadingOverlay}>
+                  <LoadingView />
+                </View>
+              )}
 
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: "transparent" },
-                animation: "slide_from_right",
-              }}
-            >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="modal"
-                options={{
-                  presentation: "modal",
-                  animation: "slide_from_bottom",
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: "transparent" },
+                  animation: "slide_from_right",
                 }}
-              />
-            </Stack>
-          </View>
-        </SafeAreaProvider>
+              >
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{
+                    presentation: "modal",
+                    animation: "slide_from_bottom",
+                  }}
+                />
+              </Stack>
+            </View>
+          </SafeAreaProvider>
+        </ThemeProvider>
       </View>
     </StripeProviderWrapper>
   );

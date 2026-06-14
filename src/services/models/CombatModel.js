@@ -17,7 +17,7 @@ import {
 import {
   updateProfile as fbUpdateProfile,
   updatePassword,
-} from "../config/firebaseSdk.js";
+} from "../config/firebaseSdk";
 import {
   createForumComment as persistForumComment,
   createForumPost as persistForumPost,

@@ -21,7 +21,7 @@ import {
   ref,
   serverTimestamp,
   setDoc,
-} from "../config/firebaseSdk.js";
+} from "../config/firebaseSdk";
 import {
   createDefaultForumProfile,
   DEFAULT_FORUM_COMMENT_LIMIT,

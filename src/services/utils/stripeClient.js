@@ -4,7 +4,7 @@
 import { Linking } from "react-native";
 
 import { auth } from "../config/firebase.js";
-import { onAuthStateChanged } from "../config/firebaseSdk.js";
+import { onAuthStateChanged } from "../config/firebaseSdk";
 import {
   STRIPE_CANCEL_CONSULTATION_BOOKING_ENDPOINT,
   STRIPE_CHECKOUT_ENDPOINT,

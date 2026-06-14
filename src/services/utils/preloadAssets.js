@@ -1,4 +1,4 @@
-import { Image } from "react-native";
+import { Image, Platform } from "react-native";
 
 const QUESTIONNAIRE_IMAGE_SOURCES = [
   require("../../assets/icons/sports/boxing.png"),
@@ -47,6 +47,10 @@ const QUESTIONNAIRE_IMAGE_SOURCES = [
 let questionnaireImagesPreloadPromise = null;
 
 export function preloadQuestionnaireImages() {
+  if (Platform.OS === "web") {
+    return Promise.resolve([]);
+  }
+
   if (!questionnaireImagesPreloadPromise) {
     questionnaireImagesPreloadPromise = Promise.allSettled(
       QUESTIONNAIRE_IMAGE_SOURCES.map((source) => {

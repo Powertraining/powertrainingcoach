@@ -38,7 +38,8 @@
     },
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
     "scheme": "powertrainingcoach",
     "experiments": {
