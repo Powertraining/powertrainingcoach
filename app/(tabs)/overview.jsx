@@ -33,6 +33,7 @@ const OverviewScreen = observer(function OverviewScreen() {
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const lastResolvedSelectedDayRef = useRef(null);
   const lastRouteSelectedDayRef = useRef("");
+  const suppressAutoSelectRef = useRef(false);
 
   function getParamValue(value) {
     return Array.isArray(value) ? value[0] : value;
@@ -142,6 +143,10 @@ const OverviewScreen = observer(function OverviewScreen() {
       return;
     }
 
+    if (suppressAutoSelectRef.current) {
+      return;
+    }
+
     const routeWeek = plan.weeks?.find(
       (candidateWeek) => candidateWeek.week === routeWeekNumber
     );
@@ -229,10 +234,12 @@ const OverviewScreen = observer(function OverviewScreen() {
     const day = week.days.find((d) => d.day === dayNumber);
     if (!day) return;
 
+    suppressAutoSelectRef.current = false;
     setSelectedDayPointer({ week: weekNumber, day: dayNumber });
   }
 
-  function handleClearSelectedDay() {
+  function handleClearSelectedDay(reason = "") {
+    suppressAutoSelectRef.current = reason === "rest";
     setSelectedDayPointer(null);
   }
 

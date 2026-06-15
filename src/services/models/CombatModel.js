@@ -50,6 +50,7 @@ import {
   getSportLoadMultiplier,
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
+import { normalizePrimaryCombatSportForOutput } from "../../constants/combatSports.js";
 import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
 import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
 import {
@@ -1420,7 +1421,9 @@ export const model = {
       sportLoadMultiplier: getSportLoadMultiplier(
         normalizedAppLogicSettings.sportLoadLevel
       ),
-      primaryCombatSport: source.primaryCombatSport || this.primaryCombatSport || "",
+      primaryCombatSport: normalizePrimaryCombatSportForOutput(
+        source.primaryCombatSport || this.primaryCombatSport || ""
+      ),
       sessionsPerWeek:
         Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
           parsedSessionsPerWeek :

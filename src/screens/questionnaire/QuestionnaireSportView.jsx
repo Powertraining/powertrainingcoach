@@ -10,7 +10,7 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
     return (
         <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View>
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
             <IBMPlexText titleBlock >select your primary combat sport</IBMPlexText>
                 <View >
                     <View  style={styles.grid}>
@@ -40,6 +40,9 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
 }
 
 const styles = StyleSheet.create({
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: 15, justifyContent: "center",
+    scrollContent: {
+        paddingBottom: 72,
+    },
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: 15, justifyContent: "flex-start",
         alignSelf:"center", width: 280},
 });

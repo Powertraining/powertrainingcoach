@@ -578,8 +578,11 @@ export default function ProgramOverviewView({
       : Array.isArray(completedDays)
         ? completedDays
         : [];
-  const activeSelectedDay = selectedArchivedDay ? null : selectedDay;
-  const detailSelectedDay = selectedArchivedDay || selectedDay;
+  const activeSelectedDay =
+    selectedRestSlotKey || selectedArchivedDay ? null : selectedDay;
+  const detailSelectedDay = selectedRestSlotKey
+    ? null
+    : selectedArchivedDay || selectedDay;
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
@@ -889,7 +892,7 @@ export default function ProgramOverviewView({
     setSelectedArchivedDay(null);
     setSelectedRestSlotKey(dateKey);
     setSelectedTrainingSlotKey("");
-    onClearSelectedDay?.();
+    onClearSelectedDay?.("rest");
   }
 
   function buildSessionDayPayload(dayData = {}, weekNumber = currentWeek?.week) {

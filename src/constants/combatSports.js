@@ -35,4 +35,24 @@ export const PRIMARY_COMBAT_SPORT_OPTIONS = Object.freeze([
     value: "MMA",
     image: require("../assets/icons/sports/mma.png"),
   }),
+  Object.freeze({
+    id: "muay-thai",
+    label: "Muay Thai",
+    value: "Muay Thai",
+    image: require("../assets/icons/sports/muayThai.png"),
+  }),
 ]);
+
+export function normalizePrimaryCombatSportForOutput(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const normalizedValue = value.trim();
+
+  if (normalizedValue.toLowerCase() === "muay thai") {
+    return "Muay Thai / Kickboxing";
+  }
+
+  return normalizedValue;
+}
