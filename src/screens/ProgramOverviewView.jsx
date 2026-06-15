@@ -563,6 +563,7 @@ export default function ProgramOverviewView({
     detailsVisible,
     pushBackConfirmVisible,
     rescheduleInfoVisible,
+    launchGatePromptKey,
     selectedArchivedDay,
     selectedDay,
     swapEditorVisible,
@@ -588,6 +589,9 @@ export default function ProgramOverviewView({
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
   const today = getProgramOverviewToday();
   const planStartDate = getPlanStartDate(plan);
+  const shouldHideTabBarForCheckIn =
+    Boolean(pendingTrainingCheckIn) || Boolean(launchGatePromptKey);
+  const shouldHideTabBar = swapEditorVisible || shouldHideTabBarForCheckIn;
   const archivedPlanContexts = Array.isArray(trainingPlanHistory)
     ? trainingPlanHistory
         .map((entry = {}) => ({
@@ -997,7 +1001,7 @@ export default function ProgramOverviewView({
   }
 
   return (
-    <QuestionnaireShell hideTabBar={swapEditorVisible}>
+    <QuestionnaireShell hideTabBar={shouldHideTabBar}>
       <ScrollView
         ref={overviewScrollRef}
         style={swapEditorVisible ? styles.blurredContent : null}

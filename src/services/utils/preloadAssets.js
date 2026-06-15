@@ -10,6 +10,8 @@ const QUESTIONNAIRE_IMAGE_SOURCES = [
   require("../../assets/icons/sports/stamina.png"),
   require("../../assets/icons/sports/strength.png"),
   require("../../assets/icons/sports/balance.png"),
+  require("../../assets/icons/sports/power.png"),
+  require("../../assets/icons/sports/fitness.png"),
   require("../../assets/icons/sports/squat.png"),
   require("../../assets/icons/sports/deadLift.png"),
   require("../../assets/icons/sports/benchPress.png"),

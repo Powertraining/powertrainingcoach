@@ -581,6 +581,7 @@ export default function TrainingPreferencesFields({
                     mode="circuitFocus"
                     values={resolvedValues}
                     onChange={updateFields}
+                    onInfoVisibilityChange={onEnduranceMethodsInfoVisibilityChange}
                   />
                 ),
               ]

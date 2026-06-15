@@ -504,10 +504,12 @@ function CompactFocusGrid({
   options,
   value,
   onChange,
+  onLongPress,
   shortLabels = {},
   icons = {},
   multi = false,
 }) {
+  const didLongPressRef = useRef(false);
   const selectedValues = multi
     ? Array.isArray(value)
       ? value
@@ -526,7 +528,13 @@ function CompactFocusGrid({
         return (
           <Pressable
             key={option.value}
+            delayLongPress={240}
             onPress={() => {
+              if (didLongPressRef.current) {
+                didLongPressRef.current = false;
+                return;
+              }
+
               if (!multi) {
                 onChange?.(isSelected ? null : option.value);
                 return;
@@ -537,6 +545,10 @@ function CompactFocusGrid({
                   ? selectedValues.filter((entry) => entry !== option.value)
                   : [...selectedValues, option.value]
               );
+            }}
+            onLongPress={() => {
+              didLongPressRef.current = true;
+              onLongPress?.(option);
             }}
             style={({ pressed }) => [
               styles.circuitFocusOption,
@@ -608,13 +620,55 @@ export default function TrainingPreferencesEnduranceSetupView({
   onChange,
   onContinue,
   onSkip,
+  onInfoVisibilityChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
   const [draftMessage, setDraftMessage] = useState("");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [activeCircuitInfoValue, setActiveCircuitInfoValue] = useState(null);
   const [circuitMessages, setCircuitMessages] = useState(() =>
     values?.circuitTrainingGoalInput ? [values.circuitTrainingGoalInput] : []
   );
+  const circuitInfoProgress = useRef(new Animated.Value(0)).current;
+  const selectedCircuitFocusValues = [
+    values?.circuitTrainingPrimaryPriority,
+    ...(Array.isArray(values?.circuitTrainingSecondaryPriorities)
+      ? values.circuitTrainingSecondaryPriorities
+      : []),
+  ].filter(Boolean);
+  const activeCircuitInfoOption = CIRCUIT_PRIORITY_OPTIONS.find(
+    (option) => option.value === activeCircuitInfoValue
+  );
+  const activeCircuitInfoIconName =
+    activeCircuitInfoOption &&
+    (CIRCUIT_FOCUS_ICONS[activeCircuitInfoOption.value] || "target");
+  const isActiveCircuitInfoSelected =
+    activeCircuitInfoOption &&
+    selectedCircuitFocusValues.includes(activeCircuitInfoOption.value);
+
+  useEffect(() => {
+    const isVisible = mode === "circuitFocus" && Boolean(activeCircuitInfoOption);
+    onInfoVisibilityChange?.(isVisible);
+
+    return () => {
+      onInfoVisibilityChange?.(false);
+    };
+  }, [activeCircuitInfoOption, mode, onInfoVisibilityChange]);
+
+  useEffect(() => {
+    if (!activeCircuitInfoOption) {
+      circuitInfoProgress.setValue(0);
+      return;
+    }
+
+    Animated.timing(circuitInfoProgress, {
+      toValue: 1,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [activeCircuitInfoOption, circuitInfoProgress]);
+
   function updateField(field, value) {
     onChange?.({
       ...values,
@@ -661,6 +715,34 @@ export default function TrainingPreferencesEnduranceSetupView({
   function continueCircuitGoal() {
     commitCircuitMessage();
     onContinue?.();
+  }
+
+  function closeCircuitInfo() {
+    setActiveCircuitInfoValue(null);
+  }
+
+  function updateCircuitFocusValues(nextValues) {
+    const selectedValues = Array.isArray(nextValues) ? nextValues : [];
+
+    updateFields({
+      circuitTrainingPrimaryPriority: selectedValues[0] || null,
+      circuitTrainingSecondaryPriorities: selectedValues.slice(1),
+    });
+  }
+
+  function selectActiveCircuitFocus() {
+    if (!activeCircuitInfoOption) {
+      return;
+    }
+
+    if (!selectedCircuitFocusValues.includes(activeCircuitInfoOption.value)) {
+      updateCircuitFocusValues([
+        ...selectedCircuitFocusValues,
+        activeCircuitInfoOption.value,
+      ]);
+    }
+
+    closeCircuitInfo();
   }
 
   useEffect(() => {
@@ -825,33 +907,117 @@ export default function TrainingPreferencesEnduranceSetupView({
 
   if (mode === "circuitFocus") {
     return (
-      <View style={[styles.section, { minHeight: screenHeight }]}>
-        <IBMPlexText titleBlock height={130}>Circuit focus</IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
-          Pick the main quality your circuit sessions should target.
-        </IBMPlexText>
-        <View style={styles.circuitFocusContent}>
+      <View style={[styles.section, styles.circuitFocusSection, { minHeight: screenHeight }]}>
+        <View style={activeCircuitInfoOption ? styles.blurredContent : null}>
+          <IBMPlexText titleBlock height={130}>Circuit focus</IBMPlexText>
+          <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
+            Pick the main quality your circuit sessions should target.
+          </IBMPlexText>
+          <View style={styles.infoHint}>
+            <MaterialCommunityIcons
+              name="gesture-tap-hold"
+              size={15}
+              color="#9CA3AF"
+            />
+            <IBMPlexText style={styles.infoHintText}>
+              Tap to select. Hold any focus for details.
+            </IBMPlexText>
+          </View>
+        </View>
+        <View
+          style={[
+            styles.circuitFocusContent,
+            activeCircuitInfoOption ? styles.blurredContent : null,
+          ]}
+        >
           <CompactFocusGrid
             options={CIRCUIT_PRIORITY_OPTIONS}
-            value={[
-              values?.circuitTrainingPrimaryPriority,
-              ...(Array.isArray(values?.circuitTrainingSecondaryPriorities)
-                ? values.circuitTrainingSecondaryPriorities
-                : []),
-            ].filter(Boolean)}
+            value={selectedCircuitFocusValues}
             shortLabels={CIRCUIT_FOCUS_SHORT_LABELS}
             icons={CIRCUIT_FOCUS_ICONS}
             multi
-            onChange={(nextValues) => {
-              const selectedValues = Array.isArray(nextValues) ? nextValues : [];
-
-              updateFields({
-                circuitTrainingPrimaryPriority: selectedValues[0] || null,
-                circuitTrainingSecondaryPriorities: selectedValues.slice(1),
-              });
-            }}
+            onLongPress={(option) => setActiveCircuitInfoValue(option.value)}
+            onChange={updateCircuitFocusValues}
           />
         </View>
+        {activeCircuitInfoOption ? (
+          <>
+            <Pressable
+              onPress={closeCircuitInfo}
+              style={[
+                styles.dimLayer,
+                { height: screenHeight * 2, top: -screenHeight / 2 },
+              ]}
+            />
+            <View
+              pointerEvents="box-none"
+              style={[styles.infoOverlay, { minHeight: screenHeight }]}
+            >
+              <View style={styles.infoCardRegion}>
+                <Animated.View
+                  style={[
+                    styles.infoCard,
+                    isActiveCircuitInfoSelected ? styles.infoCardSelected : null,
+                    {
+                      opacity: circuitInfoProgress,
+                      transform: [
+                        {
+                          translateY: circuitInfoProgress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [34, -8],
+                          }),
+                        },
+                        {
+                          scale: circuitInfoProgress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.96, 1],
+                          }),
+                        },
+                      ],
+                    },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name={activeCircuitInfoIconName}
+                    size={42}
+                    color="#ffffff"
+                    style={styles.infoCardIcon}
+                  />
+                  <IBMPlexText style={styles.infoTitle}>
+                    {activeCircuitInfoOption.label}
+                  </IBMPlexText>
+                </Animated.View>
+              </View>
+              <View style={styles.infoBottomContent}>
+                <IBMPlexText style={styles.infoText}>
+                  {activeCircuitInfoOption.description}
+                </IBMPlexText>
+                <View style={styles.infoActions}>
+                  <Pressable
+                    onPress={selectActiveCircuitFocus}
+                    style={({ pressed }) => [
+                      styles.infoSelectButton,
+                      pressed ? styles.infoActionPressed : null,
+                    ]}
+                  >
+                    <IBMPlexText style={styles.infoSelectButtonText}>
+                      {isActiveCircuitInfoSelected ? "Selected" : "Select"}
+                    </IBMPlexText>
+                  </Pressable>
+                  <Pressable
+                    onPress={closeCircuitInfo}
+                    style={({ pressed }) => [
+                      styles.infoCloseButton,
+                      pressed ? styles.infoActionPressed : null,
+                    ]}
+                  >
+                    <IBMPlexText style={styles.infoCloseButtonText}>Close</IBMPlexText>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </>
+        ) : null}
       </View>
     );
   }
@@ -948,6 +1114,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingTop: 88,
   },
+  circuitFocusSection: {
+    position: "relative",
+  },
+  blurredContent: {
+    opacity: 0.42,
+    filter: [{ blur: 4 }],
+  },
   helperText: {
     alignSelf: "center",
     fontSize: 14,
@@ -955,6 +1128,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     maxWidth: 340,
     paddingHorizontal: 24,
+  },
+  infoHint: {
+    alignItems: "center",
+    alignSelf: "center",
+    flexDirection: "row",
+    gap: 5,
+    marginBottom: 16,
+  },
+  infoHintText: {
+    color: "#9CA3AF",
+    fontSize: 12, fontWeight: "700",
+    lineHeight: 15,
   },
   heavyBagHelperText: {
     alignSelf: "center",
@@ -1173,7 +1358,7 @@ const styles = StyleSheet.create({
     width: "30%",
   },
   circuitFocusOptionSelected: {
-    borderColor: "#ffffff",
+    borderColor: "#2D2D2D",
   },
   circuitFocusOptionDimmed: {
     backgroundColor: "#0B0B0B",
@@ -1191,6 +1376,110 @@ const styles = StyleSheet.create({
   },
   circuitFocusOptionTextSelected: {
     color: "#ffffff",
+  },
+  dimLayer: {
+    backgroundColor: "rgba(0,0,0,0.48)",
+    left: 0,
+    position: "absolute",
+    right: 0,
+    zIndex: 10,
+  },
+  infoOverlay: {
+    alignItems: "center",
+    justifyContent: "space-between",
+    left: 0,
+    paddingBottom: 36,
+    paddingHorizontal: 20,
+    paddingTop: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 11,
+  },
+  infoCardRegion: {
+    alignItems: "center",
+    height: "50%",
+    justifyContent: "center",
+    width: "100%",
+  },
+  infoCard: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderColor: "#2D2D2D",
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 118,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    width: "48%",
+    minWidth: 148,
+    maxWidth: 190,
+    elevation: 12,
+  },
+  infoCardSelected: {
+    borderColor: "#2D2D2D",
+  },
+  infoCardIcon: {
+    marginBottom: 12,
+  },
+  infoTitle: {
+    color: "#ffffff",
+    fontSize: 15, fontWeight: "800",
+    lineHeight: 18,
+    textAlign: "center",
+  },
+  infoText: {
+    color: "#E5E7EB",
+    fontSize: 13,
+    lineHeight: 18,
+    maxWidth: 340,
+    textAlign: "center",
+  },
+  infoBottomContent: {
+    alignItems: "center",
+    alignSelf: "stretch",
+  },
+  infoActions: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    marginTop: 14,
+  },
+  infoSelectButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 34,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  infoCloseButton: {
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 34,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  infoActionPressed: {
+    opacity: 0.72,
+  },
+  infoSelectButtonText: {
+    color: "#141414",
+    fontSize: 12, fontWeight: "800",
+  },
+  infoCloseButtonText: {
+    color: "#ffffff",
+    fontSize: 12, fontWeight: "800",
   },
   largeOptionContent: {
     flex: 1,
