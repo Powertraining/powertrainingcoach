@@ -1,5 +1,4 @@
 import {
-  Image,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -10,6 +9,7 @@ import { useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PostCard from "../../components/forumComponents/PostCard.jsx";
+import ForumIcon from "../../components/forumComponents/ForumIcon.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
@@ -114,10 +114,7 @@ export default function SavedPostsView({
               onPress={() => searchInputRef.current?.focus()}
               style={styles.searchIconButton}
             >
-              <Image
-                source={require("../../assets/icons/search.png")}
-                style={styles.searchIcon}
-              />
+              <ForumIcon name="search" size={24} />
             </TouchableOpacity>
             <TextInput
               ref={searchInputRef}
@@ -174,12 +171,11 @@ export default function SavedPostsView({
             ]}
             onPress={onPressPostButton}
           >
-            <Image
-              source={require("../../assets/icons/post.png")}
-              style={[
-                styles.postButtonIcon,
-                isPostButtonLocked ? styles.postButtonIconLocked : null,
-              ]}
+            <ForumIcon
+              color={isPostButtonLocked ? "rgba(17,17,17,0.45)" : "#111111"}
+              name="post"
+              size={28}
+              strokeWidth={2.4}
             />
             {isPostButtonLocked ? (
               <View pointerEvents="none" style={styles.postButtonLockOverlay}>
@@ -243,11 +239,6 @@ const styles = StyleSheet.create({
     height: 34,
     justifyContent: "center",
     width: 34,
-  },
-  searchIcon: {
-    height: 24,
-    tintColor: COLORS.text,
-    width: 24,
   },
   searchInput: {
     color: COLORS.text,
@@ -403,15 +394,6 @@ const styles = StyleSheet.create({
   },
   postButtonLocked: {
     backgroundColor: "rgba(201, 178, 89, 0.64)",
-  },
-  postButtonIcon: {
-    height: 26,
-    tintColor: "#000",
-    width: 26,
-  },
-  postButtonIconLocked: {
-    opacity: 0.42,
-    filter: [{ blur: 4 }],
   },
   postButtonLockOverlay: {
     ...StyleSheet.absoluteFillObject,
