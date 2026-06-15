@@ -589,6 +589,7 @@ export default function ProgramOverviewView({
     detailsVisible,
     pushBackConfirmVisible,
     rescheduleInfoVisible,
+    launchGatePromptKey,
     selectedArchivedDay,
     selectedDay,
     swapEditorVisible,
@@ -604,13 +605,19 @@ export default function ProgramOverviewView({
       : Array.isArray(completedDays)
         ? completedDays
         : [];
-  const activeSelectedDay = selectedArchivedDay ? null : selectedDay;
-  const detailSelectedDay = selectedArchivedDay || selectedDay;
+  const activeSelectedDay =
+    selectedRestSlotKey || selectedArchivedDay ? null : selectedDay;
+  const detailSelectedDay = selectedRestSlotKey
+    ? null
+    : selectedArchivedDay || selectedDay;
   const currentWeek = getCurrentTrainingWeek(plan, completedDayEntries);
   const currentPhase = getCurrentTrainingPhase(plan, completedDayEntries);
   const phaseOverview = getTrainingPlanPhaseOverview(plan);
   const today = getProgramOverviewToday();
   const planStartDate = getPlanStartDate(plan);
+  const shouldHideTabBarForCheckIn =
+    Boolean(pendingTrainingCheckIn) || Boolean(launchGatePromptKey);
+  const shouldHideTabBar = swapEditorVisible || shouldHideTabBarForCheckIn;
   const archivedPlanContexts = Array.isArray(trainingPlanHistory)
     ? trainingPlanHistory
         .map((entry = {}) => ({
@@ -928,7 +935,7 @@ export default function ProgramOverviewView({
     setSelectedRestSlotKey(dateKey);
     setRestSlotSelectionDismissed(false);
     setSelectedTrainingSlotKey("");
-    onClearSelectedDay?.();
+    onClearSelectedDay?.("rest");
   }
 
   function buildSessionDayPayload(dayData = {}, weekNumber = currentWeek?.week) {
@@ -1033,7 +1040,7 @@ export default function ProgramOverviewView({
   }
 
   return (
-    <QuestionnaireShell hideTabBar={swapEditorVisible}>
+    <QuestionnaireShell hideTabBar={shouldHideTabBar}>
       <ScrollView
         ref={overviewScrollRef}
         style={swapEditorVisible ? styles.blurredContent : null}

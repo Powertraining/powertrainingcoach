@@ -320,7 +320,7 @@ export default function PostView({
                 <TouchableOpacity onPress={() => onToggleCoachResponse?.(post.id)}>
                   <GoldGradient style={styles.coachResponseStatus}>
                     <IBMPlexText style={styles.coachResponseText}>
-                      Coach Response
+                      Coach
                     </IBMPlexText>
                   </GoldGradient>
                 </TouchableOpacity>
@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
   coachResponseStatus: {
     alignSelf: "flex-start",
     borderRadius: 999,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     height: 36,
     justifyContent: "center",
     position: "relative",

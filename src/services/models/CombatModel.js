@@ -50,6 +50,7 @@ import {
   getSportLoadMultiplier,
   normalizeAppLogicSettings,
 } from "../../constants/appLogicSettings.js";
+import { normalizePrimaryCombatSportForOutput } from "../../constants/combatSports.js";
 import { mergeTrainingPreferences } from "../../constants/trainingPreferences.js";
 import { getNormalizedWeekday, getWeekdayNameFromIndex } from "../../constants/weekdays.js";
 import {
@@ -551,7 +552,7 @@ export const model = {
         result.data,
         nextFilters,
         this.getNormalizedForumProfile()
-      ).filter((post) => !post.tags.includes(ANALYSIS_FORUM_TAG));
+      );
 
       this.forumFeed = normalizedPosts;
       return normalizedPosts;
@@ -732,15 +733,24 @@ export const model = {
       this.getNormalizedForumProfile()
     );
 
-    this.forumFeed = [normalizedPost, ...this.forumFeed].slice(
-      0,
-      this.forumFilters.limit || 25
-    );
+    const isAnalysisPost = normalizedPost.tags.includes(ANALYSIS_FORUM_TAG);
+    const isAnalysisFeedActive =
+      this.forumFilters?.tag === ANALYSIS_FORUM_TAG ||
+      this.forumFilters?.topic === ANALYSIS_FORUM_TAG ||
+      (Array.isArray(this.forumFilters?.topics) &&
+        this.forumFilters.topics.includes(ANALYSIS_FORUM_TAG));
+
+    if (!isAnalysisPost || isAnalysisFeedActive) {
+      this.forumFeed = [normalizedPost, ...this.forumFeed].slice(
+        0,
+        this.forumFilters.limit || 25
+      );
+    }
     this.myForumPosts = [normalizedPost, ...this.myForumPosts].slice(
       0,
       this.forumFilters.limit || 25
     );
-    if (normalizedPost.tags.includes(ANALYSIS_FORUM_TAG)) {
+    if (isAnalysisPost) {
       this.forumAnalysisPosts = [normalizedPost, ...this.forumAnalysisPosts].slice(
         0,
         100
@@ -1411,7 +1421,9 @@ export const model = {
       sportLoadMultiplier: getSportLoadMultiplier(
         normalizedAppLogicSettings.sportLoadLevel
       ),
-      primaryCombatSport: source.primaryCombatSport || this.primaryCombatSport || "",
+      primaryCombatSport: normalizePrimaryCombatSportForOutput(
+        source.primaryCombatSport || this.primaryCombatSport || ""
+      ),
       sessionsPerWeek:
         Number.isFinite(parsedSessionsPerWeek) && parsedSessionsPerWeek > 0 ?
           parsedSessionsPerWeek :

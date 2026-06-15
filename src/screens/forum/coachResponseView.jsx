@@ -1,4 +1,10 @@
-import { StyleSheet, TouchableWithoutFeedback, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Comment from "../../components/forumComponents/Comment.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const COLORS = {
@@ -10,23 +16,31 @@ const COLORS = {
 };
 
 export default function CoachResponseView({ onClose, comments = [] }) {
+  const { height } = useWindowDimensions();
+  const contentMaxHeight = Math.round(height * 0.82);
+  const commentsMaxHeight = Math.max(160, Math.round(height * 0.42));
+
   return (
     <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay}>
         <View style={styles.backdrop} />
         <TouchableWithoutFeedback onPress={() => {}}>
-          <View style={styles.content}>
+          <View style={[styles.content, { maxHeight: contentMaxHeight }]}>
             <View style={styles.box}>
               <IBMPlexText style={styles.title}>Coach Response</IBMPlexText>
               <IBMPlexText style={styles.description}>
                 Coach Response shows that a verified coach has contributed to the thread, so you can weigh the advice with more confidence.
               </IBMPlexText>
             </View>
-            <View style={styles.commentsList}>
+            <ScrollView
+              style={[styles.commentsList, { maxHeight: commentsMaxHeight }]}
+              contentContainerStyle={styles.commentsListContent}
+              showsVerticalScrollIndicator={false}
+            >
               {comments.map((comment) => (
                 <Comment key={comment.id} comment={comment} />
               ))}
-            </View>
+            </ScrollView>
           </View>
         </TouchableWithoutFeedback>
       </View>
@@ -73,5 +87,8 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginTop: 20,
     marginHorizontal: -40,
+  },
+  commentsListContent: {
+    paddingBottom: 8,
   },
 });

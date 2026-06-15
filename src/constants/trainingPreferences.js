@@ -131,16 +131,66 @@ export const ENDURANCE_FORMAT_OPTIONS = Object.freeze([
 ]);
 
 export const CIRCUIT_PRIORITY_OPTIONS = Object.freeze([
-  { label: "Local muscular endurance", value: "local_muscular_endurance" },
-  { label: "Repeated high-effort capacity", value: "repeated_high_effort_capacity" },
-  { label: "Whole-body work capacity", value: "whole_body_work_capacity" },
-  { label: "Sport-specific fatigue resistance", value: "sport_specific_fatigue_resistance" },
-  { label: "Aerobic recovery between bursts", value: "aerobic_recovery_between_bursts" },
-  { label: "Grip endurance", value: "grip_endurance" },
-  { label: "Neck endurance", value: "neck_endurance" },
-  { label: "Trunk endurance", value: "trunk_endurance" },
-  { label: "Shoulder endurance", value: "shoulder_endurance" },
-  { label: "Leg endurance", value: "leg_endurance" },
+  {
+    label: "Local muscular endurance",
+    value: "local_muscular_endurance",
+    description:
+      "Targets the muscles that burn out before your lungs do, using focused circuits for repeated contractions under fatigue.",
+  },
+  {
+    label: "Repeated high-effort capacity",
+    value: "repeated_high_effort_capacity",
+    description:
+      "Builds the ability to produce hard bursts again and again, such as scrambles, shots, flurries, or clinch surges.",
+  },
+  {
+    label: "Whole-body work capacity",
+    value: "whole_body_work_capacity",
+    description:
+      "General full-body conditioning when fatigue is broad rather than tied to one area or specific fight action.",
+  },
+  {
+    label: "Sport-specific fatigue resistance",
+    value: "sport_specific_fatigue_resistance",
+    description:
+      "Keeps circuit work closer to the positions, rhythm, and fatigue patterns of your sport or upcoming event.",
+  },
+  {
+    label: "Aerobic recovery between bursts",
+    value: "aerobic_recovery_between_bursts",
+    description:
+      "Improves how quickly you settle your breathing and heart rate between exchanges without turning every session into a max effort.",
+  },
+  {
+    label: "Grip endurance",
+    value: "grip_endurance",
+    description:
+      "Prioritizes forearms, hands, and grip-specific staying power for hand-fighting, clinching, pulling, or controlling grips.",
+  },
+  {
+    label: "Neck endurance",
+    value: "neck_endurance",
+    description:
+      "Builds neck and upper-back tolerance for grappling posture, clinch pressure, head position, and longer rounds.",
+  },
+  {
+    label: "Trunk endurance",
+    value: "trunk_endurance",
+    description:
+      "Targets core, hips, and posture so you can keep position, brace, rotate, and resist fatigue late in rounds.",
+  },
+  {
+    label: "Shoulder endurance",
+    value: "shoulder_endurance",
+    description:
+      "Focuses on shoulders and arms for punching volume, framing, posting, hand-fighting, or upper-body fatigue resistance.",
+  },
+  {
+    label: "Leg endurance",
+    value: "leg_endurance",
+    description:
+      "Targets stance, shots, tie-ups, kicking volume, and lower-body fatigue when your legs are the first limiter.",
+  },
 ]);
 
 export const CIRCUIT_GOAL_EXAMPLES = Object.freeze([

@@ -21,6 +21,7 @@ import {
   pickForumVideo,
   uploadForumMedia,
 } from "../../src/services/utils/mediaUpload.js";
+import { ANALYSIS_FORUM_TAG } from "../../src/services/models/forumModel.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 function buildForumReturnTo(pathname, params) {
@@ -47,6 +48,19 @@ function buildForumReturnTo(pathname, params) {
 
   const query = searchParams.toString();
   return query ? `${pathname}?${query}` : pathname;
+}
+
+function removeAnalysisForumFilter(filters = {}) {
+  const topics = Array.isArray(filters?.topics) ?
+    filters.topics.filter((topic) => topic !== ANALYSIS_FORUM_TAG) :
+    [];
+
+  return {
+    ...(filters || {}),
+    topics,
+    topic: filters?.topic === ANALYSIS_FORUM_TAG ? "all" : filters?.topic,
+    tag: filters?.tag === ANALYSIS_FORUM_TAG ? "" : filters?.tag,
+  };
 }
 
 const ForumScreen = observer(function ForumScreen() {
@@ -98,8 +112,24 @@ const ForumScreen = observer(function ForumScreen() {
 
     model.getForumAuthorMeta()
       .then((authorMeta) => {
+        const isVerifiedCoach = Boolean(authorMeta?.isCoachVerified);
+
         if (isActive) {
-          setCanTagAnalysisPosts(Boolean(authorMeta?.isCoachVerified));
+          setCanTagAnalysisPosts(isVerifiedCoach);
+        }
+
+        if (!isVerifiedCoach) {
+          const hasAnalysisFilter =
+            model.forumFilters?.tag === ANALYSIS_FORUM_TAG ||
+            model.forumFilters?.topic === ANALYSIS_FORUM_TAG ||
+            (Array.isArray(model.forumFilters?.topics) &&
+              model.forumFilters.topics.includes(ANALYSIS_FORUM_TAG));
+
+          if (hasAnalysisFilter) {
+            model.loadForumFeed(removeAnalysisForumFilter(model.forumFilters)).catch((error) => {
+              console.warn("Could not clear the analysis forum filter:", error);
+            });
+          }
         }
       })
       .catch((error) => {
@@ -522,10 +552,14 @@ const ForumScreen = observer(function ForumScreen() {
 
   async function handleForumFilterChange(filterPatch = {}) {
     try {
-      const nextFilters = {
+      const requestedFilters = {
         ...model.forumFilters,
         ...(filterPatch || {}),
       };
+      const nextFilters = canTagAnalysisPosts ?
+        requestedFilters :
+        removeAnalysisForumFilter(requestedFilters);
+
       model.setForumFilters(nextFilters);
       await model.loadForumFeed(nextFilters);
     } catch (error) {
@@ -613,6 +647,7 @@ const ForumScreen = observer(function ForumScreen() {
           searchQuery={model.forumFilters?.searchQuery || ""}
           filters={model.forumFilters}
           isSearchFiltersVisible={isSearchFiltersVisible}
+          showAnalysisTopic={canTagAnalysisPosts}
           onChangeSearchQuery={handleSearchQueryChange}
           onPressSearchFiltersButton={toggleSearchFiltersView}
           onCloseSearchFilters={hideSearchFiltersView}

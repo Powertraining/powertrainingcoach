@@ -41,8 +41,8 @@ const COMBAT_INTENSITY_VALUES = ["light", "moderate", "intense"];
 const ARROW_IMAGE = require("../assets/icons/arrow.png");
 
 const DESIRED_TRAINING_IMAGES = Object.freeze({
-  endurance: require("../assets/icons/sports/stamina.png"),
-  strength_power: require("../assets/icons/sports/strength.png"),
+  endurance: require("../assets/icons/sports/power.png"),
+  strength_power: require("../assets/icons/sports/fitness.png"),
   strength_power_endurance: require("../assets/icons/sports/balance.png"),
 });
 

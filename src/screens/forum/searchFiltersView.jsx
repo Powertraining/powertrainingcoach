@@ -37,11 +37,21 @@ const SPORT_TOPIC_OPTIONS = PRIMARY_COMBAT_SPORT_OPTIONS.map((option) => ({
 const SPORT_TOPICS = new Set(SPORT_TOPIC_OPTIONS.map((option) => option.topic));
 
 function getSelectedTopics(filters = {}) {
+  const selectedTopics = [];
+
   if (Array.isArray(filters?.topics)) {
-    return filters.topics.filter(Boolean);
+    selectedTopics.push(...filters.topics.filter(Boolean));
   }
 
-  return filters?.topic && filters.topic !== "all" ? [filters.topic] : [];
+  if (filters?.topic && filters.topic !== "all") {
+    selectedTopics.push(filters.topic);
+  }
+
+  if (filters?.tag === ANALYSIS_FORUM_TAG) {
+    selectedTopics.push(ANALYSIS_FORUM_TAG);
+  }
+
+  return Array.from(new Set(selectedTopics));
 }
 
 function SportFilterOption({ option, selected = false, onPress }) {

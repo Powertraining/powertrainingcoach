@@ -3,6 +3,7 @@
  */
 import { storage } from "../config/firebase.js";
 import { getDownloadURL, listAll, ref } from "../config/firebaseSdk";
+import { normalizePrimaryCombatSportForOutput } from "../../constants/combatSports.js";
 import { normalizeTrainingPlan } from "../utils/trainingPlan.js";
 
 /**
@@ -46,14 +47,16 @@ export async function fetchBaseTrainingPlans() {
  */
 export function filterTrainingPlans(plans, filters) {
   const { primaryCombatSport, sessionsPerWeek, goal, experience } = filters;
+  const normalizedPrimaryCombatSport =
+    normalizePrimaryCombatSportForOutput(primaryCombatSport).toLowerCase();
   
   return plans.filter((plan) => {
     // Filter by combat sport if specified in plan metadata
-    if (plan.sport && primaryCombatSport) {
+    if (plan.sport && normalizedPrimaryCombatSport) {
       const planSports = Array.isArray(plan.sport) ? plan.sport : [plan.sport];
       const sportMatch = planSports.some(
         (sport) => 
-          sport.toLowerCase() === primaryCombatSport.toLowerCase() ||
+          sport.toLowerCase() === normalizedPrimaryCombatSport ||
           sport.toLowerCase() === "all" ||
           sport.toLowerCase() === "general"
       );

@@ -20,6 +20,10 @@ function getVisibleOptions(options = []) {
   return options.filter((option) => option?.value !== "not_sure");
 }
 
+function shouldAskProgressQuestion(prompt = {}) {
+  return (Number.parseInt(prompt.weekNumber, 10) || 0) >= 2;
+}
+
 function ChoiceGroup({ label, value, options, onChange }) {
   return (
     <View style={styles.group}>
@@ -81,6 +85,8 @@ export default function TrainingCheckInCard({
     return null;
   }
 
+  const showProgressQuestion = shouldAskProgressQuestion(prompt);
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -96,12 +102,14 @@ export default function TrainingCheckInCard({
         </View>
       ) : null}
 
-      <ChoiceGroup
-        label="How do you feel like your performances are improving?"
-        value={answers.progress}
-        options={getVisibleOptions(TRAINING_CHECK_IN_FIELD_OPTIONS.progress)}
-        onChange={(value) => setAnswers((current) => ({ ...current, progress: value }))}
-      />
+      {showProgressQuestion ? (
+        <ChoiceGroup
+          label="How do you feel like your performances are improving?"
+          value={answers.progress}
+          options={getVisibleOptions(TRAINING_CHECK_IN_FIELD_OPTIONS.progress)}
+          onChange={(value) => setAnswers((current) => ({ ...current, progress: value }))}
+        />
+      ) : null}
 
       <ChoiceGroup
         label="How recovered do you feel?"

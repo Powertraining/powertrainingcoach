@@ -4,13 +4,17 @@ import QuestionnaireSportOptionButton from "../../components/questionnaireCompon
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
+const SPORT_OPTION_WIDTH = 127.4;
+const SPORT_OPTION_GAP = 15;
+const SPORT_GRID_WIDTH = SPORT_OPTION_WIDTH * 2 + SPORT_OPTION_GAP;
+
 export default function QuestionnaireSportView({ options, value, onChange, onContinue, onBack, onLogoClick, onClose }) {
     const canContinue = Boolean(value);
 
     return (
         <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View>
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
             <IBMPlexText titleBlock >select your primary combat sport</IBMPlexText>
                 <View >
                     <View  style={styles.grid}>
@@ -40,6 +44,9 @@ export default function QuestionnaireSportView({ options, value, onChange, onCon
 }
 
 const styles = StyleSheet.create({
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: 15, justifyContent: "center",
-        alignSelf:"center", width: 280},
+    scrollContent: {
+        paddingBottom: 72,
+    },
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: SPORT_OPTION_GAP, justifyContent: "flex-start",
+        alignSelf:"center", width: SPORT_GRID_WIDTH},
 });
