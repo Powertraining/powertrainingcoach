@@ -11,6 +11,8 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const outDir = "pages-dist";
+const pagesBasePath = getPagesBasePath();
+const pagesRouteBase = pagesBasePath.replace(/^\/+|\/+$/g, "");
 
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
@@ -31,13 +33,31 @@ if (exportResult.status !== 0) {
   process.exit(exportResult.status ?? 1);
 }
 
-rewriteExpoAssetPaths(outDir);
+rewriteExpoAssetPaths(outDir, pagesBasePath);
+rewriteExpoRouterBasePath(outDir, pagesRouteBase);
 injectPhonePreviewShell(join(outDir, "index.html"));
 writeFileSync(join(outDir, ".nojekyll"), "");
 cpSync(join(outDir, "index.html"), join(outDir, "404.html"));
 
-function rewriteExpoAssetPaths(dir) {
+function getPagesBasePath() {
+  if (process.env.PAGES_BASE_PATH !== undefined) {
+    return normalizePagesBasePath(process.env.PAGES_BASE_PATH);
+  }
+
+  const repositoryName = process.env.GITHUB_REPOSITORY?.split("/").at(-1);
+
+  return normalizePagesBasePath(repositoryName || "powertrainingcoach");
+}
+
+function normalizePagesBasePath(basePath) {
+  const trimmed = String(basePath || "").trim().replace(/^\/+|\/+$/g, "");
+
+  return trimmed ? `/${trimmed}` : "";
+}
+
+function rewriteExpoAssetPaths(dir, basePath) {
   const textExtensions = new Set([".html", ".js", ".json"]);
+  const expoAssetPath = basePath ? `${basePath}/_expo/` : "./_expo/";
 
   for (const entry of readdirSync(dir)) {
     const fullPath = join(dir, entry);
@@ -54,9 +74,45 @@ function rewriteExpoAssetPaths(dir) {
 
     const contents = readFileSync(fullPath, "utf8");
     const rewritten = contents
-      .replaceAll('"/_expo/', '"./_expo/')
-      .replaceAll("'/_expo/", "'./_expo/")
-      .replaceAll("`/_expo/", "`./_expo/");
+      .replaceAll('"/_expo/', `"${expoAssetPath}`)
+      .replaceAll("'/_expo/", `'${expoAssetPath}`)
+      .replaceAll("`/_expo/", `\`${expoAssetPath}`);
+
+    if (rewritten !== contents) {
+      writeFileSync(fullPath, rewritten);
+    }
+  }
+}
+
+function rewriteExpoRouterBasePath(dir, routeBase) {
+  if (!routeBase) {
+    return;
+  }
+
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    const stat = statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      rewriteExpoRouterBasePath(fullPath, routeBase);
+      continue;
+    }
+
+    if (!fullPath.endsWith(".js")) {
+      continue;
+    }
+
+    const contents = readFileSync(fullPath, "utf8");
+    const encodedRouteBase = JSON.stringify(routeBase);
+    const rewritten = contents
+      .replace(
+        /getUrlWithReactNavigationConcessions=function\(([^,]+),([^=]+)=""\)/,
+        `getUrlWithReactNavigationConcessions=function($1,$2=${encodedRouteBase})`
+      )
+      .replace(
+        /appendBaseUrl=function\(([^,]+),([^=]+)=""\)/,
+        `appendBaseUrl=function($1,$2=${encodedRouteBase})`
+      );
 
     if (rewritten !== contents) {
       writeFileSync(fullPath, rewritten);

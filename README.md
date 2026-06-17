@@ -92,9 +92,9 @@ npm run pages:build
 The workflow publishes `pages-dist/` when the `pages` branch is pushed. In the
 repository settings, configure GitHub Pages to use GitHub Actions as the source.
 
-The app includes a route alias for the current Pages project path
-(`/powertrainingcoach`) so the default project URL opens the app instead of
-Expo Router's unmatched-route screen.
+The Pages build rewrites Expo asset URLs and router base-path helpers for the
+current project path (`/powertrainingcoach`) so both `/powertrainingcoach` and
+`/powertrainingcoach/` open the app.
 
 ## Related docs
 
