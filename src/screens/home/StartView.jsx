@@ -285,6 +285,7 @@ export default function StartView({
     const shouldObscureGrid = !hasProgram;
     const bottomPadding = getHomeBottomPadding(insets.bottom);
     const contentHeight = getHomeContentHeight(windowHeight, insets.bottom);
+    const firstScreenHeight = contentHeight;
     const topHalfHeight = contentHeight / 2;
     const isPhonePreview = isPagesPhonePreview();
     const isHomeRoute =
