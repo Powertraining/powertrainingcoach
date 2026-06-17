@@ -29,7 +29,7 @@ const LoginScreen = observer(function LoginScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { requestGoogleIdToken } = useGoogleIdTokenProvider();
+  const { isGoogleConfigured, requestGoogleIdToken } = useGoogleIdTokenProvider();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -172,6 +172,7 @@ const LoginScreen = observer(function LoginScreen() {
       isSubmitting={isSubmitting}
       error={error}
       verificationMessage={verificationMessage}
+      showGoogle={isGoogleConfigured}
       onIdentifierChange={identifierChangeACB}
       onPasswordChange={passwordChangeACB}
       onSubmit={submitACB}

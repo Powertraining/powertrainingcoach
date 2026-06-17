@@ -39,13 +39,19 @@ export function SignUpView(props) {
           }}
         />
 
-        <GoogleButtonComponent
-          onPress={props.onSubmitGoogle}
-          disabled={props.isSubmitting}
-        />
+        {props.showGoogle !== false ? (
+          <GoogleButtonComponent
+            onPress={props.onSubmitGoogle}
+            disabled={props.isSubmitting}
+          />
+        ) : null}
 
         {props.message ? (
           <IBMPlexText defaultWhite center={true}>{props.message}</IBMPlexText>
+        ) : null}
+
+        {props.error ? (
+          <IBMPlexText center={true} style={styles.errorText}>{props.error}</IBMPlexText>
         ) : null}
       </View>
     </View>
@@ -57,6 +63,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     paddingTop: 44,
+  },
+  errorText: {
+    color: "#ff6b6b",
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 19,
+    marginHorizontal: 28,
+    marginTop: 2,
   },
 });
 

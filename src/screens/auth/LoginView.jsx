@@ -30,10 +30,12 @@ export function LoginView(props) {
             secureTextEntry: true,
           }}
         />
-        <GoogleButtonComponent
-          onPress={props.onSubmitGoogle}
-          disabled={props.isSubmitting}
-        />
+        {props.showGoogle !== false ? (
+          <GoogleButtonComponent
+            onPress={props.onSubmitGoogle}
+            disabled={props.isSubmitting}
+          />
+        ) : null}
         <TouchableOpacity
           style={styles.forgotPasswordButton}
           onPress={props.onForgotPasswordPress}
@@ -41,6 +43,10 @@ export function LoginView(props) {
         >
           <IBMPlexText defaultWhite center={true}>Forgot your password?</IBMPlexText>
         </TouchableOpacity>
+
+        {props.error ? (
+          <IBMPlexText center={true} style={styles.errorText}>{props.error}</IBMPlexText>
+        ) : null}
 
         {props.verificationMessage ? (
           <IBMPlexText defaultWhite center={true}>{props.verificationMessage}</IBMPlexText>
@@ -98,6 +104,14 @@ const styles = StyleSheet.create({
   forgotPasswordButton: {
     width: "100%",
     marginBottom: 15,
+  },
+  errorText: {
+    color: "#ff6b6b",
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 19,
+    marginHorizontal: 28,
+    marginBottom: 10,
   },
   resetSheet: {
     gap: 10,

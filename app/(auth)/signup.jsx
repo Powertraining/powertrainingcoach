@@ -29,7 +29,7 @@ const SignUpScreen = observer(function SignUpScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { requestGoogleIdToken } = useGoogleIdTokenProvider();
+  const { isGoogleConfigured, requestGoogleIdToken } = useGoogleIdTokenProvider();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -128,6 +128,7 @@ const SignUpScreen = observer(function SignUpScreen() {
       isSubmitting={isSubmitting}
       error={error}
       message={message}
+      showGoogle={isGoogleConfigured}
       onUsernameChange={usernameChangeACB}
       onEmailChange={emailChangeACB}
       onPasswordChange={passwordChangeACB}

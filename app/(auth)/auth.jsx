@@ -12,7 +12,7 @@ import { getFriendlyErrorMessage } from "../../src/services/utils/errorMessages.
 const AuthScreen = observer(function AuthScreen() {
   const model = reactiveModel;
   const router = useRouter();
-  const { requestGoogleIdToken } = useGoogleIdTokenProvider();
+  const { isGoogleConfigured, requestGoogleIdToken } = useGoogleIdTokenProvider();
 
   const [activeTab, setActiveTab] = useState(1);
 
@@ -203,6 +203,7 @@ const AuthScreen = observer(function AuthScreen() {
             isSubmitting={loginSubmitting}
             error={loginError}
             verificationMessage={loginVerificationMessage}
+            showGoogle={isGoogleConfigured}
             onIdentifierChange={identifierChangeACB}
             onPasswordChange={loginPasswordChangeACB}
             onSubmit={loginSubmitACB}
@@ -225,6 +226,7 @@ const AuthScreen = observer(function AuthScreen() {
             isSubmitting={signupSubmitting}
             error={signupError}
             message={signupMessage}
+            showGoogle={isGoogleConfigured}
             onUsernameChange={usernameChangeACB}
             onEmailChange={emailChangeACB}
             onPasswordChange={signupPasswordChangeACB}
