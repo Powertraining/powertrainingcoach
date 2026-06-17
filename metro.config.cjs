@@ -26,11 +26,11 @@ config.resolver.assetExts = [
 // Gradle/Xcode output after `expo run:android` / `expo run:ios`.
 config.resolver.blockList = [
   ...defaultBlockList,
-  /android\/app\/build\/.*/,
-  /android\/build\/.*/,
-  /ios\/build\/.*/,
-  /node_modules\/.*\/android\/build\/.*/,
-  /node_modules\/.*\/ios\/build\/.*/,
+  /android[\\/]app[\\/]build[\\/].*/,
+  /android[\\/]build[\\/].*/,
+  /ios[\\/]build[\\/].*/,
+  /node_modules[\\/].*[\\/]android[\\/].*[\\/]build[\\/].*/,
+  /node_modules[\\/].*[\\/]ios[\\/].*[\\/]build[\\/].*/,
 ].filter(Boolean);
 
 module.exports = config;
