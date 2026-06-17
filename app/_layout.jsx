@@ -30,7 +30,7 @@ if (typeof global !== "undefined") {
 
 const RootLayout = observer(function RootLayout() {
   const model = reactiveModel;
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     [fonts.display]: require("../src/shared/fonts/bebaskai/BebasKai.ttf"),
     [fonts.body]: require("../src/shared/fonts/cmu-sans-serif/cmunss.ttf"),
     [fonts.bodyMedium]: require("../src/shared/fonts/cmu-bright/cmunbmr.ttf"),
@@ -55,9 +55,15 @@ const RootLayout = observer(function RootLayout() {
     };
   }, [model]);
 
+  useEffect(() => {
+    if (fontError) {
+      console.warn("Could not load app fonts:", fontError);
+    }
+  }, [fontError]);
+
   const isLoading = !model.ready;
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 

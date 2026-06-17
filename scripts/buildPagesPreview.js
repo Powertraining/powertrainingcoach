@@ -58,13 +58,14 @@ function normalizePagesBasePath(basePath) {
 function rewriteExpoAssetPaths(dir, basePath) {
   const textExtensions = new Set([".html", ".js", ".json"]);
   const expoAssetPath = `${basePath}/_expo/`;
+  const assetPath = `${basePath}/assets/`;
 
   for (const entry of readdirSync(dir)) {
     const fullPath = join(dir, entry);
     const stat = statSync(fullPath);
 
     if (stat.isDirectory()) {
-      rewriteExpoAssetPaths(fullPath);
+      rewriteExpoAssetPaths(fullPath, basePath);
       continue;
     }
 
@@ -76,7 +77,10 @@ function rewriteExpoAssetPaths(dir, basePath) {
     const rewritten = contents
       .replaceAll('"/_expo/', `"${expoAssetPath}`)
       .replaceAll("'/_expo/", `'${expoAssetPath}`)
-      .replaceAll("`/_expo/", `\`${expoAssetPath}`);
+      .replaceAll("`/_expo/", `\`${expoAssetPath}`)
+      .replaceAll('"/assets/', `"${assetPath}`)
+      .replaceAll("'/assets/", `'${assetPath}`)
+      .replaceAll("`/assets/", `\`${assetPath}`);
 
     if (rewritten !== contents) {
       writeFileSync(fullPath, rewritten);
