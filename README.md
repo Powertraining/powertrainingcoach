@@ -92,9 +92,9 @@ npm run pages:build
 The workflow publishes `pages-dist/` when the `pages` branch is pushed. In the
 repository settings, configure GitHub Pages to use GitHub Actions as the source.
 
-The Pages workflow builds for the root Pages domain (`https://powertraining.github.io/`).
-Set `PAGES_BASE_PATH` in the workflow if the preview is later moved under a
-project path such as `/powertrainingcoach`.
+The Pages workflow builds for the project Pages URL (`https://powertraining.github.io/powertrainingcoach/`).
+Set `PAGES_BASE_PATH` to an empty string in the workflow only if the preview is
+later moved to the root Pages domain.
 
 ## Related docs
 
