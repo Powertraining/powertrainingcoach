@@ -1,0 +1,1320 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-09T20:40:46.306Z",
+  "caseId": "boxing__freq-4__training-endurance__exp-beginner__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "62bb9408eec6e92e7ad805ff07263373b97ec1a660753abca5227a22901dca99",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 4,
+    "daysPerWeek": 4,
+    "desiredTraining": "endurance",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "in_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "sessionDuration": "no_time_limit",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 has sessionLabel \"Assessment – Push-Up\" that does not start with \"Day N\".",
+      "Week 1 day 1 exercise 6 is missing \"sets\".",
+      "Week 1 day 1 exercise 6 is missing \"reps\".",
+      "Week 1 day 2 has sessionLabel \"Assessment – Split Squat\" that does not start with \"Day N\".",
+      "Week 1 day 2 exercise 6 is missing \"sets\".",
+      "Week 1 day 2 exercise 6 is missing \"reps\".",
+      "Week 1 day 3 has sessionLabel \"Assessment – Inverted Row\" that does not start with \"Day N\".",
+      "Week 1 day 3 exercise 6 is missing \"sets\".",
+      "Week 1 day 3 exercise 6 is missing \"reps\".",
+      "Week 1 day 4 has sessionLabel \"Assessment – Single-Leg Hip Thrust\" that does not start with \"Day N\".",
+      "Week 1 day 4 exercise 5 is missing \"sets\".",
+      "Week 1 day 4 exercise 5 is missing \"reps\".",
+      "Week 2 day 1 exercise 6 is missing \"sets\".",
+      "Week 2 day 1 exercise 6 is missing \"reps\".",
+      "Week 2 day 2 exercise 1 is missing \"sets\".",
+      "Week 2 day 2 exercise 1 is missing \"reps\".",
+      "Week 2 day 3 exercise 6 is missing \"sets\".",
+      "Week 2 day 3 exercise 6 is missing \"reps\".",
+      "Week 2 day 4 exercise 4 is missing \"sets\".",
+      "Week 2 day 4 exercise 4 is missing \"reps\".",
+      "Week 3 day 1 exercise 6 is missing \"sets\".",
+      "Week 3 day 1 exercise 6 is missing \"reps\".",
+      "Week 3 day 2 exercise 1 is missing \"sets\".",
+      "Week 3 day 2 exercise 1 is missing \"reps\".",
+      "Week 3 day 3 exercise 6 is missing \"sets\".",
+      "Week 3 day 3 exercise 6 is missing \"reps\".",
+      "Week 3 day 4 exercise 4 is missing \"sets\".",
+      "Week 3 day 4 exercise 4 is missing \"reps\".",
+      "Week 4 day 1 exercise 5 is missing \"sets\".",
+      "Week 4 day 1 exercise 5 is missing \"reps\".",
+      "Week 4 day 2 exercise 1 is missing \"sets\".",
+      "Week 4 day 2 exercise 1 is missing \"reps\".",
+      "Week 4 day 3 exercise 5 is missing \"sets\".",
+      "Week 4 day 3 exercise 5 is missing \"reps\".",
+      "Week 4 day 4 exercise 3 is missing \"sets\".",
+      "Week 4 day 4 exercise 3 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 8322,
+    "completion_tokens": 8999,
+    "total_tokens": 17321,
+    "prompt_tokens_details": {
+      "cached_tokens": 7936,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 1-4 block is an off-camp endurance-first build for boxing with simple bodyweight sessions that stay beginner-friendly and recoverable. Week 1 establishes baseline top sets on the main strength patterns so later blocks can track progress, and the main training work starts in Week 2. The block keeps some strength, power, and speed support in place, but the priority is aerobic base, repeat-effort capacity, and sport-specific conditioning without adding unnecessary soreness.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build aerobic base, repeat-effort conditioning, and simple full-body strength support with low equipment demands."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress conditioning density and sport-specific work while keeping enough strength and power to support boxing output."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Turn the base into sharper repeatable speed and cleaner sport-specific conditioning without forcing a fight-camp peak."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Assessment – Push-Up",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Push-Up",
+                "sets": "1 top set",
+                "reps": "3-10",
+                "notes": "Warm up with a few easy sets, then do one hard clean top set stopping only when rep speed slows or body position breaks. Use the hardest variation you can control with full range and a straight body line.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Push-Up",
+                  "prompt": "Warm up progressively, then perform one hard top set of 3-10 clean reps on the hardest strict variation you can control. Log the variation and reps to establish your baseline."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor push-ups are too hard to keep strict."
+                  },
+                  {
+                    "name": "Tempo Knee Push-Up",
+                    "notes": "Use a 3 second lower if you need a simpler variation but still want a useful baseline."
+                  }
+                ]
+              },
+              {
+                "name": "1a. Squat Jump",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Reset between reps and jump fast. Land softly and stop if height drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if squat jumps feel awkward."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Bear Crawl",
+                "sets": "4",
+                "reps": "15-20 m",
+                "notes": "Move under control with quiet steps and a stable trunk.",
+                "substitutionOptions": [
+                  {
+                    "name": "Inchworm Walkout",
+                    "notes": "Use this if space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Reverse Lunge",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Stay tall, control the step back, and keep pressure through the front foot.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if balance is an issue."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "3",
+                "reps": "20-30 s",
+                "notes": "Lower back stays flat. Shorten the lever if you lose position.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dead Bug",
+                    "notes": "Use this if the hollow hold is too demanding."
+                  }
+                ]
+              },
+              {
+                "name": "Running – Easy Base",
+                "notes": "Nasal breathing if possible and keep the pace conversational.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 25,
+                  "intensity": "Easy conversational pace",
+                  "target": "Build general aerobic base without extra fatigue",
+                  "sessionType": "base_aerobic",
+                  "notes": "If joints are irritated, brisk walk for the same duration."
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Assessment – Split Squat",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "1 top set per side",
+                "reps": "3-8+3-8",
+                "notes": "Warm up with easy bodyweight reps, then use one hard clean top set per side with full control. Choose a range and depth you can repeat evenly on both legs.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Rear-Foot-Elevated Split Squat",
+                  "prompt": "Warm up progressively, then perform one hard top set per side for 3-8 clean reps. Log reps and the variation used so the app can track your baseline."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if rear-foot elevation setup is poor."
+                  },
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squats bother the front knee."
+                  }
+                ]
+              },
+              {
+                "name": "1a. Pogo Jumps",
+                "sets": "3",
+                "reps": "12",
+                "notes": "Stay stiff through the ankle and keep contacts quick and quiet.",
+                "substitutionOptions": [
+                  {
+                    "name": "Line Hops",
+                    "notes": "Use small low-impact hops if pogos feel too springy."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Push-Up Shoulder Tap",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Keep hips still and move slowly enough to stay square.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank Shoulder Tap",
+                    "notes": "Use this if the push-up position is too demanding."
+                  }
+                ]
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Drive through the heel and finish with the hip, not the low back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Glute Bridge",
+                    "notes": "Use two legs if single-leg control is poor."
+                  }
+                ]
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "20-30 s per side",
+                "notes": "Straight line from head to heel. Stop before the hip drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Bent-Knee Side Plank",
+                    "notes": "Use this if the full version is too hard."
+                  }
+                ]
+              },
+              {
+                "name": "Shadow Boxing Tempo Intervals",
+                "notes": "Keep the rounds technical and smooth. Do not turn this into all-out flurries.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 24,
+                  "intensity": "Moderate steady effort",
+                  "work": "6 x 3 min",
+                  "rest": "1 min",
+                  "rounds": 6,
+                  "target": "Build boxing-specific aerobic rhythm and stance endurance",
+                  "sessionType": "tempo_skill_conditioning",
+                  "notes": "Use footwork, feints, jabs, and simple combinations with clean breathing."
+                }
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "sessionLabel": "Assessment – Inverted Row",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Inverted Row",
+                "sets": "1 top set",
+                "reps": "3-10",
+                "notes": "Warm up with easy reps, then perform one hard strict top set. Keep the body rigid and pull the chest to the bar or table edge.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Inverted Row",
+                  "prompt": "Warm up progressively, then perform one hard top set of 3-10 clean reps on the hardest strict row setup available. Log the setup and reps to establish your baseline."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Towel Row",
+                    "notes": "Use a secure anchor and keep the body stiff."
+                  },
+                  {
+                    "name": "Doorway Row",
+                    "notes": "Use only if the setup is stable and safe."
+                  }
+                ]
+              },
+              {
+                "name": "1a. Broad Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Stick the landing and reset each rep. Stop if landing quality drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use this if space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Mountain Climber",
+                "sets": "4",
+                "reps": "20 total",
+                "notes": "Move briskly but keep shoulders stacked and hips under control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Fast March Plank",
+                    "notes": "Use this if mountain climbers get sloppy."
+                  }
+                ]
+              },
+              {
+                "name": "Pike Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Lower the head between the hands and keep the neck neutral.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Pike Push-Up",
+                    "notes": "Use this if range or strength is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Reverse Crunch",
+                "sets": "3",
+                "reps": "10-15",
+                "notes": "Curl the hips up under control. Do not swing the legs.",
+                "substitutionOptions": [
+                  {
+                    "name": "Bent-Knee Leg Raise",
+                    "notes": "Use this if reverse crunches cramp."
+                  }
+                ]
+              },
+              {
+                "name": "Running – Aerobic Intervals",
+                "notes": "Run smooth and controlled. You should finish feeling worked, not wrecked.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "aerobic_intervals",
+                  "durationMinutes": 24,
+                  "intensity": "Comfortably hard but sustainable",
+                  "work": "4 x 4 min",
+                  "rest": "2 min easy walk or jog",
+                  "rounds": 4,
+                  "target": "Raise aerobic power for repeatable boxing pace",
+                  "sessionType": "aerobic_power",
+                  "notes": "If impact is an issue, replace with brisk uphill walking intervals."
+                }
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "sessionLabel": "Assessment – Single-Leg Hip Thrust",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core",
+                "full_body"
+              ],
+              "qualities": [
+                "force",
+                "fatigue",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Single-Leg Hip Thrust",
+                "sets": "1 top set per side",
+                "reps": "5-10+5-10",
+                "notes": "Warm up with easy reps, then do one hard clean top set per side. Pause briefly at the top and keep the ribcage down.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Single-Leg Hip Thrust",
+                  "prompt": "Warm up progressively, then perform one hard top set per side for 5-10 clean reps. Log reps and setup to establish your baseline."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Single-Leg Glute Bridge",
+                    "notes": "Use this if you do not have a bench or stable support."
+                  }
+                ]
+              },
+              {
+                "name": "Skater Hop to Stick",
+                "sets": "3",
+                "reps": "5+5",
+                "notes": "Jump sideways with control and own the landing on each rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "Lateral Step and Stick",
+                    "notes": "Use this lower-impact option if balance is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Walking Lunge",
+                "sets": "2",
+                "reps": "10+10",
+                "notes": "Short smooth steps and upright posture. Keep each rep even.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Front Plank",
+                "sets": "3",
+                "reps": "25-40 s",
+                "notes": "Brace hard and keep the ribs tucked down.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hardstyle Dead Bug",
+                    "notes": "Use this if planks bother the shoulders."
+                  }
+                ]
+              },
+              {
+                "name": "Shadow Boxing Recovery Flow",
+                "notes": "Stay light, relaxed, and technical. This is recovery work, not conditioning competition.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "recovery",
+                  "durationMinutes": 20,
+                  "intensity": "Easy relaxed effort",
+                  "target": "Restore rhythm, footwork, and breathing without adding fatigue",
+                  "sessionType": "recovery_skill",
+                  "notes": "Use easy movement, loose combinations, and controlled nasal or calm mouth breathing."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Explode up fast and reset between reps. Land softly.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use this if it feels more natural."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Split Squat",
+                "sets": "4",
+                "reps": "8+8",
+                "notes": "Controlled down, strong stand up, and keep the front foot rooted.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set per side and try to add reps before making the variation harder."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use this if split squat setup is uncomfortable."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Leave 1-2 clean reps in reserve and keep the body straight.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the hardest strict set you complete with clean range."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor reps drop below the target range."
+                  }
+                ]
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "3",
+                "reps": "20-25 m",
+                "notes": "Short steps, steady trunk, and quiet hands and feet.",
+                "substitutionOptions": [
+                  {
+                    "name": "Inchworm Walkout",
+                    "notes": "Use this if space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "3",
+                "reps": "25-35 s",
+                "notes": "Keep the low back down and shorten the lever if needed."
+              },
+              {
+                "name": "Running – Easy Base",
+                "notes": "Stay relaxed and keep the whole run smooth.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 30,
+                  "intensity": "Easy conversational pace",
+                  "target": "Expand aerobic base and support recovery between hard efforts",
+                  "sessionType": "base_aerobic"
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "fatigue",
+                "hypertrophy",
+                "recovery"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Bodyweight Endurance Circuit",
+                "notes": "Move station to station with clean form. Keep one gear below sloppy.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 24,
+                  "intensity": "Moderate steady effort",
+                  "work": "40 s per station",
+                  "rest": "20 s between stations",
+                  "rounds": 4,
+                  "target": "Whole-body work capacity for boxing pace support",
+                  "sessionType": "general_work_capacity",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 16,
+                  "totalRestMinutes": 8
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole_body_work_capacity",
+                  "secondaryTargets": [
+                    "local_muscular_endurance",
+                    "aerobic_recovery_between_bursts"
+                  ],
+                  "stationCount": 4,
+                  "workSeconds": 40,
+                  "restSeconds": 20,
+                  "workRestRatio": "2:1",
+                  "rounds": 4,
+                  "targetAreaEmphasis": "legs, trunk, pushing, and boxing rhythm",
+                  "progression": "Add one round in Week 3 before making the stations harder.",
+                  "analytics": "Track total completed rounds and whether pace stayed even."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Shadow Boxing Endurance Circuit",
+                    "notes": "Swap one station for shadow boxing if you want more sport feel."
+                  }
+                ]
+              },
+              {
+                "name": "Circuit Station 1 – Reverse Lunge",
+                "sets": "4",
+                "reps": "40 s",
+                "notes": "Alternate legs smoothly and keep each rep controlled."
+              },
+              {
+                "name": "Circuit Station 2 – Push-Up",
+                "sets": "4",
+                "reps": "40 s",
+                "notes": "Use a variation that lets you keep clean reps for the full interval."
+              },
+              {
+                "name": "Circuit Station 3 – Mountain Climber",
+                "sets": "4",
+                "reps": "40 s",
+                "notes": "Move briskly but keep shoulders stacked and hips stable."
+              },
+              {
+                "name": "Circuit Station 4 – Shadow Boxing",
+                "sets": "4",
+                "reps": "40 s",
+                "notes": "Fast hands, light feet, simple combinations, and calm breathing."
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "sessionLabel": "Day 3",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Broad Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Jump far, stick the landing, and reset each rep."
+              },
+              {
+                "name": "1b. Inverted Row",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Pull the chest to the bar or edge and keep the body rigid.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best strict set and progress reps before making the setup harder."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Towel Row",
+                    "notes": "Use a secure anchor and keep the body stiff."
+                  }
+                ]
+              },
+              {
+                "name": "Pike Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Keep elbows under control and lower the head between the hands."
+              },
+              {
+                "name": "Single-Leg Glute Bridge",
+                "sets": "3",
+                "reps": "12+12",
+                "notes": "Pause briefly at the top and keep hips level."
+              },
+              {
+                "name": "Reverse Crunch",
+                "sets": "3",
+                "reps": "12-15",
+                "notes": "Curl the hips under and control the lowering phase."
+              },
+              {
+                "name": "Running – Aerobic Intervals",
+                "notes": "Stay smooth and repeatable across all work bouts.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "aerobic_intervals",
+                  "durationMinutes": 28,
+                  "intensity": "Comfortably hard sustainable effort",
+                  "work": "5 x 4 min",
+                  "rest": "90 s walk or very easy jog",
+                  "rounds": 5,
+                  "target": "Improve repeatable hard effort capacity for boxing rounds",
+                  "sessionType": "aerobic_power"
+                }
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "sessionLabel": "Day 4",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "speed",
+                "recovery",
+                "fatigue"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Pogo Jumps",
+                "sets": "3",
+                "reps": "15",
+                "notes": "Quick contacts and tall posture. Keep it snappy, not heavy."
+              },
+              {
+                "name": "Skater Hop to Stick",
+                "sets": "3",
+                "reps": "5+5",
+                "notes": "Jump sideways and own the landing before the next rep."
+              },
+              {
+                "name": "Front Plank",
+                "sets": "3",
+                "reps": "30-40 s",
+                "notes": "Brace hard and keep the ribs tucked down."
+              },
+              {
+                "name": "Shadow Boxing Round Work",
+                "notes": "Stay technical with clean footwork and short fast bursts inside each round.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 28,
+                  "intensity": "Moderate with brief fast surges",
+                  "work": "7 x 3 min",
+                  "rest": "1 min",
+                  "rounds": 7,
+                  "target": "Build boxing-specific pace and breathing control",
+                  "sessionType": "round_conditioning",
+                  "notes": "In each round, add one 10 second fast burst while keeping the rest of the round technical."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Fast takeoff, soft landing, and full reset between reps."
+              },
+              {
+                "name": "1b. Rear-Foot-Elevated Split Squat",
+                "sets": "4",
+                "reps": "8+8",
+                "notes": "Stay balanced and use full controlled range.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best strict set per side and progress reps before using a harder variation."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if rear-foot elevation is awkward."
+                  }
+                ]
+              },
+              {
+                "name": "Push-Up",
+                "sets": "4",
+                "reps": "8-12",
+                "notes": "Clean range only. If you hit 12 on all sets, use a harder variation next block.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set with full range and strong body position."
+                }
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "3",
+                "reps": "25-30 m",
+                "notes": "Stay low, move smoothly, and avoid rocking side to side."
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "3",
+                "reps": "30-40 s",
+                "notes": "Keep tension from ribs to pelvis the whole set."
+              },
+              {
+                "name": "Running – Easy Base",
+                "notes": "Relax the shoulders and keep the pace truly easy.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 35,
+                  "intensity": "Easy conversational pace",
+                  "target": "Continue building aerobic base with low recovery cost",
+                  "sessionType": "base_aerobic"
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "fatigue",
+                "hypertrophy"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Bodyweight Endurance Circuit",
+                "notes": "Keep the pace steady and repeatable. Do not race the early rounds.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 30,
+                  "intensity": "Moderate sustained effort",
+                  "work": "40 s per station",
+                  "rest": "20 s between stations",
+                  "rounds": 5,
+                  "target": "Raise whole-body work capacity and local muscular endurance",
+                  "sessionType": "general_work_capacity",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 20,
+                  "totalRestMinutes": 10
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole_body_work_capacity",
+                  "secondaryTargets": [
+                    "local_muscular_endurance",
+                    "sport_specific_fatigue_resistance"
+                  ],
+                  "stationCount": 4,
+                  "workSeconds": 40,
+                  "restSeconds": 20,
+                  "workRestRatio": "2:1",
+                  "rounds": 5,
+                  "targetAreaEmphasis": "legs, trunk, pushing, and boxing rhythm",
+                  "progression": "This week adds one round while keeping the same station density.",
+                  "analytics": "Track whether output stayed even across all 5 rounds."
+                }
+              },
+              {
+                "name": "Circuit Station 1 – Walking Lunge",
+                "sets": "5",
+                "reps": "40 s",
+                "notes": "Smooth steps and even rhythm side to side."
+              },
+              {
+                "name": "Circuit Station 2 – Pike Push-Up",
+                "sets": "5",
+                "reps": "40 s",
+                "notes": "Use a manageable variation so reps stay clean."
+              },
+              {
+                "name": "Circuit Station 3 – Mountain Climber",
+                "sets": "5",
+                "reps": "40 s",
+                "notes": "Fast but controlled, with a steady trunk."
+              },
+              {
+                "name": "Circuit Station 4 – Shadow Boxing",
+                "sets": "5",
+                "reps": "40 s",
+                "notes": "Quick feet, simple combinations, and continuous movement."
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "sessionLabel": "Day 3",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Broad Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Stick the landing and cut the set if distance drops."
+              },
+              {
+                "name": "1b. Inverted Row",
+                "sets": "4",
+                "reps": "8-12",
+                "notes": "Body stays rigid and chest leads the pull.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best strict set and improve reps or body angle over time."
+                }
+              },
+              {
+                "name": "Pike Push-Up",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Control the lowering phase and keep the neck neutral."
+              },
+              {
+                "name": "Single-Leg Hip Thrust",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Pause at the top and avoid arching the low back."
+              },
+              {
+                "name": "Reverse Crunch",
+                "sets": "3",
+                "reps": "12-18",
+                "notes": "Curl the hips under smoothly and lower with control."
+              },
+              {
+                "name": "Running – Tempo Intervals",
+                "notes": "This is steady hard work, not sprinting. Pace it so all rounds match.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "tempo_threshold",
+                  "durationMinutes": 30,
+                  "intensity": "Sustainable hard effort",
+                  "work": "3 x 6 min",
+                  "rest": "2 min easy walk or jog",
+                  "rounds": 3,
+                  "target": "Build sustained pace tolerance for longer boxing efforts",
+                  "sessionType": "threshold"
+                }
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "sessionLabel": "Day 4",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "speed",
+                "recovery",
+                "fatigue"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Pogo Jumps",
+                "sets": "3",
+                "reps": "15",
+                "notes": "Quick contacts and relaxed shoulders."
+              },
+              {
+                "name": "Skater Hop to Stick",
+                "sets": "3",
+                "reps": "6+6",
+                "notes": "Push sideways and freeze the landing each rep."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "25-35 s per side",
+                "notes": "Keep the hip high and body straight."
+              },
+              {
+                "name": "Shadow Boxing Round Work",
+                "notes": "Stay sharp and technical. Let the fast bursts stay clean.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 32,
+                  "intensity": "Moderate with repeat fast surges",
+                  "work": "8 x 3 min",
+                  "rest": "1 min",
+                  "rounds": 8,
+                  "target": "Improve round-to-round boxing pace and recovery",
+                  "sessionType": "round_conditioning",
+                  "notes": "Use two 10 second fast bursts per round with relaxed movement between them."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Jump fast and finish each rep fresh."
+              },
+              {
+                "name": "1b. Split Squat",
+                "sets": "3",
+                "reps": "6+6",
+                "notes": "Controlled reps and stop well before form breaks."
+              },
+              {
+                "name": "Push-Up",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Smooth reps with clean body position."
+              },
+              {
+                "name": "Hollow Body Hold",
+                "sets": "2",
+                "reps": "20-30 s",
+                "notes": "Stay tight but do not grind."
+              },
+              {
+                "name": "Running – Easy Base",
+                "notes": "This deload run should leave you feeling better at the end than at the start.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 25,
+                  "intensity": "Easy conversational pace",
+                  "target": "Maintain aerobic base while reducing fatigue",
+                  "sessionType": "deload_base"
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "fatigue",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Bodyweight Endurance Circuit",
+                "notes": "This week trims volume. Keep everything crisp and controlled.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 18,
+                  "intensity": "Moderate comfortable effort",
+                  "work": "30 s per station",
+                  "rest": "30 s between stations",
+                  "rounds": 3,
+                  "target": "Maintain work capacity while unloading fatigue",
+                  "sessionType": "deload_circuit",
+                  "workRestRatio": "1:1",
+                  "totalWorkMinutes": 6,
+                  "totalRestMinutes": 6
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole_body_work_capacity",
+                  "secondaryTargets": [
+                    "aerobic_recovery_between_bursts"
+                  ],
+                  "stationCount": 4,
+                  "workSeconds": 30,
+                  "restSeconds": 30,
+                  "workRestRatio": "1:1",
+                  "rounds": 3,
+                  "targetAreaEmphasis": "light legs, trunk, pushing, and movement rhythm",
+                  "progression": "Use this deload to freshen up before the next block.",
+                  "analytics": "Track whether breathing settles quickly between rounds."
+                }
+              },
+              {
+                "name": "Circuit Station 1 – Reverse Lunge",
+                "sets": "3",
+                "reps": "30 s",
+                "notes": "Easy controlled rhythm."
+              },
+              {
+                "name": "Circuit Station 2 – Push-Up",
+                "sets": "3",
+                "reps": "30 s",
+                "notes": "Choose a variation that stays very clean."
+              },
+              {
+                "name": "Circuit Station 3 – Mountain Climber",
+                "sets": "3",
+                "reps": "30 s",
+                "notes": "Steady pace, not frantic."
+              },
+              {
+                "name": "Circuit Station 4 – Shadow Boxing",
+                "sets": "3",
+                "reps": "30 s",
+                "notes": "Light feet and relaxed hands."
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "sessionLabel": "Day 3",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "1a. Broad Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Jump clean and stop while output is still high."
+              },
+              {
+                "name": "1b. Inverted Row",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Smooth strict pulls with full control."
+              },
+              {
+                "name": "Pike Push-Up",
+                "sets": "2",
+                "reps": "6-8",
+                "notes": "Own each rep and avoid grinding."
+              },
+              {
+                "name": "Reverse Crunch",
+                "sets": "2",
+                "reps": "10-12",
+                "notes": "Controlled curl up and slow lower."
+              },
+              {
+                "name": "Running – Aerobic Intervals",
+                "notes": "Keep these controlled and smooth. Finish feeling fresh enough for the next block.",
+                "endurancePrescription": {
+                  "modality": "running",
+                  "format": "aerobic_intervals",
+                  "durationMinutes": 20,
+                  "intensity": "Moderate sustainable effort",
+                  "work": "3 x 4 min",
+                  "rest": "2 min easy walk or jog",
+                  "rounds": 3,
+                  "target": "Maintain aerobic power while dropping fatigue",
+                  "sessionType": "deload_aerobic_power"
+                }
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "sessionLabel": "Day 4",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "speed",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Pogo Jumps",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Light, quick, and easy."
+              },
+              {
+                "name": "Front Plank",
+                "sets": "2",
+                "reps": "25-30 s",
+                "notes": "Short crisp holds only."
+              },
+              {
+                "name": "Shadow Boxing Recovery Flow",
+                "notes": "Stay loose and sharp. This is a freshness session.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "recovery",
+                  "durationMinutes": 18,
+                  "intensity": "Easy relaxed effort",
+                  "target": "Maintain boxing rhythm and recover into the next block",
+                  "sessionType": "recovery_skill",
+                  "notes": "Use easy movement, stance switches only if comfortable, and clean breathing."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

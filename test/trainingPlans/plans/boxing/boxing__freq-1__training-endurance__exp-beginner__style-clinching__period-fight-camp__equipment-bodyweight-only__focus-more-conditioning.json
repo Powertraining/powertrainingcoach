@@ -1,0 +1,678 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-09T20:39:48.216Z",
+  "caseId": "boxing__freq-1__training-endurance__exp-beginner__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "c0fc32c443dbeed1b5d9ae9030e0dcf93a8fbcfe2358dba94eaba1ae80ff75f1",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "endurance",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "fight_camp",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "sessionDuration": "60_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 exercise 8 is missing \"sets\".",
+      "Week 1 day 1 exercise 8 is missing \"reps\".",
+      "Week 2 day 1 exercise 8 is missing \"sets\".",
+      "Week 2 day 1 exercise 8 is missing \"reps\".",
+      "Week 3 day 1 exercise 8 is missing \"sets\".",
+      "Week 3 day 1 exercise 8 is missing \"reps\".",
+      "Week 4 day 1 exercise 8 is missing \"sets\".",
+      "Week 4 day 1 exercise 8 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 7877,
+    "completion_tokens": 4647,
+    "total_tokens": 12524,
+    "prompt_tokens_details": {
+      "cached_tokens": 6912,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 1-4 block is an off-camp rebuild with an endurance bias for boxing while still keeping a small dose of power, strength, trunk, and neck work. Week 1 establishes simple bodyweight baselines so later blocks can progress from something real. Weeks 2-3 build repeatable work capacity and boxing-specific conditioning, and Week 4 deloads volume to freshen up before the next block review.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Establish basic bodyweight strength baselines and build aerobic and repeated-effort conditioning without excessive soreness."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress conditioning density and repeatable effort while keeping enough strength and power work to support boxing."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep conditioning specific and sharp with lower fatigue while preserving the strength and power you built."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "fatigue",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Reset between reps. Land softly and keep every jump crisp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if the squat jump feels awkward. Same focus on fast takeoff and soft landing."
+                  },
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low safe box if space allows. Step down each rep."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Plyo Push-Up",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Explode off the floor but keep the body straight. Use hands-elevated if full floor reps are not clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Plyo Push-Up",
+                    "notes": "Safer beginner option if you cannot leave the floor cleanly."
+                  },
+                  {
+                    "name": "Fast Push-Up",
+                    "notes": "Move up as fast as possible if impact on the wrists is not ideal."
+                  }
+                ]
+              },
+              {
+                "name": "2. Push-Up Baseline Test",
+                "sets": "1",
+                "reps": "AMRAP",
+                "notes": "One all-out clean set to establish your current baseline. Stop when form breaks, not after ugly reps.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Log your best clean set so the next block can progress from a real baseline."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up Baseline Test",
+                    "notes": "Use this if floor push-ups are not yet consistent. Record the surface height used."
+                  }
+                ]
+              },
+              {
+                "name": "3. Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Use full control and stay tall. Front foot flat, back knee travels down smoothly.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Good option if split squat balance is limiting the set."
+                  },
+                  {
+                    "name": "Bodyweight Squat",
+                    "notes": "Use if split squats are too unstable right now."
+                  }
+                ]
+              },
+              {
+                "name": "4. Inverted Row",
+                "sets": "3",
+                "reps": "5-8",
+                "notes": "Use a table, bar, or rings if available. Pull the chest up and keep the body rigid. Stop with 1-2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Row",
+                    "notes": "Use a sturdy setup only. Keep tension even and move under control."
+                  },
+                  {
+                    "name": "Towel Row Isometric",
+                    "notes": "Pull hard against a fixed anchor for 15-20 seconds if no row setup is available."
+                  }
+                ]
+              },
+              {
+                "name": "5. Forearm Plank",
+                "sets": "3",
+                "reps": "30-45 sec",
+                "notes": "Brace hard, ribs down, glutes tight. Do not let the low back sag.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank",
+                    "notes": "Use if forearm position is uncomfortable."
+                  },
+                  {
+                    "name": "Hollow Body Hold",
+                    "notes": "Use if you want a harder trunk option and can keep the low back flat."
+                  }
+                ]
+              },
+              {
+                "name": "6. Supine Neck Isometric Series",
+                "sets": "2",
+                "reps": "15 sec each direction",
+                "notes": "Light pressure only. Do front, back, left, and right holds with smooth breathing and no pain.",
+                "substitutionOptions": [
+                  {
+                    "name": "Standing Hand-Resisted Neck Isometrics",
+                    "notes": "Use gentle hand pressure and keep the neck long."
+                  }
+                ]
+              },
+              {
+                "name": "7. Shadow Boxing Tempo Intervals",
+                "notes": "Smooth technical pace. Build rhythm and breathing, not a sprint.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 18,
+                  "intensity": "Easy to moderate effort",
+                  "work": "6 x 2 min",
+                  "rest": "1 min walk and breathe",
+                  "rounds": 6,
+                  "target": "Boxing-specific aerobic base and movement rhythm",
+                  "sessionType": "technical aerobic conditioning",
+                  "notes": "Stay relaxed. Keep footwork, guard recovery, and clean mechanics."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "fatigue",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Reset between reps. Jump fast and land quietly.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Good simple substitute with the same goal."
+                  },
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a low safe box and step down."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Plyo Push-Up",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Explode up with control. Use an elevated setup if needed to keep reps sharp.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Plyo Push-Up",
+                    "notes": "Safer beginner option."
+                  },
+                  {
+                    "name": "Fast Push-Up",
+                    "notes": "Use if leaving the floor is not yet clean."
+                  }
+                ]
+              },
+              {
+                "name": "2a. Push-Up",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Leave 1-2 clean reps in reserve. Full range and steady body line.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use if floor reps drop below the target range."
+                  }
+                ]
+              },
+              {
+                "name": "2b. Inverted Row",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Pause briefly at the top. Keep the ribs down and avoid shrugging.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Row",
+                    "notes": "Use only with a sturdy setup."
+                  },
+                  {
+                    "name": "Towel Row Isometric",
+                    "notes": "Use 15-20 second hard pulls if no row station is available."
+                  }
+                ]
+              },
+              {
+                "name": "3. Reverse Lunge",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Step back under control and drive up smoothly through the front foot.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use if you prefer staying in place."
+                  },
+                  {
+                    "name": "Bodyweight Squat",
+                    "notes": "Use if balance is still limiting."
+                  }
+                ]
+              },
+              {
+                "name": "4. Hollow Body Hold",
+                "sets": "3",
+                "reps": "20-30 sec",
+                "notes": "Keep the low back flat to the floor the whole set.",
+                "substitutionOptions": [
+                  {
+                    "name": "Forearm Plank",
+                    "notes": "Use if the hollow position is too demanding."
+                  }
+                ]
+              },
+              {
+                "name": "5. Supine Neck Isometric Series",
+                "sets": "2",
+                "reps": "20 sec each direction",
+                "notes": "Gentle pressure only. Keep the jaw relaxed and stop if you feel any sharp discomfort.",
+                "substitutionOptions": [
+                  {
+                    "name": "Standing Hand-Resisted Neck Isometrics",
+                    "notes": "Use the same easy pressure in all four directions."
+                  }
+                ]
+              },
+              {
+                "name": "6. Boxing Conditioning Circuit",
+                "notes": "Steady repeatable effort. Keep movement quality high and breathing under control.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 20,
+                  "intensity": "Moderate effort",
+                  "work": "40 sec per station",
+                  "rest": "20 sec between stations",
+                  "rounds": 3,
+                  "target": "Whole-body work capacity with boxing-specific fatigue resistance",
+                  "sessionType": "general conditioning circuit",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 14,
+                  "totalRestMinutes": 6,
+                  "notes": "Move continuously but do not rush. Keep each station clean and repeatable."
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole_body_work_capacity",
+                  "secondaryTargets": [
+                    "sport_specific_fatigue_resistance",
+                    "aerobic_recovery_between_bursts"
+                  ],
+                  "stationCount": 4,
+                  "workSeconds": 40,
+                  "restSeconds": 20,
+                  "workRestRatio": "2:1",
+                  "rounds": 3,
+                  "targetAreaEmphasis": "About 60% general work capacity and 40% boxing-specific fatigue resistance",
+                  "progression": "Add one round or add 5 seconds of work per station next block if quality stays high.",
+                  "analytics": "Track whether output and technique stay even from first round to last round."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Shadow Boxing Conditioning Circuit",
+                    "notes": "Use rounds of stance movement, straight punches, squat thrusts, and mountain climbers if space is tight."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "fatigue",
+                "speed"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "1a. Skater Jump",
+                "sets": "3",
+                "reps": "5+5",
+                "notes": "Cover a small clean distance and stick the landing before the next rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "Lateral Bound to Stick",
+                    "notes": "Use the same side-to-side power focus with stricter landing control."
+                  },
+                  {
+                    "name": "Lateral Line Hop",
+                    "notes": "Use if full skater jumps are too unstable."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Fast Push-Up",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Drive up as fast as possible and lower under control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Fast Push-Up",
+                    "notes": "Use if floor reps slow down too much."
+                  },
+                  {
+                    "name": "Plyo Push-Up",
+                    "notes": "Use if you can keep every rep sharp."
+                  }
+                ]
+              },
+              {
+                "name": "2a. Push-Up",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Smooth reps with 1-2 left in reserve. Do not chase sloppy fatigue reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use if needed to stay inside the rep range cleanly."
+                  }
+                ]
+              },
+              {
+                "name": "2b. Inverted Row",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Keep the body straight and pull the chest up to the bar or edge.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Row",
+                    "notes": "Use a stable setup."
+                  },
+                  {
+                    "name": "Towel Row Isometric",
+                    "notes": "Hard 20-second pulls if no row setup is available."
+                  }
+                ]
+              },
+              {
+                "name": "3. Split Squat",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Stay balanced and controlled. Full depth that you can own.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use if this feels smoother."
+                  },
+                  {
+                    "name": "Bodyweight Squat",
+                    "notes": "Use if split stance still limits good reps."
+                  }
+                ]
+              },
+              {
+                "name": "4. V-Up",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Move with control and avoid yanking through the neck.",
+                "substitutionOptions": [
+                  {
+                    "name": "Tuck-Up",
+                    "notes": "Use if full V-ups are too demanding."
+                  },
+                  {
+                    "name": "Hollow Body Hold",
+                    "notes": "Use if you need a simpler trunk option."
+                  }
+                ]
+              },
+              {
+                "name": "5. Supine Neck Isometric Series",
+                "sets": "2",
+                "reps": "20 sec each direction",
+                "notes": "Use only light manual resistance. Keep it smooth and pain free.",
+                "substitutionOptions": [
+                  {
+                    "name": "Standing Hand-Resisted Neck Isometrics",
+                    "notes": "Same four directions and same easy pressure."
+                  }
+                ]
+              },
+              {
+                "name": "6. Shadow Boxing Burst Intervals",
+                "notes": "Hard bursts, simple combinations, full focus on speed and posture.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 16,
+                  "intensity": "Hard but repeatable effort",
+                  "work": "8 x 45 sec",
+                  "rest": "75 sec easy walk and breathe",
+                  "rounds": 8,
+                  "target": "Repeated high-effort boxing bursts without losing mechanics",
+                  "sessionType": "repeated burst conditioning",
+                  "workRestRatio": "3:5",
+                  "totalWorkMinutes": 6,
+                  "totalRestMinutes": 10,
+                  "notes": "Throw short clean combinations with fast feet and full guard recovery. Stop before technique falls apart."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "recovery",
+                "fatigue"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "2",
+                "reps": "4",
+                "notes": "Keep these fast and easy. Stop well before jump height drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Simple low-fatigue substitute."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Fast Push-Up",
+                "sets": "2",
+                "reps": "4",
+                "notes": "Explode up and finish each rep fresh.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Fast Push-Up",
+                    "notes": "Use if you need a cleaner low-fatigue option."
+                  }
+                ]
+              },
+              {
+                "name": "2a. Push-Up",
+                "sets": "2",
+                "reps": "6-8",
+                "notes": "Easy clean sets. Leave 2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Hands-Elevated Push-Up",
+                    "notes": "Use if that keeps the reps cleaner."
+                  }
+                ]
+              },
+              {
+                "name": "2b. Inverted Row",
+                "sets": "2",
+                "reps": "5-8",
+                "notes": "Controlled reps with a brief pause at the top.",
+                "substitutionOptions": [
+                  {
+                    "name": "Doorway Row",
+                    "notes": "Use a sturdy setup."
+                  },
+                  {
+                    "name": "Towel Row Isometric",
+                    "notes": "Use 15-second hard pulls if no row station is available."
+                  }
+                ]
+              },
+              {
+                "name": "3. Reverse Lunge",
+                "sets": "2",
+                "reps": "6+6",
+                "notes": "Smooth controlled reps. No grinding this week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use if staying in place feels better."
+                  },
+                  {
+                    "name": "Bodyweight Squat",
+                    "notes": "Use if you want the easiest option for recovery."
+                  }
+                ]
+              },
+              {
+                "name": "4. Forearm Plank",
+                "sets": "2",
+                "reps": "30 sec",
+                "notes": "Brace firmly but keep breathing easy.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank",
+                    "notes": "Use if that feels more comfortable."
+                  }
+                ]
+              },
+              {
+                "name": "5. Supine Neck Isometric Series",
+                "sets": "1-2",
+                "reps": "15 sec each direction",
+                "notes": "Very light effort this week. Just enough to keep the pattern.",
+                "substitutionOptions": [
+                  {
+                    "name": "Standing Hand-Resisted Neck Isometrics",
+                    "notes": "Use gentle pressure only."
+                  }
+                ]
+              },
+              {
+                "name": "6. Shadow Boxing Aerobic Flush",
+                "notes": "Relaxed movement and clean technique. Finish feeling better than when you started.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "recovery",
+                  "durationMinutes": 15,
+                  "intensity": "Easy effort",
+                  "work": "5 x 2 min",
+                  "rest": "1 min easy walk",
+                  "rounds": 5,
+                  "target": "Low-cost boxing conditioning and recovery",
+                  "sessionType": "technical recovery conditioning",
+                  "notes": "Stay loose, breathe through the nose when possible, and keep everything crisp."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
