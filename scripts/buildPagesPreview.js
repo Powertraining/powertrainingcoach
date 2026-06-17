@@ -57,7 +57,7 @@ function normalizePagesBasePath(basePath) {
 
 function rewriteExpoAssetPaths(dir, basePath) {
   const textExtensions = new Set([".html", ".js", ".json"]);
-  const expoAssetPath = basePath ? `${basePath}/_expo/` : "./_expo/";
+  const expoAssetPath = `${basePath}/_expo/`;
 
   for (const entry of readdirSync(dir)) {
     const fullPath = join(dir, entry);

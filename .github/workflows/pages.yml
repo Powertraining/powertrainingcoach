@@ -33,6 +33,8 @@ jobs:
 
       - name: Build phone preview
         run: npm run pages:build
+        env:
+          PAGES_BASE_PATH: ""
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
