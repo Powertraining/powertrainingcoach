@@ -96,6 +96,13 @@ The Pages workflow builds for the project Pages URL (`https://powertraining.gith
 Set `PAGES_BASE_PATH` to an empty string in the workflow only if the preview is
 later moved to the root Pages domain.
 
+If Firebase Storage media fails on the Pages preview, apply the bucket CORS
+policy after editing `cors.json`:
+
+```bash
+gsutil cors set cors.json gs://power-training-coach.firebasestorage.app
+```
+
 ## Related docs
 
 - `docs/consultation-booking-backend.md`

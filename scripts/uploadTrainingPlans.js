@@ -33,7 +33,7 @@ const serviceAccount = require(serviceAccountPath);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'powertrainingcoach.firebasestorage.app'
+  storageBucket: 'power-training-coach.firebasestorage.app'
 });
 
 const bucket = admin.storage().bucket();
@@ -71,7 +71,7 @@ async function uploadPlans() {
   
   console.log('\n✨ Upload complete!');
   console.log('\nNext step: Set CORS on your bucket by running:');
-  console.log('gsutil cors set cors.json gs://powertrainingcoach.firebasestorage.app');
+  console.log('gsutil cors set cors.json gs://power-training-coach.firebasestorage.app');
 }
 
 uploadPlans().catch(console.error);
