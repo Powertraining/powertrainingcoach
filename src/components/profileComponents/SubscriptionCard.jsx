@@ -23,7 +23,6 @@ export default function SubscriptionCard({
   cardStyle,
   contentStyle,
   planLabelStyle,
-  timeRemainingText,
   subscriptionText,
   benefits = BENEFITS,
   showActions = true,
@@ -39,6 +38,7 @@ export default function SubscriptionCard({
   const handleUpgradePress = onUpgradePress || onPress;
   const planLabel = planName;
   const displayedPlanLabel = showBraces ? `{ ${planLabel} }` : planLabel;
+  const primaryActionText = showDetailsButton ? "Upgrade" : "Subscribe";
 
   return (
     <View style={[styles.card, !showBackground ? styles.cardPlain : null, cardStyle]}>
@@ -48,11 +48,6 @@ export default function SubscriptionCard({
           <IBMPlexText style={[styles.planLabel, planLabelStyle]}>
             {displayedPlanLabel}
           </IBMPlexText>
-          {timeRemainingText ? (
-            <View style={styles.timePill}>
-              <IBMPlexText style={styles.timePillText}>{timeRemainingText}</IBMPlexText>
-            </View>
-          ) : null}
         </View>
 
         <View style={styles.benefitsRow}>
@@ -86,7 +81,7 @@ export default function SubscriptionCard({
               ]}
             >
               <GoldGradient />
-              <IBMPlexText style={styles.actionButtonText}>Subscribe</IBMPlexText>
+              <IBMPlexText style={styles.actionButtonText}>{primaryActionText}</IBMPlexText>
             </TouchableOpacity>
 
             {showDetailsButton ? (
@@ -137,19 +132,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 26, fontWeight: "700",
     textAlign: "center",
-  },
-  timePill: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.34)",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  timePillText: {
-    color: "#9ca3af",
-    fontSize: 12,
-    lineHeight: 16, fontWeight: "700",
   },
   benefitsRow: {
     flexDirection: "row",

@@ -980,6 +980,7 @@ export default function ProgramOverviewView({
         exercises={activeSessionDay.exercises}
         initialPerformanceResults={selectedDayPerformanceResults}
         initialAssessmentResults={selectedDayAssessmentResults}
+        strengthAssessmentSummary={strengthAssessmentSummary}
         initialSessionProgress={getActiveSessionProgress?.(activeSessionKey)}
         onSessionProgressChange={(progress) =>
           onActiveSessionProgressChange?.(activeSessionKey, progress)

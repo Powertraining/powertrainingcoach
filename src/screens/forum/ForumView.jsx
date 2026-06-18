@@ -146,6 +146,7 @@ export default function ForumView({
   emptyText = "No forum posts found.",
   showPostButton = true,
   isPostButtonLocked = false,
+  postButtonEntranceKey = 0,
   searchQuery = "",
   filters = {},
   isSearchFiltersVisible = false,
@@ -166,6 +167,7 @@ export default function ForumView({
 }) {
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef(null);
+  const postButtonEntrance = useRef(new Animated.Value(0)).current;
   const isResetFiltersVisible = hasActiveFilters(filters);
   const shouldShowResetFiltersButton =
     isResetFiltersVisible && !isSearchFiltersVisible;
@@ -175,6 +177,32 @@ export default function ForumView({
     if (isSearchFiltersVisible) {
       onCloseSearchFilters?.();
     }
+  };
+
+  useEffect(() => {
+    if (!showPostButton) {
+      return;
+    }
+
+    postButtonEntrance.setValue(0);
+    Animated.timing(postButtonEntrance, {
+      toValue: 1,
+      duration: 360,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [postButtonEntrance, postButtonEntranceKey, showPostButton]);
+
+  const postButtonEntranceStyle = {
+    opacity: postButtonEntrance,
+    transform: [
+      {
+        translateY: postButtonEntrance.interpolate({
+          inputRange: [0, 1],
+          outputRange: [96, 0],
+        }),
+      },
+    ],
   };
 
   return (
@@ -242,7 +270,7 @@ export default function ForumView({
             onChangeSortBy={onChangeFilterSortBy}
             onReset={onResetFilters}
           />
-           
+
           <View
             style={styles.postsSection}
             onTouchStart={closeFiltersFromPosts}
@@ -282,25 +310,29 @@ export default function ForumView({
           </View>
         </ScrollView>
         {showPostButton ? (
-          <TouchableOpacity
-            style={[
-              styles.postButton,
-              isPostButtonLocked ? styles.postButtonLocked : null,
-            ]}
-            onPress={onPressPostButton}
+          <Animated.View
+            style={[styles.postButtonFrame, postButtonEntranceStyle]}
           >
-            <ForumIcon
-              color={isPostButtonLocked ? "rgba(17,17,17,0.45)" : "#111111"}
-              name="post"
-              size={28}
-              strokeWidth={2.4}
-            />
-            {isPostButtonLocked ? (
-              <View pointerEvents="none" style={styles.postButtonLockOverlay}>
-                <LockIcon size={22} />
-              </View>
-            ) : null}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.postButton,
+                isPostButtonLocked ? styles.postButtonLocked : null,
+              ]}
+              onPress={onPressPostButton}
+            >
+              <ForumIcon
+                color={isPostButtonLocked ? "rgba(17,17,17,0.45)" : "#111111"}
+                name="post"
+                size={28}
+                strokeWidth={2.4}
+              />
+              {isPostButtonLocked ? (
+                <View pointerEvents="none" style={styles.postButtonLockOverlay}>
+                  <LockIcon size={22} />
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          </Animated.View>
         ) : null}
       </View>
     </QuestionnaireShell>
@@ -522,15 +554,17 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     textTransform: "uppercase",
   },
-  postButton: {
+  postButtonFrame: {
     position: "absolute",
     right: 30,
     bottom: 100,
+    zIndex: 10,
+  },
+  postButton: {
     width: 54,
     height: 54,
     borderRadius: 120,
     backgroundColor: COLORS.gold,
-    zIndex: 10,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000000",

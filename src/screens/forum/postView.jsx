@@ -26,6 +26,9 @@ import PostMedia from "../../components/forumComponents/PostMedia.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+
+const COMMENT_ICON = require("../../assets/icons/conversation.png");
+
 const COLORS = {
   gold: "#C9B259",
   panel: "#141414",
@@ -294,6 +297,7 @@ export default function PostView({
               >
                 <ForumIcon
                   color={isPostSaved ? "#111111" : COLORS.text}
+                  filled={isPostSaved}
                   name="save"
                   size={18}
                 />
@@ -305,6 +309,7 @@ export default function PostView({
               >
                 <ForumIcon
                   color={isPostLiked ? "#111111" : COLORS.text}
+                  filled={isPostLiked}
                   name="like"
                   size={18}
                 />
@@ -313,7 +318,7 @@ export default function PostView({
                 </IBMPlexText>
               </AnimatedForumActionButton>
               <View style={styles.commentCount}>
-                <ForumIcon name="comment" size={18} />
+                <Image source={COMMENT_ICON} style={styles.commentIcon} />
                 <IBMPlexText style={styles.countText}>{post?.commentsCount}</IBMPlexText>
               </View>
               {post?.coachResponseStatus === "responded" ? (
@@ -982,6 +987,11 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 36,
     justifyContent: "center",
+  },
+  commentIcon: {
+    height: 18,
+    tintColor: COLORS.text,
+    width: 18,
   },
   standardButton: {
     backgroundColor: "rgba(255,255,255,0.12)",

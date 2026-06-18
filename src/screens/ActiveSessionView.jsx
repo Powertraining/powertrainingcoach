@@ -8,16 +8,15 @@ import {
   Animated,
   Dimensions,
   Easing,
-  Keyboard,
-  Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import PlanSetTabs from "../components/planComponents/PlanSetTabs.jsx";
+import ActiveSessionSetLoggingInputPanel from "../components/planComponents/ActiveSessionSetLoggingInputPanel.jsx";
+import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionSectionIntroView from "./ActiveSessionSectionIntroView.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
@@ -27,13 +26,14 @@ import {
   getTrainingPlanPhaseOverview,
   normalizeExercise,
 } from "../services/utils/trainingPlan.js";
-import { getStrengthAssessmentRequirements, resolveStrengthAssessmentReferenceOneRepMaxKg } from "../services/utils/strengthAssessment.js";
+import {
+  getStrengthAssessmentLiftKey,
+  getStrengthAssessmentReferenceOneRepMaxKg,
+  getStrengthAssessmentRequirements,
+  resolveStrengthAssessmentReferenceOneRepMaxKg,
+} from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-const NEXT_INPUT_KEYBOARD_GAP = 36;
-const INPUT_PANEL_ANIMATION_DURATION = 90;
-const INPUT_FOCUS_SHIFT_DELAY_MS = 30;
-const KEYBOARD_SHOW_SHIFT_DELAY_MS = 40;
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
 const SESSION_CONTENT_SLIDE_DURATION_MS = 120;
@@ -42,12 +42,6 @@ const SESSION_EXERCISE_ADVANCE_DELAY_MS =
 const RESULTS_FADE_IN_DURATION_MS = 120;
 const RESULTS_FADE_IN_TRANSLATE_Y = 10;
 const SESSION_HORIZONTAL_PADDING = 24;
-const HEADER_PROGRESS_RING_SIZE = 54;
-const HEADER_PROGRESS_RING_CENTER = HEADER_PROGRESS_RING_SIZE / 2;
-const HEADER_PROGRESS_RING_RADIUS = 22;
-const HEADER_PROGRESS_RING_STROKE = 5;
-const HEADER_PROGRESS_RING_CIRCUMFERENCE =
-  2 * Math.PI * HEADER_PROGRESS_RING_RADIUS;
 const EXERCISE_RESULT_RING_SIZE = 65;
 const EXERCISE_RESULT_RING_CENTER = EXERCISE_RESULT_RING_SIZE / 2;
 const EXERCISE_RESULT_RING_RADIUS = 26;
@@ -66,7 +60,6 @@ const EXERCISE_SECTION_LABELS = Object.freeze({
   core: "Core",
   accessory: "Accessory",
 });
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function getExerciseDisplayName(exercise = {}) {
   return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
@@ -185,13 +178,6 @@ function getDraftKey(exerciseIndex, setIndex = 0) {
 
 function getStepKey(exerciseIndex, setIndex = 0) {
   return `${exerciseIndex}:${setIndex}`;
-}
-
-function getHeaderProgressOffset(progressPercent = 0) {
-  return (
-    HEADER_PROGRESS_RING_CIRCUMFERENCE -
-    HEADER_PROGRESS_RING_CIRCUMFERENCE * (progressPercent / 100)
-  );
 }
 
 function ActiveSessionSlideIn({ children }) {
@@ -376,6 +362,13 @@ function getNotesIntensityDetails(exercise = {}) {
     ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").replace(/^@\s*/i, "").toUpperCase()));
 
   exerciseText
+    .match(/\b\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\s*reps?\s+(?:left\s+)?in\s+reserve\b/gi)
+    ?.forEach((match) => {
+      const rirValue = match.match(/\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?/i)?.[0];
+      addDetail(rirValue ? `RIR ${rirValue.replace(/\s+/g, "")}` : "");
+    });
+
+  exerciseText
     .match(/\bri\s*\d+(?:[.,]\d+)?(?:\s*[-\u2013]\s*\d+(?:[.,]\d+)?)?\s*%?\b/gi)
     ?.forEach((match) => addDetail(match.replace(/\s+/g, " ").toUpperCase()));
 
@@ -524,6 +517,52 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
       getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
     details: notesDetails,
   };
+}
+
+function getRecommendedLoadKg(
+  exercise = {},
+  setIndex = 0,
+  strengthReferenceOneRepMaxByLift = {}
+) {
+  const percentagePrescription = getExercisePercentagePrescription(exercise);
+  const workingSets = Array.isArray(percentagePrescription?.workingSets)
+    ? percentagePrescription.workingSets.flatMap((workingSet) =>
+        Array.from(
+          { length: Math.max(1, Number.parseInt(workingSet?.count, 10) || 1) },
+          () => workingSet
+        )
+      )
+    : [];
+  const prescribedSet = workingSets[setIndex] || getPrimaryPercentageWorkingSet(percentagePrescription);
+
+  if (prescribedSet?.percent1RM) {
+    const referenceLiftDetails = resolveStrengthAssessmentReferenceOneRepMaxKg(
+      percentagePrescription.referenceLiftName || exercise.name || "",
+      strengthReferenceOneRepMaxByLift
+    );
+    const personalizedLoad = referenceLiftDetails.oneRepMaxKg
+      ? calculateTargetLoadFromPercentOneRepMax(
+          referenceLiftDetails.oneRepMaxKg,
+          prescribedSet.percent1RM
+        )
+      : null;
+
+    if (personalizedLoad) {
+      return personalizedLoad;
+    }
+  }
+
+  const recommendation = getExerciseRecommendationDisplay(
+    exercise,
+    strengthReferenceOneRepMaxByLift
+  );
+  const explicitKgMatch = String(recommendation.primary || "").match(
+    /\b(\d+(?:[.,]\d+)?)\s*kg\b/i
+  );
+
+  return explicitKgMatch
+    ? Number.parseFloat(explicitKgMatch[1].replace(",", "."))
+    : null;
 }
 
 function getExerciseLoggingFieldSource(exercise = {}) {
@@ -736,29 +775,10 @@ function getSavedTrackingDrafts(value, fallbackDrafts) {
 function ActiveSessionHeader({
   title = "",
   progressText = "",
-  progressPercent = 0,
-  previousProgressPercent = progressPercent,
-  showProgressRing = false,
+  showHelp = false,
+  onHelp,
   onBack,
 }) {
-  const animatedProgressOffset = useRef(
-    new Animated.Value(getHeaderProgressOffset(previousProgressPercent))
-  ).current;
-
-  useEffect(() => {
-    animatedProgressOffset.setValue(getHeaderProgressOffset(previousProgressPercent));
-    const animation = Animated.timing(animatedProgressOffset, {
-      toValue: getHeaderProgressOffset(progressPercent),
-      duration: HEADER_PROGRESS_ANIMATION_DURATION_MS,
-      easing: Easing.inOut(Easing.cubic),
-      useNativeDriver: false,
-    });
-
-    animation.start();
-
-    return () => animation.stop();
-  }, [animatedProgressOffset, previousProgressPercent, progressPercent]);
-
   return (
     <View style={styles.header}>
       <TouchableOpacity
@@ -776,40 +796,16 @@ function ActiveSessionHeader({
           </IBMPlexText>
         ) : null}
       </View>
-      {showProgressRing ? (
-        <View style={styles.headerProgressRing}>
-          <Svg
-            width={HEADER_PROGRESS_RING_SIZE}
-            height={HEADER_PROGRESS_RING_SIZE}
-            viewBox={`0 0 ${HEADER_PROGRESS_RING_SIZE} ${HEADER_PROGRESS_RING_SIZE}`}
-          >
-            <Circle
-              cx={HEADER_PROGRESS_RING_CENTER}
-              cy={HEADER_PROGRESS_RING_CENTER}
-              r={HEADER_PROGRESS_RING_RADIUS}
-              fill="none"
-              stroke="#5f5f5f"
-              strokeWidth={HEADER_PROGRESS_RING_STROKE}
-            />
-            <AnimatedCircle
-              cx={HEADER_PROGRESS_RING_CENTER}
-              cy={HEADER_PROGRESS_RING_CENTER}
-              r={HEADER_PROGRESS_RING_RADIUS}
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth={HEADER_PROGRESS_RING_STROKE}
-              strokeLinecap="round"
-              strokeDasharray={`${HEADER_PROGRESS_RING_CIRCUMFERENCE} ${HEADER_PROGRESS_RING_CIRCUMFERENCE}`}
-              strokeDashoffset={animatedProgressOffset}
-              rotation="-90"
-              originX={HEADER_PROGRESS_RING_CENTER}
-              originY={HEADER_PROGRESS_RING_CENTER}
-            />
-          </Svg>
-          <View style={styles.headerProgressRingContent}>
-            <IBMPlexText style={styles.headerProgressRingText}>{progressText}</IBMPlexText>
-          </View>
-        </View>
+      {showHelp ? (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Show exercise guidance"
+          activeOpacity={0.7}
+          style={styles.headerHelpButton}
+          onPress={onHelp}
+        >
+          <IBMPlexText style={styles.headerHelpIcon}>?</IBMPlexText>
+        </TouchableOpacity>
       ) : progressText ? (
         <View style={styles.progressRow}>
           <IBMPlexText style={styles.progressText}>{progressText}</IBMPlexText>
@@ -1180,15 +1176,8 @@ function ExerciseSessionStep({
   onNext,
   onSkip,
   onDraftChange,
+  strengthReferenceOneRepMaxByLift,
 }) {
-  const focusedScrollTargetKeyRef = useRef(null);
-  const inputFieldLayoutsRef = useRef({});
-  const inputPanelLayoutRef = useRef(null);
-  const inputPanelAnchorRef = useRef(null);
-  const inputPanelExpansion = useRef(new Animated.Value(0)).current;
-  const inputPanelTranslateY = useRef(new Animated.Value(0)).current;
-  const inputRowYRef = useRef(0);
-  const keyboardTopRef = useRef(null);
   const {
     performanceTarget,
     strengthAssessment,
@@ -1208,182 +1197,42 @@ function ExerciseSessionStep({
     customValues: {},
   };
   const exercisePrescription = getExercisePrescriptionDisplay(exercise);
-  const recommendation = getExerciseRecommendationDisplay(exercise);
-  const exerciseWeight = recommendation.primary || (inputDraft.loadKg ? `${inputDraft.loadKg}kg` : "");
-  const hasRecommendationDetails = Boolean(recommendation.details);
-  const inputKeys = [
-    showLoad ? "loadKg" : null,
-    showReps ? "reps" : null,
-    showRpe ? "rpe" : null,
-    ...customFields.map((field) => field.id),
-  ].filter(Boolean);
-
-  function getInputKeyBelow(inputKey) {
-    const inputIndex = inputKeys.indexOf(inputKey);
-    return inputKeys[inputIndex + 1] || inputKey;
-  }
-
-  function getKeyboardTop(keyboardCoordinates) {
-    return (
-      keyboardCoordinates?.screenY ??
-      (keyboardCoordinates?.height
-        ? Dimensions.get("window").height - keyboardCoordinates.height
-        : null)
-    );
-  }
-
-  function handleInputFocus(inputKey) {
-    focusedScrollTargetKeyRef.current = getInputKeyBelow(inputKey);
-    animateInputPanelExpansion(1);
-
-    setTimeout(updateInputPanelShift, INPUT_FOCUS_SHIFT_DELAY_MS);
-  }
-
-  function handleInputFieldLayout(inputKey, event) {
-    inputFieldLayoutsRef.current[inputKey] = event.nativeEvent.layout;
-  }
-
-  function handleInputPanelLayout(event) {
-    inputPanelLayoutRef.current = event.nativeEvent.layout;
-  }
-
-  function animateInputPanelShift(nextShift) {
-    Animated.timing(inputPanelTranslateY, {
-      duration: INPUT_PANEL_ANIMATION_DURATION,
-      toValue: -nextShift,
-      useNativeDriver: false,
-    }).start();
-  }
-
-  function animateInputPanelExpansion(nextValue) {
-    Animated.timing(inputPanelExpansion, {
-      duration: INPUT_PANEL_ANIMATION_DURATION,
-      toValue: nextValue,
-      useNativeDriver: false,
-    }).start();
-  }
-
-  function resetInputPanel() {
-    TextInput.State?.currentlyFocusedInput?.()?.blur?.();
-    keyboardTopRef.current = null;
-    focusedScrollTargetKeyRef.current = null;
-    animateInputPanelExpansion(0);
-    animateInputPanelShift(0);
-  }
-
-  function handleInputBlur() {
-    setTimeout(() => {
-      if (!TextInput.State?.currentlyFocusedInput?.()) {
-        resetInputPanel();
-      }
-    }, 0);
-  }
-
-  function updateInputPanelShift() {
-    const keyboardTop = keyboardTopRef.current;
-    const targetKey = focusedScrollTargetKeyRef.current;
-    const targetLayout = targetKey ? inputFieldLayoutsRef.current[targetKey] : null;
-    const inputPanelLayout = inputPanelLayoutRef.current;
-    const inputPanelAnchor = inputPanelAnchorRef.current;
-
-    if (
-      keyboardTop == null ||
-      !targetLayout ||
-      !inputPanelLayout ||
-      !inputPanelAnchor?.measureInWindow
-    ) {
-      return;
-    }
-
-    inputPanelAnchor.measureInWindow((x, y) => {
-      const inputPanelBottom = y + inputPanelLayout.height;
-      const targetBottomInPanel =
-        inputRowYRef.current + targetLayout.y + targetLayout.height;
-      const distanceFromPanelBottomToTargetBottom =
-        inputPanelLayout.height - targetBottomInPanel;
-      const nextShift = Math.max(
-        inputPanelBottom +
-          NEXT_INPUT_KEYBOARD_GAP -
-          keyboardTop -
-          distanceFromPanelBottomToTargetBottom,
-        0
-      );
-
-      animateInputPanelShift(nextShift);
-    });
-  }
-
-  useEffect(() => {
-    const keyboardShowEvent =
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const showSubscription = Keyboard.addListener(keyboardShowEvent, (event) => {
-      keyboardTopRef.current = getKeyboardTop(event.endCoordinates);
-      setTimeout(updateInputPanelShift, KEYBOARD_SHOW_SHIFT_DELAY_MS);
-    });
-    const hideSubscriptions = [
-      Keyboard.addListener("keyboardDidHide", resetInputPanel),
-    ];
-
-    if (Platform.OS === "ios") {
-      hideSubscriptions.push(Keyboard.addListener("keyboardWillHide", resetInputPanel));
-    }
-
-    return () => {
-      showSubscription.remove();
-      hideSubscriptions.forEach((subscription) => subscription.remove());
-    };
-  }, []);
-
-  const inputPanelAnimatedStyle = {
-    borderBottomLeftRadius: inputPanelExpansion.interpolate({
-      inputRange: [0, 1],
-      outputRange: [15, 0],
-    }),
-    borderBottomRightRadius: inputPanelExpansion.interpolate({
-      inputRange: [0, 1],
-      outputRange: [15, 0],
-    }),
-    marginHorizontal: inputPanelExpansion.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, -SESSION_HORIZONTAL_PADDING],
-    }),
-    paddingHorizontal: inputPanelExpansion.interpolate({
-      inputRange: [0, 1],
-      outputRange: [14, SESSION_HORIZONTAL_PADDING + 14],
-    }),
-  };
-
+  const exerciseRecommendation = getExerciseRecommendationDisplay(
+    exercise,
+    strengthReferenceOneRepMaxByLift
+  );
+  const recommendedLoadKg = getRecommendedLoadKg(
+    exercise,
+    setIndex,
+    strengthReferenceOneRepMaxByLift
+  );
+  const performanceTargetRpe = performanceTarget?.targetRpe
+    ? `RPE ${performanceTarget.targetRpe}`
+    : "";
+  const endurancePrescription = exercise?.endurancePrescription || {};
+  const exerciseRecommendationMetrics = Array.from(
+    new Set(
+      [
+        exercisePrescription,
+        exerciseRecommendation.primary,
+        ...String(exerciseRecommendation.details || "").split(/\s*\*\s*/),
+        performanceTargetRpe,
+        endurancePrescription.work,
+        endurancePrescription.intensity,
+        endurancePrescription.durationMinutes
+          ? `${endurancePrescription.durationMinutes} min total`
+          : "",
+        endurancePrescription.rounds
+          ? `${endurancePrescription.rounds} rounds`
+          : "",
+        endurancePrescription.rest
+          ? `Rest ${endurancePrescription.rest}`
+          : "",
+      ].filter(Boolean)
+    )
+  );
   return (
     <View style={styles.exerciseCard}>
-      <View style={styles.exerciseSummaryRow}>
-        <View
-          style={[
-            styles.exerciseInfoCard,
-            !hasRecommendationDetails && styles.exerciseInfoCardCentered,
-          ]}
-        >
-          <View style={styles.exerciseInfoMainText}>
-            {exercisePrescription ? (
-              <IBMPlexText style={styles.exercisePrescription}>{exercisePrescription}</IBMPlexText>
-            ) : null}
-            {exerciseWeight ? (
-              <IBMPlexText style={styles.exerciseWeight}>{exerciseWeight}</IBMPlexText>
-            ) : null}
-          </View>
-          {hasRecommendationDetails ? (
-            <View style={styles.exerciseMetaRow}>
-              <IBMPlexText style={styles.exerciseIntensityDetails}>{recommendation.details}</IBMPlexText>
-            </View>
-          ) : null}
-        </View>
-
-        {exercise.notes ? (
-          <IBMPlexText style={styles.exerciseNotes}>
-            {exercise.notes}
-          </IBMPlexText>
-        ) : null}
-      </View>
-
       <View style={styles.setTabsBlock}>
         <PlanSetTabs
           prescribedSets={prescribedSets}
@@ -1393,111 +1242,36 @@ function ExerciseSessionStep({
         />
       </View>
 
-      {showInputs || customFields.length > 0 ? (
-        <View
-          ref={inputPanelAnchorRef}
-          collapsable={false}
-          style={styles.inputPanelAnchor}
-        >
-          <Animated.View
-            style={[
-              styles.inputPanel,
-              inputPanelAnimatedStyle,
-              { transform: [{ translateY: inputPanelTranslateY }] },
-            ]}
-            onLayout={handleInputPanelLayout}
-          >
-            <View
-              style={styles.inputRow}
-              onLayout={(event) => {
-                inputRowYRef.current = event.nativeEvent.layout.y;
-              }}
-            >
-              {showLoad ? (
-                <View
-                  style={styles.inputField}
-                  onLayout={(event) => handleInputFieldLayout("loadKg", event)}
-                >
-                  <IBMPlexText style={styles.inputLabel}>
-                    {strengthRequirements?.loadLabel || "Load used (kg)"}
-                  </IBMPlexText>
-                  <TextInput
-                    value={inputDraft.loadKg}
-                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "loadKg", value)}
-                    onBlur={handleInputBlur}
-                    onFocus={() => handleInputFocus("loadKg")}
-                    keyboardType="decimal-pad"
-                    placeholder="e.g. 150"
-                    placeholderTextColor="#A1A1AA"
-                    style={styles.input}
-                  />
-                </View>
-              ) : null}
-
-              {showReps ? (
-                <View
-                  style={styles.inputField}
-                  onLayout={(event) => handleInputFieldLayout("reps", event)}
-                >
-                  <IBMPlexText style={styles.inputLabel}>
-                    {strengthRequirements?.repsLabel || "Reps completed"}
-                  </IBMPlexText>
-                  <TextInput
-                    value={inputDraft.reps}
-                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "reps", value)}
-                    onBlur={handleInputBlur}
-                    onFocus={() => handleInputFocus("reps")}
-                    keyboardType="number-pad"
-                    placeholder={strengthRequirements?.repsPlaceholder || (strengthAssessment ? "2-5" : "e.g. 8")}
-                    placeholderTextColor="#A1A1AA"
-                    style={styles.input}
-                  />
-                </View>
-              ) : null}
-
-              {showRpe ? (
-                <View
-                  style={styles.inputField}
-                  onLayout={(event) => handleInputFieldLayout("rpe", event)}
-                >
-                  <IBMPlexText style={styles.inputLabel}>
-                    {strengthRequirements?.rpeLabel || "RPE"}
-                  </IBMPlexText>
-                  <TextInput
-                    value={inputDraft.rpe}
-                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, "rpe", value)}
-                    onBlur={handleInputBlur}
-                    onFocus={() => handleInputFocus("rpe")}
-                    keyboardType="decimal-pad"
-                    placeholder={strengthRequirements?.rpePlaceholder || "8-9"}
-                    placeholderTextColor="#A1A1AA"
-                    style={styles.input}
-                  />
-                </View>
-              ) : null}
-
-              {customFields.map((field) => (
-                <View
-                  key={field.id}
-                  style={styles.inputField}
-                  onLayout={(event) => handleInputFieldLayout(field.id, event)}
-                >
-                  <IBMPlexText style={styles.inputLabel}>{field.label}</IBMPlexText>
-                  <TextInput
-                    value={inputDraft.customValues?.[field.id] || ""}
-                    onChangeText={(value) => onDraftChange(exerciseIndex, setIndex, field.id, value, true)}
-                    onBlur={handleInputBlur}
-                    onFocus={() => handleInputFocus(field.id)}
-                    keyboardType={field.keyboardType}
-                    placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                    placeholderTextColor="#A1A1AA"
-                    style={styles.input}
-                  />
-                </View>
-              ))}
-            </View>
-          </Animated.View>
+      {exerciseRecommendationMetrics.length > 0 ? (
+        <View style={styles.exerciseMetricsRow}>
+          {exerciseRecommendationMetrics.map((metric) => (
+            <IBMPlexText key={metric} style={styles.exerciseMetricLabel}>
+              {metric}
+            </IBMPlexText>
+          ))}
         </View>
+      ) : null}
+
+      {showRpe ? (
+        <IBMPlexText style={styles.workingSetsNote}>
+          Do not include warm-up sets.
+        </IBMPlexText>
+      ) : null}
+
+      {showInputs || customFields.length > 0 ? (
+        <ActiveSessionSetLoggingInputPanel
+          exerciseIndex={exerciseIndex}
+          setIndex={setIndex}
+          draft={inputDraft}
+          showLoad={showLoad}
+          showReps={showReps}
+          showRpe={showRpe}
+          strengthAssessment={strengthAssessment}
+          strengthRequirements={strengthRequirements}
+          customFields={customFields}
+          recommendedLoadKg={recommendedLoadKg}
+          onDraftChange={onDraftChange}
+        />
       ) : null}
 
       <View style={styles.footerActions}>
@@ -1521,6 +1295,7 @@ export default function ActiveSessionView({
   exercises = [],
   initialPerformanceResults = [],
   initialAssessmentResults = [],
+  strengthAssessmentSummary,
   initialSessionProgress = null,
   onSessionProgressChange,
   onBack,
@@ -1532,6 +1307,23 @@ export default function ActiveSessionView({
         ? exercises.map((exercise) => normalizeExercise(exercise))
         : [],
     [exercises]
+  );
+  const strengthReferenceOneRepMaxByLift = useMemo(
+    () =>
+      (Array.isArray(strengthAssessmentSummary?.latestByLift)
+        ? strengthAssessmentSummary.latestByLift
+        : []
+      ).reduce((accumulator, entry) => {
+        const liftKey = getStrengthAssessmentLiftKey(entry?.liftName || "");
+        const referenceOneRepMaxKg = getStrengthAssessmentReferenceOneRepMaxKg(entry);
+
+        if (liftKey && referenceOneRepMaxKg) {
+          accumulator[liftKey] = referenceOneRepMaxKg;
+        }
+
+        return accumulator;
+      }, {}),
+    [strengthAssessmentSummary]
   );
   const phaseDetails = useMemo(
     () => getSessionPhaseDetails(plan, weekNumber),
@@ -1552,6 +1344,7 @@ export default function ActiveSessionView({
   const [sessionScreenMode, setSessionScreenMode] = useState(
     SESSION_SCREEN_MODES.SECTION_INTRO
   );
+  const [isDescriptionMenuVisible, setIsDescriptionMenuVisible] = useState(false);
   const advanceTimeoutRef = useRef(null);
   const [completedStepKeys, setCompletedStepKeys] = useState(() =>
     getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
@@ -1615,21 +1408,6 @@ export default function ActiveSessionView({
     traversedExerciseCount,
     safeTotalExerciseCount
   )} of ${safeTotalExerciseCount}`;
-  const sessionProgressPercent =
-    safeTotalExerciseCount > 0
-      ? Math.round((Math.min(traversedExerciseCount, safeTotalExerciseCount) / safeTotalExerciseCount) * 100)
-      : 0;
-  const previousSessionProgressPercent =
-    safeTotalExerciseCount > 0
-      ? Math.round(
-          (Math.min(
-            previousDisplayedCompletedExerciseCount,
-            safeTotalExerciseCount
-          ) /
-            safeTotalExerciseCount) *
-            100
-        )
-      : 0;
   const headerTitle = isSessionCompleteIntro
     ? "Session results"
     : showSectionIntro
@@ -1644,6 +1422,9 @@ export default function ActiveSessionView({
       : activeStep
         ? sessionProgressText
         : "";
+  const activeExerciseGuidance = activeExercise
+    ? activeExercise.notes || "No additional guidance for this exercise."
+    : "";
   const activeExerciseSetTabs = activeExercise
     ? Array.from({ length: activeStep.setCount }).map((_, setIndex) => ({
         setIndex,
@@ -1868,9 +1649,8 @@ export default function ActiveSessionView({
         <ActiveSessionHeader
           title={headerTitle}
           progressText={headerProgressText}
-          progressPercent={sessionProgressPercent}
-          previousProgressPercent={previousSessionProgressPercent}
-          showProgressRing={showExerciseStep}
+          showHelp={showExerciseStep}
+          onHelp={() => setIsDescriptionMenuVisible(true)}
           onBack={handleExitSession}
         />
 
@@ -1948,6 +1728,7 @@ export default function ActiveSessionView({
               onNext={handleCompleteCurrentSet}
               onSkip={handleSkipExercise}
               onDraftChange={updateTrackingDraft}
+              strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
             />
           ) : (
             <View style={styles.emptyState}>
@@ -1959,6 +1740,14 @@ export default function ActiveSessionView({
           )}
         </ActiveSessionSlideIn>
       </ScrollView>
+      <WhiteBottomMenu
+        visible={isDescriptionMenuVisible}
+        onDismiss={() => setIsDescriptionMenuVisible(false)}
+        title="Exercise guidance"
+        description={activeExerciseGuidance}
+        buttonText="Got it"
+        onButtonPress={() => setIsDescriptionMenuVisible(false)}
+      />
     </QuestionnaireShell>
   );
 }
@@ -2017,22 +1806,18 @@ const styles = StyleSheet.create({
     fontSize: 13, fontWeight: "700",
     textTransform: "uppercase",
   },
-  headerProgressRing: {
-    alignItems: "center",
+  headerHelpButton: {
+    width: 48,
+    height: 36,
     flexShrink: 0,
-    height: HEADER_PROGRESS_RING_SIZE,
-    justifyContent: "center",
-    width: HEADER_PROGRESS_RING_SIZE,
-  },
-  headerProgressRingContent: {
-    ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
   },
-  headerProgressRingText: {
+  headerHelpIcon: {
     color: "#fff",
-    fontSize: 9, fontWeight: "800",
-    lineHeight: 11,
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 22,
     textAlign: "center",
   },
   resultsBlock: {
@@ -2143,95 +1928,35 @@ const styles = StyleSheet.create({
   },
   exerciseCard: {
     flex: 1,
-    gap: 12,
+    gap: 16,
     paddingVertical: 16,
   },
-  exerciseSummaryRow: {
-    marginTop: 24,
-    flexDirection: "row",
-    alignItems: "stretch",
-    gap: 12,
-  },
-  exerciseInfoCard: {
-    width: 98,
-    height: 118,
-    paddingHorizontal: 14,
-    paddingVertical: 18,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "#1E1E1E",
-    backgroundColor: "#101010",
-    justifyContent: "space-between",
-  },
-  exerciseInfoCardCentered: {
-    justifyContent: "center",
-  },
-  exerciseInfoMainText: {
-    gap: 4,
-  },
-  exercisePrescription: {
-    color: "#C9B259",
-    fontSize: 14, fontWeight: "600",
-    lineHeight: 17,
-  },
-  exerciseWeight: {
-    color: "#fff",
-    fontSize: 16, fontWeight: "700",
-  },
-  exerciseIntensityDetails: {
-    color: "#fff",
-    fontSize: 9, fontWeight: "700",
-    lineHeight: 11,
-  },
-  exerciseMetaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    alignItems: "center",
-  },
-  exerciseNotes: {
-    flex: 1,
-    color: "#d1d5db",
-    fontSize: 13,
-    lineHeight: 18,
-    alignSelf: "center",
-  },
   setTabsBlock: {
-    marginTop: 30,
+    marginTop: 16,
   },
-  inputPanelAnchor: {
-    marginTop: 30,
-  },
-  inputPanel: {
-    gap: 10,
-    padding: 14,
-    borderRadius: 15,
-    backgroundColor: "#101010",
-  },
-  inputRow: {
+  exerciseMetricsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    columnGap: 20,
+    rowGap: 8,
+    paddingHorizontal: 8,
   },
-  inputField: {
-    flexBasis: "100%",
-    flexGrow: 1,
-    minWidth: 140,
-    gap: 5,
+  exerciseMetricLabel: {
+    color: "#C9B259",
+    fontSize: 17,
+    fontWeight: "600",
+    lineHeight: 21,
+    textAlign: "center",
   },
-  inputLabel: {
-    color: "#D4D4D8",
-    fontSize: 12, fontWeight: "700",
-  },
-  input: {
-    minHeight: 42,
-    borderRadius: 6,
-    backgroundColor: "#000",
-    borderWidth: 1,
-    borderColor: "#2A2A2A",
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: "#fff",
+  workingSetsNote: {
+    color: "#A1A1AA",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 17,
+    paddingHorizontal: 16,
+    textAlign: "center",
   },
   footerActions: {
     marginTop: "auto",

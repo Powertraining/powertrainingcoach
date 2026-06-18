@@ -48,7 +48,7 @@ const DESIRED_TRAINING_IMAGES = Object.freeze({
 
 const DESIRED_TRAINING_LABELS = Object.freeze({
   endurance: "Endurance",
-  strength_power: "Strength",
+  strength_power: "Power",
   strength_power_endurance: "Balance",
 });
 

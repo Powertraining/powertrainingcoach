@@ -1,4 +1,5 @@
 import {
+  Image,
   StyleSheet,
   View,
   TouchableOpacity,
@@ -11,6 +12,9 @@ import ForumIcon from "./ForumIcon.jsx";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import PostMedia from "./PostMedia.jsx";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
+
+const COMMENT_ICON = require("../../assets/icons/conversation.png");
+
 const COLORS = {
   gold: "#C9B259",
   panelBorder: "#1E1E1E",
@@ -85,6 +89,7 @@ export default function PostCard({
             >
               <ForumIcon
                 color={isPostSaved ? "#111111" : COLORS.text}
+                filled={isPostSaved}
                 name="save"
                 size={18}
               />
@@ -96,6 +101,7 @@ export default function PostCard({
             >
               <ForumIcon
                 color={isPostLiked ? "#111111" : COLORS.text}
+                filled={isPostLiked}
                 name="like"
                 size={18}
               />
@@ -104,7 +110,7 @@ export default function PostCard({
               </IBMPlexText>
             </AnimatedForumActionButton>
             <View style={styles.commentCount}>
-              <ForumIcon name="comment" size={18} />
+              <Image source={COMMENT_ICON} style={styles.commentIcon} />
               <IBMPlexText style={styles.countText}>{post?.commentsCount}</IBMPlexText>
             </View>
             {post?.coachResponseStatus === "responded" ? (
@@ -231,6 +237,11 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: "center",
     minWidth: 66,
+  },
+  commentIcon: {
+    height: 18,
+    tintColor: COLORS.text,
+    width: 18,
   },
   standardButton: {
     backgroundColor: "rgba(255,255,255,0.12)",

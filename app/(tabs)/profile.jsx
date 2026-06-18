@@ -102,8 +102,6 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     "No active subscription";
   const isSubscriptionActive = model.isSubscribed?.() || false;
   const subscriptionPlanName = model.getSubscriptionPlanName?.() || "No Plan";
-  const subscriptionTimeRemainingText =
-    model.getSubscriptionTimeRemainingText?.() || "No subscription";
 
   const canSave = useMemo(
     function canSaveACB() {
@@ -397,7 +395,6 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         userPhotoUrl={profilePhotoUrl}
         password={password}
         subscriptionPlanName={subscriptionPlanName}
-        subscriptionTimeRemainingText={subscriptionTimeRemainingText}
         subscriptionText={subscriptionText}
         isSubscriptionActive={isSubscriptionActive}
         hasProgram={Boolean(model.trainingPlan)}
