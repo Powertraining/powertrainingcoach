@@ -90,6 +90,12 @@ function ForumVideo({ uri, autoPlay = false }) {
   }, [isPlaying, isRestarting, rawCurrentTime]);
 
   useEffect(() => {
+    return () => {
+      player.pause();
+    };
+  }, [player]);
+
+  useEffect(() => {
     if (!isRestarting || !isPlaying) {
       return undefined;
     }
@@ -173,6 +179,7 @@ function ForumVideo({ uri, autoPlay = false }) {
         contentFit="cover"
         nativeControls={false}
         player={player}
+        surfaceType="textureView"
         style={styles.media}
       />
       {shouldShowPosterFrame ? (

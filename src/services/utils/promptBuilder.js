@@ -223,6 +223,7 @@ function buildPlanSchemaInstructions(userInput = {}) {
 - Add "substitutionOptions" only when there are useful comparable replacements. Omit it when no substitute is needed; the app will create the default option array.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
 - If "performanceTarget" is included, its "strategy" must be exactly one of "e1rm", "best_set", or "fixed_rpe".
+- If "performanceTarget.strategy" is "fixed_rpe", include a numeric "performanceTarget.targetRpe" and repeat that exact target as explicit RPE guidance in the exercise "notes". Never return "fixed_rpe" without a numeric target.
 ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, include "endurancePrescription" with:
   - "modality": one of "running", "sprinting", "circuit_training", "heavy_bag", "swimming", "assault_bike", "rowing_ergometer", "skiing_ergometer", "arm_crank_machine", "bicycling", "versaclimber", "sport_specific"
   - "format": "steady_aerobic", "continuous_aerobic", "aerobic_intervals", "tempo_threshold", "long_hiit", "repeated_sprint_training", "sprint_interval_training", "repeated_sprint", "recovery", "circuit", or "sport_specific_conditioning"

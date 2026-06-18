@@ -1,0 +1,616 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-09T20:39:12.887Z",
+  "caseId": "boxing__freq-1__training-endurance__exp-beginner__style-balanced__period-pre-season__equipment-full-gym__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "0b1005dfee687caf49abd4be3f6547ee82bd586df018e3cc0406b888e7edeb47",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "endurance",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "pre_season",
+    "equipment": "full_gym",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "75_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 has sessionLabel \"Assessment – Back Squat\" that does not start with \"Day N\".",
+      "Week 1 day 1 exercise 6 is missing \"sets\".",
+      "Week 1 day 1 exercise 6 is missing \"reps\".",
+      "Week 2 day 1 exercise 7 is missing \"sets\".",
+      "Week 2 day 1 exercise 7 is missing \"reps\".",
+      "Week 3 day 1 exercise 7 is missing \"sets\".",
+      "Week 3 day 1 exercise 7 is missing \"reps\".",
+      "Week 4 day 1 exercise 7 is missing \"sets\".",
+      "Week 4 day 1 exercise 7 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 7872,
+    "completion_tokens": 4148,
+    "total_tokens": 12020,
+    "prompt_tokens_details": {
+      "cached_tokens": 4864,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 1-4 block is an off-camp boxing plan with endurance as the main priority, supported by enough power and strength work to keep you athletic. Week 1 establishes a baseline back squat training max for future tracking, then Weeks 2-4 build repeatable aerobic and threshold fitness with brief explosive work and simple full-body strength. The parent 12-week cycle starts broad here, then progresses endurance quality and finally sharpens output without forcing a fight-camp speed peak.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build aerobic capacity and work capacity first while keeping simple power and strength work in place."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress threshold and repeat-effort conditioning while maintaining core full-body strength and power."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep endurance specific and efficient while expressing faster, sharper boxing-supportive power."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Assessment – Back Squat",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Jump fast and land quietly. Reset between reps and stop if height drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a box height that lets you land softly without tucking hard."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Start from a still quarter squat and drive straight up."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "1 top set",
+                "reps": "3-5",
+                "notes": "Use smooth warm-up sets, then build to one hard set with clean form. This sets your baseline for later loading.",
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Log the heaviest clean top set of 3-5 reps."
+                },
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Back Squat",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Stop before form breaks and log the load and reps."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if back squat setup is uncomfortable and you can keep a stable rack position."
+                  },
+                  {
+                    "name": "Goblet Squat",
+                    "notes": "Use only if barbell squatting is not practical today."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Chest-Supported Row",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Pull to the lower ribs and pause briefly at the top. Keep the chest glued to the pad.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use a neutral grip and keep the torso steady."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Brace hard and avoid twisting."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Use a smooth lower and strong press. Leave 2 reps in reserve on each set.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use a controlled touch and steady bar path."
+                  },
+                  {
+                    "name": "Push-Up",
+                    "notes": "Use a full range and keep the body rigid."
+                  }
+                ]
+              },
+              {
+                "name": "4. Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Ribs down, glutes tight, and only roll as far as you can control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Rollout",
+                    "notes": "Use small plates and keep the range controlled."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use a full trunk curl and avoid turning it into a hip hinge."
+                  }
+                ]
+              },
+              {
+                "name": "5. Assault Bike Aerobic Intervals",
+                "notes": "Smooth pace throughout. You should finish feeling worked but not wrecked.",
+                "endurancePrescription": {
+                  "modality": "assault_bike",
+                  "format": "aerobic_intervals",
+                  "durationMinutes": 18,
+                  "intensity": "Easy to moderate, nose-breathing or short-sentence pace",
+                  "work": "6 x 2 min",
+                  "rest": "1 min very easy spin",
+                  "rounds": 6,
+                  "target": "Build aerobic base and repeatable work capacity with low impact",
+                  "sessionType": "base conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 12,
+                  "totalRestMinutes": 6,
+                  "notes": "Keep cadence steady and avoid sprinting the first rounds."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Medicine Ball Rotational Scoop Throw",
+                "sets": "4",
+                "reps": "4+4",
+                "notes": "Throw each rep hard from the hips. Reset between reps and use a non-bouncing or low-bounce ball.",
+                "substitutionOptions": [
+                  {
+                    "name": "Medicine Ball Rotational Chest Pass",
+                    "notes": "Drive from the rear hip and finish tall."
+                  },
+                  {
+                    "name": "Cable Rotational Punch",
+                    "notes": "Use this if wall space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Jump with max intent and land softly. Full reset each rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Choose a safe height and step down."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Use smooth, repeatable sets with 1-2 reps left in reserve. Rest enough to keep technique clean.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track the heaviest clean set of 5 with solid depth."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if it feels more stable and easier to coach."
+                  },
+                  {
+                    "name": "Safety Bar Squat",
+                    "notes": "Use if available and more comfortable on the shoulders."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Push the hips back and keep the bar close. Stop before the low back rounds.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dumbbell Romanian Deadlift",
+                    "notes": "Use if platforms or barbells are busy."
+                  },
+                  {
+                    "name": "45-Degree Back Extension",
+                    "notes": "Hold a plate at the chest and keep the spine neutral."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Chest-Supported Row",
+                "sets": "3",
+                "reps": "10",
+                "notes": "Drive the elbows back and keep the neck relaxed. Leave 1-2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Pause at the body and avoid leaning back."
+                  },
+                  {
+                    "name": "T-Bar Row",
+                    "notes": "Use a chest-supported setup if possible."
+                  }
+                ]
+              },
+              {
+                "name": "4. Hanging Knee Raise",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Curl the pelvis up at the top and avoid swinging.",
+                "substitutionOptions": [
+                  {
+                    "name": "Strict Leg Raise",
+                    "notes": "Use only if you can control the swing."
+                  },
+                  {
+                    "name": "Captain's Chair Knee Raise",
+                    "notes": "Use if grip is the limiter."
+                  }
+                ]
+              },
+              {
+                "name": "5. Assault Bike Tempo Intervals",
+                "notes": "Ride at a steady hard-but-controlled pace. The last round should match the first.",
+                "endurancePrescription": {
+                  "modality": "assault_bike",
+                  "format": "tempo_threshold",
+                  "durationMinutes": 20,
+                  "intensity": "Moderate to moderately hard, sustainable effort",
+                  "work": "4 x 3 min",
+                  "rest": "2 min easy spin",
+                  "rounds": 4,
+                  "target": "Build sustainable fight-supportive conditioning without heavy leg impact",
+                  "sessionType": "tempo conditioning",
+                  "workRestRatio": "3:2",
+                  "totalWorkMinutes": 12,
+                  "totalRestMinutes": 8,
+                  "notes": "Stay smooth and controlled. Do not turn this into a sprint session."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Medicine Ball Chest Pass",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Throw fast from the chest with full intent. Use a low-bounce or non-bouncing ball and reset between reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Medicine Ball Punch Throw",
+                    "notes": "Alternate stance and keep the torso stiff."
+                  },
+                  {
+                    "name": "Plyo Push-Up",
+                    "notes": "Use only if landing is comfortable and crisp."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Box Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Explode up, land softly, and step down every rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "Countermovement Jump",
+                    "notes": "Use if box setup is crowded."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Add a small load only if last week moved cleanly. Keep 1-2 reps in reserve and keep depth consistent.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your strongest clean set of 5 at stable technique."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if it keeps your posture cleaner."
+                  },
+                  {
+                    "name": "Safety Bar Squat",
+                    "notes": "Use if shoulder comfort is better with this option."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Dumbbell Bench Press",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Press smoothly and stop with 1-2 good reps left.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Bench Press",
+                    "notes": "Use a controlled touch and steady press."
+                  },
+                  {
+                    "name": "Push-Up",
+                    "notes": "Elevate hands if needed to keep the reps clean."
+                  }
+                ]
+              },
+              {
+                "name": "3b. One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Brace hard and pull to the hip. No twisting or shrugging.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Row",
+                    "notes": "Use if you want less low-back demand."
+                  },
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use a neutral grip and pause briefly."
+                  }
+                ]
+              },
+              {
+                "name": "4. Farmer Carry",
+                "sets": "3",
+                "reps": "20-30 m",
+                "notes": "Walk tall, ribs down, and keep the steps controlled.",
+                "substitutionOptions": [
+                  {
+                    "name": "Trap Bar Carry",
+                    "notes": "Use if dumbbells are limited."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use one side at a time for extra anti-rotation demand."
+                  }
+                ]
+              },
+              {
+                "name": "5. Rowing Ergometer Aerobic Intervals",
+                "notes": "Keep each work block smooth and even. This should build fitness, not wreck your back or arms.",
+                "endurancePrescription": {
+                  "modality": "rowing_ergometer",
+                  "format": "aerobic_intervals",
+                  "durationMinutes": 21,
+                  "intensity": "Moderate, controlled pace",
+                  "work": "7 x 2 min",
+                  "rest": "1 min very easy row",
+                  "rounds": 7,
+                  "target": "Build aerobic power and repeatable effort with low impact",
+                  "sessionType": "base conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 14,
+                  "totalRestMinutes": 7,
+                  "notes": "Stay tall through the stroke and keep the pace even across all rounds."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "1a. Medicine Ball Rotational Scoop Throw",
+                "sets": "3",
+                "reps": "3+3",
+                "notes": "Keep every throw snappy. Use a non-bouncing or low-bounce ball and stop before speed drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Medicine Ball Rotational Chest Pass",
+                    "notes": "Use a lighter ball if speed slows."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Countermovement Jump",
+                "sets": "3",
+                "reps": "2",
+                "notes": "Fast takeoff, soft landing, full reset each rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use an easy height and stay crisp."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Deload week. Use the same movement pattern but with clearly less total work and smooth bar speed.",
+                "performanceTarget": {
+                  "strategy": "fixed_rpe",
+                  "prompt": "Keep all work sets smooth and repeatable this week."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if it feels cleaner and less fatiguing."
+                  },
+                  {
+                    "name": "Goblet Squat",
+                    "notes": "Use if you need a very low-stress squat option."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Romanian Deadlift",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Use a lighter load than last week and keep the hinge clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "Dumbbell Romanian Deadlift",
+                    "notes": "Use if you want an easier recovery option."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Smooth reps with a brief squeeze at the top. Leave 2 reps in reserve.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use a controlled pull and return."
+                  }
+                ]
+              },
+              {
+                "name": "4. Cable Crunch",
+                "sets": "2",
+                "reps": "10-12",
+                "notes": "Curl the ribs toward the pelvis and control the return.",
+                "substitutionOptions": [
+                  {
+                    "name": "Ab Wheel Rollout",
+                    "notes": "Use a shorter range if needed."
+                  },
+                  {
+                    "name": "Weighted Sit-Up",
+                    "notes": "Use a controlled trunk curl rather than swinging."
+                  }
+                ]
+              },
+              {
+                "name": "5. Assault Bike Recovery Aerobic Ride",
+                "notes": "Easy flush session. Finish fresher than you started.",
+                "endurancePrescription": {
+                  "modality": "assault_bike",
+                  "format": "recovery",
+                  "durationMinutes": 20,
+                  "intensity": "Easy conversational pace",
+                  "target": "Recover while maintaining aerobic work",
+                  "sessionType": "recovery conditioning",
+                  "notes": "Keep resistance low and breathing relaxed."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

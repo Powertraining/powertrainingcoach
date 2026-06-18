@@ -1,0 +1,1557 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-09T20:40:12.133Z",
+  "caseId": "boxing__freq-5__training-endurance__exp-beginner__style-clinching__period-off-season__equipment-bodyweight-only__focus-more-conditioning",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "1db5ba0d7fa7379138afb39ff280e879b323d63f6f454e26a6ca6100493ff295",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 5,
+    "daysPerWeek": 5,
+    "desiredTraining": "endurance",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "clinching",
+    "competitionPeriod": "off_season",
+    "equipment": "bodyweight_only",
+    "injuries": [],
+    "focusEmphasis": "more_conditioning",
+    "preferences": [
+      "more_conditioning"
+    ],
+    "sessionDuration": "60_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 has sessionLabel \"Assessment – Push-Up\" that does not start with \"Day N\".",
+      "Week 1 day 1 exercise 4 is missing \"sets\".",
+      "Week 1 day 1 exercise 4 is missing \"reps\".",
+      "Week 1 day 2 has sessionLabel \"Assessment – Split Squat\" that does not start with \"Day N\".",
+      "Week 1 day 2 exercise 4 is missing \"sets\".",
+      "Week 1 day 2 exercise 4 is missing \"reps\".",
+      "Week 1 day 3 has sessionLabel \"Assessment – Inverted Row\" that does not start with \"Day N\".",
+      "Week 1 day 3 exercise 4 is missing \"sets\".",
+      "Week 1 day 3 exercise 4 is missing \"reps\".",
+      "Week 1 day 4 has sessionLabel \"Assessment – Single-Leg Hip Thrust\" that does not start with \"Day N\".",
+      "Week 1 day 4 exercise 4 is missing \"sets\".",
+      "Week 1 day 4 exercise 4 is missing \"reps\".",
+      "Week 1 day 5 has sessionLabel \"Assessment – Chin-Up or Assisted Chin-Up\" that does not start with \"Day N\".",
+      "Week 1 day 5 exercise 4 is missing \"sets\".",
+      "Week 1 day 5 exercise 4 is missing \"reps\".",
+      "Week 2 day 1 exercise 6 is missing \"sets\".",
+      "Week 2 day 1 exercise 6 is missing \"reps\".",
+      "Week 2 day 2 exercise 6 is missing \"sets\".",
+      "Week 2 day 2 exercise 6 is missing \"reps\".",
+      "Week 2 day 3 exercise 1 is missing \"sets\".",
+      "Week 2 day 3 exercise 1 is missing \"reps\".",
+      "Week 2 day 4 exercise 4 is missing \"sets\".",
+      "Week 2 day 4 exercise 4 is missing \"reps\".",
+      "Week 2 day 5 exercise 6 is missing \"sets\".",
+      "Week 2 day 5 exercise 6 is missing \"reps\".",
+      "Week 3 day 1 exercise 6 is missing \"sets\".",
+      "Week 3 day 1 exercise 6 is missing \"reps\".",
+      "Week 3 day 2 exercise 6 is missing \"sets\".",
+      "Week 3 day 2 exercise 6 is missing \"reps\".",
+      "Week 3 day 3 exercise 1 is missing \"sets\".",
+      "Week 3 day 3 exercise 1 is missing \"reps\".",
+      "Week 3 day 4 exercise 4 is missing \"sets\".",
+      "Week 3 day 4 exercise 4 is missing \"reps\".",
+      "Week 3 day 5 exercise 6 is missing \"sets\".",
+      "Week 3 day 5 exercise 6 is missing \"reps\".",
+      "Week 4 day 1 exercise 6 is missing \"sets\".",
+      "Week 4 day 1 exercise 6 is missing \"reps\".",
+      "Week 4 day 2 exercise 6 is missing \"sets\".",
+      "Week 4 day 2 exercise 6 is missing \"reps\".",
+      "Week 4 day 3 exercise 1 is missing \"sets\".",
+      "Week 4 day 3 exercise 1 is missing \"reps\".",
+      "Week 4 day 4 exercise 4 is missing \"sets\".",
+      "Week 4 day 4 exercise 4 is missing \"reps\".",
+      "Week 4 day 5 exercise 6 is missing \"sets\".",
+      "Week 4 day 5 exercise 6 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 8469,
+    "completion_tokens": 11069,
+    "total_tokens": 19538,
+    "prompt_tokens_details": {
+      "cached_tokens": 5376,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 1-4 block is an off-camp boxing plan with an endurance-first bias using only bodyweight. Week 1 establishes simple baseline strength markers on the main bodyweight lifts so later blocks can progress from real numbers, and the main training work starts in Week 2. The block builds aerobic capacity, repeat-effort conditioning, trunk stiffness, and enough strength and power to support boxing without adding unnecessary fatigue.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build aerobic base, repeat-effort conditioning, basic bodyweight strength, and simple explosive qualities with clean technique."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress conditioning density and bodyweight strength while keeping power work crisp and recoverable."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Keep endurance strong while expressing faster, sharper boxing-specific speed and repeat-burst output."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Assessment – Push-Up",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Push-Up",
+                "sets": "1 top set",
+                "reps": "AMRAP",
+                "notes": "Warm up with a few easy sets, then perform one hard clean set stopping only when form breaks. Use the same full range each rep and log the total reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor push-ups are not yet clean for multiple reps. Keep the body straight and lower under control."
+                  }
+                ],
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Push-Up",
+                  "prompt": "Warm up progressively, then perform one hardest clean set. Log the reps and setup used so future progress has a real baseline."
+                }
+              },
+              {
+                "name": "1a. Snap Down to Stick",
+                "sets": "3",
+                "reps": "5",
+                "notes": "Drop fast, land quietly, and freeze the landing for one second.",
+                "substitutionOptions": [
+                  {
+                    "name": "Squat Jump to Stick",
+                    "notes": "Jump straight up, land softly, and hold the landing."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Front Plank",
+                "sets": "3",
+                "reps": "30-40 sec",
+                "notes": "Brace hard, ribs down, and keep the hips level."
+              },
+              {
+                "name": "Mountain Climber Intervals",
+                "notes": "Steady, repeatable work. Do not sprint the first rounds.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 16,
+                  "intensity": "Moderate and nasal-breathing friendly early, harder only in the final rounds",
+                  "work": "40 sec",
+                  "rest": "20 sec",
+                  "rounds": 8,
+                  "target": "Whole-body work capacity and aerobic support with low equipment demand",
+                  "sessionType": "general conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 10.7,
+                  "totalRestMinutes": 5.3,
+                  "notes": "Alternate mountain climbers and fast shadowboxing each round."
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole-body work capacity",
+                  "secondaryTargets": [
+                    "aerobic recovery between bursts",
+                    "trunk endurance"
+                  ],
+                  "stationCount": 2,
+                  "workSeconds": 40,
+                  "restSeconds": 20,
+                  "workRestRatio": "2:1",
+                  "rounds": 8,
+                  "targetAreaEmphasis": "Roughly 60% general conditioning and 40% trunk and shoulder endurance",
+                  "progression": "Next block can add rounds before making the intervals harder.",
+                  "analytics": "Track whether pace stays even across all rounds."
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "originalDayNumber": 2,
+            "sessionLabel": "Assessment – Split Squat",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Rear-Foot-Elevated Split Squat",
+                "sets": "1 top set each side",
+                "reps": "AMRAP each side",
+                "notes": "Warm up with a few easy sets, then perform one hard clean set per side using bodyweight only. Stop when depth or balance breaks down and log reps for both legs.",
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if rear-foot-elevated work is too unstable. Keep the torso tall and use the same depth each rep."
+                  }
+                ],
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Rear-Foot-Elevated Split Squat",
+                  "prompt": "Warm up progressively, then perform one hardest clean set per side. Log the reps for left and right so future progress has a baseline."
+                }
+              },
+              {
+                "name": "1a. Squat Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Jump fast, land softly, and stop if height drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Pogo Jumps",
+                    "notes": "Use quick low contacts and stay springy."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Side Plank",
+                "sets": "3",
+                "reps": "20-30 sec each side",
+                "notes": "Keep a straight line from head to heel and do not let the hips sag."
+              },
+              {
+                "name": "Brisk Walking or Easy Shadowboxing",
+                "notes": "Keep this easy and conversational. This is aerobic support, not a hard conditioning day.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 20,
+                  "intensity": "Easy conversational pace",
+                  "target": "Aerobic base and recovery support",
+                  "sessionType": "base aerobic",
+                  "notes": "Use shadowboxing if space is limited. Keep footwork smooth and shoulders relaxed."
+                }
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "originalDayNumber": 3,
+            "sessionLabel": "Assessment – Inverted Row",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Inverted Row",
+                "sets": "1 top set",
+                "reps": "AMRAP",
+                "notes": "Warm up with easier body angles first, then perform one hard clean set with the chest leading and full control at the bottom. Log the reps and the body angle used.",
+                "substitutionOptions": [
+                  {
+                    "name": "Towel Row Against Door Anchor",
+                    "notes": "Use a secure anchor and keep tension constant."
+                  },
+                  {
+                    "name": "Prone Back Widows",
+                    "notes": "Use this only if no safe row setup is available. Pause each rep on the floor."
+                  }
+                ],
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Inverted Row",
+                  "prompt": "Warm up progressively, then perform one hardest clean set. Log reps and setup so the baseline stays comparable later."
+                }
+              },
+              {
+                "name": "1a. Plyometric Push-Up from Knees",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Move fast off the floor and land with soft elbows.",
+                "substitutionOptions": [
+                  {
+                    "name": "Explosive Incline Push-Up",
+                    "notes": "Drive away from the support fast while keeping the trunk stiff."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Hollow Body Hold",
+                "sets": "3",
+                "reps": "20-30 sec",
+                "notes": "Low back stays flat. Shorten the lever if you lose position."
+              },
+              {
+                "name": "Shadowboxing Tempo Rounds",
+                "notes": "Keep the output steady and technical. Breathe through the work and stay loose.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "tempo_threshold",
+                  "durationMinutes": 18,
+                  "intensity": "Moderate steady pace",
+                  "work": "6 x 2 min",
+                  "rest": "1 min easy footwork",
+                  "rounds": 6,
+                  "target": "Boxing-specific aerobic conditioning and rhythm under light fatigue",
+                  "sessionType": "tempo skill conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 12,
+                  "totalRestMinutes": 6,
+                  "notes": "Use simple combinations and clean footwork rather than maximal effort."
+                }
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "originalDayNumber": 4,
+            "sessionLabel": "Assessment – Single-Leg Hip Thrust",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "fatigue",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Single-Leg Hip Thrust",
+                "sets": "1 top set each side",
+                "reps": "AMRAP each side",
+                "notes": "Warm up first, then perform one hard clean set per side. Lock out fully, pause briefly at the top, and log reps for both sides.",
+                "substitutionOptions": [
+                  {
+                    "name": "Glute Bridge March",
+                    "notes": "Use this if single-leg hip thrusts cramp or lose position. Keep the hips high throughout."
+                  }
+                ],
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Single-Leg Hip Thrust",
+                  "prompt": "Warm up progressively, then perform one hardest clean set per side. Log the reps so later blocks can progress from a baseline."
+                }
+              },
+              {
+                "name": "Pogo Jumps",
+                "sets": "3",
+                "reps": "12",
+                "notes": "Quick contacts, tall posture, and minimal knee bend."
+              },
+              {
+                "name": "Dead Bug",
+                "sets": "3",
+                "reps": "6+6",
+                "notes": "Exhale as the leg and arm extend. Keep the low back still."
+              },
+              {
+                "name": "Easy Shadowboxing Recovery Rounds",
+                "notes": "Stay smooth and relaxed. This should leave you feeling better, not tired.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "recovery",
+                  "durationMinutes": 15,
+                  "intensity": "Easy recovery pace",
+                  "work": "5 x 2 min",
+                  "rest": "1 min walk and shakeout",
+                  "rounds": 5,
+                  "target": "Recovery and aerobic restoration",
+                  "sessionType": "recovery conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 10,
+                  "totalRestMinutes": 5,
+                  "notes": "Use light movement, feints, and footwork only."
+                }
+              }
+            ]
+          },
+          {
+            "day": 5,
+            "originalDayNumber": 5,
+            "sessionLabel": "Assessment – Chin-Up or Assisted Chin-Up",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core",
+                "full_body"
+              ],
+              "qualities": [
+                "force",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Chin-Up",
+                "sets": "1 top set",
+                "reps": "AMRAP",
+                "notes": "Use strict reps only. Start from a dead hang, pull the chest toward the bar, and stop before kicking or straining.",
+                "substitutionOptions": [
+                  {
+                    "name": "Band-Assisted Chin-Up",
+                    "notes": "Use enough assistance to get clean reps through full range."
+                  },
+                  {
+                    "name": "Eccentric Chin-Up",
+                    "notes": "Jump or step to the top, then lower under control for 3-5 seconds each rep."
+                  }
+                ],
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Chin-Up",
+                  "prompt": "Warm up progressively, then perform one hardest clean set using the variation you can do with good form. Log the reps and variation used."
+                }
+              },
+              {
+                "name": "1a. Skater Step",
+                "sets": "3",
+                "reps": "5+5",
+                "notes": "Stay controlled and athletic. This is about rhythm and direction change, not maximal distance.",
+                "substitutionOptions": [
+                  {
+                    "name": "Lateral Line Hop",
+                    "notes": "Use quick, light contacts over a small line."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Reverse Crunch",
+                "sets": "3",
+                "reps": "10-12",
+                "notes": "Curl the pelvis up slowly and avoid swinging the legs."
+              },
+              {
+                "name": "Shadowboxing Repeat-Burst Rounds",
+                "notes": "Hit hard only during the burst windows. Between bursts, move lightly and stay technical.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 18,
+                  "intensity": "Hard bursts with easy movement between",
+                  "work": "6 x 2 min rounds with 10 sec fast burst every 30 sec",
+                  "rest": "1 min",
+                  "rounds": 6,
+                  "target": "Repeatable boxing bursts without excessive fatigue",
+                  "sessionType": "repeated-burst conditioning",
+                  "workRestRatio": "2:1 overall",
+                  "totalWorkMinutes": 12,
+                  "totalRestMinutes": 6,
+                  "notes": "Keep combinations simple during the fast windows so speed stays clean."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Plyometric Push-Up from Knees",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Each rep should be fast and sharp. Stop if speed drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Explosive Incline Push-Up",
+                    "notes": "Drive up hard while keeping the trunk stiff."
+                  }
+                ]
+              },
+              {
+                "name": "1b. Hollow Body Hold",
+                "sets": "4",
+                "reps": "20 sec",
+                "notes": "Keep the ribs down and low back flat."
+              },
+              {
+                "name": "2. Push-Up",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Leave 1-2 clean reps in reserve and keep the body straight.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set at the same setup and try to add reps over time."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Incline Push-Up",
+                    "notes": "Use this if floor reps are still too limited to stay clean."
+                  }
+                ]
+              },
+              {
+                "name": "3. Inverted Row",
+                "sets": "4",
+                "reps": "6-10",
+                "notes": "Pull the chest up first and control the bottom.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set with the same body angle before progressing harder."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Towel Row Against Door Anchor",
+                    "notes": "Use a secure anchor and keep the elbows driving back."
+                  }
+                ]
+              },
+              {
+                "name": "4. Reverse Crunch",
+                "sets": "3",
+                "reps": "12-15",
+                "notes": "Move slowly and curl the pelvis up each rep."
+              },
+              {
+                "name": "Shadowboxing Tempo Rounds",
+                "notes": "Work at a steady pace you can maintain without tightening up.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "tempo_threshold",
+                  "durationMinutes": 24,
+                  "intensity": "Moderate steady pace",
+                  "work": "8 x 2 min",
+                  "rest": "1 min easy footwork",
+                  "rounds": 8,
+                  "target": "Boxing-specific aerobic conditioning and sustainable output",
+                  "sessionType": "tempo skill conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 16,
+                  "totalRestMinutes": 8,
+                  "notes": "Use simple combinations, active feet, and relaxed shoulders."
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "originalDayNumber": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Jump high, land softly, and reset between reps."
+              },
+              {
+                "name": "1b. Side Plank",
+                "sets": "4",
+                "reps": "25 sec each side",
+                "notes": "Keep the hips high and body straight."
+              },
+              {
+                "name": "2. Rear-Foot-Elevated Split Squat",
+                "sets": "4",
+                "reps": "8+8",
+                "notes": "Smooth tempo and full control. Stop with 1-2 reps left.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set per side and improve reps before adding difficulty."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Split Squat",
+                    "notes": "Use this if balance limits good reps."
+                  }
+                ]
+              },
+              {
+                "name": "3. Single-Leg Hip Thrust",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Pause briefly at the top and keep the ribs down."
+              },
+              {
+                "name": "4. Front Plank Shoulder Tap",
+                "sets": "3",
+                "reps": "10+10",
+                "notes": "Move slowly and keep the hips from twisting."
+              },
+              {
+                "name": "Continuous Aerobic Shadowboxing",
+                "notes": "This is a base session. Keep it smooth enough to breathe through the nose most of the time.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 22,
+                  "intensity": "Easy to moderate conversational pace",
+                  "target": "Aerobic base and movement economy",
+                  "sessionType": "base aerobic",
+                  "notes": "Use light combinations, feints, and footwork without hard bursts."
+                }
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "originalDayNumber": 3,
+            "sessionLabel": "Day 3",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "fatigue",
+                "recovery"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Bodyweight Boxing Circuit",
+                "notes": "Keep quality even from start to finish. Do not race the early rounds.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 24,
+                  "intensity": "Moderate repeatable effort",
+                  "work": "40 sec",
+                  "rest": "20 sec",
+                  "rounds": 4,
+                  "target": "Whole-body work capacity with trunk and shoulder endurance",
+                  "sessionType": "general conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 16,
+                  "totalRestMinutes": 8,
+                  "notes": "Rotate through fast feet in place, mountain climbers, shadowboxing, and split squat iso hold."
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole-body work capacity",
+                  "secondaryTargets": [
+                    "local muscular endurance",
+                    "sport-specific fatigue resistance"
+                  ],
+                  "stationCount": 4,
+                  "workSeconds": 40,
+                  "restSeconds": 20,
+                  "workRestRatio": "2:1",
+                  "rounds": 4,
+                  "targetAreaEmphasis": "Roughly 60% work capacity and 40% trunk, legs, and shoulder endurance",
+                  "progression": "Add one round before making the stations harder.",
+                  "analytics": "Track whether you can keep the same pace on round 4 as round 1."
+                }
+              },
+              {
+                "name": "Dead Bug",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Exhale on each extension and keep the low back quiet."
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "3",
+                "reps": "20 sec",
+                "notes": "Small quiet steps and steady breathing.",
+                "substitutionOptions": [
+                  {
+                    "name": "High Plank Walkout",
+                    "notes": "Use controlled hand steps and keep the hips stable."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "originalDayNumber": 4,
+            "sessionLabel": "Day 4",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "recovery",
+                "fatigue"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Incline Push-Up",
+                "sets": "3",
+                "reps": "8-12",
+                "notes": "Easy clean reps only. This is practice and blood flow, not a grind."
+              },
+              {
+                "name": "Prone Back Widows",
+                "sets": "3",
+                "reps": "10-12",
+                "notes": "Drive the elbows into the floor and squeeze briefly each rep."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "20 sec each side",
+                "notes": "Keep the top hip stacked over the bottom hip."
+              },
+              {
+                "name": "Easy Shadowboxing Recovery Rounds",
+                "notes": "Stay loose and smooth. Finish fresher than you started.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "recovery",
+                  "durationMinutes": 18,
+                  "intensity": "Easy recovery pace",
+                  "work": "6 x 2 min",
+                  "rest": "1 min walk and shakeout",
+                  "rounds": 6,
+                  "target": "Recovery and technical rhythm",
+                  "sessionType": "recovery conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 12,
+                  "totalRestMinutes": 6,
+                  "notes": "Use light movement, defense, and footwork only."
+                }
+              }
+            ]
+          },
+          {
+            "day": 5,
+            "originalDayNumber": 5,
+            "sessionLabel": "Day 5",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "speed",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Pogo Jumps",
+                "sets": "4",
+                "reps": "15",
+                "notes": "Quick off the floor and stay tall."
+              },
+              {
+                "name": "1b. Snap Down to Stick",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Fast drop, quiet landing, and freeze the catch."
+              },
+              {
+                "name": "2. Chin-Up or Assisted Chin-Up",
+                "sets": "3",
+                "reps": "4-8",
+                "notes": "Clean reps only. Use assistance if needed so form stays strict.",
+                "substitutionOptions": [
+                  {
+                    "name": "Band-Assisted Chin-Up",
+                    "notes": "Use enough help to stay smooth through full range."
+                  },
+                  {
+                    "name": "Eccentric Chin-Up",
+                    "notes": "Lower for 3-5 seconds each rep."
+                  }
+                ]
+              },
+              {
+                "name": "3. Push-Up to Shoulder Tap",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Stay braced so the body does not sway on the taps."
+              },
+              {
+                "name": "4. V-Up",
+                "sets": "3",
+                "reps": "10-12",
+                "notes": "Reach long and control the lowering phase."
+              },
+              {
+                "name": "Shadowboxing Repeat-Burst Rounds",
+                "notes": "Short hard surges, then settle right back into relaxed movement.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 21,
+                  "intensity": "Moderate overall with brief hard bursts",
+                  "work": "7 x 2 min rounds with 10 sec fast burst every 30 sec",
+                  "rest": "1 min",
+                  "rounds": 7,
+                  "target": "Boxing-specific repeat-effort conditioning",
+                  "sessionType": "repeated-burst conditioning",
+                  "workRestRatio": "2:1 overall",
+                  "totalWorkMinutes": 14,
+                  "totalRestMinutes": 7,
+                  "notes": "Keep the burst combinations simple so hands stay fast."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Explosive Incline Push-Up",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Drive up hard every rep and keep the landing quiet."
+              },
+              {
+                "name": "1b. Hollow Body Hold",
+                "sets": "4",
+                "reps": "25 sec",
+                "notes": "Keep the low back flat and neck relaxed."
+              },
+              {
+                "name": "2. Push-Up",
+                "sets": "4",
+                "reps": "8-12",
+                "notes": "Stop with 1-2 good reps left and keep the range consistent.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set and aim to beat last week by a rep if form stays sharp."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Feet-Elevated Incline Push-Up",
+                    "notes": "Use this if standard push-ups are already easy for all sets."
+                  }
+                ]
+              },
+              {
+                "name": "3. Inverted Row",
+                "sets": "4",
+                "reps": "8-12",
+                "notes": "Pause briefly at the top and lower under control.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set and improve reps or body angle, but not both at once."
+                }
+              },
+              {
+                "name": "4. Reverse Crunch",
+                "sets": "3",
+                "reps": "15",
+                "notes": "Curl the hips up instead of swinging the legs."
+              },
+              {
+                "name": "Shadowboxing Tempo Rounds",
+                "notes": "Steady technical work. Keep the breathing under control throughout.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "tempo_threshold",
+                  "durationMinutes": 27,
+                  "intensity": "Moderate steady pace",
+                  "work": "9 x 2 min",
+                  "rest": "1 min easy footwork",
+                  "rounds": 9,
+                  "target": "Sustainable boxing-specific conditioning",
+                  "sessionType": "tempo skill conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 18,
+                  "totalRestMinutes": 9,
+                  "notes": "Stay smooth and technical rather than forcing power."
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "originalDayNumber": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Jump with intent and reset fully between reps."
+              },
+              {
+                "name": "1b. Side Plank",
+                "sets": "4",
+                "reps": "30 sec each side",
+                "notes": "Stay long through the body and keep the hips high."
+              },
+              {
+                "name": "2. Rear-Foot-Elevated Split Squat",
+                "sets": "4",
+                "reps": "10+10",
+                "notes": "Use smooth control and full depth that you can repeat cleanly.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Track your best clean set per side and improve rep quality before chasing more volume."
+                }
+              },
+              {
+                "name": "3. Single-Leg Hip Thrust",
+                "sets": "4",
+                "reps": "10+10",
+                "notes": "Pause at the top and do not arch through the low back."
+              },
+              {
+                "name": "4. Front Plank Shoulder Tap",
+                "sets": "3",
+                "reps": "12+12",
+                "notes": "Move slowly and keep the hips level."
+              },
+              {
+                "name": "Continuous Aerobic Shadowboxing",
+                "notes": "Build time on feet without drifting into a hard effort.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 25,
+                  "intensity": "Easy to moderate conversational pace",
+                  "target": "Aerobic base and movement economy",
+                  "sessionType": "base aerobic",
+                  "notes": "Light combinations, footwork, and defense only."
+                }
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "originalDayNumber": 3,
+            "sessionLabel": "Day 3",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "fatigue",
+                "recovery"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "Bodyweight Boxing Circuit",
+                "notes": "Stay even across rounds and keep each station simple and clean.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 30,
+                  "intensity": "Moderate repeatable effort",
+                  "work": "45 sec",
+                  "rest": "20 sec",
+                  "rounds": 4,
+                  "target": "Work capacity with trunk, shoulder, and leg endurance",
+                  "sessionType": "general conditioning",
+                  "workRestRatio": "9:4",
+                  "totalWorkMinutes": 18,
+                  "totalRestMinutes": 8,
+                  "notes": "Rotate through fast feet in place, mountain climbers, shadowboxing, and split squat iso hold with 1 minute between rounds."
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole-body work capacity",
+                  "secondaryTargets": [
+                    "sport-specific fatigue resistance",
+                    "local muscular endurance"
+                  ],
+                  "stationCount": 4,
+                  "workSeconds": 45,
+                  "restSeconds": 20,
+                  "workRestRatio": "9:4",
+                  "rounds": 4,
+                  "targetAreaEmphasis": "About 60% whole-body conditioning and 40% trunk, shoulders, and legs",
+                  "progression": "Increase work time slightly before adding exercise complexity.",
+                  "analytics": "Track whether pace and posture stay consistent across all rounds."
+                }
+              },
+              {
+                "name": "Dead Bug",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Exhale fully and keep the back flat."
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "3",
+                "reps": "25 sec",
+                "notes": "Steady pace, quiet steps, and stable trunk."
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "originalDayNumber": 4,
+            "sessionLabel": "Day 4",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "recovery",
+                "fatigue"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Incline Push-Up",
+                "sets": "3",
+                "reps": "10-15",
+                "notes": "Easy clean reps only. Keep this session restorative."
+              },
+              {
+                "name": "Prone Back Widows",
+                "sets": "3",
+                "reps": "12-15",
+                "notes": "Drive the elbows down and squeeze briefly."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "3",
+                "reps": "25 sec each side",
+                "notes": "Stay stacked and breathe behind the brace."
+              },
+              {
+                "name": "Easy Shadowboxing Recovery Rounds",
+                "notes": "Loose shoulders, smooth feet, and no hard bursts.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "recovery",
+                  "durationMinutes": 20,
+                  "intensity": "Easy recovery pace",
+                  "work": "5 x 3 min",
+                  "rest": "1 min walk and shakeout",
+                  "rounds": 5,
+                  "target": "Recovery and technical rhythm",
+                  "sessionType": "recovery conditioning",
+                  "workRestRatio": "3:1",
+                  "totalWorkMinutes": 15,
+                  "totalRestMinutes": 5,
+                  "notes": "Use footwork, head movement, and light combinations."
+                }
+              }
+            ]
+          },
+          {
+            "day": 5,
+            "originalDayNumber": 5,
+            "sessionLabel": "Day 5",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "speed",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Pogo Jumps",
+                "sets": "4",
+                "reps": "18",
+                "notes": "Stay tall and spring off the floor quickly."
+              },
+              {
+                "name": "1b. Skater Step",
+                "sets": "4",
+                "reps": "6+6",
+                "notes": "Stay controlled and athletic. Stick each side briefly."
+              },
+              {
+                "name": "2. Chin-Up or Assisted Chin-Up",
+                "sets": "3",
+                "reps": "5-8",
+                "notes": "Strict reps only. Use assistance if needed so every rep stays clean."
+              },
+              {
+                "name": "3. Push-Up to Shoulder Tap",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Brace hard so the taps do not twist the body."
+              },
+              {
+                "name": "4. V-Up",
+                "sets": "3",
+                "reps": "12-15",
+                "notes": "Reach long and control the lowering phase."
+              },
+              {
+                "name": "Shadowboxing Repeat-Burst Rounds",
+                "notes": "Fast hands during the surge windows, relaxed movement between them.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 24,
+                  "intensity": "Moderate overall with brief hard bursts",
+                  "work": "8 x 2 min rounds with 10 sec fast burst every 30 sec",
+                  "rest": "1 min",
+                  "rounds": 8,
+                  "target": "Repeatable boxing bursts and upper-body fatigue resistance",
+                  "sessionType": "repeated-burst conditioning",
+                  "workRestRatio": "2:1 overall",
+                  "totalWorkMinutes": 16,
+                  "totalRestMinutes": 8,
+                  "notes": "Keep burst combinations short so speed stays clean through all rounds."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "originalDayNumber": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Explosive Incline Push-Up",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Keep each rep fast and crisp. Stop before speed fades."
+              },
+              {
+                "name": "1b. Hollow Body Hold",
+                "sets": "3",
+                "reps": "20 sec",
+                "notes": "Brace hard and keep the low back flat."
+              },
+              {
+                "name": "2. Push-Up",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Use clean controlled reps and leave a little in the tank.",
+                "performanceTarget": {
+                  "strategy": "best_set",
+                  "prompt": "Use this lighter week to own your technique and log a clean best set without grinding."
+                }
+              },
+              {
+                "name": "3. Inverted Row",
+                "sets": "3",
+                "reps": "6-8",
+                "notes": "Smooth pull, brief pause, and controlled lowering."
+              },
+              {
+                "name": "4. Reverse Crunch",
+                "sets": "2",
+                "reps": "12",
+                "notes": "Curl the pelvis up and avoid swinging."
+              },
+              {
+                "name": "Shadowboxing Tempo Rounds",
+                "notes": "Deload the volume a bit but keep the rhythm and technique clean.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "tempo_threshold",
+                  "durationMinutes": 18,
+                  "intensity": "Moderate steady pace",
+                  "work": "6 x 2 min",
+                  "rest": "1 min easy footwork",
+                  "rounds": 6,
+                  "target": "Maintain boxing-specific aerobic conditioning with lower fatigue",
+                  "sessionType": "tempo skill conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 12,
+                  "totalRestMinutes": 6,
+                  "notes": "Stay smooth and technical."
+                }
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "originalDayNumber": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Squat Jump",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Fast intent, soft landing, and full reset."
+              },
+              {
+                "name": "1b. Side Plank",
+                "sets": "3",
+                "reps": "20 sec each side",
+                "notes": "Keep the body long and hips high."
+              },
+              {
+                "name": "2. Rear-Foot-Elevated Split Squat",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Clean controlled reps with no grinding."
+              },
+              {
+                "name": "3. Single-Leg Hip Thrust",
+                "sets": "3",
+                "reps": "8+8",
+                "notes": "Pause at the top and keep the ribs down."
+              },
+              {
+                "name": "4. Front Plank Shoulder Tap",
+                "sets": "2",
+                "reps": "10+10",
+                "notes": "Move slow enough to keep the hips quiet."
+              },
+              {
+                "name": "Continuous Aerobic Shadowboxing",
+                "notes": "Keep this one easy and refreshing.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 20,
+                  "intensity": "Easy conversational pace",
+                  "target": "Maintain aerobic base while freshening up",
+                  "sessionType": "base aerobic",
+                  "notes": "Relaxed movement, light combinations, and steady breathing."
+                }
+              }
+            ]
+          },
+          {
+            "day": 3,
+            "originalDayNumber": 3,
+            "sessionLabel": "Day 3",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "fatigue",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Bodyweight Boxing Circuit",
+                "notes": "This is a lighter week. Keep everything smooth and leave the session feeling good.",
+                "endurancePrescription": {
+                  "modality": "circuit_training",
+                  "format": "circuit",
+                  "durationMinutes": 20,
+                  "intensity": "Moderate and controlled",
+                  "work": "35 sec",
+                  "rest": "25 sec",
+                  "rounds": 3,
+                  "target": "Maintain work capacity with reduced fatigue",
+                  "sessionType": "general conditioning",
+                  "workRestRatio": "7:5",
+                  "totalWorkMinutes": 10.5,
+                  "totalRestMinutes": 7.5,
+                  "notes": "Rotate through fast feet in place, mountain climbers, shadowboxing, and split squat iso hold."
+                },
+                "circuitPrescription": {
+                  "primaryTarget": "whole-body work capacity",
+                  "secondaryTargets": [
+                    "local muscular endurance",
+                    "aerobic recovery between bursts"
+                  ],
+                  "stationCount": 4,
+                  "workSeconds": 35,
+                  "restSeconds": 25,
+                  "workRestRatio": "7:5",
+                  "rounds": 3,
+                  "targetAreaEmphasis": "About 60% general conditioning and 40% trunk, shoulders, and legs",
+                  "progression": "Use this week to recover. Next block can rebuild volume from a fresher base.",
+                  "analytics": "Track whether breathing settles quickly between stations."
+                }
+              },
+              {
+                "name": "Dead Bug",
+                "sets": "2",
+                "reps": "6+6",
+                "notes": "Exhale fully and stay flat through the trunk."
+              },
+              {
+                "name": "Bear Crawl",
+                "sets": "2",
+                "reps": "20 sec",
+                "notes": "Easy steady pace and quiet steps."
+              }
+            ]
+          },
+          {
+            "day": 4,
+            "originalDayNumber": 4,
+            "sessionLabel": "Day 4",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "Incline Push-Up",
+                "sets": "2",
+                "reps": "10-12",
+                "notes": "Easy clean reps only."
+              },
+              {
+                "name": "Prone Back Widows",
+                "sets": "2",
+                "reps": "10-12",
+                "notes": "Squeeze at the top and move smoothly."
+              },
+              {
+                "name": "Side Plank",
+                "sets": "2",
+                "reps": "20 sec each side",
+                "notes": "Stack the hips and breathe steadily."
+              },
+              {
+                "name": "Easy Shadowboxing Recovery Rounds",
+                "notes": "Very light and relaxed. This is just movement and rhythm.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "recovery",
+                  "durationMinutes": 15,
+                  "intensity": "Easy recovery pace",
+                  "work": "5 x 2 min",
+                  "rest": "1 min walk and shakeout",
+                  "rounds": 5,
+                  "target": "Recovery and looseness",
+                  "sessionType": "recovery conditioning",
+                  "workRestRatio": "2:1",
+                  "totalWorkMinutes": 10,
+                  "totalRestMinutes": 5,
+                  "notes": "Use footwork, defense, and relaxed hands only."
+                }
+              }
+            ]
+          },
+          {
+            "day": 5,
+            "originalDayNumber": 5,
+            "sessionLabel": "Day 5",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "speed",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Pogo Jumps",
+                "sets": "3",
+                "reps": "12",
+                "notes": "Stay quick and springy."
+              },
+              {
+                "name": "1b. Skater Step",
+                "sets": "3",
+                "reps": "5+5",
+                "notes": "Stay balanced and stick each side."
+              },
+              {
+                "name": "2. Chin-Up or Assisted Chin-Up",
+                "sets": "2-3",
+                "reps": "4-6",
+                "notes": "Strict reps only and stop before form breaks."
+              },
+              {
+                "name": "3. Push-Up to Shoulder Tap",
+                "sets": "2-3",
+                "reps": "6-8",
+                "notes": "Keep the trunk quiet and the taps controlled."
+              },
+              {
+                "name": "4. V-Up",
+                "sets": "2",
+                "reps": "10-12",
+                "notes": "Move cleanly and control the lowering phase."
+              },
+              {
+                "name": "Shadowboxing Repeat-Burst Rounds",
+                "notes": "Keep the quality of the bursts high, but keep total fatigue lower this week.",
+                "endurancePrescription": {
+                  "modality": "sport_specific",
+                  "format": "sport_specific_conditioning",
+                  "durationMinutes": 18,
+                  "intensity": "Moderate overall with brief hard bursts",
+                  "work": "6 x 2 min rounds with 10 sec fast burst every 30 sec",
+                  "rest": "1 min",
+                  "rounds": 6,
+                  "target": "Maintain repeat-burst conditioning with reduced fatigue",
+                  "sessionType": "repeated-burst conditioning",
+                  "workRestRatio": "2:1 overall",
+                  "totalWorkMinutes": 12,
+                  "totalRestMinutes": 6,
+                  "notes": "Keep the bursts crisp and the recovery movement relaxed."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

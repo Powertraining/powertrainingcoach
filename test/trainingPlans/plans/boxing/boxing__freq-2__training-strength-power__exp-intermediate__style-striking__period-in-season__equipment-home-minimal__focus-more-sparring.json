@@ -1,0 +1,1025 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-09T20:42:59.100Z",
+  "caseId": "boxing__freq-2__training-strength-power__exp-intermediate__style-striking__period-in-season__equipment-home-minimal__focus-more-sparring",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "eb2b07afc9f7787cfde843150fe0ccae59dc5372f7d56d1d28a32cf0d14b460e",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 2,
+    "daysPerWeek": 2,
+    "desiredTraining": "strength_power",
+    "experience": "intermediate",
+    "weightClass": "Lightweight",
+    "primaryStyle": "striking",
+    "competitionPeriod": "in_season",
+    "equipment": "home_minimal",
+    "injuries": [],
+    "focusEmphasis": "more_sparring",
+    "preferences": [
+      "more_sparring"
+    ],
+    "sessionDuration": "90_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 has sessionLabel \"Assessment – Back Squat\" that does not start with \"Day N\".",
+      "Week 1 day 2 has sessionLabel \"Assessment – Floor Press\" that does not start with \"Day N\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 5937,
+    "completion_tokens": 6773,
+    "total_tokens": 12710,
+    "prompt_tokens_details": {
+      "cached_tokens": 5632,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block is the first part of a 12-week off-camp boxing plan with two S&C sessions per week around a higher sparring load. Week 1 establishes training maxes on the two primary lifts so percentage work can start cleanly in Week 2. The block then builds lower-body and upper-body strength, keeps fast explosive work in every session, and trims accessory volume so you can recover well for boxing. Main program loading starts in Week 2, with Week 4 acting as a lighter deload to keep quality high before the next block.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Establish baseline strength, build general force and power, and keep speed work crisp without adding unnecessary fatigue."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the main lifts and power work while keeping lifting volume conservative around boxing practice."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Shift more of the work toward fast, sharp output while holding onto the strength built earlier."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Assessment – Back Squat",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Reset between reps. Jump as high and fast as possible with quiet landings.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a box height you can land on cleanly without tucking hard."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Pause briefly at the bottom and drive up fast."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "1",
+                "reps": "3-5",
+                "notes": "Use warm-up sets to build to one hard top set with clean depth and bracing. Stop if form breaks badly. This sets your baseline for future percentage work.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Back Squat",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can estimate your training max."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use this if your setup or mobility makes back squats awkward."
+                  },
+                  {
+                    "name": "Goblet Squat",
+                    "notes": "Use only if home loading is limited and you cannot squat safely with a bar."
+                  }
+                ]
+              },
+              {
+                "name": "3. Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Control the lowering, keep ribs down, and feel the hamstrings load.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Romanian Deadlift",
+                    "notes": "Use if a barbell setup is available."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use lighter loads and keep balance strict."
+                  }
+                ]
+              },
+              {
+                "name": "4. One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "8-10 each side",
+                "notes": "Brace on the bench or rack and pull toward the hip with no torso twist.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use if lower back fatigue is high."
+                  },
+                  {
+                    "name": "Barbell Row",
+                    "notes": "Use only if you can hold a stable hinge position."
+                  }
+                ]
+              },
+              {
+                "name": "5. Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "6-10",
+                "notes": "Keep glutes tight and do not let the low back sag.",
+                "substitutionOptions": [
+                  {
+                    "name": "Body Saw Plank",
+                    "notes": "Use if an ab wheel is not available."
+                  },
+                  {
+                    "name": "Stability Ball Rollout",
+                    "notes": "Use this easier option if needed."
+                  }
+                ]
+              },
+              {
+                "name": "6. Neck Flexion and Extension Isometric",
+                "sets": "2",
+                "reps": "20 seconds each direction",
+                "notes": "Use light hand resistance only. Keep the effort smooth and stop well before neck strain."
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Assessment – Floor Press",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Medicine Ball Chest Pass",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Use a low- to moderate-bounce ball if throwing at a wall. Every rep should be sharp and fast.",
+                "substitutionOptions": [
+                  {
+                    "name": "Explosive Push-Up",
+                    "notes": "Use if no medicine ball is available."
+                  },
+                  {
+                    "name": "Plyometric Push-Up to Elevated Surface",
+                    "notes": "Use this simpler option if floor plyo push-ups are too demanding."
+                  }
+                ]
+              },
+              {
+                "name": "2. Barbell Floor Press",
+                "sets": "1",
+                "reps": "3-5",
+                "notes": "Use warm-up sets to build to one hard top set with a brief pause on the floor and solid control. This sets your baseline for future percentage work.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Barbell Floor Press",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can estimate your training max."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Close-Grip Bench Press",
+                    "notes": "Use if you have a bench and prefer a similar pressing pattern."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use if barbell setup is limited."
+                  }
+                ]
+              },
+              {
+                "name": "3. Pull-Up",
+                "sets": "3",
+                "reps": "4-6",
+                "notes": "Leave 1-2 reps in reserve. Start each rep from a dead hang and stop before form breaks.",
+                "substitutionOptions": [
+                  {
+                    "name": "Band-Assisted Pull-Up",
+                    "notes": "Use if you cannot hit clean bodyweight reps in this range."
+                  },
+                  {
+                    "name": "Lat Pulldown",
+                    "notes": "Use if no pull-up bar is available."
+                  }
+                ]
+              },
+              {
+                "name": "4. Bulgarian Split Squat",
+                "sets": "3",
+                "reps": "6-8 each side",
+                "notes": "Stay tall through the torso and drive through the full foot.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use if the rear-foot-elevated position irritates the hips or knees."
+                  },
+                  {
+                    "name": "Front-Foot-Elevated Split Squat",
+                    "notes": "Use for a simpler setup at home."
+                  }
+                ]
+              },
+              {
+                "name": "5. Weighted Plank",
+                "sets": "3",
+                "reps": "30-40 seconds",
+                "notes": "Brace hard and keep a straight line from ribs to hips.",
+                "substitutionOptions": [
+                  {
+                    "name": "RKC Plank",
+                    "notes": "Use bodyweight only and create full-body tension."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if loading a plank is inconvenient."
+                  }
+                ]
+              },
+              {
+                "name": "6. Farmer Carry",
+                "sets": "2",
+                "reps": "20-30 meters",
+                "notes": "Walk tall with controlled steps. Keep grip work brief so it does not interfere with boxing.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use one side at a time if matching dumbbells are not available."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core",
+                "full_body"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Reset each rep and keep every jump explosive.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a safe box height and land softly."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use if ceiling height or landing space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "5",
+                "reps": "5",
+                "notes": "Brace hard, hit consistent depth, and keep bar speed steady across all work sets.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Back Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 5,
+                      "reps": 5,
+                      "percent1RM": 72,
+                      "relativeIntensity": 83
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best clean work set so the app can watch your squat trend across the block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if back squat setup is limited or uncomfortable."
+                  }
+                ]
+              },
+              {
+                "name": "3. Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Use a controlled lowering and finish tall without overextending.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Romanian Deadlift",
+                    "notes": "Use if a barbell setup is available."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use for a lighter but more balance-demanding option."
+                  }
+                ]
+              },
+              {
+                "name": "4. One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "8 each side",
+                "notes": "Pull with the back, not a shrug. Keep the torso quiet.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use if you want less lower-back demand."
+                  },
+                  {
+                    "name": "Barbell Row",
+                    "notes": "Use if you have the setup and can stay stable."
+                  }
+                ]
+              },
+              {
+                "name": "5. Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Reach long without losing your brace.",
+                "substitutionOptions": [
+                  {
+                    "name": "Body Saw Plank",
+                    "notes": "Use if an ab wheel is not available."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Medicine Ball Chest Pass",
+                "sets": "5",
+                "reps": "5",
+                "notes": "Use a low- to moderate-bounce ball if throwing at a wall. Fast hands every rep.",
+                "substitutionOptions": [
+                  {
+                    "name": "Explosive Push-Up",
+                    "notes": "Use if you do not have a medicine ball."
+                  },
+                  {
+                    "name": "Plyometric Push-Up to Elevated Surface",
+                    "notes": "Use this easier option if needed."
+                  }
+                ]
+              },
+              {
+                "name": "2. Barbell Floor Press",
+                "sets": "5",
+                "reps": "5",
+                "notes": "Pause lightly on the floor and drive up hard without bouncing the elbows.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Barbell Floor Press",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 5,
+                      "reps": 5,
+                      "percent1RM": 72,
+                      "relativeIntensity": 83
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best clean work set so the app can watch your press trend across the block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Close-Grip Bench Press",
+                    "notes": "Use if you have a bench and prefer that setup."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use if loading a barbell is awkward at home."
+                  }
+                ]
+              },
+              {
+                "name": "3. Pull-Up",
+                "sets": "3",
+                "reps": "5-6",
+                "notes": "Leave 1-2 reps in reserve. No kicking and no half reps.",
+                "substitutionOptions": [
+                  {
+                    "name": "Band-Assisted Pull-Up",
+                    "notes": "Use if bodyweight reps are not yet clean."
+                  },
+                  {
+                    "name": "Lat Pulldown",
+                    "notes": "Use if no pull-up bar is available."
+                  }
+                ]
+              },
+              {
+                "name": "4. Bulgarian Split Squat",
+                "sets": "3",
+                "reps": "6 each side",
+                "notes": "Stay balanced and drive up with intent.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use if this is easier to set up at home."
+                  },
+                  {
+                    "name": "Front-Foot-Elevated Split Squat",
+                    "notes": "Use for a stable, simple alternative."
+                  }
+                ]
+              },
+              {
+                "name": "5. Weighted Plank",
+                "sets": "3",
+                "reps": "35-45 seconds",
+                "notes": "Keep the ribs down and squeeze glutes hard.",
+                "substitutionOptions": [
+                  {
+                    "name": "RKC Plank",
+                    "notes": "Use bodyweight tension if loading is limited."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if a loaded plank setup is inconvenient."
+                  }
+                ]
+              },
+              {
+                "name": "6. Farmer Carry",
+                "sets": "2",
+                "reps": "20-30 meters",
+                "notes": "Heavy enough to challenge posture, not so heavy that your walk gets sloppy.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if you only have one heavy implement."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core",
+                "full_body"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "high"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "5",
+                "reps": "3",
+                "notes": "Jump with maximal intent and stop if height drops off.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Land softly and step down each rep."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use if space is tight."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Stay tight and make each set look the same from rep 1 to rep 4.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Back Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 5,
+                      "reps": 4,
+                      "percent1RM": 77,
+                      "relativeIntensity": 84
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best clean work set so the app can watch your squat trend across the block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if needed for comfort or equipment."
+                  }
+                ]
+              },
+              {
+                "name": "3. Dumbbell Romanian Deadlift",
+                "sets": "3",
+                "reps": "8",
+                "notes": "Keep the hinge smooth and keep tension on the hamstrings the whole set.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Romanian Deadlift",
+                    "notes": "Use if available."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use lighter loading and stay controlled."
+                  }
+                ]
+              },
+              {
+                "name": "4. One-Arm Dumbbell Row",
+                "sets": "3",
+                "reps": "8-10 each side",
+                "notes": "Full stretch at the bottom, then drive the elbow back cleanly.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use to reduce low-back involvement."
+                  },
+                  {
+                    "name": "Barbell Row",
+                    "notes": "Use if your setup allows it."
+                  }
+                ]
+              },
+              {
+                "name": "5. Ab Wheel Rollout",
+                "sets": "3",
+                "reps": "8-10",
+                "notes": "Move slowly out and stay braced on the return.",
+                "substitutionOptions": [
+                  {
+                    "name": "Body Saw Plank",
+                    "notes": "Use if no ab wheel is available."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Medicine Ball Chest Pass",
+                "sets": "5",
+                "reps": "6",
+                "notes": "Use a low- to moderate-bounce ball if throwing at a wall. Crisp release and quick reset.",
+                "substitutionOptions": [
+                  {
+                    "name": "Explosive Push-Up",
+                    "notes": "Use if no ball is available."
+                  },
+                  {
+                    "name": "Plyometric Push-Up to Elevated Surface",
+                    "notes": "Use if you need a lower-impact option."
+                  }
+                ]
+              },
+              {
+                "name": "2. Barbell Floor Press",
+                "sets": "5",
+                "reps": "4",
+                "notes": "Pause under control and drive the bar up fast.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Barbell Floor Press",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 5,
+                      "reps": 4,
+                      "percent1RM": 77,
+                      "relativeIntensity": 84
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best clean work set so the app can watch your press trend across the block."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Close-Grip Bench Press",
+                    "notes": "Use if you have a bench setup."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use if barbell loading is limited."
+                  }
+                ]
+              },
+              {
+                "name": "3. Pull-Up",
+                "sets": "3",
+                "reps": "5-7",
+                "notes": "Keep 1-2 reps in reserve and make every rep clean from bottom to top.",
+                "substitutionOptions": [
+                  {
+                    "name": "Band-Assisted Pull-Up",
+                    "notes": "Use if you cannot hold clean reps in this range."
+                  },
+                  {
+                    "name": "Lat Pulldown",
+                    "notes": "Use if no bar is available."
+                  }
+                ]
+              },
+              {
+                "name": "4. Bulgarian Split Squat",
+                "sets": "3",
+                "reps": "6-8 each side",
+                "notes": "Control the descent and punch the floor away on the way up.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use for a simpler pattern."
+                  },
+                  {
+                    "name": "Front-Foot-Elevated Split Squat",
+                    "notes": "Use if balance is the limiting factor."
+                  }
+                ]
+              },
+              {
+                "name": "5. Weighted Plank",
+                "sets": "3",
+                "reps": "40-45 seconds",
+                "notes": "Stay long through the body and do not let the low back dip.",
+                "substitutionOptions": [
+                  {
+                    "name": "RKC Plank",
+                    "notes": "Use if loading is not practical."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if you want a standing trunk option."
+                  }
+                ]
+              },
+              {
+                "name": "6. Farmer Carry",
+                "sets": "2",
+                "reps": "25-30 meters",
+                "notes": "Walk under control and keep shoulders packed down.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if you only have one heavy implement."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "core",
+                "full_body"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Keep contacts fresh and stop before jump quality drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a comfortable height and step down."
+                  },
+                  {
+                    "name": "Squat Jump",
+                    "notes": "Use if space is limited."
+                  }
+                ]
+              },
+              {
+                "name": "2. Back Squat",
+                "sets": "3",
+                "reps": "4",
+                "notes": "This is a deload week. Keep the reps clean and leave the gym feeling better than you came in.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Back Squat",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 3,
+                      "reps": 4,
+                      "percent1RM": 72,
+                      "relativeIntensity": 77
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best clean work set so the app can compare this lighter week to earlier work."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if needed for comfort or setup."
+                  }
+                ]
+              },
+              {
+                "name": "3. Dumbbell Romanian Deadlift",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Stay smooth and leave a little in the tank.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Romanian Deadlift",
+                    "notes": "Use if available."
+                  },
+                  {
+                    "name": "Single-Leg Romanian Deadlift",
+                    "notes": "Use a lighter load and stay balanced."
+                  }
+                ]
+              },
+              {
+                "name": "4. One-Arm Dumbbell Row",
+                "sets": "2",
+                "reps": "8 each side",
+                "notes": "Controlled pull with no heaving.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Dumbbell Row",
+                    "notes": "Use if your low back needs a break."
+                  },
+                  {
+                    "name": "Barbell Row",
+                    "notes": "Use if your setup allows it."
+                  }
+                ]
+              },
+              {
+                "name": "5. Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "6-8",
+                "notes": "Crisp reps only. Stop before the trunk position breaks.",
+                "substitutionOptions": [
+                  {
+                    "name": "Body Saw Plank",
+                    "notes": "Use if no ab wheel is available."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "day": 2,
+            "sessionLabel": "Day 2",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "upper_body",
+                "lower_body",
+                "core"
+              ],
+              "qualities": [
+                "power",
+                "force",
+                "recovery"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Medicine Ball Chest Pass",
+                "sets": "4",
+                "reps": "5",
+                "notes": "Use a low- to moderate-bounce ball if throwing at a wall. Fast, clean reps only.",
+                "substitutionOptions": [
+                  {
+                    "name": "Explosive Push-Up",
+                    "notes": "Use if you do not have a medicine ball."
+                  },
+                  {
+                    "name": "Plyometric Push-Up to Elevated Surface",
+                    "notes": "Use if you need a simpler option."
+                  }
+                ]
+              },
+              {
+                "name": "2. Barbell Floor Press",
+                "sets": "3",
+                "reps": "4",
+                "notes": "This is a lighter week. Pause softly and keep the bar moving fast.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Barbell Floor Press",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 3,
+                      "reps": 4,
+                      "percent1RM": 72,
+                      "relativeIntensity": 77
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best clean work set so the app can compare this lighter week to earlier work."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Close-Grip Bench Press",
+                    "notes": "Use if a bench setup is available."
+                  },
+                  {
+                    "name": "Dumbbell Floor Press",
+                    "notes": "Use if barbell loading is limited."
+                  }
+                ]
+              },
+              {
+                "name": "3. Pull-Up",
+                "sets": "2",
+                "reps": "4-6",
+                "notes": "Leave 1-2 reps in reserve and keep every rep strict.",
+                "substitutionOptions": [
+                  {
+                    "name": "Band-Assisted Pull-Up",
+                    "notes": "Use if you need cleaner reps."
+                  },
+                  {
+                    "name": "Lat Pulldown",
+                    "notes": "Use if no pull-up bar is available."
+                  }
+                ]
+              },
+              {
+                "name": "4. Bulgarian Split Squat",
+                "sets": "2",
+                "reps": "6 each side",
+                "notes": "Smooth reps with good balance. Do not chase fatigue this week.",
+                "substitutionOptions": [
+                  {
+                    "name": "Reverse Lunge",
+                    "notes": "Use if setup is easier."
+                  },
+                  {
+                    "name": "Front-Foot-Elevated Split Squat",
+                    "notes": "Use for a stable alternative."
+                  }
+                ]
+              },
+              {
+                "name": "5. Weighted Plank",
+                "sets": "2",
+                "reps": "30-40 seconds",
+                "notes": "Brace hard and keep the body line clean.",
+                "substitutionOptions": [
+                  {
+                    "name": "RKC Plank",
+                    "notes": "Use if loading is not practical."
+                  },
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if you prefer a standing trunk option."
+                  }
+                ]
+              },
+              {
+                "name": "6. Farmer Carry",
+                "sets": "1-2",
+                "reps": "20-25 meters",
+                "notes": "Keep it crisp and submaximal so grip fatigue stays low for boxing.",
+                "substitutionOptions": [
+                  {
+                    "name": "Suitcase Carry",
+                    "notes": "Use if you only have one heavy implement."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -205,7 +205,6 @@ export function MyProfileView(props) {
         {isMainMode ? (
           <SubscriptionCard
             planName={props.subscriptionPlanName}
-            timeRemainingText={props.subscriptionTimeRemainingText}
             subscriptionText={props.subscriptionText}
             isSubmitting={props.isSubmitting}
             showDetailsButton={props.isSubscriptionActive}

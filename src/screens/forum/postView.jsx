@@ -19,12 +19,16 @@ import {
 } from "react-native";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import AnimatedForumActionButton from "../../components/forumComponents/AnimatedForumActionButton.jsx";
+import ForumIcon from "../../components/forumComponents/ForumIcon.jsx";
 import VerifiedBadge from "../../components/forumComponents/VerifiedBadge.jsx";
 import Comment from "../../components/forumComponents/Comment.jsx";
 import PostMedia from "../../components/forumComponents/PostMedia.jsx";
 import GoldGradient from "../../components/colorComponents/GoldGradient.jsx";
 import LockIcon from "../../components/LockIcon.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+
+const COMMENT_ICON = require("../../assets/icons/conversation.png");
+
 const COLORS = {
   gold: "#C9B259",
   panel: "#141414",
@@ -291,9 +295,11 @@ export default function PostView({
                 style={[styles.standardButton, isPostSaved ? styles.standardButtonActive : null]}
                 onPress={() => onTogglePostSave?.(post.id)}
               >
-                <Image
-                  source={require("../../assets/icons/save.png")}
-                  style={[styles.buttonIcon, isPostSaved ? styles.buttonIconActive : null]}
+                <ForumIcon
+                  color={isPostSaved ? "#111111" : COLORS.text}
+                  filled={isPostSaved}
+                  name="save"
+                  size={18}
                 />
               </AnimatedForumActionButton>
               <AnimatedForumActionButton
@@ -301,19 +307,18 @@ export default function PostView({
                 style={[styles.countButton, isPostLiked ? styles.countButtonActive : null]}
                 onPress={() => onTogglePostLike?.(post.id)}
               >
-                <Image
-                  source={require("../../assets/icons/like.png")}
-                  style={[styles.buttonIcon, isPostLiked ? styles.buttonIconActive : null]}
+                <ForumIcon
+                  color={isPostLiked ? "#111111" : COLORS.text}
+                  filled={isPostLiked}
+                  name="like"
+                  size={18}
                 />
                 <IBMPlexText style={[styles.countText, isPostLiked ? styles.countTextActive : null]}>
                   {post?.likesCount}
                 </IBMPlexText>
               </AnimatedForumActionButton>
               <View style={styles.commentCount}>
-                <Image
-                  source={require("../../assets/icons/conversation.png")}
-                  style={styles.buttonIcon}
-                />
+                <Image source={COMMENT_ICON} style={styles.commentIcon} />
                 <IBMPlexText style={styles.countText}>{post?.commentsCount}</IBMPlexText>
               </View>
               {post?.coachResponseStatus === "responded" ? (
@@ -983,6 +988,11 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: "center",
   },
+  commentIcon: {
+    height: 18,
+    tintColor: COLORS.text,
+    width: 18,
+  },
   standardButton: {
     backgroundColor: "rgba(255,255,255,0.12)",
     borderColor: "rgba(255,255,255,0.22)",
@@ -996,14 +1006,6 @@ const styles = StyleSheet.create({
   standardButtonActive: {
     backgroundColor: COLORS.text,
     borderColor: COLORS.text,
-  },
-  buttonIcon: {
-    width: 18,
-    height: 18,
-    tintColor: COLORS.text,
-  },
-  buttonIconActive: {
-    tintColor: "#000",
   },
   countText: {
     color: COLORS.text,

@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-06-09T15:48:19.665Z",
-  "mode": "dry-run",
-  "totalCaseCount": 600,
-  "casesPerSport": 100,
+  "generatedAt": "2026-06-09T20:43:20.805Z",
+  "mode": "run",
+  "totalCaseCount": 648,
+  "casesPerSport": 108,
   "selectedSports": [
     "Boxing",
     "Wrestling",
@@ -20,12 +20,12 @@
   "gcpProjectId": "power-training-coach",
   "secretName": "OPENAI_API_KEY",
   "secretVersion": "latest",
-  "apiKeySource": null,
+  "apiKeySource": "firebase-cli",
   "summary": {
-    "requestedCases": 600,
-    "generated": 0,
-    "skipped": 0,
-    "failed": 0
+    "requestedCases": 648,
+    "generated": 45,
+    "skipped": 3,
+    "failed": 600
   },
   "instructionKeys": [
     "general_rules",
@@ -2456,6 +2456,198 @@
       }
     },
     {
+      "sequence": 101,
+      "caseId": "boxing__freq-1__training-strength-power-endurance__exp-advanced__style-striking__period-pre-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/boxing/boxing__freq-1__training-strength-power-endurance__exp-advanced__style-striking__period-pre-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "striking",
+        "competitionPeriod": "pre_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 102,
+      "caseId": "boxing__freq-2__training-strength-power-endurance__exp-advanced__style-clinching__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/boxing/boxing__freq-2__training-strength-power-endurance__exp-advanced__style-clinching__period-pre-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "pre_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 103,
+      "caseId": "boxing__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/boxing/boxing__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "30_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 104,
+      "caseId": "boxing__freq-4__training-strength-power-endurance__exp-advanced__style-striking__period-fight-camp__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/boxing/boxing__freq-4__training-strength-power-endurance__exp-advanced__style-striking__period-fight-camp__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 4,
+        "daysPerWeek": 4,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "striking",
+        "competitionPeriod": "fight_camp",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "45_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 105,
+      "caseId": "boxing__freq-5__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/boxing/boxing__freq-5__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 5,
+        "daysPerWeek": 5,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "fight_camp",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "60_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 106,
+      "caseId": "boxing__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/boxing/boxing__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "in_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 107,
+      "caseId": "boxing__freq-2__training-strength-power-endurance__exp-advanced__style-striking__period-in-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/boxing/boxing__freq-2__training-strength-power-endurance__exp-advanced__style-striking__period-in-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "striking",
+        "competitionPeriod": "in_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 108,
+      "caseId": "boxing__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/boxing/boxing__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Boxing",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Lightweight",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "in_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
       "sequence": 109,
       "caseId": "wrestling__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed",
       "outputFile": "plans/wrestling/wrestling__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed.json",
@@ -4851,6 +5043,198 @@
           "mixed"
         ],
         "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 209,
+      "caseId": "wrestling__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-pre-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/wrestling/wrestling__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-pre-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "pre_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 210,
+      "caseId": "wrestling__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/wrestling/wrestling__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-pre-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "pre_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 211,
+      "caseId": "wrestling__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/wrestling/wrestling__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "30_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 212,
+      "caseId": "wrestling__freq-4__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/wrestling/wrestling__freq-4__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 4,
+        "daysPerWeek": 4,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "fight_camp",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "45_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 213,
+      "caseId": "wrestling__freq-5__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/wrestling/wrestling__freq-5__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 5,
+        "daysPerWeek": 5,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "60_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 214,
+      "caseId": "wrestling__freq-1__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/wrestling/wrestling__freq-1__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "in_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 215,
+      "caseId": "wrestling__freq-2__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/wrestling/wrestling__freq-2__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "in_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 216,
+      "caseId": "wrestling__freq-3__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/wrestling/wrestling__freq-3__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Wrestling",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "74 kg",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "in_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
         "numWeeks": 12,
         "trainingPlanBatch": 1
       }
@@ -7256,6 +7640,198 @@
       }
     },
     {
+      "sequence": 317,
+      "caseId": "bjj__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-pre-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/bjj/bjj__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-pre-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "pre_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 318,
+      "caseId": "bjj__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/bjj/bjj__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-pre-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "pre_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 319,
+      "caseId": "bjj__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/bjj/bjj__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "30_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 320,
+      "caseId": "bjj__freq-4__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/bjj/bjj__freq-4__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 4,
+        "daysPerWeek": 4,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "fight_camp",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "45_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 321,
+      "caseId": "bjj__freq-5__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/bjj/bjj__freq-5__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 5,
+        "daysPerWeek": 5,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "60_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 322,
+      "caseId": "bjj__freq-1__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/bjj/bjj__freq-1__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "in_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 323,
+      "caseId": "bjj__freq-2__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/bjj/bjj__freq-2__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "in_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 324,
+      "caseId": "bjj__freq-3__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/bjj/bjj__freq-3__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "BJJ",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Medium Heavy",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "in_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
       "sequence": 325,
       "caseId": "muay-thai-kickboxing__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed",
       "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed.json",
@@ -9651,6 +10227,198 @@
           "mixed"
         ],
         "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 425,
+      "caseId": "muay-thai-kickboxing__freq-1__training-strength-power-endurance__exp-advanced__style-striking__period-pre-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-1__training-strength-power-endurance__exp-advanced__style-striking__period-pre-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "striking",
+        "competitionPeriod": "pre_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 426,
+      "caseId": "muay-thai-kickboxing__freq-2__training-strength-power-endurance__exp-advanced__style-clinching__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-2__training-strength-power-endurance__exp-advanced__style-clinching__period-pre-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "pre_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 427,
+      "caseId": "muay-thai-kickboxing__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "30_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 428,
+      "caseId": "muay-thai-kickboxing__freq-4__training-strength-power-endurance__exp-advanced__style-striking__period-fight-camp__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-4__training-strength-power-endurance__exp-advanced__style-striking__period-fight-camp__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 4,
+        "daysPerWeek": 4,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "striking",
+        "competitionPeriod": "fight_camp",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "45_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 429,
+      "caseId": "muay-thai-kickboxing__freq-5__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-5__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 5,
+        "daysPerWeek": 5,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "fight_camp",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "60_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 430,
+      "caseId": "muay-thai-kickboxing__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "in_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 431,
+      "caseId": "muay-thai-kickboxing__freq-2__training-strength-power-endurance__exp-advanced__style-striking__period-in-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-2__training-strength-power-endurance__exp-advanced__style-striking__period-in-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "striking",
+        "competitionPeriod": "in_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 432,
+      "caseId": "muay-thai-kickboxing__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/muay-thai-kickboxing/muay-thai-kickboxing__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Muay Thai / Kickboxing",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "70 kg",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "in_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
         "numWeeks": 12,
         "trainingPlanBatch": 1
       }
@@ -12056,6 +12824,198 @@
       }
     },
     {
+      "sequence": 533,
+      "caseId": "judo__freq-1__training-strength-power-endurance__exp-advanced__style-grappling__period-pre-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/judo/judo__freq-1__training-strength-power-endurance__exp-advanced__style-grappling__period-pre-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "pre_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 534,
+      "caseId": "judo__freq-2__training-strength-power-endurance__exp-advanced__style-clinching__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/judo/judo__freq-2__training-strength-power-endurance__exp-advanced__style-clinching__period-pre-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "pre_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 535,
+      "caseId": "judo__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/judo/judo__freq-3__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "30_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 536,
+      "caseId": "judo__freq-4__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/judo/judo__freq-4__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 4,
+        "daysPerWeek": 4,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "fight_camp",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "45_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 537,
+      "caseId": "judo__freq-5__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/judo/judo__freq-5__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 5,
+        "daysPerWeek": 5,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "fight_camp",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "60_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 538,
+      "caseId": "judo__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/judo/judo__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-in-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "in_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 539,
+      "caseId": "judo__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/judo/judo__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "in_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 540,
+      "caseId": "judo__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/judo/judo__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "Judo",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "-81 kg",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "in_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
       "sequence": 541,
       "caseId": "mma__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed",
       "outputFile": "plans/mma/mma__freq-1__training-strength-power__exp-beginner__style-balanced__period-off-season__equipment-full-gym__focus-mixed.json",
@@ -14451,6 +15411,198 @@
           "mixed"
         ],
         "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 641,
+      "caseId": "mma__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-pre-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/mma/mma__freq-1__training-strength-power-endurance__exp-advanced__style-balanced__period-pre-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "pre_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 642,
+      "caseId": "mma__freq-2__training-strength-power-endurance__exp-advanced__style-striking__period-pre-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/mma/mma__freq-2__training-strength-power-endurance__exp-advanced__style-striking__period-pre-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "striking",
+        "competitionPeriod": "pre_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 643,
+      "caseId": "mma__freq-3__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/mma/mma__freq-3__training-strength-power-endurance__exp-advanced__style-grappling__period-fight-camp__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "fight_camp",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "30_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 644,
+      "caseId": "mma__freq-4__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/mma/mma__freq-4__training-strength-power-endurance__exp-advanced__style-clinching__period-fight-camp__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 4,
+        "daysPerWeek": 4,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "fight_camp",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "45_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 645,
+      "caseId": "mma__freq-5__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/mma/mma__freq-5__training-strength-power-endurance__exp-advanced__style-balanced__period-fight-camp__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 5,
+        "daysPerWeek": 5,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "balanced",
+        "competitionPeriod": "fight_camp",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "60_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 646,
+      "caseId": "mma__freq-1__training-strength-power-endurance__exp-advanced__style-striking__period-in-season__equipment-full-gym__focus-mixed",
+      "outputFile": "plans/mma/mma__freq-1__training-strength-power-endurance__exp-advanced__style-striking__period-in-season__equipment-full-gym__focus-mixed.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 1,
+        "daysPerWeek": 1,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "striking",
+        "competitionPeriod": "in_season",
+        "equipment": "full_gym",
+        "injuries": [],
+        "focusEmphasis": "mixed",
+        "preferences": [
+          "mixed"
+        ],
+        "sessionDuration": "75_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 647,
+      "caseId": "mma__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-home-minimal__focus-more-sparring",
+      "outputFile": "plans/mma/mma__freq-2__training-strength-power-endurance__exp-advanced__style-grappling__period-in-season__equipment-home-minimal__focus-more-sparring.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 2,
+        "daysPerWeek": 2,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "grappling",
+        "competitionPeriod": "in_season",
+        "equipment": "home_minimal",
+        "injuries": [],
+        "focusEmphasis": "more_sparring",
+        "preferences": [
+          "more_sparring"
+        ],
+        "sessionDuration": "90_min",
+        "numWeeks": 12,
+        "trainingPlanBatch": 1
+      }
+    },
+    {
+      "sequence": 648,
+      "caseId": "mma__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning",
+      "outputFile": "plans/mma/mma__freq-3__training-strength-power-endurance__exp-advanced__style-clinching__period-in-season__equipment-bodyweight-only__focus-more-conditioning.json",
+      "input": {
+        "primaryCombatSport": "MMA",
+        "sessionsPerWeek": 3,
+        "daysPerWeek": 3,
+        "desiredTraining": "strength_power_endurance",
+        "experience": "advanced",
+        "weightClass": "Featherweight",
+        "primaryStyle": "clinching",
+        "competitionPeriod": "in_season",
+        "equipment": "bodyweight_only",
+        "injuries": [],
+        "focusEmphasis": "more_conditioning",
+        "preferences": [
+          "more_conditioning"
+        ],
+        "sessionDuration": "no_time_limit",
         "numWeeks": 12,
         "trainingPlanBatch": 1
       }

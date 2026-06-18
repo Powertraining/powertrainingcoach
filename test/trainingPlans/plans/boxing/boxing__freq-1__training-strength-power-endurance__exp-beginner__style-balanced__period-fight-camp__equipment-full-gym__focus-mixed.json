@@ -1,0 +1,478 @@
+{
+  "status": "success",
+  "generatedAt": "2026-06-09T20:40:37.981Z",
+  "caseId": "boxing__freq-1__training-strength-power-endurance__exp-beginner__style-balanced__period-fight-camp__equipment-full-gym__focus-mixed",
+  "model": "gpt-5.4",
+  "temperature": 1,
+  "promptSha256": "9006c40c86f7974936fd11f955f0e87fb6cbef005c35ddeeb74f6b385933dedc",
+  "instructionsSource": "local",
+  "includeImages": false,
+  "input": {
+    "primaryCombatSport": "Boxing",
+    "sessionsPerWeek": 1,
+    "daysPerWeek": 1,
+    "desiredTraining": "strength_power_endurance",
+    "experience": "beginner",
+    "weightClass": "Lightweight",
+    "primaryStyle": "balanced",
+    "competitionPeriod": "fight_camp",
+    "equipment": "full_gym",
+    "injuries": [],
+    "focusEmphasis": "mixed",
+    "preferences": [
+      "mixed"
+    ],
+    "sessionDuration": "30_min",
+    "numWeeks": 12,
+    "trainingPlanBatch": 1
+  },
+  "validation": {
+    "passed": false,
+    "issues": [
+      "Plan has 4 week(s) but 12 were requested.",
+      "Week 1 day 1 has sessionLabel \"Assessment – Trap Bar Deadlift\" that does not start with \"Day N\".",
+      "Week 1 day 1 exercise 4 is missing \"sets\".",
+      "Week 1 day 1 exercise 4 is missing \"reps\".",
+      "Week 2 day 1 exercise 5 is missing \"sets\".",
+      "Week 2 day 1 exercise 5 is missing \"reps\".",
+      "Week 3 day 1 exercise 5 is missing \"sets\".",
+      "Week 3 day 1 exercise 5 is missing \"reps\".",
+      "Week 4 day 1 exercise 5 is missing \"sets\".",
+      "Week 4 day 1 exercise 5 is missing \"reps\"."
+    ]
+  },
+  "usage": {
+    "prompt_tokens": 7874,
+    "completion_tokens": 3075,
+    "total_tokens": 10949,
+    "prompt_tokens_details": {
+      "cached_tokens": 6912,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "plan": {
+    "summary": "This 4-week block starts the 12-week off-camp build for boxing. Week 1 establishes training maxes for the main lower-body lift so percentage work is grounded in a real baseline, and the main training starts in Week 2. With only one 30-minute S&C session each week, the plan keeps the highest-value work first: explosive lower-body power, main strength, a simple upper-back or trunk support piece, and short low-impact conditioning.",
+    "phaseOverview": [
+      {
+        "label": "Building",
+        "weekStart": 1,
+        "weekEnd": 4,
+        "focus": "Build general strength and power with simple explosive work, crisp lifting, and enough conditioning to support boxing without stealing recovery."
+      },
+      {
+        "label": "Intensifying",
+        "weekStart": 5,
+        "weekEnd": 8,
+        "focus": "Progress the main strength lift and keep power output sharp while conditioning stays supportive and recoverable."
+      },
+      {
+        "label": "Expressing",
+        "weekStart": 9,
+        "weekEnd": 12,
+        "focus": "Shift more toward fast, sharp outputs and lower-fatigue power expression while keeping enough strength to hold the gains."
+      }
+    ],
+    "weeks": [
+      {
+        "week": 1,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Assessment – Trap Bar Deadlift",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Land quietly and reset between reps. Jump fast and tall, not tired.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use a box height that lets you land in a strong athletic position."
+                  }
+                ]
+              },
+              {
+                "name": "2. Trap Bar Deadlift",
+                "sets": "1 top set",
+                "reps": "3-5",
+                "notes": "Warm up progressively, then work up to one hard clean top set of 3-5 reps. Leave form intact and log the load and reps so future percentages are accurate.",
+                "strengthAssessment": {
+                  "method": "multi_rm",
+                  "liftName": "Trap Bar Deadlift",
+                  "prompt": "Warm up progressively, then work up to your heaviest clean set of 3-5 reps. Log the load and reps so the app can estimate your training max."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use this if trap bar setup is unavailable and stay upright with clean depth."
+                  }
+                ]
+              },
+              {
+                "name": "3. Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Pull to the lower ribs and pause briefly at the top. Keep the chest glued to the pad.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use a neutral grip and keep the torso quiet."
+                  },
+                  {
+                    "name": "One-Arm Dumbbell Row",
+                    "notes": "Brace hard and avoid twisting."
+                  }
+                ]
+              },
+              {
+                "name": "4. Assault Bike Aerobic Intervals",
+                "notes": "Smooth hard efforts, not a sprint. Keep breathing under control so you finish stronger than you started.",
+                "endurancePrescription": {
+                  "modality": "assault_bike",
+                  "format": "aerobic_intervals",
+                  "durationMinutes": 8,
+                  "intensity": "Moderate, sustainable effort",
+                  "work": "4 x 1 min",
+                  "rest": "1 min easy spin",
+                  "rounds": 4,
+                  "target": "Build aerobic support without adding impact or too much fatigue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "3",
+                "reps": "3",
+                "notes": "Reset each rep and keep every jump crisp. Stop if height clearly drops.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Choose a safe height and stick the landing."
+                  }
+                ]
+              },
+              {
+                "name": "2. Trap Bar Deadlift",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Drive hard from the floor and finish tall. Rest enough to keep bar speed clean.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 4,
+                      "percent1RM": 72,
+                      "relativeIntensity": 84
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track your best clean set so the app can watch strength trend without grinding."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use the same set and rep plan if trap bar access is limited."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Chest-Supported Row",
+                "sets": "2",
+                "reps": "8-10",
+                "notes": "Use a load you can control cleanly. Pull hard and lower with control.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Keep shoulders down and finish with the elbows."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "6-8",
+                "notes": "Ribs down, glutes tight, and only roll as far as you can keep the trunk solid.",
+                "substitutionOptions": [
+                  {
+                    "name": "Barbell Rollout",
+                    "notes": "Use small range at first and stay braced."
+                  },
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use this if rollouts are not yet controlled."
+                  }
+                ]
+              },
+              {
+                "name": "4. Assault Bike Continuous Aerobic",
+                "notes": "Steady pace and nasal breathing if possible. This should build work capacity, not leave your legs flat.",
+                "endurancePrescription": {
+                  "modality": "assault_bike",
+                  "format": "continuous_aerobic",
+                  "durationMinutes": 6,
+                  "intensity": "Easy to moderate conversational effort",
+                  "target": "Low-cost aerobic work to support recovery and basic conditioning"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "fatigue"
+              ],
+              "stressLevel": "moderate"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "4",
+                "reps": "3",
+                "notes": "Same takeoff every rep. Max intent on the jump, soft landing on the way down.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Stay snappy and step down between reps."
+                  }
+                ]
+              },
+              {
+                "name": "2. Trap Bar Deadlift",
+                "sets": "4",
+                "reps": "4",
+                "notes": "Brace before you pull and keep the first rep as clean as the last. If last week felt too heavy, reduce the load slightly and own the reps.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 4,
+                      "reps": 4,
+                      "percent1RM": 75,
+                      "relativeIntensity": 87
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track your strongest clean set and keep the technique consistent."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use if needed and keep the same percentage structure from the assessed lift only if front squat has its own known max; otherwise use a conservative RPE 7-8 load."
+                  }
+                ]
+              },
+              {
+                "name": "3a. One-Arm Dumbbell Row",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Drive the elbow back and keep the torso square. No jerking from the floor.",
+                "substitutionOptions": [
+                  {
+                    "name": "Chest-Supported Row",
+                    "notes": "Use this if you want more trunk support."
+                  },
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Use a neutral grip and pause at the body."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Cable Pallof Press",
+                "sets": "2",
+                "reps": "8+8",
+                "notes": "Press straight out and do not let the torso rotate. Move slow and stay tall.",
+                "substitutionOptions": [
+                  {
+                    "name": "Half-Kneeling Pallof Press",
+                    "notes": "Use this if you need a more stable setup."
+                  }
+                ]
+              },
+              {
+                "name": "4. Assault Bike Aerobic Intervals",
+                "notes": "Work at a steady hard rhythm that you can repeat. Do not sprint the first round.",
+                "endurancePrescription": {
+                  "modality": "assault_bike",
+                  "format": "aerobic_intervals",
+                  "durationMinutes": 8,
+                  "intensity": "Moderate to moderately hard sustainable effort",
+                  "work": "4 x 75 sec",
+                  "rest": "45 sec easy spin",
+                  "rounds": 4,
+                  "target": "Build repeatable aerobic power with low joint stress"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "days": [
+          {
+            "day": 1,
+            "sessionLabel": "Day 1",
+            "preferredWeekday": "",
+            "sessionProfile": {
+              "regions": [
+                "lower_body",
+                "full_body",
+                "core"
+              ],
+              "qualities": [
+                "force",
+                "power",
+                "recovery"
+              ],
+              "stressLevel": "low"
+            },
+            "exercises": [
+              {
+                "name": "1a. Countermovement Jump",
+                "sets": "2",
+                "reps": "3",
+                "notes": "Keep the jumps sharp and fresh. Stop well before any slowdown.",
+                "substitutionOptions": [
+                  {
+                    "name": "Box Jump",
+                    "notes": "Use an easy crisp height this week."
+                  }
+                ]
+              },
+              {
+                "name": "2. Trap Bar Deadlift",
+                "sets": "3",
+                "reps": "4",
+                "notes": "Deload week. Keep the movement clean, leave reps in the tank, and move the bar fast.",
+                "percentagePrescription": {
+                  "referenceLiftName": "Trap Bar Deadlift",
+                  "loadingStrategy": "flat_loading",
+                  "workingSets": [
+                    {
+                      "count": 3,
+                      "reps": 4,
+                      "percent1RM": 68,
+                      "relativeIntensity": 80
+                    }
+                  ]
+                },
+                "performanceTarget": {
+                  "strategy": "e1rm",
+                  "prompt": "Track the best set, but this week is about freshness and quality."
+                },
+                "substitutionOptions": [
+                  {
+                    "name": "Front Squat",
+                    "notes": "Use a light crisp load if the trap bar is unavailable."
+                  }
+                ]
+              },
+              {
+                "name": "3a. Chest-Supported Row",
+                "sets": "2",
+                "reps": "8",
+                "notes": "Smooth reps and no strain. Finish each rep with the shoulder blade moving back.",
+                "substitutionOptions": [
+                  {
+                    "name": "Seated Cable Row",
+                    "notes": "Keep the same easy deload feel."
+                  }
+                ]
+              },
+              {
+                "name": "3b. Ab Wheel Rollout",
+                "sets": "2",
+                "reps": "6",
+                "notes": "Short controlled range. Keep your trunk locked in and avoid low-back extension.",
+                "substitutionOptions": [
+                  {
+                    "name": "Cable Crunch",
+                    "notes": "Use this if rollouts feel shaky."
+                  }
+                ]
+              },
+              {
+                "name": "4. Assault Bike Recovery Spin",
+                "notes": "Easy flush work. Get off feeling better than when you started.",
+                "endurancePrescription": {
+                  "modality": "assault_bike",
+                  "format": "recovery",
+                  "durationMinutes": 6,
+                  "intensity": "Easy relaxed effort",
+                  "target": "Promote recovery and keep basic aerobic work in place"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

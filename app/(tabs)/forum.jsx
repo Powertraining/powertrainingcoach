@@ -1,9 +1,11 @@
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Redirect,
+  useFocusEffect,
   useLocalSearchParams,
   usePathname,
   useRouter } from "expo-router";
@@ -89,6 +91,9 @@ const ForumScreen = observer(function ForumScreen() {
   const [createReplyError, setCreateReplyError] = useState(null);
   const [isSearchFiltersVisible, setIsSearchFiltersVisible] = useState(false);
   const [canTagAnalysisPosts, setCanTagAnalysisPosts] = useState(false);
+  const [postButtonEntranceKey, setPostButtonEntranceKey] = useState(0);
+  const [isPostButtonEntranceVisible, setIsPostButtonEntranceVisible] = useState(true);
+  const [isForumScreenFocused, setIsForumScreenFocused] = useState(true);
 
   useEffect(() => {
     if (!model.ready || !model.user || model.forumFeed.length > 0) {
@@ -181,6 +186,32 @@ const ForumScreen = observer(function ForumScreen() {
       model.setForumTabBarHidden(false);
     };
   }, [model]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsForumScreenFocused(true);
+
+      return () => {
+        model.setForumTabBarHidden(false);
+        setIsForumScreenFocused(false);
+      };
+    }, [model])
+  );
+
+  useEffect(() => {
+    if (!isForumScreenFocused) {
+      setIsPostButtonEntranceVisible(false);
+      return;
+    }
+
+    if (currentView === "feed") {
+      setIsPostButtonEntranceVisible(true);
+      setPostButtonEntranceKey((key) => key + 1);
+      return;
+    }
+
+    setIsPostButtonEntranceVisible(false);
+  }, [currentView, isForumScreenFocused]);
 
   const feedError = model.forumFeedPromiseState?.error;
   const isFeedLoading =
@@ -637,6 +668,10 @@ const ForumScreen = observer(function ForumScreen() {
     );
   }
 
+  if (!isForumScreenFocused) {
+    return <View style={styles.container} />;
+  }
+
   return (
     <View style={styles.container}>
       {currentView === "feed" ? (
@@ -659,6 +694,8 @@ const ForumScreen = observer(function ForumScreen() {
           onToggleCoachResponse={showCoachResponseView}
           onPressPostButton={handlePressPostButton}
           isPostButtonLocked={!canUseForumActions}
+          showPostButton={isPostButtonEntranceVisible}
+          postButtonEntranceKey={postButtonEntranceKey}
           onRetryPosts={handleRetry}
           onPressComments={showCommentsView}
           onPressPost={showPostView}
