@@ -39,6 +39,7 @@ import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/perce
 import {
     buildMissedRepRecommendation,
     MISSED_REP_REASON_OPTIONS,
+    parseRpeFromText,
 } from "../services/utils/trainingPerformance.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 function buildTrackingDrafts(
@@ -496,51 +497,6 @@ function getExercisePrescriptionDisplay(exercise = {}) {
     return reps;
 }
 
-function formatEnduranceToken(value = "") {
-    return String(value || "")
-        .replace(/_/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-}
-
-function getEnduranceContextDetails(exercise = {}) {
-    const endurancePrescription = exercise.endurancePrescription || {};
-    const circuitPrescription = exercise.circuitPrescription || {};
-    const heavyBagPrescription = exercise.heavyBagPrescription || {};
-    const sprintPrescription = exercise.sprintPrescription || {};
-    const details = [];
-
-    if (endurancePrescription.modality) {
-        details.push(formatEnduranceToken(endurancePrescription.modality));
-    }
-    if (endurancePrescription.format) {
-        details.push(formatEnduranceToken(endurancePrescription.format));
-    }
-    if (endurancePrescription.workRestRatio) {
-        details.push(`Work:rest ${endurancePrescription.workRestRatio}`);
-    }
-    if (circuitPrescription.primaryTarget) {
-        details.push(`Target ${formatEnduranceToken(circuitPrescription.primaryTarget)}`);
-    }
-    if (circuitPrescription.targetAreaEmphasis) {
-        details.push(circuitPrescription.targetAreaEmphasis);
-    }
-    if (heavyBagPrescription.target) {
-        details.push(formatEnduranceToken(heavyBagPrescription.target));
-    }
-    if (heavyBagPrescription.overloadConstraint) {
-        details.push(`Overload ${heavyBagPrescription.overloadConstraint}`);
-    }
-    if (sprintPrescription.target) {
-        details.push(formatEnduranceToken(sprintPrescription.target));
-    }
-    if (sprintPrescription.stopRule) {
-        details.push(sprintPrescription.stopRule);
-    }
-
-    return details.filter(Boolean).join(" * ");
-}
-
 function formatCompactNumberUnit(value, unit = "") {
     if (value == null || value === "") {
         return "";
@@ -771,6 +727,13 @@ function getExerciseRecommendationMetrics(exercise = {}, strengthReferenceOneRep
         strengthReferenceOneRepMaxByLift
     );
     const performanceTarget = getExercisePerformanceTarget(exercise);
+    const displayedTargetRpe = performanceTarget?.targetRpe || parseRpeFromText(exercise?.notes);
+    const targetRpeMetric = displayedTargetRpe
+        ? `RPE ${displayedTargetRpe}`
+        : "";
+    const recommendationDetails = String(recommendation.details || "")
+        .split(/\s*\*\s*/)
+        .filter((detail) => !targetRpeMetric || !/^RPE\b/i.test(detail));
     const endurancePrescription = exercise?.endurancePrescription || {};
     const exercisePrescription = Object.keys(endurancePrescription).length > 0
         ? ""
@@ -779,10 +742,9 @@ function getExerciseRecommendationMetrics(exercise = {}, strengthReferenceOneRep
     return Array.from(new Set([
         exercisePrescription,
         recommendation.primary,
-        ...String(recommendation.details || "").split(/\s*\*\s*/),
-        performanceTarget?.targetRpe ? `RPE ${performanceTarget.targetRpe}` : "",
+        ...recommendationDetails,
+        targetRpeMetric,
         endurancePrescription.work,
-        endurancePrescription.intensity,
         endurancePrescription.durationMinutes
             ? `${endurancePrescription.durationMinutes} min total`
             : "",
@@ -1223,8 +1185,6 @@ export default function DayDetailView({
                                                 ex,
                                                 strengthReferenceOneRepMaxByLift
                                             );
-                                            const enduranceContextDetails =
-                                                getEnduranceContextDetails(ex);
                                             const isHighlighted =
                                                 exerciseIndex === highlightedExerciseIndex;
                                             const exerciseSubstitutionOptions =
@@ -1382,14 +1342,6 @@ export default function DayDetailView({
                                                                 ) : null}
                                                             </View>
                                                         </Animated.View>
-                                                        {enduranceContextDetails ? (
-                                                            <IBMPlexText defaultWhite
-                                                                style={styles.tabButtonRecommendationDetails}
-                                                                lines={2}
-                                                            >
-                                                                {enduranceContextDetails}
-                                                            </IBMPlexText>
-                                                        ) : null}
                                                     </View>
                                                 </AnimatedTouchableOpacity>
                                             );
@@ -2178,11 +2130,6 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 11, fontWeight: "700",
         lineHeight: 13,
-    },
-    tabButtonRecommendationDetails: {
-        color: '#fff',
-        fontSize: 10, fontWeight: '700',
-        lineHeight: 12,
     },
     tabButtonActive: { },
     tabButtonInactive: { },

@@ -22,6 +22,7 @@ export default function SetLoggingInputPanel({
   draft,
   showLoad,
   showReps,
+  showTime,
   showRpe,
   strengthAssessment,
   strengthRequirements,
@@ -36,6 +37,8 @@ export default function SetLoggingInputPanel({
   showFieldSeparators = false,
   formatLabel,
   anchorStyle,
+  contentHorizontalInset = 14,
+  expansionHorizontalOffset = SESSION_HORIZONTAL_PADDING,
 }) {
   const focusedScrollTargetKeyRef = useRef(null);
   const inputFieldLayoutsRef = useRef({});
@@ -48,6 +51,7 @@ export default function SetLoggingInputPanel({
   const defaultInputKeys = [
     showLoad ? "loadKg" : null,
     showReps ? "reps" : null,
+    showTime ? "durationMinutes" : null,
     showRpe ? "rpe" : null,
     ...customFields.map((field) => field.id),
   ].filter(Boolean);
@@ -164,18 +168,24 @@ export default function SetLoggingInputPanel({
     }),
     marginHorizontal: inputPanelExpansion.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, -SESSION_HORIZONTAL_PADDING],
+      outputRange: [0, -expansionHorizontalOffset],
     }),
     paddingHorizontal: inputPanelExpansion.interpolate({
       inputRange: [0, 1],
-      outputRange: [14, SESSION_HORIZONTAL_PADDING + 14],
+      outputRange: [
+        contentHorizontalInset,
+        expansionHorizontalOffset + contentHorizontalInset,
+      ],
     }),
   };
   const edgeToEdgeRowStyle = showFieldSeparators
     ? {
         marginHorizontal: inputPanelExpansion.interpolate({
           inputRange: [0, 1],
-          outputRange: [-14, -(SESSION_HORIZONTAL_PADDING + 14)],
+          outputRange: [
+            -contentHorizontalInset,
+            -(expansionHorizontalOffset + contentHorizontalInset),
+          ],
         }),
       }
     : null;
@@ -183,7 +193,10 @@ export default function SetLoggingInputPanel({
     ? {
         paddingHorizontal: inputPanelExpansion.interpolate({
           inputRange: [0, 1],
-          outputRange: [14, SESSION_HORIZONTAL_PADDING + 14],
+          outputRange: [
+            contentHorizontalInset,
+            expansionHorizontalOffset + contentHorizontalInset,
+          ],
         }),
       }
     : null;
@@ -203,6 +216,13 @@ export default function SetLoggingInputPanel({
       keyboardType: "number-pad",
       placeholder:
         strengthRequirements?.repsPlaceholder || (strengthAssessment ? "2-5" : "e.g. 8"),
+    },
+    showTime && {
+      id: "durationMinutes",
+      label: "Time completed",
+      value: draft.durationMinutes,
+      keyboardType: "number-pad",
+      placeholder: "e.g. 15 min",
     },
     showRpe && {
       id: "rpe",

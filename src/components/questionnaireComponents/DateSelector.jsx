@@ -19,7 +19,8 @@ import {
 } from "../../services/utils/dateUtils.js";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
-const ITEM_HEIGHT = 70;
+export const WHEEL_ITEM_HEIGHT = 70;
+const ITEM_HEIGHT = WHEEL_ITEM_HEIGHT;
 const VISIBLE_ROWS = 3;
 const CENTER_ROW = Math.floor(VISIBLE_ROWS / 2);
 
@@ -31,13 +32,14 @@ function padNumber(value) {
   return String(value).padStart(2, "0");
 }
 
-function WheelColumn({
+export function WheelColumn({
   values,
   selectedIndex = 0,
   onSelect,
   columnStyle,
   variant = "dark",
   useMomentumSnap = false,
+  itemHeight = ITEM_HEIGHT,
 }) {
   const scrollRef = useRef(null);
   const isInteractingRef = useRef(false);
@@ -46,7 +48,7 @@ function WheelColumn({
     0,
     Math.max(values.length - 1, 0)
   );
-  const lastOffsetYRef = useRef(safeSelectedIndex * ITEM_HEIGHT);
+  const lastOffsetYRef = useRef(safeSelectedIndex * itemHeight);
   const [displayedIndex, setDisplayedIndex] = useState(safeSelectedIndex);
 
   useEffect(() => {
@@ -55,16 +57,16 @@ function WheelColumn({
     }
 
     setDisplayedIndex(safeSelectedIndex);
-    lastOffsetYRef.current = safeSelectedIndex * ITEM_HEIGHT;
+    lastOffsetYRef.current = safeSelectedIndex * itemHeight;
     scrollRef.current?.scrollTo({
-      y: safeSelectedIndex * ITEM_HEIGHT,
+      y: safeSelectedIndex * itemHeight,
       animated: false,
     });
-  }, [safeSelectedIndex, values.length]);
+  }, [itemHeight, safeSelectedIndex, values.length]);
 
   function getIndexFromOffset(offsetY) {
     return clamp(
-      Math.round(offsetY / ITEM_HEIGHT),
+      Math.round(offsetY / itemHeight),
       0,
       values.length - 1
     );
@@ -76,7 +78,7 @@ function WheelColumn({
     }
 
     const nextIndex = getIndexFromOffset(offsetY);
-    const nextOffsetY = nextIndex * ITEM_HEIGHT;
+    const nextOffsetY = nextIndex * itemHeight;
 
     lastOffsetYRef.current = nextOffsetY;
     setDisplayedIndex(nextIndex);
@@ -103,7 +105,7 @@ function WheelColumn({
         bounces={false}
         nestedScrollEnabled
         scrollEventThrottle={16}
-        contentContainerStyle={styles.columnContent}
+        contentContainerStyle={{ paddingVertical: itemHeight * CENTER_ROW }}
         onScroll={handleScroll}
         onScrollBeginDrag={() => {
           isInteractingRef.current = true;
@@ -123,7 +125,10 @@ function WheelColumn({
         }}
       >
         {values.map((value, index) => (
-          <View key={`${value}-${index}`} style={styles.item}>
+          <View
+            key={`${value}-${index}`}
+            style={[styles.item, { height: itemHeight }]}
+          >
             <IBMPlexText defaultWhite
               style={[
                 styles.itemText,
@@ -357,9 +362,6 @@ const styles = StyleSheet.create({
   column: {
     flex: 1,
     overflow: "hidden",
-  },
-  columnContent: {
-    paddingVertical: ITEM_HEIGHT * CENTER_ROW,
   },
   item: {
     alignItems: "center",

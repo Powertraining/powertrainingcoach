@@ -7,6 +7,7 @@ dist/*
 !dist/checkout_redirect/
 !dist/checkout_redirect/*.html
 web-build/
+pages-dist/
 build/
 out/
 pages-dist/

@@ -13,9 +13,13 @@ function toRepCount(value) {
   return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : 0;
 }
 
-export default function RepCountSelector({ value, onChange }) {
+export default function RepCountSelector({ value, valueChangeKey, onChange }) {
   const scrollRef = useRef(null);
   const isInteractingRef = useRef(false);
+  const hasPositionedRef = useRef(false);
+  const previousValueChangeKeyRef = useRef(valueChangeKey);
+  const isSyncingValueRef = useRef(false);
+  const syncTimerRef = useRef(null);
   const selectedValue = toRepCount(value);
   const [containerWidth, setContainerWidth] = useState(0);
   const [displayedValue, setDisplayedValue] = useState(selectedValue);
@@ -43,7 +47,9 @@ export default function RepCountSelector({ value, onChange }) {
       x: nextValue * ITEM_WIDTH,
       animated: true,
     });
-    onChange?.(String(nextValue));
+    if (!isSyncingValueRef.current) {
+      onChange?.(String(nextValue));
+    }
     isInteractingRef.current = false;
   }
 
@@ -52,15 +58,45 @@ export default function RepCountSelector({ value, onChange }) {
       return;
     }
 
+    const isInitialPosition = !hasPositionedRef.current;
+    const didValueChangeKeyChange =
+      previousValueChangeKeyRef.current !== valueChangeKey;
+
+    if (!isInitialPosition && !didValueChangeKeyChange) {
+      return;
+    }
+
+    previousValueChangeKeyRef.current = valueChangeKey;
+
     if (selectedValue > maxRep) {
       setMaxRep(selectedValue + EXTEND_BY_REPS);
     }
     setDisplayedValue(selectedValue);
+    isSyncingValueRef.current = hasPositionedRef.current;
     scrollRef.current?.scrollTo({
       x: selectedValue * ITEM_WIDTH,
-      animated: false,
+      animated: hasPositionedRef.current,
     });
-  }, [containerWidth, maxRep, selectedValue]);
+    hasPositionedRef.current = true;
+
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+    }
+
+    syncTimerRef.current = setTimeout(() => {
+      isSyncingValueRef.current = false;
+      syncTimerRef.current = null;
+    }, 320);
+  }, [containerWidth, maxRep, selectedValue, valueChangeKey]);
+
+  useEffect(
+    () => () => {
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+      }
+    },
+    []
+  );
 
   return (
     <View

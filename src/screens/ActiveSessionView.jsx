@@ -33,6 +33,7 @@ import {
   resolveStrengthAssessmentReferenceOneRepMaxKg,
 } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
+import { parseRpeFromText } from "../services/utils/trainingPerformance.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
@@ -565,6 +566,27 @@ function getRecommendedLoadKg(
     : null;
 }
 
+function getRecommendedRepCount(exercise = {}, setIndex = 0) {
+  const percentagePrescription = getExercisePercentagePrescription(exercise);
+  const workingSets = Array.isArray(percentagePrescription?.workingSets)
+    ? percentagePrescription.workingSets.flatMap((workingSet) =>
+        Array.from(
+          { length: Math.max(1, Number.parseInt(workingSet?.count, 10) || 1) },
+          () => workingSet
+        )
+      )
+    : [];
+  const prescribedSet = workingSets[setIndex];
+  const prescribedSetReps = Number.parseInt(prescribedSet?.reps, 10);
+
+  if (Number.isFinite(prescribedSetReps) && prescribedSetReps >= 0) {
+    return prescribedSetReps;
+  }
+
+  const exerciseReps = Number.parseInt(String(exercise?.reps || ""), 10);
+  return Number.isFinite(exerciseReps) && exerciseReps >= 0 ? exerciseReps : 0;
+}
+
 function getExerciseLoggingFieldSource(exercise = {}) {
   if (Array.isArray(exercise?.loggingFields)) {
     return exercise.loggingFields;
@@ -707,6 +729,8 @@ function buildTrackingDrafts(
       setIndex,
       loadKg: result?.loadKg != null ? String(result.loadKg) : "",
       reps: result?.reps != null ? String(result.reps) : "",
+      durationMinutes:
+        result?.durationMinutes != null ? String(result.durationMinutes) : "",
       rpe: result?.rpe != null ? String(result.rpe) : "",
       customValues:
         result?.customValues && typeof result.customValues === "object"
@@ -727,6 +751,7 @@ function buildTrackingDrafts(
           setIndex,
           loadKg: "",
           reps: "",
+          durationMinutes: "",
           rpe: "",
           customValues: {},
         };
@@ -742,6 +767,7 @@ function getTrackedResultsFromDrafts(drafts = {}) {
     .filter((draft) =>
       draft?.loadKg ||
       draft?.reps ||
+      draft?.durationMinutes ||
       draft?.rpe ||
       Object.values(draft?.customValues || {}).some(Boolean)
     )
@@ -945,6 +971,9 @@ function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex 
   const averageReps = getAverageTrackedValue(
     drafts.map((draft) => draft.reps)
   );
+  const averageDurationMinutes = getAverageTrackedValue(
+    drafts.map((draft) => draft.durationMinutes)
+  );
   const averageRpe = getAverageTrackedValue(
     drafts.map((draft) => draft.rpe)
   );
@@ -960,6 +989,10 @@ function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex 
 
   if (averageReps) {
     parts.push(`${averageReps} reps`);
+  }
+
+  if (averageDurationMinutes) {
+    parts.push(`${averageDurationMinutes} min`);
   }
 
   if (averageRpe) {
@@ -1126,6 +1159,7 @@ function getSetLoggingConfig(exercise = {}) {
   const inferredCustomFields =
     explicitCustomFields.length > 0 ? [] : inferCustomLoggingFields(exercise);
   const customFields = [...explicitCustomFields, ...inferredCustomFields];
+  const isTimedEnduranceExercise = Boolean(exercise?.endurancePrescription);
 
   if (strengthAssessment) {
     return {
@@ -1134,7 +1168,8 @@ function getSetLoggingConfig(exercise = {}) {
       strengthRequirements,
       showInputs: true,
       showLoad: true,
-      showReps: Boolean(strengthRequirements?.requiresReps),
+      showReps: true,
+      showTime: false,
       showRpe: Boolean(strengthRequirements?.requiresRpe),
       customFields,
     };
@@ -1148,6 +1183,7 @@ function getSetLoggingConfig(exercise = {}) {
       showInputs: true,
       showLoad: true,
       showReps: true,
+      showTime: false,
       showRpe: performanceTarget.strategy === "fixed_rpe",
       customFields,
     };
@@ -1157,9 +1193,10 @@ function getSetLoggingConfig(exercise = {}) {
     performanceTarget: null,
     strengthAssessment: null,
     strengthRequirements: null,
-    showInputs: false,
+    showInputs: true,
     showLoad: false,
-    showReps: false,
+    showReps: !isTimedEnduranceExercise,
+    showTime: isTimedEnduranceExercise,
     showRpe: false,
     customFields,
   };
@@ -1185,17 +1222,32 @@ function ExerciseSessionStep({
     showInputs,
     showLoad,
     showReps,
+    showTime,
     showRpe,
     customFields,
   } = getSetLoggingConfig(exercise);
-  const inputDraft = draft || {
+  const recommendedRepCount = getRecommendedRepCount(exercise, setIndex);
+  const inputDraft = {
     exerciseIndex,
     setIndex,
     loadKg: "",
-    reps: "",
+    durationMinutes: "",
     rpe: "",
     customValues: {},
+    ...(draft || {}),
+    reps:
+      draft?.reps != null && draft.reps !== ""
+        ? draft.reps
+        : String(recommendedRepCount),
   };
+  if (
+    showTime &&
+    (!draft?.durationMinutes && exercise?.endurancePrescription?.durationMinutes)
+  ) {
+    inputDraft.durationMinutes = String(
+      exercise.endurancePrescription.durationMinutes
+    );
+  }
   const exercisePrescription = getExercisePrescriptionDisplay(exercise);
   const exerciseRecommendation = getExerciseRecommendationDisplay(
     exercise,
@@ -1206,19 +1258,22 @@ function ExerciseSessionStep({
     setIndex,
     strengthReferenceOneRepMaxByLift
   );
-  const performanceTargetRpe = performanceTarget?.targetRpe
-    ? `RPE ${performanceTarget.targetRpe}`
+  const displayedTargetRpe = performanceTarget?.targetRpe || parseRpeFromText(exercise?.notes);
+  const performanceTargetRpe = displayedTargetRpe
+    ? `RPE ${displayedTargetRpe}`
     : "";
+  const exerciseRecommendationDetails = String(exerciseRecommendation.details || "")
+    .split(/\s*\*\s*/)
+    .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
   const endurancePrescription = exercise?.endurancePrescription || {};
   const exerciseRecommendationMetrics = Array.from(
     new Set(
       [
         exercisePrescription,
         exerciseRecommendation.primary,
-        ...String(exerciseRecommendation.details || "").split(/\s*\*\s*/),
+        ...exerciseRecommendationDetails,
         performanceTargetRpe,
         endurancePrescription.work,
-        endurancePrescription.intensity,
         endurancePrescription.durationMinutes
           ? `${endurancePrescription.durationMinutes} min total`
           : "",
@@ -1258,30 +1313,33 @@ function ExerciseSessionStep({
         </IBMPlexText>
       ) : null}
 
-      {showInputs || customFields.length > 0 ? (
-        <ActiveSessionSetLoggingInputPanel
-          exerciseIndex={exerciseIndex}
-          setIndex={setIndex}
-          draft={inputDraft}
-          showLoad={showLoad}
-          showReps={showReps}
-          showRpe={showRpe}
-          strengthAssessment={strengthAssessment}
-          strengthRequirements={strengthRequirements}
-          customFields={customFields}
-          recommendedLoadKg={recommendedLoadKg}
-          onDraftChange={onDraftChange}
-        />
-      ) : null}
+      <View style={styles.bottomControls}>
+        {showInputs || customFields.length > 0 ? (
+          <ActiveSessionSetLoggingInputPanel
+            exerciseIndex={exerciseIndex}
+            setIndex={setIndex}
+            draft={inputDraft}
+            showLoad={showLoad}
+            showReps={showReps}
+            showTime={showTime}
+            showRpe={showRpe}
+            strengthAssessment={strengthAssessment}
+            strengthRequirements={strengthRequirements}
+            customFields={customFields}
+            recommendedLoadKg={recommendedLoadKg}
+            onDraftChange={onDraftChange}
+          />
+        ) : null}
 
-      <View style={styles.footerActions}>
-        <View style={styles.navigationRow}>
-          <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-            <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip</IBMPlexText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
-            <IBMPlexText defaultWhite style={styles.nextButtonText}>Finish set</IBMPlexText>
-          </TouchableOpacity>
+        <View style={styles.footerActions}>
+          <View style={styles.navigationRow}>
+            <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+              <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip</IBMPlexText>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
+              <IBMPlexText defaultWhite style={styles.nextButtonText}>Finish set</IBMPlexText>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -1615,7 +1673,7 @@ export default function ActiveSessionView({
       const nextStep = sessionSteps[nextExerciseStepIndex];
       setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
       setDisplayedCompletedExerciseCount(nextStep.exerciseIndex);
-      scheduleSessionStep(nextExerciseStepIndex, {
+      goToSessionStep(nextExerciseStepIndex, {
         showIntro: nextStep?.section !== activeStep.section,
       });
       return;
@@ -1623,7 +1681,7 @@ export default function ActiveSessionView({
 
     setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
     setDisplayedCompletedExerciseCount(normalizedExercises.length);
-    scheduleSessionComplete();
+    setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
   }
 
   function handleContinueIntro() {
@@ -1707,7 +1765,7 @@ export default function ActiveSessionView({
             />
           ) : showExerciseStep ? (
             <ExerciseSessionStep
-              key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
+              key={`${activeExercise.name}-${activeStep.exerciseIndex}`}
               exercise={activeExercise}
               exerciseIndex={activeStep.exerciseIndex}
               setIndex={activeStep.setIndex}
@@ -1958,8 +2016,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     textAlign: "center",
   },
-  footerActions: {
+  bottomControls: {
     marginTop: "auto",
+    gap: 8,
+  },
+  footerActions: {
     gap: 8,
     alignItems: "center",
   },

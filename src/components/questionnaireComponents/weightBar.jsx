@@ -1,7 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import Svg, {
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Rect,
+  Stop,
+} from "react-native-svg";
 
 import StandardText from "../textComponents/IBMPlexText.jsx";
+import { fonts } from "../../theme/colors.js";
 
 const TICK_SPACING = 10;
 const MAJOR_TICK_INTERVAL = 5;
@@ -40,12 +52,23 @@ export default function WeightScroller({
   scrollStyle,
   scrollContainerStyle,
   compact = false,
+  editableValue = false,
+  emitInitialValue = true,
+  animateValueChanges = false,
+  valueChangeKey,
+  edgeFade = false,
+  edgeFadeColor = "#0F0F0F",
+  edgeFadeWidth = 32,
   onChange,
 }) {
   const scrollRef = useRef(null);
   const didInitialScroll = useRef(false);
+  const previousValueChangeKey = useRef(valueChangeKey);
+  const isApplyingInitialValue = useRef(false);
+  const initialValueAnimationTimer = useRef(null);
   const lastOffset = useRef(0);
   const lastEmittedValue = useRef(null);
+  const isValueFocused = useRef(false);
   const [containerWidth, setContainerWidth] = useState(0);
 
   const precision = getPrecision(step);
@@ -53,6 +76,7 @@ export default function WeightScroller({
   const minValue = clamp(roundToStep(initialValue, step), min, max);
   const initialIndex = Math.round((minValue - min) / step);
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
+  const [inputValue, setInputValue] = useState(minValue.toFixed(precision));
 
   const indexToValue = useCallback(
     (index) => clamp(min + index * step, min, max),
@@ -71,15 +95,67 @@ export default function WeightScroller({
 
     const initialOffset = valueToOffset(minValue);
     didInitialScroll.current = true;
+    previousValueChangeKey.current = valueChangeKey;
     lastOffset.current = initialOffset;
-    lastEmittedValue.current = minValue;
-    onChange?.(minValue);
+    lastEmittedValue.current = emitInitialValue ? minValue : null;
+
+    if (emitInitialValue) {
+      onChange?.(minValue);
+    }
 
     scrollRef.current.scrollTo({
       x: initialOffset,
       animated: false,
     });
-  }, [containerWidth, minValue, onChange, valueToOffset]);
+  }, [containerWidth, emitInitialValue, minValue, onChange, valueChangeKey, valueToOffset]);
+
+  useEffect(() => {
+    if (
+      !didInitialScroll.current ||
+      previousValueChangeKey.current === valueChangeKey ||
+      !scrollRef.current
+    ) {
+      return;
+    }
+
+    previousValueChangeKey.current = valueChangeKey;
+
+    const nextIndex = Math.round((minValue - min) / step);
+    const nextOffset = valueToOffset(minValue);
+    lastOffset.current = nextOffset;
+    lastEmittedValue.current = null;
+    isApplyingInitialValue.current = animateValueChanges;
+
+    if (!animateValueChanges) {
+      setSelectedIndex(nextIndex);
+      setInputValue(minValue.toFixed(precision));
+    }
+
+    scrollRef.current.scrollTo({
+      x: nextOffset,
+      animated: animateValueChanges,
+    });
+
+    if (initialValueAnimationTimer.current) {
+      clearTimeout(initialValueAnimationTimer.current);
+    }
+
+    initialValueAnimationTimer.current = setTimeout(() => {
+      isApplyingInitialValue.current = false;
+      setSelectedIndex(nextIndex);
+      setInputValue(minValue.toFixed(precision));
+      initialValueAnimationTimer.current = null;
+    }, animateValueChanges ? 320 : 0);
+  }, [animateValueChanges, min, minValue, precision, step, valueChangeKey, valueToOffset]);
+
+  useEffect(
+    () => () => {
+      if (initialValueAnimationTimer.current) {
+        clearTimeout(initialValueAnimationTimer.current);
+      }
+    },
+    []
+  );
 
   const updateSelectedIndex = useCallback(
     (nextIndex) => {
@@ -90,6 +166,14 @@ export default function WeightScroller({
         previousIndex === clampedIndex ? previousIndex : clampedIndex
       );
 
+      if (!isValueFocused.current) {
+        setInputValue(nextValue.toFixed(precision));
+      }
+
+      if (isApplyingInitialValue.current) {
+        return;
+      }
+
       if (lastEmittedValue.current === nextValue) {
         return;
       }
@@ -97,7 +181,7 @@ export default function WeightScroller({
       lastEmittedValue.current = nextValue;
       onChange?.(nextValue);
     },
-    [indexToValue, onChange, totalTicks]
+    [indexToValue, onChange, precision, totalTicks]
   );
 
   const handleScroll = useCallback(
@@ -120,15 +204,98 @@ export default function WeightScroller({
     [totalTicks, updateSelectedIndex]
   );
 
-  return (
-    <View style={[styles.container, { height }, style]}>
-      <View style={[styles.valueRow, valueRowStyle]}>
-        <StandardText style={[styles.valueText, valueTextStyle]}>
-          {indexToValue(selectedIndex).toFixed(precision)}
+  const normalizedInputValue = inputValue.replace(/,/g, ".");
+  const hasValidInputFormat = /^\d{1,3}(?:\.\d)?$/.test(normalizedInputValue);
+  const parsedInputValue = Number.parseFloat(normalizedInputValue);
+  const inputError = !hasValidInputFormat
+    ? "Enter 1–3 digits with up to 1 decimal place."
+    : parsedInputValue < min || parsedInputValue > max
+      ? `Enter a value from ${min} to ${max}.`
+      : "";
+
+  function updateInputValue(value) {
+    const rawValue = String(value);
+    const normalizedValue = /^\d{4}$/.test(rawValue)
+      ? `${rawValue.slice(0, 3)}.${rawValue.slice(3)}`
+      : rawValue.replace(/,/g, ".");
+    const numericValue = Number.parseFloat(normalizedValue);
+
+    if (Number.isFinite(numericValue) && numericValue > max) {
+      setInputValue(max.toFixed(precision));
+      return;
+    }
+
+    setInputValue(normalizedValue);
+  }
+
+  function commitInputValue() {
+    isValueFocused.current = false;
+    if (inputError) {
+      return;
+    }
+
+    const nextValue = clamp(roundToStep(parsedInputValue, step), min, max);
+    const nextIndex = Math.round((nextValue - min) / step);
+    const nextOffset = nextIndex * TICK_SPACING;
+    setInputValue(nextValue.toFixed(precision));
+    updateSelectedIndex(nextIndex);
+    lastOffset.current = nextOffset;
+    scrollRef.current?.scrollTo({ x: nextOffset, animated: true });
+  }
+
+  const selectedValueContent = (
+    <>
+      <View style={styles.valueSlot}>
+        <StandardText
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[styles.valueText, valueTextStyle, styles.valueSizer]}
+        >
+          {max.toFixed(precision)}
         </StandardText>
+        {editableValue ? (
+          <TextInput
+            accessibilityHint="Enter a weight or swipe the scale below"
+            accessibilityLabel={`Weight in ${unit}`}
+            cursorColor="#ffffff"
+            keyboardType="decimal-pad"
+            maxLength={5}
+            onBlur={commitInputValue}
+            onChangeText={updateInputValue}
+            onFocus={() => {
+              isValueFocused.current = true;
+            }}
+            onSubmitEditing={commitInputValue}
+            returnKeyType="done"
+            selectTextOnFocus
+            selectionColor="rgba(201, 178, 89, 0.38)"
+            style={[styles.valueText, valueTextStyle, styles.valueInput]}
+            underlineColorAndroid="transparent"
+            value={inputValue}
+          />
+        ) : (
+          <StandardText style={[styles.valueText, valueTextStyle, styles.valueDisplay]}>
+            {indexToValue(selectedIndex).toFixed(precision)}
+          </StandardText>
+        )}
+      </View>
         <StandardText style={[styles.unitText, unitTextStyle]}>
           {unit}
         </StandardText>
+    </>
+  );
+
+  return (
+    <View style={[styles.container, { height }, style]}>
+      <View style={styles.valueEditorArea}>
+        <View style={[styles.valueRow, valueRowStyle]}>
+          {selectedValueContent}
+        </View>
+        {editableValue && inputError ? (
+          <View style={styles.inputErrorDropdown}>
+            <StandardText style={styles.inputErrorText}>{inputError}</StandardText>
+          </View>
+        ) : null}
       </View>
 
       <View
@@ -146,7 +313,7 @@ export default function WeightScroller({
           </View>
         ) : null}
 
-        <View style={scrollContainerStyle}>
+        <View style={[edgeFade ? styles.scrollViewport : null, scrollContainerStyle]}>
           <ScrollView
             ref={scrollRef}
             style={[compact ? styles.compactScroll : null, scrollStyle]}
@@ -166,7 +333,11 @@ export default function WeightScroller({
             <View style={[styles.ticksRow, compact ? styles.compactTicksRow : null]}>
               {Array.from({ length: totalTicks + 1 }, (_, index) => {
                 const tickValue = indexToValue(index);
-                const isMajorTick = index % MAJOR_TICK_INTERVAL === 0;
+                const isMajorTick =
+                  Math.abs(
+                    tickValue / MAJOR_TICK_INTERVAL -
+                      Math.round(tickValue / MAJOR_TICK_INTERVAL)
+                  ) < 0.000001;
 
                 return (
                   <View
@@ -205,6 +376,34 @@ export default function WeightScroller({
               })}
             </View>
           </ScrollView>
+          {edgeFade ? (
+            <>
+              <Svg
+                pointerEvents="none"
+                style={[styles.edgeFade, styles.edgeFadeLeft, { width: edgeFadeWidth }]}
+              >
+                <Defs>
+                  <SvgLinearGradient id="weight-fade-left" x1="0" y1="0" x2="1" y2="0">
+                    <Stop offset="0" stopColor={edgeFadeColor} stopOpacity="1" />
+                    <Stop offset="1" stopColor={edgeFadeColor} stopOpacity="0" />
+                  </SvgLinearGradient>
+                </Defs>
+                <Rect width="100%" height="100%" fill="url(#weight-fade-left)" />
+              </Svg>
+              <Svg
+                pointerEvents="none"
+                style={[styles.edgeFade, styles.edgeFadeRight, { width: edgeFadeWidth }]}
+              >
+                <Defs>
+                  <SvgLinearGradient id="weight-fade-right" x1="0" y1="0" x2="1" y2="0">
+                    <Stop offset="0" stopColor={edgeFadeColor} stopOpacity="0" />
+                    <Stop offset="1" stopColor={edgeFadeColor} stopOpacity="1" />
+                  </SvgLinearGradient>
+                </Defs>
+                <Rect width="100%" height="100%" fill="url(#weight-fade-right)" />
+              </Svg>
+            </>
+          ) : null}
         </View>
       </View>
     </View>
@@ -216,17 +415,58 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: "center",
   },
+  valueEditorArea: {
+    alignItems: "center",
+    position: "relative",
+    zIndex: 4,
+  },
   valueRow: {
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "center",
     gap: 4,
   },
+  inputErrorDropdown: {
+    backgroundColor: "#141414",
+    borderColor: "#1E1E1E",
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    position: "absolute",
+    top: "100%",
+    width: 210,
+  },
+  inputErrorText: {
+    color: "#c7c7c7",
+    fontSize: 10,
+    lineHeight: 13,
+    textAlign: "center",
+  },
   valueText: {
     fontSize: 32,
     lineHeight: 32,
     includeFontPadding: false,
     color: "#fff",
+  },
+  valueSlot: {
+    position: "relative",
+  },
+  valueSizer: {
+    opacity: 0,
+  },
+  valueDisplay: {
+    ...StyleSheet.absoluteFillObject,
+    textAlign: "center",
+  },
+  valueInput: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+    fontFamily: fonts.body,
+    fontWeight: "400",
+    padding: 0,
+    textAlign: "center",
   },
   unitText: {
     fontSize: 18,
@@ -266,6 +506,21 @@ const styles = StyleSheet.create({
   },
   compactScroll: {
     height: "100%",
+  },
+  scrollViewport: {
+    position: "relative",
+  },
+  edgeFade: {
+    bottom: 0,
+    position: "absolute",
+    top: 0,
+    zIndex: 2,
+  },
+  edgeFadeLeft: {
+    left: 0,
+  },
+  edgeFadeRight: {
+    right: 0,
   },
   compactScrollContent: {
     height: "100%",

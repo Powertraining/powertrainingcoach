@@ -118,7 +118,7 @@ function sortPerformanceEntries(left = {}, right = {}) {
     (parseExerciseIndex(right.setIndex) || 0);
 }
 
-function parseRpeFromText(value = "") {
+export function parseRpeFromText(value = "") {
   const normalizedValue = normalizeString(value);
   const match = normalizedValue.match(/RPE\s*(\d+(?:\.\d+)?)(?:\s*[–-]\s*(\d+(?:\.\d+)?))?/i);
 
