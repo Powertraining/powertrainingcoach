@@ -1274,7 +1274,6 @@ function ExerciseSessionStep({
         ...exerciseRecommendationDetails,
         performanceTargetRpe,
         endurancePrescription.work,
-        endurancePrescription.intensity,
         endurancePrescription.durationMinutes
           ? `${endurancePrescription.durationMinutes} min total`
           : "",
@@ -1674,7 +1673,7 @@ export default function ActiveSessionView({
       const nextStep = sessionSteps[nextExerciseStepIndex];
       setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
       setDisplayedCompletedExerciseCount(nextStep.exerciseIndex);
-      scheduleSessionStep(nextExerciseStepIndex, {
+      goToSessionStep(nextExerciseStepIndex, {
         showIntro: nextStep?.section !== activeStep.section,
       });
       return;
@@ -1682,7 +1681,7 @@ export default function ActiveSessionView({
 
     setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
     setDisplayedCompletedExerciseCount(normalizedExercises.length);
-    scheduleSessionComplete();
+    setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
   }
 
   function handleContinueIntro() {
