@@ -33,6 +33,7 @@ import {
   resolveStrengthAssessmentReferenceOneRepMaxKg,
 } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
+import { parseRpeFromText } from "../services/utils/trainingPerformance.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
@@ -563,6 +564,27 @@ function getRecommendedLoadKg(
   return explicitKgMatch
     ? Number.parseFloat(explicitKgMatch[1].replace(",", "."))
     : null;
+}
+
+function getRecommendedRepCount(exercise = {}, setIndex = 0) {
+  const percentagePrescription = getExercisePercentagePrescription(exercise);
+  const workingSets = Array.isArray(percentagePrescription?.workingSets)
+    ? percentagePrescription.workingSets.flatMap((workingSet) =>
+        Array.from(
+          { length: Math.max(1, Number.parseInt(workingSet?.count, 10) || 1) },
+          () => workingSet
+        )
+      )
+    : [];
+  const prescribedSet = workingSets[setIndex];
+  const prescribedSetReps = Number.parseInt(prescribedSet?.reps, 10);
+
+  if (Number.isFinite(prescribedSetReps) && prescribedSetReps >= 0) {
+    return prescribedSetReps;
+  }
+
+  const exerciseReps = Number.parseInt(String(exercise?.reps || ""), 10);
+  return Number.isFinite(exerciseReps) && exerciseReps >= 0 ? exerciseReps : 0;
 }
 
 function getExerciseLoggingFieldSource(exercise = {}) {
@@ -1134,7 +1156,7 @@ function getSetLoggingConfig(exercise = {}) {
       strengthRequirements,
       showInputs: true,
       showLoad: true,
-      showReps: Boolean(strengthRequirements?.requiresReps),
+      showReps: true,
       showRpe: Boolean(strengthRequirements?.requiresRpe),
       customFields,
     };
@@ -1157,9 +1179,9 @@ function getSetLoggingConfig(exercise = {}) {
     performanceTarget: null,
     strengthAssessment: null,
     strengthRequirements: null,
-    showInputs: false,
+    showInputs: true,
     showLoad: false,
-    showReps: false,
+    showReps: true,
     showRpe: false,
     customFields,
   };
@@ -1188,13 +1210,18 @@ function ExerciseSessionStep({
     showRpe,
     customFields,
   } = getSetLoggingConfig(exercise);
-  const inputDraft = draft || {
+  const recommendedRepCount = getRecommendedRepCount(exercise, setIndex);
+  const inputDraft = {
     exerciseIndex,
     setIndex,
     loadKg: "",
-    reps: "",
     rpe: "",
     customValues: {},
+    ...(draft || {}),
+    reps:
+      draft?.reps != null && draft.reps !== ""
+        ? draft.reps
+        : String(recommendedRepCount),
   };
   const exercisePrescription = getExercisePrescriptionDisplay(exercise);
   const exerciseRecommendation = getExerciseRecommendationDisplay(
@@ -1206,16 +1233,20 @@ function ExerciseSessionStep({
     setIndex,
     strengthReferenceOneRepMaxByLift
   );
-  const performanceTargetRpe = performanceTarget?.targetRpe
-    ? `RPE ${performanceTarget.targetRpe}`
+  const displayedTargetRpe = performanceTarget?.targetRpe || parseRpeFromText(exercise?.notes);
+  const performanceTargetRpe = displayedTargetRpe
+    ? `RPE ${displayedTargetRpe}`
     : "";
+  const exerciseRecommendationDetails = String(exerciseRecommendation.details || "")
+    .split(/\s*\*\s*/)
+    .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
   const endurancePrescription = exercise?.endurancePrescription || {};
   const exerciseRecommendationMetrics = Array.from(
     new Set(
       [
         exercisePrescription,
         exerciseRecommendation.primary,
-        ...String(exerciseRecommendation.details || "").split(/\s*\*\s*/),
+        ...exerciseRecommendationDetails,
         performanceTargetRpe,
         endurancePrescription.work,
         endurancePrescription.intensity,
@@ -1258,30 +1289,32 @@ function ExerciseSessionStep({
         </IBMPlexText>
       ) : null}
 
-      {showInputs || customFields.length > 0 ? (
-        <ActiveSessionSetLoggingInputPanel
-          exerciseIndex={exerciseIndex}
-          setIndex={setIndex}
-          draft={inputDraft}
-          showLoad={showLoad}
-          showReps={showReps}
-          showRpe={showRpe}
-          strengthAssessment={strengthAssessment}
-          strengthRequirements={strengthRequirements}
-          customFields={customFields}
-          recommendedLoadKg={recommendedLoadKg}
-          onDraftChange={onDraftChange}
-        />
-      ) : null}
+      <View style={styles.bottomControls}>
+        {showInputs || customFields.length > 0 ? (
+          <ActiveSessionSetLoggingInputPanel
+            exerciseIndex={exerciseIndex}
+            setIndex={setIndex}
+            draft={inputDraft}
+            showLoad={showLoad}
+            showReps={showReps}
+            showRpe={showRpe}
+            strengthAssessment={strengthAssessment}
+            strengthRequirements={strengthRequirements}
+            customFields={customFields}
+            recommendedLoadKg={recommendedLoadKg}
+            onDraftChange={onDraftChange}
+          />
+        ) : null}
 
-      <View style={styles.footerActions}>
-        <View style={styles.navigationRow}>
-          <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-            <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip</IBMPlexText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
-            <IBMPlexText defaultWhite style={styles.nextButtonText}>Finish set</IBMPlexText>
-          </TouchableOpacity>
+        <View style={styles.footerActions}>
+          <View style={styles.navigationRow}>
+            <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+              <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip</IBMPlexText>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
+              <IBMPlexText defaultWhite style={styles.nextButtonText}>Finish set</IBMPlexText>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -1707,7 +1740,7 @@ export default function ActiveSessionView({
             />
           ) : showExerciseStep ? (
             <ExerciseSessionStep
-              key={`${activeExercise.name}-${activeStep.exerciseIndex}-${activeStep.setIndex}`}
+              key={`${activeExercise.name}-${activeStep.exerciseIndex}`}
               exercise={activeExercise}
               exerciseIndex={activeStep.exerciseIndex}
               setIndex={activeStep.setIndex}
@@ -1958,8 +1991,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     textAlign: "center",
   },
-  footerActions: {
+  bottomControls: {
     marginTop: "auto",
+    gap: 8,
+  },
+  footerActions: {
     gap: 8,
     alignItems: "center",
   },

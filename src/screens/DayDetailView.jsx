@@ -39,6 +39,7 @@ import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/perce
 import {
     buildMissedRepRecommendation,
     MISSED_REP_REASON_OPTIONS,
+    parseRpeFromText,
 } from "../services/utils/trainingPerformance.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 function buildTrackingDrafts(
@@ -757,6 +758,13 @@ function getExerciseRecommendationMetrics(exercise = {}, strengthReferenceOneRep
         strengthReferenceOneRepMaxByLift
     );
     const performanceTarget = getExercisePerformanceTarget(exercise);
+    const displayedTargetRpe = performanceTarget?.targetRpe || parseRpeFromText(exercise?.notes);
+    const targetRpeMetric = displayedTargetRpe
+        ? `RPE ${displayedTargetRpe}`
+        : "";
+    const recommendationDetails = String(recommendation.details || "")
+        .split(/\s*\*\s*/)
+        .filter((detail) => !targetRpeMetric || !/^RPE\b/i.test(detail));
     const endurancePrescription = exercise?.endurancePrescription || {};
     const exercisePrescription = Object.keys(endurancePrescription).length > 0
         ? ""
@@ -765,8 +773,8 @@ function getExerciseRecommendationMetrics(exercise = {}, strengthReferenceOneRep
     return Array.from(new Set([
         exercisePrescription,
         recommendation.primary,
-        ...String(recommendation.details || "").split(/\s*\*\s*/),
-        performanceTarget?.targetRpe ? `RPE ${performanceTarget.targetRpe}` : "",
+        ...recommendationDetails,
+        targetRpeMetric,
         endurancePrescription.work,
         endurancePrescription.intensity,
         endurancePrescription.durationMinutes

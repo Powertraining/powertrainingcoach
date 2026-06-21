@@ -54,6 +54,8 @@ export default function WeightScroller({
   compact = false,
   editableValue = false,
   emitInitialValue = true,
+  animateValueChanges = false,
+  valueChangeKey,
   edgeFade = false,
   edgeFadeColor = "#0F0F0F",
   edgeFadeWidth = 32,
@@ -61,6 +63,9 @@ export default function WeightScroller({
 }) {
   const scrollRef = useRef(null);
   const didInitialScroll = useRef(false);
+  const previousValueChangeKey = useRef(valueChangeKey);
+  const isApplyingInitialValue = useRef(false);
+  const initialValueAnimationTimer = useRef(null);
   const lastOffset = useRef(0);
   const lastEmittedValue = useRef(null);
   const isValueFocused = useRef(false);
@@ -90,6 +95,7 @@ export default function WeightScroller({
 
     const initialOffset = valueToOffset(minValue);
     didInitialScroll.current = true;
+    previousValueChangeKey.current = valueChangeKey;
     lastOffset.current = initialOffset;
     lastEmittedValue.current = emitInitialValue ? minValue : null;
 
@@ -101,7 +107,55 @@ export default function WeightScroller({
       x: initialOffset,
       animated: false,
     });
-  }, [containerWidth, emitInitialValue, minValue, onChange, valueToOffset]);
+  }, [containerWidth, emitInitialValue, minValue, onChange, valueChangeKey, valueToOffset]);
+
+  useEffect(() => {
+    if (
+      !didInitialScroll.current ||
+      previousValueChangeKey.current === valueChangeKey ||
+      !scrollRef.current
+    ) {
+      return;
+    }
+
+    previousValueChangeKey.current = valueChangeKey;
+
+    const nextIndex = Math.round((minValue - min) / step);
+    const nextOffset = valueToOffset(minValue);
+    lastOffset.current = nextOffset;
+    lastEmittedValue.current = null;
+    isApplyingInitialValue.current = animateValueChanges;
+
+    if (!animateValueChanges) {
+      setSelectedIndex(nextIndex);
+      setInputValue(minValue.toFixed(precision));
+    }
+
+    scrollRef.current.scrollTo({
+      x: nextOffset,
+      animated: animateValueChanges,
+    });
+
+    if (initialValueAnimationTimer.current) {
+      clearTimeout(initialValueAnimationTimer.current);
+    }
+
+    initialValueAnimationTimer.current = setTimeout(() => {
+      isApplyingInitialValue.current = false;
+      setSelectedIndex(nextIndex);
+      setInputValue(minValue.toFixed(precision));
+      initialValueAnimationTimer.current = null;
+    }, animateValueChanges ? 320 : 0);
+  }, [animateValueChanges, min, minValue, precision, step, valueChangeKey, valueToOffset]);
+
+  useEffect(
+    () => () => {
+      if (initialValueAnimationTimer.current) {
+        clearTimeout(initialValueAnimationTimer.current);
+      }
+    },
+    []
+  );
 
   const updateSelectedIndex = useCallback(
     (nextIndex) => {
@@ -114,6 +168,10 @@ export default function WeightScroller({
 
       if (!isValueFocused.current) {
         setInputValue(nextValue.toFixed(precision));
+      }
+
+      if (isApplyingInitialValue.current) {
+        return;
       }
 
       if (lastEmittedValue.current === nextValue) {

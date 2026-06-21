@@ -5,7 +5,14 @@ import {
   buildMissedRepRecommendation,
   createTrainingPerformanceEntry,
   normalizePerformanceTarget,
+  parseRpeFromText,
 } from "../src/services/utils/trainingPerformance.js";
+
+test("RPE note ranges resolve to one midpoint target", () => {
+  assert.equal(parseRpeFromText("Use a controlled load at RPE 7-8."), 7.5);
+  assert.equal(parseRpeFromText("Stop at RPE 8."), 8);
+  assert.equal(parseRpeFromText("No effort target."), null);
+});
 
 test("fixed-RPE performance entries preserve negative drift and comparable load", () => {
   const entry = createTrainingPerformanceEntry({

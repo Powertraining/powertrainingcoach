@@ -1358,7 +1358,13 @@ const styles = StyleSheet.create({
     width: "30%",
   },
   circuitFocusOptionSelected: {
-    borderColor: "#2D2D2D",
+    borderColor: "#C9B259",
+    elevation: 8,
+    shadowColor: "#C9B259",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    transform: [{ translateY: -7 }, { scale: 1.025 }],
   },
   circuitFocusOptionDimmed: {
     backgroundColor: "#0B0B0B",

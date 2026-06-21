@@ -41,7 +41,6 @@ function LoadScrollerField({
       : 0;
   return (
     <WeightScroller
-      key={`${exerciseIndex}-${setIndex}`}
       min={0}
       max={300}
       step={0.5}
@@ -60,6 +59,8 @@ function LoadScrollerField({
       edgeFade
       editableValue
       emitInitialValue={false}
+      animateValueChanges
+      valueChangeKey={`${exerciseIndex}:${setIndex}`}
       onChange={(value) => onChange(String(value))}
     />
   );
@@ -185,7 +186,13 @@ export default function ActiveSessionSetLoggingInputPanel(props) {
         }
 
         if (field.id === "reps") {
-          return <RepCountSelector value={field.value} onChange={onChange} />;
+          return (
+            <RepCountSelector
+              value={field.value}
+              valueChangeKey={`${props.exerciseIndex}:${props.setIndex}`}
+              onChange={onChange}
+            />
+          );
         }
 
         if (field.id !== "loadKg") {
