@@ -74,3 +74,12 @@ test("normalizeTrainingPreferences builds endurance ruleset settings", () => {
   );
   assert.equal(normalizedPreferences.enduranceTraining.sprinting.target, "repeat_bursts");
 });
+
+test("normalizeTrainingPreferences caps endurance sessions at five per week", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    enduranceSessionsPerWeek: 7,
+  });
+
+  assert.equal(normalizedPreferences.enduranceSessionsPerWeek, 5);
+  assert.equal(normalizedPreferences.enduranceTraining.sessionsPerWeek, 5);
+});

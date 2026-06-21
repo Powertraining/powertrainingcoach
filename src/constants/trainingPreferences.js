@@ -451,7 +451,7 @@ function normalizeEnduranceSessionCount(value) {
     return TRAINING_PREFERENCES_DEFAULTS.enduranceSessionsPerWeek;
   }
 
-  return Math.min(7, Math.max(1, parsedValue));
+  return Math.min(5, Math.max(1, parsedValue));
 }
 
 function classifyCircuitTrainingGoal(goalInput = "") {
