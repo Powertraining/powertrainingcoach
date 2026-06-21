@@ -36,6 +36,8 @@ export default function SetLoggingInputPanel({
   showFieldSeparators = false,
   formatLabel,
   anchorStyle,
+  contentHorizontalInset = 14,
+  expansionHorizontalOffset = SESSION_HORIZONTAL_PADDING,
 }) {
   const focusedScrollTargetKeyRef = useRef(null);
   const inputFieldLayoutsRef = useRef({});
@@ -164,18 +166,24 @@ export default function SetLoggingInputPanel({
     }),
     marginHorizontal: inputPanelExpansion.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, -SESSION_HORIZONTAL_PADDING],
+      outputRange: [0, -expansionHorizontalOffset],
     }),
     paddingHorizontal: inputPanelExpansion.interpolate({
       inputRange: [0, 1],
-      outputRange: [14, SESSION_HORIZONTAL_PADDING + 14],
+      outputRange: [
+        contentHorizontalInset,
+        expansionHorizontalOffset + contentHorizontalInset,
+      ],
     }),
   };
   const edgeToEdgeRowStyle = showFieldSeparators
     ? {
         marginHorizontal: inputPanelExpansion.interpolate({
           inputRange: [0, 1],
-          outputRange: [-14, -(SESSION_HORIZONTAL_PADDING + 14)],
+          outputRange: [
+            -contentHorizontalInset,
+            -(expansionHorizontalOffset + contentHorizontalInset),
+          ],
         }),
       }
     : null;
@@ -183,7 +191,10 @@ export default function SetLoggingInputPanel({
     ? {
         paddingHorizontal: inputPanelExpansion.interpolate({
           inputRange: [0, 1],
-          outputRange: [14, SESSION_HORIZONTAL_PADDING + 14],
+          outputRange: [
+            contentHorizontalInset,
+            expansionHorizontalOffset + contentHorizontalInset,
+          ],
         }),
       }
     : null;
