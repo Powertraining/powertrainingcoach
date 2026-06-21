@@ -22,6 +22,7 @@ export default function SetLoggingInputPanel({
   draft,
   showLoad,
   showReps,
+  showTime,
   showRpe,
   strengthAssessment,
   strengthRequirements,
@@ -50,6 +51,7 @@ export default function SetLoggingInputPanel({
   const defaultInputKeys = [
     showLoad ? "loadKg" : null,
     showReps ? "reps" : null,
+    showTime ? "durationMinutes" : null,
     showRpe ? "rpe" : null,
     ...customFields.map((field) => field.id),
   ].filter(Boolean);
@@ -214,6 +216,13 @@ export default function SetLoggingInputPanel({
       keyboardType: "number-pad",
       placeholder:
         strengthRequirements?.repsPlaceholder || (strengthAssessment ? "2-5" : "e.g. 8"),
+    },
+    showTime && {
+      id: "durationMinutes",
+      label: "Time completed",
+      value: draft.durationMinutes,
+      keyboardType: "number-pad",
+      placeholder: "e.g. 15 min",
     },
     showRpe && {
       id: "rpe",

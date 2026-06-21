@@ -729,6 +729,8 @@ function buildTrackingDrafts(
       setIndex,
       loadKg: result?.loadKg != null ? String(result.loadKg) : "",
       reps: result?.reps != null ? String(result.reps) : "",
+      durationMinutes:
+        result?.durationMinutes != null ? String(result.durationMinutes) : "",
       rpe: result?.rpe != null ? String(result.rpe) : "",
       customValues:
         result?.customValues && typeof result.customValues === "object"
@@ -749,6 +751,7 @@ function buildTrackingDrafts(
           setIndex,
           loadKg: "",
           reps: "",
+          durationMinutes: "",
           rpe: "",
           customValues: {},
         };
@@ -764,6 +767,7 @@ function getTrackedResultsFromDrafts(drafts = {}) {
     .filter((draft) =>
       draft?.loadKg ||
       draft?.reps ||
+      draft?.durationMinutes ||
       draft?.rpe ||
       Object.values(draft?.customValues || {}).some(Boolean)
     )
@@ -967,6 +971,9 @@ function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex 
   const averageReps = getAverageTrackedValue(
     drafts.map((draft) => draft.reps)
   );
+  const averageDurationMinutes = getAverageTrackedValue(
+    drafts.map((draft) => draft.durationMinutes)
+  );
   const averageRpe = getAverageTrackedValue(
     drafts.map((draft) => draft.rpe)
   );
@@ -982,6 +989,10 @@ function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex 
 
   if (averageReps) {
     parts.push(`${averageReps} reps`);
+  }
+
+  if (averageDurationMinutes) {
+    parts.push(`${averageDurationMinutes} min`);
   }
 
   if (averageRpe) {
@@ -1148,6 +1159,7 @@ function getSetLoggingConfig(exercise = {}) {
   const inferredCustomFields =
     explicitCustomFields.length > 0 ? [] : inferCustomLoggingFields(exercise);
   const customFields = [...explicitCustomFields, ...inferredCustomFields];
+  const isTimedEnduranceExercise = Boolean(exercise?.endurancePrescription);
 
   if (strengthAssessment) {
     return {
@@ -1157,6 +1169,7 @@ function getSetLoggingConfig(exercise = {}) {
       showInputs: true,
       showLoad: true,
       showReps: true,
+      showTime: false,
       showRpe: Boolean(strengthRequirements?.requiresRpe),
       customFields,
     };
@@ -1170,6 +1183,7 @@ function getSetLoggingConfig(exercise = {}) {
       showInputs: true,
       showLoad: true,
       showReps: true,
+      showTime: false,
       showRpe: performanceTarget.strategy === "fixed_rpe",
       customFields,
     };
@@ -1181,7 +1195,8 @@ function getSetLoggingConfig(exercise = {}) {
     strengthRequirements: null,
     showInputs: true,
     showLoad: false,
-    showReps: true,
+    showReps: !isTimedEnduranceExercise,
+    showTime: isTimedEnduranceExercise,
     showRpe: false,
     customFields,
   };
@@ -1207,6 +1222,7 @@ function ExerciseSessionStep({
     showInputs,
     showLoad,
     showReps,
+    showTime,
     showRpe,
     customFields,
   } = getSetLoggingConfig(exercise);
@@ -1215,6 +1231,7 @@ function ExerciseSessionStep({
     exerciseIndex,
     setIndex,
     loadKg: "",
+    durationMinutes: "",
     rpe: "",
     customValues: {},
     ...(draft || {}),
@@ -1223,6 +1240,14 @@ function ExerciseSessionStep({
         ? draft.reps
         : String(recommendedRepCount),
   };
+  if (
+    showTime &&
+    (!draft?.durationMinutes && exercise?.endurancePrescription?.durationMinutes)
+  ) {
+    inputDraft.durationMinutes = String(
+      exercise.endurancePrescription.durationMinutes
+    );
+  }
   const exercisePrescription = getExercisePrescriptionDisplay(exercise);
   const exerciseRecommendation = getExerciseRecommendationDisplay(
     exercise,
@@ -1297,6 +1322,7 @@ function ExerciseSessionStep({
             draft={inputDraft}
             showLoad={showLoad}
             showReps={showReps}
+            showTime={showTime}
             showRpe={showRpe}
             strengthAssessment={strengthAssessment}
             strengthRequirements={strengthRequirements}

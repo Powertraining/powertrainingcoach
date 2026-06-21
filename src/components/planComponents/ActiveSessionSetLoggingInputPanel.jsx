@@ -10,6 +10,7 @@ import DefaultSetLoggingInputPanel from "./DefaultSetLoggingInputPanel.jsx";
 import WeightScroller from "../questionnaireComponents/weightBar.jsx";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 import RepCountSelector from "./RepCountSelector.jsx";
+import TimeDurationSelector from "./TimeDurationSelector.jsx";
 
 const RPE_OPTIONS = Object.freeze([
   5,
@@ -169,7 +170,7 @@ export default function ActiveSessionSetLoggingInputPanel(props) {
   return (
     <DefaultSetLoggingInputPanel
       {...props}
-      fieldOrder={["loadKg", "rpe", "reps"]}
+      fieldOrder={["loadKg", "rpe", "reps", "durationMinutes"]}
       rowStyle={styles.inputRow}
       anchorStyle={styles.inputPanelAnchor}
       panelStyle={styles.inputPanel}
@@ -190,6 +191,15 @@ export default function ActiveSessionSetLoggingInputPanel(props) {
             <RepCountSelector
               value={field.value}
               valueChangeKey={`${props.exerciseIndex}:${props.setIndex}`}
+              onChange={onChange}
+            />
+          );
+        }
+
+        if (field.id === "durationMinutes") {
+          return (
+            <TimeDurationSelector
+              value={field.value}
               onChange={onChange}
             />
           );
