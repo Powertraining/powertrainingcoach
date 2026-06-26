@@ -51,9 +51,9 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   // ARCHIVED: rpe_based_1rm (RPE-based 1RM estimation) — do not restore without updating the prompt instructions.
   rm_attempts: `# Strength-reference rules
 - Percentage-based plans must respect percentageReferenceMethod. Only multi_rm and true_1rm are active; rpe_based_1rm is archived — never prescribe it.
-- Testing week: if blockStartWeek is 1 (first block of the parent cycle), dedicate Week 1 to strength assessment. Place one test set per primary lift spread across the week's sessions — never stack two test lifts in the same session.
-- Make the testing week visible to the athlete: set each test day's sessionLabel to something like "Assessment – Back Squat" and include a plain-language note in the exercise that this session establishes the baseline for future percentage work. The plan summary must also mention that Week 1 is a strength assessment week before the main program begins.
-- For test exercises, describe only a warm-up progression and the top set in the "notes" field. Do not list numbered working sets (e.g. Set 1, Set 2, Set 3, Set 4) for a testing session — the session is a ramp to one top set.
+- Missing Program Max: if a required primary lift has no Program Max in the user input, do not block the program or dedicate any session to establishing one. Prescribe RPE-based loading for that lift only (no percentagePrescription). Use RPE 7–8 at 3–6 reps so the app can estimate a Program Max from the logged data. Start normal training immediately.
+- Known Program Max: if a Program Max is available for a primary lift, use percentage-based loading from the very first week with no preamble or assessment session.
+- Only main primary lifts (back squat, front squat, bench press, deadlift, overhead press, and similar) need a Program Max. Accessories, isolation exercises, plyos, throws, and conditioning never require one.
 - multi_rm: prescribe a hard top set of 2–5 reps @RPE 9–10. Schedule every 4–6 weeks in off-season or early/mid camp. Block in the final 5 weeks before competition.
 - true_1rm: rare; only for intermediate/advanced athletes confirmed to be in an off-season or general strength phase; never within 8 weeks of competition; max one true 1RM test per week across all lifts.
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,

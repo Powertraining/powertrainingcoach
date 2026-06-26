@@ -51,3 +51,6 @@ yarn-error.*
 
 # AI
 .codex
+
+#Testing
+test/trainingPlans/*
