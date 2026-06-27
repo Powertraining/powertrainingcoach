@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   ENDURANCE_MODALITY_OPTIONS,
+  getTrainingPreferencesFormState,
   normalizeTrainingPreferences,
 } from "../src/constants/trainingPreferences.js";
 
@@ -73,4 +74,64 @@ test("normalizeTrainingPreferences builds endurance ruleset settings", () => {
     "repeated_burst_bag_work"
   );
   assert.equal(normalizedPreferences.enduranceTraining.sprinting.target, "repeat_bursts");
+});
+
+test("wrestling questionnaires remove heavy bag capability and endurance choices", () => {
+  const source = {
+    primaryCombatSport: "Wrestling",
+    desiredTraining: "strength_power_endurance",
+    preferredEnduranceModalities: ["heavy_bag", "assault_bike"],
+    heavyBagEnduranceTarget: "repeated_burst_bag_work",
+    trainingCapabilities: { heavyBag: "yes" },
+  };
+  const formState = getTrainingPreferencesFormState(source);
+  const normalizedPreferences = normalizeTrainingPreferences(source);
+
+  assert.deepEqual(formState.preferredEnduranceModalities, ["assault_bike"]);
+  assert.equal(formState.trainingCapabilities.heavyBag, "no");
+  assert.equal(formState.heavyBagEnduranceTarget, "");
+  assert.deepEqual(normalizedPreferences.preferredEnduranceModalities, [
+    "assault_bike",
+  ]);
+  assert.equal(normalizedPreferences.enduranceTraining.heavyBag.target, "");
+});
+
+test("striking questionnaires retain heavy bag choices", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    primaryCombatSport: "Boxing",
+    desiredTraining: "endurance",
+    preferredEnduranceModalities: ["heavy_bag"],
+    trainingCapabilities: { heavyBag: "yes" },
+  });
+
+  assert.deepEqual(normalizedPreferences.preferredEnduranceModalities, [
+    "heavy_bag",
+  ]);
+  assert.equal(normalizedPreferences.trainingCapabilities.heavyBag, "yes");
+});
+
+test("normalizeTrainingPreferences caps endurance sessions at five per week", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    enduranceSessionsPerWeek: 7,
+  });
+
+  assert.equal(normalizedPreferences.enduranceSessionsPerWeek, 5);
+  assert.equal(normalizedPreferences.enduranceTraining.sessionsPerWeek, 5);
+});
+
+test("circuit training focus remains empty when the user clears it", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "strength_power_endurance",
+    preferredEnduranceModalities: ["circuit_training"],
+    circuitTrainingGoalInput: "",
+    circuitTrainingPrimaryPriority: "",
+    circuitTrainingSecondaryPriorities: [],
+  });
+
+  assert.equal(normalizedPreferences.circuitTrainingPrimaryPriority, "");
+  assert.deepEqual(normalizedPreferences.circuitTrainingSecondaryPriorities, []);
+  assert.equal(
+    normalizedPreferences.enduranceTraining.circuitTraining.primaryPriority,
+    ""
+  );
 });

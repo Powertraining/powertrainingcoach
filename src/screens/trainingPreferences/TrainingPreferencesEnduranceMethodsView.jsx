@@ -151,6 +151,7 @@ function EnduranceMethodOption({
 
 export default function TrainingPreferencesEnduranceMethodsView({
   value = [],
+  allowHeavyBag = true,
   onChange,
   onInfoVisibilityChange,
 }) {
@@ -238,7 +239,9 @@ export default function TrainingPreferencesEnduranceMethodsView({
         </View>
 
         <View style={styles.grid}>
-          {ENDURANCE_MODALITY_OPTIONS.map((option) => {
+          {ENDURANCE_MODALITY_OPTIONS.filter(
+            (option) => option.value !== "heavy_bag" || allowHeavyBag
+          ).map((option) => {
             const isSelected = selectedValues.includes(option.value);
             const iconName = ENDURANCE_METHOD_ICONS[option.value] || "timer";
 

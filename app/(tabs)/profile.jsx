@@ -263,6 +263,54 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     );
   }
 
+  async function regeneratePlanACB(feedback = "", scope = "from_start") {
+    setError(null);
+    setPasswordResetMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      if (model.isOnFreeTrial?.()) {
+        throw new Error("Plan regeneration is not available during the free trial.");
+      }
+
+      const nextQuestionnaire = mergeTrainingPreferences(model.questionnaire, {
+        ...trainingPreferences,
+        daysPerWeek: sessionsPerWeek,
+        primaryCombatSport,
+        sessionsPerWeek,
+      });
+
+      model.primaryCombatSport = primaryCombatSport;
+      model.sessionsPerWeek = sessionsPerWeek;
+      model.setQuestionnaire?.(nextQuestionnaire);
+
+      await model.generateTrainingPlan(
+        {
+          ...model.buildTrainingPlanInput(nextQuestionnaire),
+          regenerationFeedback: String(feedback).trim().slice(0, 2000),
+          regenerationScope: scope === "from_now" ? "from_now" : "from_start",
+        },
+        {
+          regeneration: true,
+          regenerationScope: scope === "from_now" ? "from_now" : "from_start",
+        }
+      );
+
+      setTrainingPreferences(
+        getSyncedTrainingPreferences(nextQuestionnaire, sessionsPerWeek)
+      );
+      model.showSuccess?.("Training plan regenerated.");
+      return true;
+    } catch (e) {
+      const message = e.message || "Could not regenerate your training plan.";
+      setError(message);
+      model.showError?.(e, "Could not regenerate your training plan.");
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   function changeSubscriptionACB() {
     router.push({
       pathname: "/(tabs)/subscription",
@@ -406,6 +454,8 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         combatSportOptions={PRIMARY_COMBAT_SPORT_OPTIONS}
         primaryCombatSport={primaryCombatSport}
         sessionsPerWeek={sessionsPerWeek}
+        planRegenerationsRemaining={model.getPlanRegenerationsRemaining?.() ?? 3}
+        canRegeneratePlan={!model.isOnFreeTrial?.()}
         onUsernameChange={setUsername}
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
@@ -414,6 +464,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}
         onSessionsPerWeekChange={changeSessionsPerWeekACB}
+        onRegeneratePlan={regeneratePlanACB}
         onClearEventPreparation={clearEventPreparationACB}
         onSave={saveACB}
         onCancel={cancelACB}

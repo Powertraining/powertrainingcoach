@@ -52,3 +52,7 @@ yarn-error.*
 
 # AI
 .codex
+CLAUDE.md
+
+#Testing
+test/trainingPlans/*

@@ -51,9 +51,9 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   // ARCHIVED: rpe_based_1rm (RPE-based 1RM estimation) — do not restore without updating the prompt instructions.
   rm_attempts: `# Strength-reference rules
 - Percentage-based plans must respect percentageReferenceMethod. Only multi_rm and true_1rm are active; rpe_based_1rm is archived — never prescribe it.
-- Testing week: if blockStartWeek is 1 (first block of the parent cycle), dedicate Week 1 to strength assessment. Place one test set per primary lift spread across the week's sessions — never stack two test lifts in the same session.
-- Make the testing week visible to the athlete: set each test day's sessionLabel to something like "Assessment – Back Squat" and include a plain-language note in the exercise that this session establishes the baseline for future percentage work. The plan summary must also mention that Week 1 is a strength assessment week before the main program begins.
-- For test exercises, describe only a warm-up progression and the top set in the "notes" field. Do not list numbered working sets (e.g. Set 1, Set 2, Set 3, Set 4) for a testing session — the session is a ramp to one top set.
+- Missing Program Max: if a required primary lift has no Program Max in the user input, do not block the program or dedicate any session to establishing one. Prescribe RPE-based loading for that lift only (no percentagePrescription). Use RPE 7–8 at 3–6 reps so the app can estimate a Program Max from the logged data. Start normal training immediately.
+- Known Program Max: if a Program Max is available for a primary lift, use percentage-based loading from the very first week with no preamble or assessment session.
+- Only main primary lifts (back squat, front squat, bench press, deadlift, overhead press, and similar) need a Program Max. Accessories, isolation exercises, plyos, throws, and conditioning never require one.
 - multi_rm: prescribe a hard top set of 2–5 reps @RPE 9–10. Schedule every 4–6 weeks in off-season or early/mid camp. Block in the final 5 weeks before competition.
 - true_1rm: rare; only for intermediate/advanced athletes confirmed to be in an off-season or general strength phase; never within 8 weeks of competition; max one true 1RM test per week across all lifts.
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,
@@ -86,6 +86,16 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Low-load motor-control drills such as dead bugs or bird dogs belong in warm-ups, rehab, or deload maintenance, not as the only real core work in a normal week.
 - Keep accessories practical: heavier secondary lifts use RPE, small isolation work uses RPE or feel, and rehab or activation drills use quality-based notes rather than fake percentage precision.
 - Use concrete exercise names for neck work rather than vague movement-pattern labels.`,
+  coaching_language: `# Coaching language and exercise description rules
+- All exercise notes, coaching cues, and descriptions must be logical and specific to the exact exercise, rep scheme, intensity, and session purpose prescribed.
+- Before writing any instruction, check that it is consistent with the programmed volume. An instruction that only makes sense for higher-rep or open-ended work must not appear on a low-rep set where it is physically impossible to apply.
+  - Example of a contradiction to avoid: writing "stop the set if jump height drops" on a 3-rep squat jump set — there are not enough reps for quality to degrade meaningfully before the set ends.
+  - Correct alternative: "Perform each rep with maximal intent. Reset briefly between reps and focus on full extension."
+- Fatigue-monitoring cues (e.g. "stop if speed drops", "terminate when form breaks", "reduce load if output falls") are only appropriate for sets of 5 or more reps, conditioning blocks, AMRAP sets, or explicitly open-ended prescriptions where fatigue can actually accumulate within the set.
+- Avoid vague, stylized, or filler phrases. Do not write language like "crisp release", "explode with elegance", "attack the ground", "unleash power", or similar constructions that sound unnatural, hype-driven, or generically AI-generated.
+- Use simple, direct, coach-like language. Good examples: "Move explosively.", "Keep the landing soft and controlled.", "Reset between reps.", "Drive through the floor.", "Maintain a neutral spine."
+- Match the tone to the training quality: strength sets get load-focused cues, power sets get speed and intent cues, accessory sets get position and feel cues, conditioning sets get pacing and output cues.
+- Every sentence in a note or cue should pass this test: does this instruction make sense for this exact exercise, this exact rep scheme, and this exact training goal? If not, remove it or rewrite it.`,
   pull_ups_chin_ups: `# Pull-up and chin-up rules
 - Pull-ups and chin-ups are always prescribed with RPE or RIR, even when the athlete chose percentage loading, because bodyweight already contributes heavily to the true load.
 - Do not add percentagePrescription or strengthAssessment objects to pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, or lat pulldowns.
@@ -127,6 +137,15 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Favor pairings such as push plus pull, lower-body strength plus upper accessory, and core plus grip or neck.
 - If medicine-ball throws and plyometrics both appear in the same session, pair them together by default unless setup or safety clearly makes that worse.
 - Avoid pairing two highly fatiguing lifts that meaningfully reduce output unless the plan explicitly wants a contrast method.`,
+  movement_pattern_balance: `# Movement pattern balance rules
+- Every balanced session should cover the four major movement patterns: lower-body force (squat or hinge), upper-body push/press, upper-body pull, and trunk/core.
+- Do not omit push/press from a session unless the session is explicitly labelled as lower-body-only or pull-only by design in a multi-day split where another session covers the missing pattern that same week.
+- For 1-day-per-week programs or sessions of 30 minutes or less, where time prevents four separate blocks, use one of these two strategies:
+  - Superset strategy: pair the push and pull movements together (e.g. bench press / barbell row, overhead press / cable row) so both patterns fit within the time cap without adding total work time.
+  - Alternating-week strategy: if pairing genuinely cannot work, give push-emphasis in odd weeks and pull-emphasis in even weeks, and note the alternation clearly in the session label or notes so the athlete understands the weekly balance.
+- Lower-body force work (squat or hinge) should anchor the session unless the athlete has a documented lower-body limitation.
+- Core work may be paired with a pull movement or placed at the end of the session; it should not be the reason push/press is cut.
+- Apply this rule before trimming accessories: the last item removed should be an accessory, never the sole pressing or pulling movement in the session.`,
   deload_unload: `# Deload rules
 - Plans should support two deload styles and pick the one that matches readiness.
 - Option 1: maintain intensity while reducing volume by about 30-50% when the athlete still handles load well but needs fatigue relief.
@@ -153,10 +172,18 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - If Olympic-lift variations, plyometrics, ballistic training, sprinting, or heavy bag work are marked "no", do not prescribe that category directly.
 - Use "eventPreparation" as context for competitions or important dates the athlete is preparing for. If it includes dates or timelines, align the training arc pragmatically without inventing extra event details.
 - Use "equipment" to choose exercises and substitutions that match the athlete's available setup.`,
+  bodyweight_training: `# Bodyweight-only program rules
+- When the program is bodyweight-only, do not use percentage-based loading or percentagePrescription objects. Progress through repetition ranges, total volume, exercise difficulty, and training density instead.
+- For basic strength exercises (push-ups, squats, lunges, rows, dips, etc.), increase reps first within a target range, then add sets, then progress to a harder variation once the athlete consistently reaches the upper end of the rep range with good technique.
+- For explosive bodyweight exercises (squat jumps, broad jumps, med-ball throws where no load applies, sprint drills, etc.), keep rep counts low enough to preserve speed, height, distance, and technical quality. Do not inflate reps to fill volume. Progress by improving execution, adding a small amount of volume, or advancing to a harder variation — not by chasing higher rep totals.
+- Do not prescribe indefinitely increasing reps. Recognize the ceiling: once the athlete is consistently hitting high rep ranges (e.g. 20+ push-ups, 15+ pull-ups), performing the hardest practical variations with good form, or accumulating high total weekly volume, bodyweight-only loading is approaching its effective limit for strength and power development.
+- At that ceiling, include a brief, educational, optional note in the plan — not a warning or a hard stop — that acknowledges the progress and suggests considering a weight-based program. Example wording: "You have progressed well with bodyweight-only training. To continue improving strength and power, a weight-based program may now be more effective." This note should appear in session notes or a plan-level summary, not as a prescribed exercise.
+- This transition recommendation is especially relevant when the athlete's stated goal is maximal strength, explosive strength, power, or long-term athletic development.
+- Never turn power or explosive exercises into conditioning work by inflating reps or adding fatigue-based instructions where quality is the goal. Match guidance to the training purpose at all times.`,
   session_duration_rules: `# Session duration rules
 - Use "sessionDuration" and "sessionDurationMinutes" from the user input to size each training day.
 - For finite durations, keep warm-up, main work, accessories, and conditioning realistic for that time cap.
-- For 30 or 45 minute sessions, prioritize the highest-value work and trim lower-priority accessories.
+- For 30 or 45 minute sessions, prioritize the highest-value work and trim lower-priority accessories. Always respect the movement-pattern balance rule before trimming: the sole push/press or pull movement in a session must not be removed. Use supersets to preserve both patterns without adding time.
 - If "sessionDuration" is "no_time_limit" or "sessionDurationMinutes" is null, treat it as flexible but still pragmatic. Do not create marathon sessions, excessive exercise lists, 10-hour workouts, or unrealistic volumes. Prefer focused sessions that would usually fit within about 90-120 minutes.`,
   endurance_training: `# Endurance training rules
 - Include dedicated endurance work only when desiredTraining is "endurance" or "strength_power_endurance", or when the athlete explicitly opted in with includeEnduranceTraining or enduranceTraining.include. If desiredTraining is "strength_power" and there is no explicit opt-in, keep conditioning minimal and supportive.
@@ -208,6 +235,7 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "close_grip_bench_press",
   "compound_lifts",
   "accessory_exercises",
+  "coaching_language",
   "pull_ups_chin_ups",
   "substitutes",
   "plyometrics_loading_jumps",
@@ -215,9 +243,11 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "unilateral",
   "ballistic_training",
   "superset_complexes",
+  "movement_pattern_balance",
   "deload_unload",
   "session_spacing",
   "training_preference_rules",
+  "bodyweight_training",
   "session_duration_rules",
   "endurance_training",
   "missed_session_logic",

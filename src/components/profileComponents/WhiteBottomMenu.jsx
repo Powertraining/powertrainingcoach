@@ -1,9 +1,11 @@
 import {
+  useEffect,
   useMemo,
   useRef } from "react";
 import {
   Animated,
   Easing,
+  KeyboardAvoidingView,
   Modal,
   PanResponder,
   Pressable,
@@ -34,10 +36,22 @@ export default function WhiteBottomMenu({
   secondaryButtonStyle,
   secondaryButtonTextStyle,
   bottomPadding = 18,
+  avoidKeyboard = false,
 }) {
   const insets = useSafeAreaInsets();
   const defaultSheetTranslateY = useRef(new Animated.Value(0)).current;
   const resolvedContent = content || children;
+
+  useEffect(
+    function resetHiddenSheetPositionACB() {
+      if (!visible) {
+        defaultSheetTranslateY.stopAnimation();
+        defaultSheetTranslateY.setValue(0);
+      }
+    },
+    [defaultSheetTranslateY, visible]
+  );
+
   const defaultPanResponder = useMemo(
     function defaultPanResponderACB() {
       return PanResponder.create({
@@ -56,9 +70,10 @@ export default function WhiteBottomMenu({
               duration: 160,
               easing: Easing.out(Easing.cubic),
               useNativeDriver: true,
-            }).start(() => {
-              defaultSheetTranslateY.setValue(0);
-              onDismiss?.();
+            }).start(({ finished }) => {
+              if (finished) {
+                onDismiss?.();
+              }
             });
             return;
           }
@@ -100,59 +115,66 @@ export default function WhiteBottomMenu({
     >
       <View style={styles.root}>
         <Pressable onPress={onDismiss} style={styles.dismissLayer} />
-        <Sheet
-          style={[
-            styles.sheet,
-            { paddingBottom: Math.max(insets.bottom + bottomPadding, 28) },
-            sheetStyle,
-            resolvedAnimatedStyle,
-          ]}
+        <KeyboardAvoidingView
+          behavior="height"
+          enabled={avoidKeyboard}
+          pointerEvents="box-none"
+          style={styles.keyboardAvoidingHost}
         >
-          <View style={styles.handleHitArea} {...resolvedPanHandlers}>
-            <View style={styles.handle} />
-          </View>
+          <Sheet
+            style={[
+              styles.sheet,
+              { paddingBottom: Math.max(insets.bottom + bottomPadding, 28) },
+              sheetStyle,
+              resolvedAnimatedStyle,
+            ]}
+          >
+            <View style={styles.handleHitArea} {...resolvedPanHandlers}>
+              <View style={styles.handle} />
+            </View>
 
-          <IBMPlexText style={styles.title}>{title}</IBMPlexText>
-          {description ? (
-            <IBMPlexText style={styles.description}>{description}</IBMPlexText>
-          ) : null}
+            <IBMPlexText style={styles.title}>{title}</IBMPlexText>
+            {description ? (
+              <IBMPlexText style={styles.description}>{description}</IBMPlexText>
+            ) : null}
 
-          {resolvedContent ? (
-            <View style={[styles.content, contentStyle]}>{resolvedContent}</View>
-          ) : null}
+            {resolvedContent ? (
+              <View style={[styles.content, contentStyle]}>{resolvedContent}</View>
+            ) : null}
 
-          {buttonText ? (
-            <Pressable
-              onPress={onButtonPress}
-              disabled={buttonDisabled}
-              style={[
-                styles.button,
-                buttonDisabled ? styles.buttonDisabled : null,
-                buttonStyle,
-              ]}
-            >
-              <IBMPlexText style={[styles.buttonText, buttonTextStyle]}>
-                {buttonText}
-              </IBMPlexText>
-            </Pressable>
-          ) : null}
+            {buttonText ? (
+              <Pressable
+                onPress={onButtonPress}
+                disabled={buttonDisabled}
+                style={[
+                  styles.button,
+                  buttonDisabled ? styles.buttonDisabled : null,
+                  buttonStyle,
+                ]}
+              >
+                <IBMPlexText style={[styles.buttonText, buttonTextStyle]}>
+                  {buttonText}
+                </IBMPlexText>
+              </Pressable>
+            ) : null}
 
-          {secondaryButtonText ? (
-            <Pressable
-              onPress={onSecondaryButtonPress}
-              disabled={secondaryButtonDisabled}
-              style={[
-                styles.secondaryButton,
-                secondaryButtonDisabled ? styles.buttonDisabled : null,
-                secondaryButtonStyle,
-              ]}
-            >
-              <IBMPlexText style={[styles.secondaryButtonText, secondaryButtonTextStyle]}>
-                {secondaryButtonText}
-              </IBMPlexText>
-            </Pressable>
-          ) : null}
-        </Sheet>
+            {secondaryButtonText ? (
+              <Pressable
+                onPress={onSecondaryButtonPress}
+                disabled={secondaryButtonDisabled}
+                style={[
+                  styles.secondaryButton,
+                  secondaryButtonDisabled ? styles.buttonDisabled : null,
+                  secondaryButtonStyle,
+                ]}
+              >
+                <IBMPlexText style={[styles.secondaryButtonText, secondaryButtonTextStyle]}>
+                  {secondaryButtonText}
+                </IBMPlexText>
+              </Pressable>
+            ) : null}
+          </Sheet>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -160,6 +182,9 @@ export default function WhiteBottomMenu({
 
 const styles = StyleSheet.create({
   root: {
+    flex: 1,
+  },
+  keyboardAvoidingHost: {
     flex: 1,
   },
   dismissLayer: {

@@ -38,7 +38,12 @@ export default function DeloadStrategyView({ value, onChange }) {
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <IBMPlexText titleBlock height={230}>Deload strategy</IBMPlexText>
+      <IBMPlexText titleBlock height={170}>
+        How do you prefer to deload?
+      </IBMPlexText>
+      <IBMPlexText defaultWhite style={styles.helperText} center>
+        Choose how you usually like to reduce training stress during recovery weeks.
+      </IBMPlexText>
       <ScrollView
         style={styles.optionsScroll}
         contentContainerStyle={styles.contentSlot}
@@ -163,6 +168,15 @@ const styles = StyleSheet.create({
     gap: 14,
     justifyContent: "flex-start",
     paddingBottom: 140,
+  },
+  helperText: {
+    alignSelf: "center",
+    color: "#9ca3af",
+    fontSize: 16,
+    lineHeight: 20,
+    marginBottom: 24,
+    paddingHorizontal: 24,
+    width: "82%",
   },
   optionButton: {
     alignItems: "center",

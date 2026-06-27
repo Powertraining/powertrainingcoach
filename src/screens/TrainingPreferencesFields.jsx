@@ -13,6 +13,7 @@ import {
 import QuestionnaireTrainingPhaseView from "./questionnaire/QuestionnaireTrainingPhaseView.jsx";
 import {
   getTrainingPreferencesFormState,
+  isStrikingCombatSport,
   TRAINING_CAPABILITY_GROUPS,
 } from "../constants/trainingPreferences.js";
 import TrainingPreferencesExperienceView from "./trainingPreferences/TrainingPreferencesExperienceView.jsx";
@@ -178,7 +179,10 @@ const CAPABILITY_CONFIDENCE_GROUPS = [
   },
 ];
 
-function getCapabilityConfidenceGroupsForDesiredTraining(desiredTraining) {
+function getCapabilityConfidenceGroupsForDesiredTraining(
+  desiredTraining,
+  primaryCombatSport
+) {
   switch (desiredTraining) {
     case "strength_power":
       return CAPABILITY_CONFIDENCE_GROUPS.filter((group) =>
@@ -188,10 +192,22 @@ function getCapabilityConfidenceGroupsForDesiredTraining(desiredTraining) {
     case "endurance":
       return CAPABILITY_CONFIDENCE_GROUPS.filter(
         (group) => group.category === TRAINING_CAPABILITY_GROUPS[2].title
-      );
+      ).map((group) => ({
+        ...group,
+        pages: group.pages.filter(
+          (page) =>
+            page.key !== "heavyBag" || isStrikingCombatSport(primaryCombatSport)
+        ),
+      }));
     case "strength_power_endurance":
     default:
-      return CAPABILITY_CONFIDENCE_GROUPS;
+      return CAPABILITY_CONFIDENCE_GROUPS.map((group) => ({
+        ...group,
+        pages: group.pages.filter(
+          (page) =>
+            page.key !== "heavyBag" || isStrikingCombatSport(primaryCombatSport)
+        ),
+      }));
   }
 }
 
@@ -293,7 +309,8 @@ export function getTrainingPreferencesStepKeys(values = {}) {
   const keys = ["experience", "desiredTraining"];
 
   getCapabilityConfidenceGroupsForDesiredTraining(
-    resolvedValues.desiredTraining
+    resolvedValues.desiredTraining,
+    resolvedValues.primaryCombatSport
   ).forEach((group) => {
     keys.push(`intro:${group.category}`);
     group.pages.forEach((page) => {
@@ -537,13 +554,17 @@ export default function TrainingPreferencesFields({
       />
     ),
     ...getCapabilityConfidenceGroupsForDesiredTraining(
-      resolvedValues.desiredTraining
+      resolvedValues.desiredTraining,
+      resolvedValues.primaryCombatSport
     ).flatMap(renderCapabilityConfidenceGroup),
     ...(shouldShowEnduranceMethods(resolvedValues)
       ? [
           () => (
             <TrainingPreferencesEnduranceMethodsView
               value={resolvedValues.preferredEnduranceModalities}
+              allowHeavyBag={isStrikingCombatSport(
+                resolvedValues.primaryCombatSport
+              )}
               onChange={(sectionValue) =>
                 updateField("preferredEnduranceModalities", sectionValue)
               }

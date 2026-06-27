@@ -1,6 +1,5 @@
 import {
   Animated,
-  Easing,
   Image,
   Pressable,
   StyleSheet,
@@ -14,41 +13,22 @@ const OPTION_FACE_HEIGHT = 125;
 const OPTION_INSET = 1.2;
 const SELECTED_TRAVEL = 10.8;
 const SELECTED_SHADOW_HEIGHT = OPTION_HEIGHT - SELECTED_TRAVEL;
+const SELECTED_SHADOW_SCALE = SELECTED_SHADOW_HEIGHT / OPTION_HEIGHT;
 const SHADOW_COLOR = "#303030";
 
 export default function QuestionnaireSportOptionButton({ option, isSelected, onPress }) {
     const selectionProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
     const pressScale = useRef(new Animated.Value(1)).current;
-    const isSelectedRef = useRef(isSelected);
-    isSelectedRef.current = isSelected;
 
-    function syncToSelection() {
-        animateSelection(isSelectedRef.current ? 1 : 0);
-    }
-
-    function animateSelection(toValue, isTapFeedback = false) {
+    function animateSelection(toValue) {
         selectionProgress.stopAnimation();
-
-        if (isTapFeedback) {
-            Animated.timing(selectionProgress, {
-                toValue,
-                duration: 85,
-                easing: Easing.out(Easing.quad),
-                useNativeDriver: false,
-            }).start(({ finished }) => {
-                if (finished && toValue === 1 && !isSelectedRef.current) {
-                    syncToSelection();
-                }
-            });
-            return;
-        }
 
         Animated.spring(selectionProgress, {
             toValue,
             damping: 20,
             stiffness: 340,
             mass: 0.62,
-            useNativeDriver: false,
+            useNativeDriver: true,
         }).start();
     }
 
@@ -57,37 +37,44 @@ export default function QuestionnaireSportOptionButton({ option, isSelected, onP
     }, [isSelected, selectionProgress]);
 
     function handlePressIn() {
-        animateSelection(isSelected ? 0 : 1, true);
+        pressScale.stopAnimation();
         Animated.spring(pressScale, {
             toValue: 0.982,
             damping: 22,
             stiffness: 520,
             mass: 0.45,
-            useNativeDriver: false,
+            useNativeDriver: true,
         }).start();
         onPress?.();
     }
 
     function handlePressOut() {
+        pressScale.stopAnimation();
         Animated.spring(pressScale, {
             toValue: 1,
             damping: 16,
             stiffness: 260,
             mass: 0.75,
-            useNativeDriver: false,
+            useNativeDriver: true,
         }).start();
     }
 
+    const animatedShadowContainerStyle = {
+        transform: [{
+            translateY: selectionProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, SELECTED_TRAVEL / 2],
+            }),
+        }],
+    };
+
     const animatedShadowStyle = {
-        top: selectionProgress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, SELECTED_TRAVEL],
-        }),
-        height: selectionProgress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [OPTION_HEIGHT, SELECTED_SHADOW_HEIGHT],
-        }),
-        backgroundColor: SHADOW_COLOR,
+        transform: [{
+            scaleY: selectionProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, SELECTED_SHADOW_SCALE],
+            }),
+        }],
     };
 
     const animatedOptionStyle = {
@@ -108,7 +95,9 @@ export default function QuestionnaireSportOptionButton({ option, isSelected, onP
             onPressOut={handlePressOut}
             style={styles.pressable}
         >
-            <Animated.View style={[styles.optionShadow, animatedShadowStyle]} />
+            <Animated.View style={[styles.optionShadowContainer, animatedShadowContainerStyle]}>
+                <Animated.View style={[styles.optionShadow, animatedShadowStyle]} />
+            </Animated.View>
             <Animated.View style={[styles.option, animatedOptionStyle]}>
                     <Image source={option.image} style={isSelected ? styles.selectedImageStyle : styles.nonSelctedImageStyle} resizeMode="contain" />
                     <IBMPlexText style={isSelected ? styles.optionTextSelected : styles.optionText}>{option.label}</IBMPlexText>
@@ -122,11 +111,16 @@ const styles = StyleSheet.create({
         width: OPTION_WIDTH,
         height: OPTION_HEIGHT,
     },
-    optionShadow: {
+    optionShadowContainer: {
         position: "absolute",
         top: 0,
         right: 0,
         left: 0,
+        height: OPTION_HEIGHT,
+    },
+    optionShadow: {
+        width: "100%",
+        height: "100%",
         borderRadius: 30,
         backgroundColor: SHADOW_COLOR,
     },

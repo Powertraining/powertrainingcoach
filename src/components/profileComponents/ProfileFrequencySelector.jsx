@@ -182,24 +182,6 @@ export default function ProfileFrequencySelector({
         />
       </View>
 
-      <View style={styles.sliderLabels}>
-        <IBMPlexText
-          style={[
-            styles.sliderLabel,
-            colorScheme === "light" ? styles.sliderLabelLight : null,
-          ]}
-        >
-          Full body
-        </IBMPlexText>
-        <IBMPlexText
-          style={[
-            styles.sliderLabel,
-            colorScheme === "light" ? styles.sliderLabelLight : null,
-          ]}
-        >
-          Precise
-        </IBMPlexText>
-      </View>
     </View>
   );
 }
@@ -279,17 +261,5 @@ const styles = StyleSheet.create({
   },
   sliderThumbLight: {
     backgroundColor: "#141414",
-  },
-  sliderLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: -8,
-  },
-  sliderLabel: {
-    color: "#585858",
-    fontSize: 11, fontWeight: "600",
-  },
-  sliderLabelLight: {
-    color: "#6f6f6f",
   },
 });

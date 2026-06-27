@@ -50,6 +50,8 @@ const styles = StyleSheet.create({
     },
     bigButton: {
         backgroundColor: "#000",
+        borderColor: "#fff",
+        borderWidth: 1,
         height: 75,
         paddingHorizontal: 32,
         borderRadius: 120,

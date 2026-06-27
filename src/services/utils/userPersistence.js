@@ -10,6 +10,7 @@ export const SERVER_MANAGED_USER_DATA_FIELDS = Object.freeze([
   "stripeCustomerId",
   "subscriptionStatus",
   "billingProvider",
+  "planRegenerationUsage",
 ]);
 
 export function isSameAuthenticatedUser(model, uid) {

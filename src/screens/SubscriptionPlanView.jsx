@@ -115,6 +115,7 @@ export default function SubscriptionPlanView({
   isSubscribed = false,
   onBack,
   onCheckoutSuccess,
+  onSaveForLater,
   returnTo = "",
 }) {
   const insets = useSafeAreaInsets();
@@ -153,8 +154,7 @@ export default function SubscriptionPlanView({
           return;
         }
 
-        const message = err.message || "Could not load subscription plans.";
-        setError(message);
+        setError("Failed to fetch payment plans.");
         reactiveModel.showError?.(err, "Could not load subscription plans. Please try again.");
         setRemotePlans([]);
       })
@@ -347,13 +347,36 @@ export default function SubscriptionPlanView({
           </FadeInFromBottomView>
         ) : null}
 
-        {error ? (
+        {error && visiblePlans.length === 0 ? (
+          <View style={styles.paymentErrorState}>
+            <FadeInFromBottomView delay={280}>
+              <IBMPlexText style={styles.error}>{error}</IBMPlexText>
+            </FadeInFromBottomView>
+            <FadeInFromBottomView delay={335}>
+              <IBMPlexText style={styles.paymentErrorDescription}>
+                Press to save your answers and try again later.
+              </IBMPlexText>
+            </FadeInFromBottomView>
+            <FadeInFromBottomView delay={390} style={styles.saveButtonWrapper}>
+              <TouchableOpacity
+                activeOpacity={0.82}
+                onPress={onSaveForLater || onBack}
+                style={styles.saveButton}
+              >
+                <IBMPlexText style={styles.saveButtonText}>SAVE</IBMPlexText>
+              </TouchableOpacity>
+            </FadeInFromBottomView>
+          </View>
+        ) : error ? (
           <FadeInFromBottomView delay={280}>
             <IBMPlexText style={styles.error}>{error}</IBMPlexText>
           </FadeInFromBottomView>
         ) : null}
 
-        <FadeInFromBottomView delay={300} style={styles.trustRow}>
+        <FadeInFromBottomView
+          delay={error && visiblePlans.length === 0 ? 450 : 300}
+          style={styles.trustRow}
+        >
           {TRUST_ITEMS.map((item) => (
             <View key={item.label} style={styles.trustItem}>
               <View style={styles.trustIcon}>
@@ -454,6 +477,35 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     marginTop: 18,
     textAlign: "center",
+  },
+  paymentErrorState: {
+    alignItems: "center",
+    gap: 10,
+  },
+  paymentErrorDescription: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 12, fontWeight: "700",
+    lineHeight: 17,
+    textAlign: "center",
+  },
+  saveButtonWrapper: {
+    alignItems: "center",
+    marginTop: 4,
+  },
+  saveButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    justifyContent: "center",
+    minHeight: 52,
+    paddingHorizontal: 20,
+    paddingVertical: 13,
+    width: "82%",
+  },
+  saveButtonText: {
+    color: "#141414",
+    fontSize: 15, fontWeight: "900",
+    lineHeight: 20,
   },
   checkoutBar: {
     bottom: 0,

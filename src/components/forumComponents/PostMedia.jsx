@@ -34,7 +34,7 @@ function PlayPauseIcon({ playing = false }) {
   return <View style={styles.playIcon} />;
 }
 
-function ForumVideo({ uri, autoPlay = false }) {
+function ForumVideo({ uri, autoPlay = false, isActive = true }) {
   const [duration, setDuration] = useState(0);
   const [hasEnded, setHasEnded] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
@@ -90,10 +90,10 @@ function ForumVideo({ uri, autoPlay = false }) {
   }, [isPlaying, isRestarting, rawCurrentTime]);
 
   useEffect(() => {
-    return () => {
+    if (!isActive) {
       player.pause();
-    };
-  }, [player]);
+    }
+  }, [isActive, player]);
 
   useEffect(() => {
     if (!isRestarting || !isPlaying) {
@@ -248,6 +248,7 @@ export default function PostMedia({
   mediaType = "none",
   compact = false,
   autoPlay = false,
+  isActive = true,
 }) {
   const [imageAspectRatio, setImageAspectRatio] = useState(null);
 
@@ -286,7 +287,7 @@ export default function PostMedia({
   if (mediaType === "video") {
     return (
       <View style={[styles.frame, compact ? styles.compactFrame : null]}>
-        <ForumVideo uri={mediaUrl} autoPlay={autoPlay} />
+        <ForumVideo uri={mediaUrl} autoPlay={autoPlay} isActive={isActive} />
       </View>
     );
   }

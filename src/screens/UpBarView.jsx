@@ -1,6 +1,6 @@
-import { View, TouchableOpacity, Image } from "react-native";
-import logo from "../assets/logo.png";
+import { View, TouchableOpacity } from "react-native";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import { PowertrainingLogo } from "../components/homeComponents/ProgramProgressRing.jsx";
 export function UpBarView(props) {
     const { isAuthenticated, isSubscribed, path, onLogoClick, onNavigate } = props;
 
@@ -34,7 +34,10 @@ export function UpBarView(props) {
     return (
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <TouchableOpacity onPress={handleLogoClickACB}>
-                <Image source={logo} style={{ width: 40, height: 40 }} />
+                <PowertrainingLogo
+                    color="#111111"
+                    style={{ aspectRatio: 497 / 426, width: 40 }}
+                />
             </TouchableOpacity>
 
             <IBMPlexText>Power Training Coach</IBMPlexText>
@@ -51,7 +54,6 @@ export function UpBarView(props) {
 }
 
 // // src/views/UpBarView.jsx
-// import logo from "../assets/logo.png";
 // import { useNavigate } from "react-router-dom";
 
 // export function UpBarView(props) {

@@ -46,6 +46,7 @@ const ProfileSubscriptionDetailsScreen = observer(function ProfileSubscriptionDe
           subscriptionEndDate: result.subscriptionEndDate,
           subscriptionStartDate: result.subscriptionStartDate,
           subscriptionType: result.subscriptionType,
+          subscriptionStatus: result.subscriptionStatus,
           lookupKey: result.lookupKey,
         });
       })

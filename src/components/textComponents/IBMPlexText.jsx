@@ -66,7 +66,7 @@ export default function IBMPlexText({
   }
 
   return (
-    <View style={{ width: 225, alignSelf: "center", height, justifyContent: "center" }}>
+    <View style={{ width: "82%", maxWidth: 320, alignSelf: "center", height, justifyContent: "center" }}>
       {text}
     </View>
   );

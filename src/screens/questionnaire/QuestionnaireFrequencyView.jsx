@@ -10,7 +10,6 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const MIN_SESSIONS = 1;
 const MAX_SESSIONS = 5;
 const THUMB_SIZE = 24;
-const GOLD = "#C9B259";
 
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick, onClose }) {
     const [sliderWidth, setSliderWidth] = useState(0);
@@ -130,10 +129,12 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     return (
         <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View style={styles.container}>
-                <IBMPlexText titleBlock height={230} style={styles.title}>
-                    How many days per week do you exercise?
-                </IBMPlexText>
                 <View style={styles.content}>
+                    <View style={styles.promptArea}>
+                        <IBMPlexText titleBlock height={160} style={styles.title}>
+                            How many sessions do you want per week?
+                        </IBMPlexText>
+                    </View>
                     <View style={styles.sliderSection}>
                         <View style={styles.numbers}>
                             {markers}
@@ -161,10 +162,6 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                             <View pointerEvents="none" style={[styles.sliderThumb, { left: thumbLeft }]} />
                         </View>
 
-                        <View style={styles.sliderLabels}>
-                            <IBMPlexText defaultWhite style={styles.leftLabel}>Full body</IBMPlexText>
-                            <IBMPlexText defaultWhite style={styles.rightLabel}>Precise</IBMPlexText>
-                        </View>
                     </View>
                 </View>
 
@@ -192,6 +189,9 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         paddingBottom: 100,
+    },
+    promptArea: {
+        flex: 1,
         justifyContent: "center",
     },
     sliderSection: {
@@ -232,24 +232,6 @@ const styles = StyleSheet.create({
         borderRadius: 999,
         backgroundColor: "#fff",
         zIndex: 1,
-    },
-    sliderLabels: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingHorizontal: THUMB_SIZE / 2,
-        marginTop: 2,
-    },
-    leftLabel: {
-        textAlign: "left",
-        color: GOLD,
-        fontSize: 16,
-        lineHeight: 18,
-    },
-    rightLabel: {
-        textAlign: "right",
-        color: GOLD,
-        fontSize: 16,
-        lineHeight: 18,
     },
     numbers: {
         width: "100%",

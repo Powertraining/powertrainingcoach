@@ -39,7 +39,8 @@ const ENDURANCE_FORMAT_DETAILS = Object.freeze({
 });
 
 const MIN_ENDURANCE_DAYS = 1;
-const MAX_ENDURANCE_DAYS = 7;
+// Dedicated endurance sessions share the app-wide five-session weekly ceiling.
+const MAX_ENDURANCE_DAYS = 5;
 const ENDURANCE_THUMB_SIZE = 24;
 const NURSE_ICON = require("../../assets/icons/nurse.png");
 const ARROW_TEXT_ICON = require("../../assets/icons/arrowText.png");
@@ -1256,7 +1257,7 @@ const styles = StyleSheet.create({
   },
   styleOptionButton: {
     borderRadius: 20,
-    height: 124,
+    minHeight: 124,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },

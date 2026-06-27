@@ -82,7 +82,9 @@ export default function PercentageReferenceMethodView({
 
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
-      <IBMPlexText titleBlock height={TITLE_BLOCK_HEIGHT}>Percentage reference</IBMPlexText>
+      <IBMPlexText titleBlock height={TITLE_BLOCK_HEIGHT}>
+        How do you prefer to perform max tests?
+      </IBMPlexText>
       <ScrollView
         style={styles.optionsScroll}
         contentContainerStyle={styles.contentSlot}
@@ -145,7 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderStyle: "solid",
     borderWidth: 2,
-    height: 136,
+    minHeight: 136,
   },
   optionButtonSelected: {
     backgroundColor: "#181818",
