@@ -337,7 +337,7 @@ export default function InputFormView({
                     canContinue={canContinue}
                     hideBack
                     text={activeStep >= sectionCount - 1
-                        ? (subscription ? "Generate Plan" : "Subscribe & Generate Plan")
+                        ? "Generate Plan"
                         : (
                             (isEnduranceStyleStep && !enduranceStyleStepSelected) ||
                             (isEnduranceSprintingFocusStep && !enduranceSprintingFocusStepSelected) ||

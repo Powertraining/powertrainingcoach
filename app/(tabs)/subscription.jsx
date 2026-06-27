@@ -259,6 +259,10 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
     setCustomerId("");
   }
 
+  function handleSaveForLater() {
+    router.replace("/(tabs)");
+  }
+
   if (generatingPlan) {
     return (
       <View style={[styles.container, styles.planGenerationContainer]}>
@@ -283,6 +287,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
           isSubscribed={model.isSubscribed?.() || false}
           onBack={handleBack}
           onCheckoutSuccess={handleCheckoutSuccess}
+          onSaveForLater={handleSaveForLater}
           returnTo={returnTo}
         />
       </View>
