@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
 import { observer } from "mobx-react-lite";
 import { Redirect,
   useFocusEffect,
@@ -93,7 +94,7 @@ const ForumScreen = observer(function ForumScreen() {
   const [canTagAnalysisPosts, setCanTagAnalysisPosts] = useState(false);
   const [postButtonEntranceKey, setPostButtonEntranceKey] = useState(0);
   const [isPostButtonEntranceVisible, setIsPostButtonEntranceVisible] = useState(true);
-  const [isForumScreenFocused, setIsForumScreenFocused] = useState(true);
+  const isForumScreenFocused = useIsFocused();
 
   useEffect(() => {
     if (!model.ready || !model.user || model.forumFeed.length > 0) {
@@ -189,11 +190,8 @@ const ForumScreen = observer(function ForumScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setIsForumScreenFocused(true);
-
       return () => {
         model.setForumTabBarHidden(false);
-        setIsForumScreenFocused(false);
       };
     }, [model])
   );
@@ -214,12 +212,16 @@ const ForumScreen = observer(function ForumScreen() {
   }, [currentView, isForumScreenFocused]);
 
   const feedError = model.forumFeedPromiseState?.error;
+  const hasPendingFeedRequest = Boolean(
+    model.forumFeedPromiseState?.promise &&
+      model.forumFeedPromiseState?.data === null &&
+      !feedError
+  );
   const isFeedLoading =
     model.ready &&
     Boolean(model.user) &&
-    model.forumFeed.length === 0 &&
     !feedError &&
-    !model.forumFeedPromiseState?.data;
+    (hasPendingFeedRequest || model.forumFeedPromiseState?.data === undefined);
   const canUseForumActions = model.isSubscribed?.() || false;
   const isForumTabHiddenView = (view) =>
     view === "post" || view === "compose" || view === "composeLocked";
@@ -668,10 +670,6 @@ const ForumScreen = observer(function ForumScreen() {
     );
   }
 
-  if (!isForumScreenFocused) {
-    return <View style={styles.container} />;
-  }
-
   return (
     <View style={styles.container}>
       {currentView === "feed" ? (
@@ -742,6 +740,7 @@ const ForumScreen = observer(function ForumScreen() {
       ) : null}
       {currentView === "post" ? (
         <PostView
+          isActive={isForumScreenFocused}
           post={selectedPost}
           comments={selectedPostId === model.forumSelectedPost?.id ? model.forumComments : []}
           commentValue={commentDraft}

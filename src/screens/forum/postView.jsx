@@ -80,6 +80,7 @@ export default function PostView({
   isCommentsLoading = false,
   commentsLocked = false,
   hideTabBar = false,
+  isActive = true,
   onBack,
   onChangeCommentText,
   onCreateComment,
@@ -285,6 +286,7 @@ export default function PostView({
             <PostMedia
               autoPlay
               compact
+              isActive={isActive}
               mediaUrl={post?.mediaUrl}
               mediaType={post?.mediaType}
             />
