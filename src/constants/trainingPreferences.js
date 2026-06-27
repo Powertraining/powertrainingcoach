@@ -579,11 +579,7 @@ function normalizeEnduranceTrainingSettings(source = {}, desiredTraining) {
       ) || TRAINING_PREFERENCES_DEFAULTS.preferredEnduranceFormat,
     circuitTraining: {
       goalInput: circuitTrainingGoalInput,
-      primaryPriority:
-        circuitPriorities.primaryPriority ||
-        (preferredEnduranceModalities.includes("circuit_training")
-          ? "whole_body_work_capacity"
-          : ""),
+      primaryPriority: circuitPriorities.primaryPriority,
       secondaryPriorities: circuitPriorities.secondaryPriorities,
     },
     heavyBag: {

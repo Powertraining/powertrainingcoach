@@ -828,7 +828,13 @@ function CompactChoiceGrid({
   );
 }
 
-function HorizontalChoiceSlider({ options, value, onChange, labelMap }) {
+function HorizontalChoiceSlider({
+  options,
+  value,
+  onChange,
+  labelMap,
+  allowDeselect = true,
+}) {
   return (
     <View style={styles.horizontalChoiceContainer}>
       <ScrollView
@@ -842,7 +848,13 @@ function HorizontalChoiceSlider({ options, value, onChange, labelMap }) {
           return (
             <TouchableOpacity
               key={option.value}
-              onPress={() => onChange?.(isSelected ? null : option.value)}
+              onPress={() => {
+                if (isSelected && !allowDeselect) {
+                  return;
+                }
+
+                onChange?.(isSelected ? null : option.value);
+              }}
               style={[
                 styles.horizontalChoiceOption,
                 isSelected ? styles.horizontalChoiceOptionSelected : null,
@@ -1639,6 +1651,7 @@ export default function ProfileTrainingPreferencesFields({
                     value={resolvedValues.preferredEnduranceFormat}
                     onChange={(value) => updateField("preferredEnduranceFormat", value)}
                     labelMap={ENDURANCE_FORMAT_LABELS}
+                    allowDeselect={false}
                   />
                 </View>
 
@@ -1655,6 +1668,10 @@ export default function ProfileTrainingPreferencesFields({
                       ].filter(Boolean)}
                       onChange={(selectedValues) =>
                         updateFields({
+                          circuitTrainingGoalInput:
+                            selectedValues.length > 0
+                              ? resolvedValues.circuitTrainingGoalInput
+                              : "",
                           circuitTrainingPrimaryPriority: selectedValues[0] || "",
                           circuitTrainingSecondaryPriorities: selectedValues.slice(1),
                         })

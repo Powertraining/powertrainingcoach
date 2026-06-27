@@ -163,6 +163,52 @@ function normalizeSubscriptionType(value) {
 function getSubscriptionPlanConfig(typeOrKey) {
   return SUBSCRIPTION_PLAN_CONFIGS[normalizeSubscriptionType(typeOrKey)] || null;
 }
+
+function preserveCompletedTrainingDays(
+  previousPlan = {},
+  replacementPlan = {},
+  completedDays = []
+) {
+  const completedDayKeys = new Set(
+    Array.isArray(completedDays) ? completedDays.map(String) : []
+  );
+  const previousWeeks = Array.isArray(previousPlan?.weeks)
+    ? previousPlan.weeks
+    : [];
+  const preservedKeys = [];
+
+  const weeks = (Array.isArray(replacementPlan?.weeks)
+    ? replacementPlan.weeks
+    : []
+  ).map((week) => ({
+    ...week,
+    days: (Array.isArray(week?.days) ? week.days : []).map((day) => {
+      const dayKey = `${week.week}-${day.day}`;
+      if (!completedDayKeys.has(dayKey)) {
+        return day;
+      }
+
+      const previousWeek = previousWeeks.find(
+        (candidate) => candidate?.week === week.week
+      );
+      const previousDay = previousWeek?.days?.find(
+        (candidate) => candidate?.day === day.day
+      );
+
+      if (!previousDay) {
+        return day;
+      }
+
+      preservedKeys.push(dayKey);
+      return previousDay;
+    }),
+  }));
+
+  return {
+    plan: { ...replacementPlan, weeks },
+    completedDays: preservedKeys,
+  };
+}
 /** The Model keeps the state of the application (Application State). 
    It represents the current user logged in, and other global data.  
 */
@@ -188,6 +234,7 @@ export const model = {
   subscriptionEndDate: null,
   subscriptionStartDate: null,
   subscriptionType: "",
+  subscriptionStatus: "",
   stripePriceLookupKey: "",
   trainingPerformanceState: createDefaultTrainingPerformanceState(),
   strengthAssessmentState: createDefaultStrengthAssessmentState(),
@@ -196,6 +243,7 @@ export const model = {
   completedSessionProgressByKey: {},
 
   trainingPlanPromiseState: {},
+  planRegenerationUsage: null,
 
   forumProfile: createDefaultForumProfile(),
   forumFilters: createDefaultForumFilters(),
@@ -1455,15 +1503,51 @@ export const model = {
     };
   },
 
-  async generateTrainingPlan(userInput = this.buildTrainingPlanInput()) {
+  getPlanRegenerationsRemaining() {
+    const limit = 3;
+    const monthKey = new Date().toISOString().slice(0, 7);
+    const usage = this.planRegenerationUsage;
+    const used =
+      usage?.monthKey === monthKey && Number.isFinite(Number(usage?.used))
+        ? Number(usage.used)
+        : 0;
+
+    return Math.max(0, limit - used);
+  },
+
+  async generateTrainingPlan(
+    userInput = this.buildTrainingPlanInput(),
+    { regeneration = false, regenerationScope = "from_start" } = {}
+  ) {
     if (!userInput || typeof userInput !== "object") {
       throw new Error(
         "Please complete the onboarding questions before generating a training plan."
       );
     }
 
+    if (regeneration && !this.trainingPlan) {
+      throw new Error("There is no active training plan to regenerate.");
+    }
+
     const requestedByUid = this.user?.uid || "";
-    const prms = generatePlan(userInput).then((plan) => {
+    const previousPlan = regeneration ? this.trainingPlan : null;
+    const shouldPreserveCompletedDays =
+      regeneration && regenerationScope === "from_now";
+    const previousCompletedDays = shouldPreserveCompletedDays
+      ? Array.from(this.completedDays || [])
+      : [];
+    const previousCompletedSessionProgress = shouldPreserveCompletedDays
+      ? { ...(this.completedSessionProgressByKey || {}) }
+      : {};
+    const generationInput = shouldPreserveCompletedDays
+      ? { ...userInput, completedDays: previousCompletedDays }
+      : userInput;
+    const prms = generatePlan(
+      generationInput,
+      previousPlan,
+      { generationIntent: regeneration ? "regenerate" : "" }
+    ).then((result) => {
+      const plan = result.plan;
       const isCurrentRequest = this.trainingPlanPromiseState.promise === prms;
       const isSameUser =
         requestedByUid ? this.user?.uid === requestedByUid : !this.user?.uid;
@@ -1478,7 +1562,7 @@ export const model = {
           blockEndWeek: userInput.blockEndWeek,
         });
 
-        this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+        const replacementPlan = sanitizeTrainingPlanForQuestionnaire(
           applySportLoadLevelToPlanWeek(
             {
               ...plan,
@@ -1493,9 +1577,29 @@ export const model = {
           ),
           userInput
         );
-        this.completedDays = [];
+
+        const preservedResult = shouldPreserveCompletedDays
+          ? preserveCompletedTrainingDays(
+              previousPlan,
+              replacementPlan,
+              previousCompletedDays
+            )
+          : { plan: replacementPlan, completedDays: [] };
+
+        this.trainingPlan = preservedResult.plan;
+        this.completedDays = preservedResult.completedDays;
         this.activeSessionProgressByKey = {};
-        this.completedSessionProgressByKey = {};
+        this.completedSessionProgressByKey = Object.fromEntries(
+          preservedResult.completedDays
+            .filter((dayKey) => previousCompletedSessionProgress[dayKey])
+            .map((dayKey) => [
+              dayKey,
+              previousCompletedSessionProgress[dayKey],
+            ])
+        );
+        if (result.regenerationUsage) {
+          this.planRegenerationUsage = result.regenerationUsage;
+        }
       }
 
       return isCurrentRequest && isSameUser ? this.trainingPlan : plan;
@@ -1628,6 +1732,10 @@ export const model = {
     return today <= endDate;
   },
 
+  isOnFreeTrial() {
+    return this.subscriptionStatus === "trialing";
+  },
+
   getSubscriptionType() {
     return (
       normalizeSubscriptionType(this.subscriptionType) ||
@@ -1749,6 +1857,7 @@ export const model = {
     subscriptionEndDate,
     subscriptionStartDate,
     subscriptionType,
+    subscriptionStatus,
     stripePriceLookupKey,
     lookupKey,
   }) {
@@ -1771,6 +1880,10 @@ export const model = {
     this.subscriptionEndDate = normalizedSubscriptionEndDate;
     this.subscriptionStartDate =
       subscriptionStartDate || this.subscriptionStartDate || null;
+    this.subscriptionStatus =
+      typeof subscriptionStatus === "string"
+        ? subscriptionStatus
+        : this.subscriptionStatus || "";
     this.subscriptionType =
       (this.subscription ? nextSubscriptionType : "") ||
       (this.subscription ? DEFAULT_ACTIVE_SUBSCRIPTION_TYPE : "");

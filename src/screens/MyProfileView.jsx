@@ -332,9 +332,14 @@ export function MyProfileView(props) {
             combatSportOptions={props.combatSportOptions}
             primaryCombatSport={props.primaryCombatSport}
             sessionsPerWeek={props.sessionsPerWeek}
+            hasProgram={props.hasProgram}
+            isSubmitting={props.isSubmitting}
+            planRegenerationsRemaining={props.planRegenerationsRemaining}
+            canRegeneratePlan={props.canRegeneratePlan}
             onTrainingPreferencesChange={props.onTrainingPreferencesChange}
             onPrimaryCombatSportChange={props.onPrimaryCombatSportChange}
             onSessionsPerWeekChange={props.onSessionsPerWeekChange}
+            onRegeneratePlan={props.onRegeneratePlan}
             onCombatIntensityDragChange={setIsScrollLocked}
           />
         ) : null}

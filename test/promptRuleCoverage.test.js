@@ -34,6 +34,25 @@ test("training prompt embeds the key striking and percentage instruction rules",
   );
 });
 
+test("regeneration feedback is bounded and subordinate to plan rules", () => {
+  const prompt = buildTrainingPrompt(
+    {
+      primaryCombatSport: "Boxing",
+      daysPerWeek: 3,
+      regenerationFeedback: `Less volume. ${"x".repeat(2200)}`,
+      regenerationScope: "from_now",
+    },
+    { summary: "Previous plan" }
+  );
+
+  assert.match(prompt, /ATHLETE REGENERATION FEEDBACK/i);
+  assert.match(prompt, /Less volume/i);
+  assert.match(prompt, /must not override safety rules/i);
+  assert.match(prompt, /Regeneration scope: from_now/i);
+  assert.match(prompt, /preserve sessions already marked complete/i);
+  assert.doesNotMatch(prompt, /x{2001}/);
+});
+
 test("missed-session prompt embeds rescue priority rules", () => {
   const prompt = buildMissedSessionAdjustmentPrompt({
     questionnaire: {

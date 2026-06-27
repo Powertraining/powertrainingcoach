@@ -83,3 +83,20 @@ test("normalizeTrainingPreferences caps endurance sessions at five per week", ()
   assert.equal(normalizedPreferences.enduranceSessionsPerWeek, 5);
   assert.equal(normalizedPreferences.enduranceTraining.sessionsPerWeek, 5);
 });
+
+test("circuit training focus remains empty when the user clears it", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "strength_power_endurance",
+    preferredEnduranceModalities: ["circuit_training"],
+    circuitTrainingGoalInput: "",
+    circuitTrainingPrimaryPriority: "",
+    circuitTrainingSecondaryPriorities: [],
+  });
+
+  assert.equal(normalizedPreferences.circuitTrainingPrimaryPriority, "");
+  assert.deepEqual(normalizedPreferences.circuitTrainingSecondaryPriorities, []);
+  assert.equal(
+    normalizedPreferences.enduranceTraining.circuitTraining.primaryPriority,
+    ""
+  );
+});

@@ -183,6 +183,7 @@ const HomeScreen = observer(function HomeScreen() {
           subscriptionEndDate: result.subscriptionEndDate,
           subscriptionStartDate: result.subscriptionStartDate,
           subscriptionType: result.subscriptionType,
+          subscriptionStatus: result.subscriptionStatus,
           lookupKey: result.lookupKey,
         });
       })

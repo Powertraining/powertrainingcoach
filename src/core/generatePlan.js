@@ -82,7 +82,11 @@ function normalizeGeneratedPlan(plan = {}, scaffold = null) {
 
 const TRAINING_PLAN_CALL_TIMEOUT_MS = 300000;
 
-async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLAN_GENERATION_MODEL) {
+async function getTrainingCallableResponse(
+    messages = [],
+    modelName = OPENAI_PLAN_GENERATION_MODEL,
+    options = {}
+) {
     const functions = getFunctions(db.app, "us-central1");
     const generateTrainingPlanCallable = httpsCallable(
         functions,
@@ -93,17 +97,21 @@ async function getTrainingCallableResponse(messages = [], modelName = OPENAI_PLA
     return generateTrainingPlanCallable({
         model: modelName,
         temperature: OPENAI_API_TEMPERATURE,
-        messages
+        messages,
+        generationIntent: options.generationIntent || ""
     }).then((result) => {
         if (!result?.data?.success || !result?.data?.plan) {
             throw new Error("No training plan returned from the server.");
         }
 
-        return result.data.plan;
+        return {
+            plan: result.data.plan,
+            regenerationUsage: result.data.regenerationUsage || null,
+        };
     });
 }
 
-export async function generatePlan(userInput, oldPlan = null) {
+export async function generatePlan(userInput, oldPlan = null, options = {}) {
     const scaffold = buildTrainingPlanScaffold(userInput);
     const prompt = buildTrainingPrompt(userInput, oldPlan);
     const messages = [
@@ -115,8 +123,12 @@ export async function generatePlan(userInput, oldPlan = null) {
 
     return getTrainingCallableResponse(
         messages,
-        OPENAI_PLAN_GENERATION_MODEL
-    ).then((plan) => normalizeGeneratedPlan(plan, scaffold));
+        OPENAI_PLAN_GENERATION_MODEL,
+        options
+    ).then((result) => ({
+        plan: normalizeGeneratedPlan(result.plan, scaffold),
+        regenerationUsage: result.regenerationUsage,
+    }));
 }
 
 export async function adjustTrainingDayForMissedSession(adjustmentInput = {}) {
@@ -131,17 +143,17 @@ export async function adjustTrainingDayForMissedSession(adjustmentInput = {}) {
     return getTrainingCallableResponse(
         messages,
         OPENAI_PROGRAM_UPDATE_MODEL
-    ).then((day) =>
+    ).then((result) =>
         normalizeTrainingDay(
             {
-                ...day,
-                day: adjustmentInput?.targetDay?.day || day?.day || 1,
+                ...result.plan,
+                day: adjustmentInput?.targetDay?.day || result.plan?.day || 1,
                 preferredWeekday:
                     adjustmentInput?.targetDay?.preferredWeekday ||
-                    day?.preferredWeekday ||
+                    result.plan?.preferredWeekday ||
                     "",
             },
-            (adjustmentInput?.targetDay?.day || day?.day || 1) - 1
+            (adjustmentInput?.targetDay?.day || result.plan?.day || 1) - 1
         )
     );
 }

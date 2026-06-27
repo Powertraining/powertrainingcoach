@@ -13,7 +13,7 @@
         "projectId": "26b5ffd7-cc77-4e3d-abf9-df6edb98c301"
       }
     },
-    "icon": "./src/assets/logo.png",
+    "icon": "./src/assets/app-icon-black-gradient.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/login-bg.png",
@@ -30,8 +30,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/logo.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./src/assets/app-icon-black-gradient.png",
+        "backgroundColor": "#000000"
       },
       "package": "com.powertraining.coach",
       "googleServicesFile": "./google-services.json"

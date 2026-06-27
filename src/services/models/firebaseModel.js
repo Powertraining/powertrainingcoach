@@ -116,9 +116,11 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     model.completedDays = persistedData.completedDays ?? [];
     model.trainingPlanBatch = persistedData.trainingPlanBatch ?? 1;
     model.completedWeeks = persistedData.completedWeeks ?? 0;
+    model.planRegenerationUsage = persistedData.planRegenerationUsage ?? null;
     model.subscription = hasActiveSubscription;
     model.subscriptionEndDate = normalizedSubscriptionEndDate;
     model.subscriptionStartDate = persistedData.subscriptionStartDate ?? null;
+    model.subscriptionStatus = persistedData.subscriptionStatus ?? "";
     model.stripePriceLookupKey = persistedData.stripePriceLookupKey ?? "";
     const persistedSubscriptionType =
       persistedData.subscriptionType ||

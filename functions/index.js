@@ -54,6 +54,7 @@ const HOSTING_BASE_URL =
   process.env.HOSTING_BASE_URL || `https://${FIREBASE_PROJECT_ID}.web.app`;
 const USER_COLLECTION = "users";
 const COMBAT_MODEL_COLLECTION = "combatModel";
+const PLAN_REGENERATION_MONTHLY_LIMIT = 3;
 const CHECKOUT_SUCCESS_URL =
   `${HOSTING_BASE_URL}/checkout_redirect/success.html`;
 const CHECKOUT_CANCEL_URL =
@@ -140,6 +141,97 @@ function getUsersCollection() {
  */
 function getCombatModelCollection() {
   return getFirestoreDb().collection(COMBAT_MODEL_COLLECTION);
+}
+
+/**
+ * @return {string}
+ */
+function getCurrentPlanRegenerationMonthKey() {
+  return new Date().toISOString().slice(0, 7);
+}
+
+/**
+ * @param {string} userId
+ * @return {Promise<object>}
+ */
+async function reservePlanRegeneration(userId) {
+  const firestore = getFirestoreDb();
+  const documentRef = getCombatModelCollection().doc(userId);
+  const monthKey = getCurrentPlanRegenerationMonthKey();
+
+  return firestore.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(documentRef);
+    const storedUsage = snapshot.exists ?
+      snapshot.data().planRegenerationUsage || {} :
+      {};
+    const subscriptionStatus = snapshot.exists ?
+      snapshot.data().subscriptionStatus || "" :
+      "";
+
+    if (subscriptionStatus === "trialing") {
+      throw new functions.https.HttpsError(
+          "permission-denied",
+          "Plan regeneration is not available during the free trial.",
+      );
+    }
+    const used = storedUsage.monthKey === monthKey ?
+      Math.max(0, Number.parseInt(storedUsage.used, 10) || 0) :
+      0;
+
+    if (used >= PLAN_REGENERATION_MONTHLY_LIMIT) {
+      throw new functions.https.HttpsError(
+          "resource-exhausted",
+          "You have used all plan regenerations for this month.",
+      );
+    }
+
+    const nextUsed = used + 1;
+    transaction.set(documentRef, {
+      planRegenerationUsage: {
+        monthKey,
+        used: nextUsed,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+    }, {merge: true});
+
+    return {
+      monthKey,
+      used: nextUsed,
+      limit: PLAN_REGENERATION_MONTHLY_LIMIT,
+      remaining: PLAN_REGENERATION_MONTHLY_LIMIT - nextUsed,
+    };
+  });
+}
+
+/**
+ * Refunds a reservation when generation fails.
+ * @param {string} userId
+ * @param {string} monthKey
+ * @return {Promise<void>}
+ */
+async function refundPlanRegeneration(userId, monthKey) {
+  const firestore = getFirestoreDb();
+  const documentRef = getCombatModelCollection().doc(userId);
+
+  await firestore.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(documentRef);
+    const storedUsage = snapshot.exists ?
+      snapshot.data().planRegenerationUsage || {} :
+      {};
+
+    if (storedUsage.monthKey !== monthKey) {
+      return;
+    }
+
+    const used = Math.max(0, Number.parseInt(storedUsage.used, 10) || 0);
+    transaction.set(documentRef, {
+      planRegenerationUsage: {
+        monthKey,
+        used: Math.max(0, used - 1),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+    }, {merge: true});
+  });
 }
 
 /**
@@ -3832,6 +3924,9 @@ exports.generateTrainingPlan = functions.https.onCall(
       memory: "1GiB",
     },
     async (request) => {
+      let regenerationReservation = null;
+      let regenerationUserId = "";
+
       try {
         if (!request.auth) {
           throw new functions.https.HttpsError(
@@ -3846,6 +3941,16 @@ exports.generateTrainingPlan = functions.https.onCall(
         );
         const fetch = require("node-fetch");
         const data = requirePlainObject(request.data || {}, "request data");
+        const isPlanRegeneration = data.generationIntent === "regenerate";
+        if (isPlanRegeneration) {
+          regenerationUserId = normalizeFirestoreDocumentId(
+              request.auth.uid,
+              "userId",
+          );
+          regenerationReservation = await reservePlanRegeneration(
+              regenerationUserId,
+          );
+        }
         const customMessages = normalizeOpenAiMessages(data.messages);
         const hasCustomMessages = customMessages.length > 0;
         const messages = hasCustomMessages ?
@@ -3887,9 +3992,29 @@ exports.generateTrainingPlan = functions.https.onCall(
 
         const plan = parseDirectTrainingPlanResponse(JSON.parse(content));
         console.log("Successfully generated training plan");
-        return {success: true, plan};
+        return {
+          success: true,
+          plan,
+          regenerationUsage: regenerationReservation,
+        };
       } catch (error) {
+        if (regenerationReservation && regenerationUserId) {
+          try {
+            await refundPlanRegeneration(
+                regenerationUserId,
+                regenerationReservation.monthKey,
+            );
+          } catch (refundError) {
+            console.error(
+                "Failed to refund plan regeneration:",
+                refundError,
+            );
+          }
+        }
         console.error("Error generating training plan:", error);
+        if (error instanceof functions.https.HttpsError) {
+          throw error;
+        }
         throw new functions.https.HttpsError(
             "internal",
             `Failed to generate training plan: ${error.message}`,

@@ -125,6 +125,7 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
           subscriptionEndDate: verification.subscriptionEndDate,
           subscriptionStartDate: verification.subscriptionStartDate,
           subscriptionType: verification.subscriptionType,
+          subscriptionStatus: verification.subscriptionStatus,
           lookupKey: verification.lookupKey,
         });
 
