@@ -91,7 +91,6 @@ export default function PreferenceOptionButton({
         </IBMPlexText>
         {hasDescription ? (
           <IBMPlexText
-            numberOfLines={2}
             style={[styles.description, descriptionStyle]}
           >
             {description}
@@ -111,13 +110,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderStyle: "dashed",
     borderWidth: 1,
-    height: 110,
+    minHeight: 110,
     justifyContent: "center",
     position: "relative",
     width: "75%",
   },
   buttonWithDescription: {
-    height: 124,
+    minHeight: 124,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },

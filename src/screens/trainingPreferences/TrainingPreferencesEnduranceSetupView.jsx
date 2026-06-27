@@ -1257,7 +1257,7 @@ const styles = StyleSheet.create({
   },
   styleOptionButton: {
     borderRadius: 20,
-    height: 124,
+    minHeight: 124,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },

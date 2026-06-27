@@ -137,6 +137,8 @@ export default function InputFormView({
     const enduranceSprintingFocusStepSelected = Boolean(trainingPreferences.sprintingTarget);
     const isEquipmentStep = activeStepKey === "equipment";
     const equipmentStepSelected = Boolean(trainingPreferences.equipment);
+    const isCombatTrainingIntensityStep =
+        activeStepKey === "combatTrainingIntensity";
     const isLiftIntensityMethodStep = activeStepKey === "liftIntensityMethod";
     const isPercentageReferenceMethodStep = activeStepKey === "percentageReferenceMethod";
     const isDeloadStrategyStep = activeStepKey === "deloadStrategy";
@@ -288,6 +290,9 @@ export default function InputFormView({
                     isDeloadStrategyStep
                         ? styles.centerFullHeight
                         : null,
+                    isCombatTrainingIntensityStep
+                        ? styles.centerCombatTrainingIntensity
+                        : null,
                     isEventDescriptionEditorOpen ? styles.centerAboveDimLayer : null,
                 ]}
             >
@@ -355,6 +360,10 @@ const styles = StyleSheet.create({
         paddingBottom: 120,
     },
     centerFullHeight: {
+        paddingBottom: 0,
+    },
+    centerCombatTrainingIntensity: {
+        justifyContent: "flex-start",
         paddingBottom: 0,
     },
     centerAboveDimLayer: {

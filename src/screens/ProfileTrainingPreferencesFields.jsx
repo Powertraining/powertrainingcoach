@@ -1,4 +1,5 @@
 import {
+  Animated,
   Image,
   ScrollView,
   TextInput,
@@ -271,11 +272,11 @@ function getCombatIntensityFillRatioFromValue(value) {
 }
 
 function getCombatIntensityValueFromFillRatio(fillRatio) {
-  if (fillRatio < 0.3) {
+  if (fillRatio < 0.45) {
     return "light";
   }
 
-  if (fillRatio < 0.6) {
+  if (fillRatio < 0.75) {
     return "moderate";
   }
 
@@ -631,24 +632,33 @@ function TrainingPhasePills({ value, onChange, allowDeselect = true }) {
 }
 
 export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) {
-  const [fillRatio, setFillRatio] = useState(() =>
-    getCombatIntensityFillRatioFromValue(value)
+  const initialFillRatio = getCombatIntensityFillRatioFromValue(value);
+  const [selectedValue, setSelectedValue] = useState(() =>
+    getCombatIntensityValueFromFillRatio(initialFillRatio)
   );
   const [meterWidth, setMeterWidth] = useState(0);
+  const fillProgress = useRef(new Animated.Value(initialFillRatio)).current;
+  const fillRatioRef = useRef(initialFillRatio);
   const dragStartXRef = useRef(0);
-  const dragStartFillRatioRef = useRef(fillRatio);
+  const dragStartFillRatioRef = useRef(initialFillRatio);
   const isDraggingRef = useRef(false);
-  const emittedValueRef = useRef(value);
-  const selectedValue = getCombatIntensityValueFromFillRatio(fillRatio);
+  const emittedValueRef = useRef(selectedValue);
+  const selectedValueRef = useRef(selectedValue);
 
   useEffect(() => {
     if (isDraggingRef.current) {
       return;
     }
 
-    emittedValueRef.current = value;
-    setFillRatio(getCombatIntensityFillRatioFromValue(value));
-  }, [value]);
+    const nextFillRatio = getCombatIntensityFillRatioFromValue(value);
+    const nextValue = getCombatIntensityValueFromFillRatio(nextFillRatio);
+
+    fillRatioRef.current = nextFillRatio;
+    fillProgress.setValue(nextFillRatio);
+    emittedValueRef.current = nextValue;
+    selectedValueRef.current = nextValue;
+    setSelectedValue(nextValue);
+  }, [fillProgress, value]);
 
   function emitValue(nextValue) {
     if (emittedValueRef.current === nextValue) {
@@ -663,8 +673,13 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
     const clampedFillRatio = clamp(nextFillRatio, 0, 1);
     const nextValue = getCombatIntensityValueFromFillRatio(clampedFillRatio);
 
-    setFillRatio(clampedFillRatio);
-    emitValue(nextValue);
+    fillRatioRef.current = clampedFillRatio;
+    fillProgress.setValue(clampedFillRatio);
+
+    if (selectedValueRef.current !== nextValue) {
+      selectedValueRef.current = nextValue;
+      setSelectedValue(nextValue);
+    }
   }
 
   function beginDrag(event) {
@@ -693,9 +708,19 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
   }
 
   function endDrag() {
+    if (!isDraggingRef.current) {
+      return;
+    }
+
     isDraggingRef.current = false;
     onDragChange?.(false);
+    emitValue(selectedValueRef.current);
   }
+
+  const animatedFillWidth = fillProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, meterWidth],
+  });
 
   return (
     <View style={styles.combatIntensity}>
@@ -710,10 +735,10 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
         <View pointerEvents="none" style={styles.combatIntensityTickLow} />
         <View pointerEvents="none" style={styles.combatIntensityTickMid} />
         <View style={styles.combatIntensityFillClip} pointerEvents="none">
-          <View
+          <Animated.View
             style={[
               styles.combatIntensityFill,
-              { width: `${fillRatio * 100}%` },
+              { width: animatedFillWidth },
             ]}
           />
         </View>

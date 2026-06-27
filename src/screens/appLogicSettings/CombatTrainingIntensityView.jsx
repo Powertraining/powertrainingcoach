@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useRef,
   useState } from "react";
 import {
@@ -14,7 +15,7 @@ const METER_WIDTH = 76;
 const DRAG_SENSITIVITY = 0.62;
 const SECTION_TOP_PADDING = 120;
 const TITLE_BLOCK_HEIGHT = 130;
-const COMPONENT_VERTICAL_GAP = 24;
+const BOTTOM_ACTION_CLEARANCE = 96;
 const INTENSITY_VALUES = ["light", "moderate", "intense"];
 const INTENSITY_LEGEND = Object.freeze([
   {
@@ -47,6 +48,22 @@ function getSelectedLegendItem(value) {
   );
 }
 
+function IntensityLegendContent({ item }) {
+  return (
+    <>
+      <IBMPlexText defaultWhite style={styles.legendLabel}>
+        {item.label}
+      </IBMPlexText>
+      <IBMPlexText defaultWhite style={styles.legendMeaning}>
+        {item.meaning}
+      </IBMPlexText>
+      <IBMPlexText defaultWhite style={styles.legendLoad}>
+        {item.load}
+      </IBMPlexText>
+    </>
+  );
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -57,11 +74,11 @@ function getFillRatioFromValue(value) {
 }
 
 function getValueFromFillRatio(fillRatio) {
-  if (fillRatio < 0.3) {
+  if (fillRatio < 0.45) {
     return "light";
   }
 
-  if (fillRatio < 0.6) {
+  if (fillRatio < 0.75) {
     return "moderate";
   }
 
@@ -72,19 +89,35 @@ export default function CombatTrainingIntensityView({
   value,
   onChange,
 }) {
-  const [fillRatio, setFillRatio] = useState(() =>
-    getFillRatioFromValue(value)
+  const initialFillRatio = getFillRatioFromValue(value);
+  const [selectedIntensity, setSelectedIntensity] = useState(() =>
+    getValueFromFillRatio(initialFillRatio)
   );
+  const [legendHeight, setLegendHeight] = useState(0);
+  const fillProgress = useRef(new Animated.Value(initialFillRatio)).current;
+  const fillRatioRef = useRef(initialFillRatio);
+  const legendHeightsRef = useRef({});
   const dragStartYRef = useRef(0);
-  const dragStartFillRatioRef = useRef(fillRatio);
-  const previousSelectedIntensityRef = useRef(getValueFromFillRatio(fillRatio));
+  const dragStartFillRatioRef = useRef(initialFillRatio);
+  const isDraggingRef = useRef(false);
+  const previousSelectedIntensityRef = useRef(selectedIntensity);
   const legendTransitionProgress = useRef(new Animated.Value(1)).current;
   const { height: screenHeight } = useWindowDimensions();
-  const meterTop = SECTION_TOP_PADDING + TITLE_BLOCK_HEIGHT + COMPONENT_VERTICAL_GAP;
-  const selectedIntensity = getValueFromFillRatio(fillRatio);
   const selectedLegendItem = getSelectedLegendItem(selectedIntensity);
-  const legendTop = meterTop + METER_HEIGHT + COMPONENT_VERTICAL_GAP;
-  const contentMinHeight = Math.max(screenHeight, legendTop + 170);
+
+  useEffect(() => {
+    if (isDraggingRef.current) {
+      return;
+    }
+
+    const nextFillRatio = getFillRatioFromValue(value);
+    const nextIntensity = getValueFromFillRatio(nextFillRatio);
+
+    fillRatioRef.current = nextFillRatio;
+    fillProgress.setValue(nextFillRatio);
+    previousSelectedIntensityRef.current = nextIntensity;
+    setSelectedIntensity(nextIntensity);
+  }, [fillProgress, value]);
 
   function updateFillFromDy(dy) {
     const nextFillRatio = clamp(
@@ -94,11 +127,13 @@ export default function CombatTrainingIntensityView({
     );
     const nextIntensity = getValueFromFillRatio(nextFillRatio);
 
-    setFillRatio(nextFillRatio);
-    onChange?.(nextIntensity);
+    fillRatioRef.current = nextFillRatio;
+    fillProgress.setValue(nextFillRatio);
 
     if (nextIntensity !== previousSelectedIntensityRef.current) {
       previousSelectedIntensityRef.current = nextIntensity;
+      setSelectedIntensity(nextIntensity);
+      onChange?.(nextIntensity);
       legendTransitionProgress.setValue(0);
       Animated.timing(legendTransitionProgress, {
         toValue: 1,
@@ -106,6 +141,24 @@ export default function CombatTrainingIntensityView({
         useNativeDriver: true,
       }).start();
     }
+  }
+
+  function captureLegendHeight(itemValue, height) {
+    legendHeightsRef.current[itemValue] = Math.ceil(height);
+
+    if (
+      Object.keys(legendHeightsRef.current).length < INTENSITY_LEGEND.length
+    ) {
+      return;
+    }
+
+    const tallestHeight = Math.max(
+      ...Object.values(legendHeightsRef.current)
+    );
+
+    setLegendHeight((currentHeight) =>
+      currentHeight === tallestHeight ? currentHeight : tallestHeight
+    );
   }
 
   const legendAnimatedStyle = {
@@ -122,17 +175,28 @@ export default function CombatTrainingIntensityView({
       },
     ],
   };
+  const animatedFillHeight = fillProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, METER_HEIGHT],
+  });
 
   return (
-    <View style={[styles.container, { minHeight: contentMinHeight }]}>
+    <View style={[styles.container, { height: screenHeight }]}>
       <View
         style={styles.touchLayer}
         onTouchStart={(event) => {
+          isDraggingRef.current = true;
           dragStartYRef.current = event.nativeEvent.pageY;
-          dragStartFillRatioRef.current = fillRatio;
+          dragStartFillRatioRef.current = fillRatioRef.current;
         }}
         onTouchMove={(event) => {
           updateFillFromDy(event.nativeEvent.pageY - dragStartYRef.current);
+        }}
+        onTouchEnd={() => {
+          isDraggingRef.current = false;
+        }}
+        onTouchCancel={() => {
+          isDraggingRef.current = false;
         }}
       />
       <View style={styles.section}>
@@ -140,30 +204,44 @@ export default function CombatTrainingIntensityView({
           Combat training intensity
         </IBMPlexText>
       </View>
-      <View style={[styles.intensityOutline, { top: meterTop }]}>
-        <View style={styles.fillClip}>
+      <View style={styles.content}>
+        {INTENSITY_LEGEND.map((item) => (
           <View
-            style={[
-              styles.intensityFill,
-              { height: METER_HEIGHT * fillRatio },
-            ]}
-          />
+            key={`legend-measure-${item.value}`}
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
+            pointerEvents="none"
+            onLayout={(event) =>
+              captureLegendHeight(item.value, event.nativeEvent.layout.height)
+            }
+            style={[styles.legend, styles.legendMeasure]}
+          >
+            <IntensityLegendContent item={item} />
+          </View>
+        ))}
+        <View style={styles.meterArea}>
+          <View style={styles.intensityOutline}>
+            <View style={styles.fillClip}>
+              <Animated.View
+                style={[
+                  styles.intensityFill,
+                  { height: animatedFillHeight },
+                ]}
+              />
+            </View>
+          </View>
         </View>
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.legend,
+            legendHeight ? { height: legendHeight } : null,
+            legendAnimatedStyle,
+          ]}
+        >
+          <IntensityLegendContent item={selectedLegendItem} />
+        </Animated.View>
       </View>
-      <Animated.View
-        pointerEvents="none"
-        style={[styles.legend, { top: legendTop }, legendAnimatedStyle]}
-      >
-        <IBMPlexText defaultWhite style={styles.legendLabel}>
-          {selectedLegendItem.label}
-        </IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.legendMeaning}>
-          {selectedLegendItem.meaning}
-        </IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.legendLoad}>
-          {selectedLegendItem.load}
-        </IBMPlexText>
-      </Animated.View>
     </View>
   );
 }
@@ -181,8 +259,18 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   section: {
+    height: SECTION_TOP_PADDING + TITLE_BLOCK_HEIGHT,
     justifyContent: "flex-start",
     paddingTop: SECTION_TOP_PADDING,
+  },
+  content: {
+    flex: 1,
+    paddingBottom: BOTTOM_ACTION_CLEARANCE,
+  },
+  meterArea: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
   },
   intensityOutline: {
     borderColor: "#ffffff",
@@ -190,9 +278,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: METER_HEIGHT,
     justifyContent: "flex-end",
-    left: "50%",
-    position: "absolute",
-    transform: [{ translateX: -METER_WIDTH / 2 }],
     width: METER_WIDTH,
   },
   fillClip: {
@@ -206,15 +291,20 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   legend: {
-    alignSelf: "center",
     backgroundColor: "rgba(255,255,255,0.04)",
     borderRadius: 12,
     gap: 6,
-    left: "6%",
+    marginHorizontal: "6%",
     paddingHorizontal: 14,
     paddingVertical: 12,
+  },
+  legendMeasure: {
+    left: "6%",
+    marginHorizontal: 0,
+    opacity: 0,
     position: "absolute",
     right: "6%",
+    top: 0,
   },
   legendLabel: {
     color: "#d1d5db",

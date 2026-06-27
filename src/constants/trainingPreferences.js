@@ -5,6 +5,25 @@ import {
 } from "./appLogicSettings.js";
 import { getNormalizedWeekday } from "./weekdays.js";
 
+const STRIKING_COMBAT_SPORTS = new Set([
+  "boxing",
+  "kickboxing",
+  "muay thai",
+  "muay thai / kickboxing",
+]);
+
+export function isStrikingCombatSport(value) {
+  return (
+    typeof value === "string" &&
+    STRIKING_COMBAT_SPORTS.has(value.trim().toLowerCase())
+  );
+}
+
+function allowsHeavyBag(source = {}) {
+  const sport = source?.primaryCombatSport;
+  return typeof sport !== "string" || !sport.trim() || isStrikingCombatSport(sport);
+}
+
 export const STRENGTH_CONDITIONING_EXPERIENCE_OPTIONS = Object.freeze([
   {
     label: "Beginner - little or no lifting/conditioning experience",
@@ -531,7 +550,9 @@ function getNestedEnduranceSettings(source = {}) {
 
 function normalizeEnduranceTrainingSettings(source = {}, desiredTraining) {
   const nestedSettings = getNestedEnduranceSettings(source);
-  const preferredEnduranceModalities = normalizeEnduranceModalities(source);
+  const preferredEnduranceModalities = normalizeEnduranceModalities(source).filter(
+    (modality) => modality !== "heavy_bag" || allowsHeavyBag(source)
+  );
   const circuitSettings =
     nestedSettings.circuitTraining && typeof nestedSettings.circuitTraining === "object"
       ? nestedSettings.circuitTraining
@@ -584,11 +605,12 @@ function normalizeEnduranceTrainingSettings(source = {}, desiredTraining) {
     },
     heavyBag: {
       target:
-        normalizeEnumOptionValue(
-          source.heavyBagEnduranceTarget ??
-            heavyBagSettings.target,
-          HEAVY_BAG_ENDURANCE_TARGET_OPTIONS
-        ) || "",
+        allowsHeavyBag(source)
+          ? normalizeEnumOptionValue(
+              source.heavyBagEnduranceTarget ?? heavyBagSettings.target,
+              HEAVY_BAG_ENDURANCE_TARGET_OPTIONS
+            ) || ""
+          : "",
     },
     sprinting: {
       target:
@@ -629,9 +651,10 @@ function normalizeTrainingCapabilities(source = {}) {
   };
 
   return getTrainingCapabilityKeys().reduce((accumulator, key) => {
-    accumulator[key] = normalizeCapabilityRating(
-      rawCapabilities[key] ?? legacyOverrides[key]
-    );
+    accumulator[key] =
+      key === "heavyBag" && !allowsHeavyBag(source)
+        ? "no"
+        : normalizeCapabilityRating(rawCapabilities[key] ?? legacyOverrides[key]);
     return accumulator;
   }, {});
 }
@@ -795,6 +818,10 @@ export function getTrainingPreferencesFormState(source = {}) {
   );
 
   return {
+    primaryCombatSport:
+      typeof safeSource.primaryCombatSport === "string"
+        ? safeSource.primaryCombatSport.trim()
+        : "",
     experience: isAllowedValue(
       safeSource.experience,
       STRENGTH_CONDITIONING_EXPERIENCE_OPTIONS
@@ -848,6 +875,10 @@ export function normalizeTrainingPreferences(source = {}) {
   const sessionDuration = normalizeSessionDuration(safeSource);
 
   return {
+    primaryCombatSport:
+      typeof safeSource.primaryCombatSport === "string"
+        ? safeSource.primaryCombatSport.trim()
+        : "",
     goal: getLegacyGoalFromDesiredTraining(desiredTraining),
     desiredTraining,
     experience: isAllowedValue(

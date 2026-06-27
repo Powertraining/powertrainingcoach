@@ -129,10 +129,12 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
     return (
         <QuestionnaireShell onLogoClick={onLogoClick} onClose={onClose}>
             <View style={styles.container}>
-                <IBMPlexText titleBlock height={230} style={styles.title}>
-                    How many sessions do you want per week?
-                </IBMPlexText>
                 <View style={styles.content}>
+                    <View style={styles.promptArea}>
+                        <IBMPlexText titleBlock height={160} style={styles.title}>
+                            How many sessions do you want per week?
+                        </IBMPlexText>
+                    </View>
                     <View style={styles.sliderSection}>
                         <View style={styles.numbers}>
                             {markers}
@@ -187,6 +189,9 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         paddingBottom: 100,
+    },
+    promptArea: {
+        flex: 1,
         justifyContent: "center",
     },
     sliderSection: {
