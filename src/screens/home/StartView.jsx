@@ -301,6 +301,14 @@ export default function StartView({
             label: "Test questionnaire",
             onPress: onStart,
         },
+        {
+            label: "Navigate questionnaire",
+            onPress: onNavigateQuestionnaire,
+        },
+        {
+            label: "Reset user",
+            onPress: onResetUserProgress,
+        },
     ], isHomeRoute);
 
     return (
