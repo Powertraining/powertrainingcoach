@@ -2,7 +2,7 @@ import {
   useEffect,
   useRef,
   useState } from "react";
-import { View, StyleSheet, PanResponder } from "react-native";
+import { View, StyleSheet, PanResponder, Pressable } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
@@ -117,6 +117,10 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
         activeTouchIdRef.current = null;
     }
 
+    function pressSlider(event) {
+        commitDragValue(valueFromLocationX(event.nativeEvent.locationX ?? 0));
+    }
+
     const sliderPanResponder = PanResponder.create({
         onStartShouldSetPanResponder: () => activeTouchIdRef.current == null,
         onMoveShouldSetPanResponder: () => true,
@@ -144,8 +148,9 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                             style={styles.sliderShell}
                             onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
                         >
-                            <View
+                            <Pressable
                                 style={styles.sliderTouchArea}
+                                onPress={pressSlider}
                                 accessibilityRole="adjustable"
                                 accessibilityValue={{
                                     min: MIN_SESSIONS,

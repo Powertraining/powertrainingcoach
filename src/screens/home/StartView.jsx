@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from "react-native";
-import { usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
@@ -280,7 +279,6 @@ export default function StartView({
     onNavigateQuestionnaire,
     onResetUserProgress,
 }) {
-    const pathname = usePathname();
     const insets = useSafeAreaInsets();
     const { height: windowHeight } = useWindowDimensions();
     const hasSessionToday = currentSession && isSessionScheduledToday(currentSession);
@@ -290,12 +288,6 @@ export default function StartView({
     const firstScreenHeight = contentHeight;
     const topHalfHeight = contentHeight / 2;
     const isPhonePreview = isPagesPhonePreview();
-    const isHomeRoute =
-        pathname === "/" ||
-        pathname === "/index" ||
-        pathname === "/(tabs)" ||
-        pathname === "/(tabs)/index";
-
     useWebTestActions("home", "Home tests", [
         {
             label: "Test questionnaire",
@@ -309,7 +301,7 @@ export default function StartView({
             label: "Reset user",
             onPress: onResetUserProgress,
         },
-    ], isHomeRoute);
+    ]);
 
     return (
             <Dotted>

@@ -469,6 +469,10 @@ function EnduranceDaysSlider({
     activeTouchIdRef.current = null;
   }
 
+  function pressSlider(event) {
+    commitDragValue(valueFromLocationX(event.nativeEvent.locationX ?? 0));
+  }
+
   const sliderPanResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => activeTouchIdRef.current == null,
     onMoveShouldSetPanResponder: () => true,
@@ -533,8 +537,9 @@ function EnduranceDaysSlider({
           style={styles.sliderShell}
           onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
         >
-          <View
+          <Pressable
             style={styles.sliderTouchArea}
+            onPress={pressSlider}
             accessibilityRole="adjustable"
             accessibilityValue={{
               min: MIN_ENDURANCE_DAYS,
