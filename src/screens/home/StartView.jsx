@@ -277,6 +277,8 @@ export default function StartView({
     onPushBackSession,
     onAdjustPlan,
     onMyPosts,
+    onNavigateQuestionnaire,
+    onResetUserProgress,
 }) {
     const pathname = usePathname();
     const insets = useSafeAreaInsets();
@@ -370,11 +372,29 @@ export default function StartView({
                         </View>
                     </View>
                     {!isPhonePreview ? (
-                        <TouchableOpacity style={styles.testButton} onPress={onStart}>
-                            <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
-                                Test questionnaire
-                            </IBMPlexText>
-                        </TouchableOpacity>
+                        <>
+                            <TouchableOpacity style={styles.testButton} onPress={onStart}>
+                                <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
+                                    Test questionnaire
+                                </IBMPlexText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.testButton, styles.navigateQuestionnaireButton]}
+                                onPress={onNavigateQuestionnaire}
+                            >
+                                <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
+                                    Navigate questionnaire
+                                </IBMPlexText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.testButton, styles.resetUserButton]}
+                                onPress={onResetUserProgress}
+                            >
+                                <IBMPlexText defaultWhite style={styles.resetUserButtonText}>
+                                    Reset user
+                                </IBMPlexText>
+                            </TouchableOpacity>
+                        </>
                     ) : null}
                 </ScrollView>
             </Dotted>
@@ -422,13 +442,27 @@ const styles = StyleSheet.create({
     testButton: {
         alignSelf: "center",
         marginTop: 24,
-        marginBottom: 20,
         paddingHorizontal: 22,
         height: 44,
         borderRadius: 22,
         backgroundColor: "#fff",
         alignItems: "center",
         justifyContent: "center",
+    },
+    navigateQuestionnaireButton: {
+        marginTop: 10,
+    },
+    resetUserButton: {
+        backgroundColor: "#231f20",
+        borderColor: "#fff",
+        borderWidth: 1,
+        marginTop: 10,
+        marginBottom: 20,
+    },
+    resetUserButtonText: {
+        color: "#fff",
+        fontSize: 18,
+        fontWeight: "800",
     },
     programStatus: {
         minHeight: 280,

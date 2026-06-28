@@ -462,15 +462,20 @@ function normalizeEnduranceModalities(source = {}) {
   );
 }
 
-function normalizeEnduranceSessionCount(value) {
+function normalizeEnduranceSessionCount(value, maxSessions = 5) {
   const parsedValue =
     typeof value === "number" ? value : Number.parseInt(value, 10);
+  const parsedMaxSessions = Number.parseInt(maxSessions, 10);
+  const resolvedMaxSessions =
+    Number.isFinite(parsedMaxSessions) && parsedMaxSessions > 0
+      ? Math.min(5, parsedMaxSessions)
+      : 5;
 
   if (!Number.isFinite(parsedValue)) {
     return TRAINING_PREFERENCES_DEFAULTS.enduranceSessionsPerWeek;
   }
 
-  return Math.min(5, Math.max(1, parsedValue));
+  return Math.min(resolvedMaxSessions, Math.max(1, parsedValue));
 }
 
 function classifyCircuitTrainingGoal(goalInput = "") {
@@ -548,7 +553,7 @@ function getNestedEnduranceSettings(source = {}) {
       : {};
 }
 
-function normalizeEnduranceTrainingSettings(source = {}, desiredTraining) {
+function normalizeEnduranceTrainingSettings(source = {}, desiredTraining, daysPerWeek = 5) {
   const nestedSettings = getNestedEnduranceSettings(source);
   const preferredEnduranceModalities = normalizeEnduranceModalities(source).filter(
     (modality) => modality !== "heavy_bag" || allowsHeavyBag(source)
@@ -588,7 +593,8 @@ function normalizeEnduranceTrainingSettings(source = {}, desiredTraining) {
       source.enduranceSessionsPerWeek ??
       source.enduranceSessionCount ??
       nestedSettings.sessionsPerWeek ??
-      nestedSettings.sessionCount
+      nestedSettings.sessionCount,
+      daysPerWeek
     ),
     preferredFormat:
       normalizeEnumOptionValue(
@@ -807,14 +813,17 @@ function normalizePreferredWeekdays(source = {}, daysPerWeek) {
 
 export function getTrainingPreferencesFormState(source = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
-  const daysPerWeek = parseDaysPerWeek(safeSource.daysPerWeek);
+  const daysPerWeek = parseDaysPerWeek(
+    safeSource.daysPerWeek ?? safeSource.sessionsPerWeek
+  );
   const desiredTraining = normalizeDesiredTraining(safeSource);
   const eventPreparation = normalizeEventPreparation(safeSource);
   const sessionDuration = normalizeSessionDuration(safeSource);
   const equipment = normalizeEquipment(safeSource);
   const enduranceTraining = normalizeEnduranceTrainingSettings(
     safeSource,
-    desiredTraining
+    desiredTraining,
+    daysPerWeek
   );
 
   return {
@@ -857,13 +866,16 @@ export function getTrainingPreferencesFormState(source = {}) {
 
 export function normalizeTrainingPreferences(source = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
-  const daysPerWeek = parseDaysPerWeek(safeSource.daysPerWeek);
+  const daysPerWeek = parseDaysPerWeek(
+    safeSource.daysPerWeek ?? safeSource.sessionsPerWeek
+  );
   const desiredTraining = normalizeDesiredTraining(safeSource);
   const eventPreparation = normalizeEventPreparation(safeSource);
   const equipment = normalizeEquipment(safeSource);
   const enduranceTraining = normalizeEnduranceTrainingSettings(
     safeSource,
-    desiredTraining
+    desiredTraining,
+    daysPerWeek
   );
   const appLogicSettings = normalizeAppLogicSettings({
     ...safeSource,

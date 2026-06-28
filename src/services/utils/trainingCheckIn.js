@@ -61,8 +61,8 @@ export const TRAINING_CHECK_IN_FIELD_OPTIONS = Object.freeze({
 
 const LOADING_STRATEGY_ALTERNATIVES = Object.freeze({
   flat_loading: ["ascending_pyramid", "descending_pyramid"],
-  ascending_pyramid: ["flat_loading", "double_pyramid"],
-  descending_pyramid: ["flat_loading", "double_pyramid"],
+  ascending_pyramid: ["flat_loading", "descending_pyramid"],
+  descending_pyramid: ["flat_loading", "ascending_pyramid"],
   double_pyramid: ["flat_loading", "ascending_pyramid"],
 });
 

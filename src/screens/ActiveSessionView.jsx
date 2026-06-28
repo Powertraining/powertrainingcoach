@@ -37,7 +37,7 @@ import { parseRpeFromText } from "../services/utils/trainingPerformance.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
-const SESSION_CONTENT_SLIDE_DURATION_MS = 120;
+const SESSION_CONTENT_SLIDE_DURATION_MS = 220;
 const SESSION_EXERCISE_ADVANCE_DELAY_MS =
   HEADER_PROGRESS_ANIMATION_DURATION_MS + HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS;
 const RESULTS_FADE_IN_DURATION_MS = 120;
@@ -182,22 +182,22 @@ function getStepKey(exerciseIndex, setIndex = 0) {
 }
 
 function ActiveSessionSlideIn({ children }) {
-  const translateX = useRef(
-    new Animated.Value(Dimensions.get("window").width)
-  ).current;
+  const screenWidth = Dimensions.get("window").width;
+  const translateX = useRef(new Animated.Value(screenWidth)).current;
 
   useEffect(() => {
-    translateX.setValue(Dimensions.get("window").width);
+    translateX.setValue(screenWidth);
     const animation = Animated.timing(translateX, {
       toValue: 0,
       duration: SESSION_CONTENT_SLIDE_DURATION_MS,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
 
     animation.start();
 
     return () => animation.stop();
-  }, [translateX]);
+  }, [screenWidth, translateX]);
 
   return (
     <Animated.View
@@ -1211,8 +1211,10 @@ function ExerciseSessionStep({
   completedSetIndexes,
   onSelectSet,
   onNext,
+  onPrevious,
   onSkip,
   onDraftChange,
+  canGoPrevious = false,
   strengthReferenceOneRepMaxByLift,
 }) {
   const {
@@ -1333,11 +1335,32 @@ function ExerciseSessionStep({
 
         <View style={styles.footerActions}>
           <View style={styles.navigationRow}>
-            <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-              <IBMPlexText defaultWhite style={styles.skipButtonText}>Skip</IBMPlexText>
+            <TouchableOpacity
+              accessibilityState={{ disabled: !canGoPrevious }}
+              disabled={!canGoPrevious}
+              style={[
+                styles.secondaryActionButton,
+                !canGoPrevious ? styles.secondaryActionButtonDisabled : null,
+              ]}
+              onPress={onPrevious}
+            >
+              <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>
+                Previous
+              </IBMPlexText>
             </TouchableOpacity>
             <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
-              <IBMPlexText defaultWhite style={styles.nextButtonText}>Finish set</IBMPlexText>
+              <IBMPlexText
+                defaultWhite
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.82}
+                style={styles.nextButtonText}
+              >
+                Finish set
+              </IBMPlexText>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryActionButton} onPress={onSkip}>
+              <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>Skip</IBMPlexText>
             </TouchableOpacity>
           </View>
         </View>
@@ -1660,6 +1683,39 @@ export default function ActiveSessionView({
     scheduleSessionComplete();
   }
 
+  function handlePreviousSet() {
+    if (!activeStep || activeStep.setIndex <= 0) {
+      return;
+    }
+
+    if (advanceTimeoutRef.current) {
+      clearTimeout(advanceTimeoutRef.current);
+      advanceTimeoutRef.current = null;
+    }
+
+    const previousSetIndex = activeStep.setIndex - 1;
+    const previousStepIndex = sessionSteps.findIndex(
+      (step) =>
+        step.exerciseIndex === activeStep.exerciseIndex &&
+        step.setIndex === previousSetIndex
+    );
+    const previousStep = sessionSteps[previousStepIndex];
+
+    if (!previousStep) {
+      return;
+    }
+
+    setCompletedStepKeys((currentCompletedStepKeys) => {
+      const nextCompletedStepKeys = new Set(currentCompletedStepKeys);
+      nextCompletedStepKeys.delete(
+        getStepKey(previousStep.exerciseIndex, previousStep.setIndex)
+      );
+      return nextCompletedStepKeys;
+    });
+
+    goToSessionStep(previousStepIndex);
+  }
+
   function handleSkipExercise() {
     if (!activeStep) {
       return;
@@ -1784,7 +1840,9 @@ export default function ActiveSessionView({
                 setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
               }}
               onNext={handleCompleteCurrentSet}
+              onPrevious={handlePreviousSet}
               onSkip={handleSkipExercise}
+              canGoPrevious={activeStep.setIndex > 0}
               onDraftChange={updateTrackingDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
             />
@@ -1823,6 +1881,7 @@ const styles = StyleSheet.create({
   sessionContentTransition: {
     flex: 1,
     width: "100%",
+    overflow: "hidden",
   },
   header: {
     width: "100%",
@@ -2030,10 +2089,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     paddingTop: 12,
+    width: "100%",
   },
-  skipButton: {
+  secondaryActionButton: {
     height: 44,
-    minWidth: 74,
+    minWidth: 70,
+    flexShrink: 0,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 120,
@@ -2042,13 +2103,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E1E1E",
     paddingHorizontal: 14,
   },
-  skipButtonText: {
+  secondaryActionButtonDisabled: {
+    opacity: 0.45,
+  },
+  secondaryActionButtonText: {
     color: "#fff",
-    fontSize: 15, fontWeight: "700",
+    fontSize: 13, fontWeight: "700",
   },
   stepActionButton: {
-    width: "49%",
-    maxWidth: 198,
+    flex: 1,
+    minWidth: 112,
+    maxWidth: 172,
     height: 44,
     justifyContent: "center",
     alignItems: "center",

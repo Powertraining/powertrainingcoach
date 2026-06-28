@@ -1,4 +1,8 @@
 import { normalizeForumProfile } from "../models/forumModel.js";
+import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
+import { createDefaultStrengthAssessmentState } from "./strengthAssessment.js";
+import { createDefaultTrainingCheckInState } from "./trainingCheckIn.js";
+import { createDefaultTrainingPerformanceState } from "./trainingPerformance.js";
 
 export const SERVER_MANAGED_USER_DATA_FIELDS = Object.freeze([
   "subscription",
@@ -36,4 +40,30 @@ export function buildClientPersistableUserData(model = {}) {
     completedSessionProgressByKey: model.completedSessionProgressByKey,
     forumProfile: normalizeForumProfile(model.forumProfile),
   };
+}
+
+export function createUserProgressResetData() {
+  return {
+    questionnaire: normalizeAppLogicSettings({}),
+    primaryCombatSport: "",
+    sessionsPerWeek: 3,
+    trainingPlan: null,
+    trainingPlanHistory: [],
+    completedDays: [],
+    trainingPlanBatch: 1,
+    completedWeeks: 0,
+    trainingPerformanceState: createDefaultTrainingPerformanceState(),
+    strengthAssessmentState: createDefaultStrengthAssessmentState(),
+    trainingCheckInState: createDefaultTrainingCheckInState(),
+    activeSessionProgressByKey: {},
+    completedSessionProgressByKey: {},
+  };
+}
+
+export function applyUserProgressReset(model = {}) {
+  const resetData = createUserProgressResetData();
+
+  Object.assign(model, resetData);
+
+  return resetData;
 }

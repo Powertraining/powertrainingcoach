@@ -97,27 +97,25 @@ export const DELOAD_STRATEGY_OPTIONS = Object.freeze([
 
 export const LOADING_STRATEGY_OPTIONS = Object.freeze([
   {
-    label: "Balanced",
+    label: "Straight Loading",
     value: "flat_loading",
-    description: "Basic and repeatable. Recommended for beginners.",
+    description:
+      "Use the same load for every working set. Simple, consistent, and easy to track.",
+    example: "4 sets x 5 reps @ 80%",
   },
   {
-    label: "Ascending pyramid",
+    label: "Ascending Loading",
     value: "ascending_pyramid",
     description:
-      "Start with moderately intense and/or light-volume work, then progress to intense and voluminous work.",
+      "Start lighter and increase the load each set. Best for building toward heavier work gradually.",
+    example: "70% -> 75% -> 80% -> 85%",
   },
   {
-    label: "Descending pyramid",
+    label: "Descending Loading",
     value: "descending_pyramid",
     description:
-      "Start with intense or high-volume work, then progress to less intense and less voluminous work.",
-  },
-  {
-    label: "Double pyramid",
-    value: "double_pyramid",
-    description:
-      "Both pyramids are performed back-to-back: high-to-low and low-to-high.",
+      "Start heavier, then reduce the load each set. Best when you want your heaviest work while fresh.",
+    example: "85% -> 80% -> 75% -> 70%",
   },
 ]);
 

@@ -367,6 +367,48 @@ export function getTrainingPreferencesStepKey(values = {}, activeStep = 0) {
   return getTrainingPreferencesStepKeys(values)[activeStep] || "";
 }
 
+export function getTrainingPreferencesStepLabel(stepKey = "") {
+  if (stepKey.startsWith("intro:")) {
+    return `${stepKey.replace("intro:", "")} intro`;
+  }
+
+  const labels = {
+    experience: "Training experience",
+    desiredTraining: "Training goal",
+    compoundLifts: "Compound lifts",
+    singleLegLifts: "Single-leg lifts",
+    pullingWork: "Pulling work",
+    olympicLiftVariations: "Olympic lift variations",
+    plyometrics: "Plyometrics",
+    ballisticTraining: "Ballistic training",
+    runningSprinting: "Running and sprinting",
+    bikeRowerAssaultBike: "Bike, rower, assault bike",
+    circuitTraining: "Circuit training",
+    heavyBag: "Heavy bag",
+    enduranceMethods: "Endurance methods",
+    enduranceDays: "Endurance days",
+    enduranceStyle: "Endurance style",
+    enduranceCircuitGoal: "Circuit goal",
+    enduranceCircuitFocus: "Circuit focus",
+    enduranceHeavyBagFocus: "Heavy bag focus",
+    enduranceSprintingFocus: "Sprinting focus",
+    sessionDuration: "Session duration",
+    equipment: "Equipment",
+    trainingPhase: "Training phase",
+    eventDescription: "Event description",
+    eventDate: "Event date",
+    injuries: "Injuries",
+    combatTrainingIntensity: "Combat training intensity",
+    liftIntensityMethod: "Lift intensity method",
+    percentageReferenceMethod: "Percentage reference method",
+    deloadStrategy: "Deload strategy",
+    loadingStrategy: "Loading strategy",
+    preferredWeekdays: "Preferred weekdays",
+  };
+
+  return labels[stepKey] || stepKey;
+}
+
 function RightSlideSection({ children }) {
   const { width } = useWindowDimensions();
   const translateX = useRef(new Animated.Value(width || 360)).current;

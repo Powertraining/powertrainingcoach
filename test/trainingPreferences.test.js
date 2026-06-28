@@ -47,6 +47,7 @@ test("normalizeTrainingPreferences preserves preferred endurance modalities", ()
 test("normalizeTrainingPreferences builds endurance ruleset settings", () => {
   const normalizedPreferences = normalizeTrainingPreferences({
     desiredTraining: "strength_power_endurance",
+    daysPerWeek: 5,
     preferredEnduranceModalities: ["circuit_training", "heavy_bag", "sprinting"],
     enduranceSessionsPerWeek: 5,
     preferredEnduranceFormat: "high_intensity_intervals",
@@ -112,11 +113,22 @@ test("striking questionnaires retain heavy bag choices", () => {
 
 test("normalizeTrainingPreferences caps endurance sessions at five per week", () => {
   const normalizedPreferences = normalizeTrainingPreferences({
+    daysPerWeek: 5,
     enduranceSessionsPerWeek: 7,
   });
 
   assert.equal(normalizedPreferences.enduranceSessionsPerWeek, 5);
   assert.equal(normalizedPreferences.enduranceTraining.sessionsPerWeek, 5);
+});
+
+test("normalizeTrainingPreferences caps endurance sessions at total weekly sessions", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    daysPerWeek: 3,
+    enduranceSessionsPerWeek: 5,
+  });
+
+  assert.equal(normalizedPreferences.enduranceSessionsPerWeek, 3);
+  assert.equal(normalizedPreferences.enduranceTraining.sessionsPerWeek, 3);
 });
 
 test("circuit training focus remains empty when the user clears it", () => {

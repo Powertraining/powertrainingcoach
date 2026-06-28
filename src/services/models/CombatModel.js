@@ -105,6 +105,7 @@ import {
   getPendingTrainingCheckIn,
   normalizeTrainingCheckInState,
 } from "../utils/trainingCheckIn.js";
+import { applyUserProgressReset } from "../utils/userPersistence.js";
 
 const SUBSCRIPTION_PLAN_CONFIGS = Object.freeze({
   starter: Object.freeze({
@@ -2137,6 +2138,11 @@ export const model = {
     this.activeSessionProgressByKey = {};
     this.completedSessionProgressByKey = {};
     console.log('[CombatModel.resetTrainingProgress] Progress reset');
+  },
+
+  resetUserProgressForTesting() {
+    applyUserProgressReset(this);
+    console.log('[CombatModel.resetUserProgressForTesting] User progress and questionnaire reset');
   },
 
   setDailyTrainingState(state) {
