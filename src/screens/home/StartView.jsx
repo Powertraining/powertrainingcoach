@@ -263,6 +263,7 @@ export default function StartView({
     onPushBackSession,
     onAdjustPlan,
     onMyPosts,
+    onNavigateQuestionnaire,
 }) {
     const insets = useSafeAreaInsets();
     const { height: windowHeight } = useWindowDimensions();
@@ -343,6 +344,14 @@ export default function StartView({
                             Test questionnaire
                         </IBMPlexText>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.testButton, styles.navigateQuestionnaireButton]}
+                        onPress={onNavigateQuestionnaire}
+                    >
+                        <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
+                            Navigate questionnaire
+                        </IBMPlexText>
+                    </TouchableOpacity>
                 </ScrollView>
             </Dotted>
     );
@@ -391,13 +400,16 @@ const styles = StyleSheet.create({
     testButton: {
         alignSelf: "center",
         marginTop: 24,
-        marginBottom: 20,
         paddingHorizontal: 22,
         height: 44,
         borderRadius: 22,
         backgroundColor: "#fff",
         alignItems: "center",
         justifyContent: "center",
+    },
+    navigateQuestionnaireButton: {
+        marginTop: 10,
+        marginBottom: 20,
     },
     programStatus: {
         minHeight: 280,

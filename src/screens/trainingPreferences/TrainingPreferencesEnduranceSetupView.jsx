@@ -39,9 +39,36 @@ const ENDURANCE_FORMAT_DETAILS = Object.freeze({
 });
 
 const MIN_ENDURANCE_DAYS = 1;
-// Dedicated endurance sessions share the app-wide five-session weekly ceiling.
+// Dedicated endurance sessions cannot exceed the total weekly session count.
 const MAX_ENDURANCE_DAYS = 5;
 const ENDURANCE_THUMB_SIZE = 24;
+const ENDURANCE_DAYS_LEGEND = Object.freeze({
+  1: {
+    label: "1 session/week",
+    description:
+      "Minimal conditioning. Best if your sport training load is already high or recovery is limited.",
+  },
+  2: {
+    label: "2 sessions/week",
+    description:
+      "Balanced option. Good for most users who want conditioning without adding too much fatigue.",
+  },
+  3: {
+    label: "3 sessions/week",
+    description:
+      "Moderate conditioning load. Choose this if you recover well and your sport training is not excessive.",
+  },
+  4: {
+    label: "4 sessions/week",
+    description:
+      "High conditioning load. Best for experienced users with controlled sport training and strong recovery.",
+  },
+  5: {
+    label: "5 sessions/week",
+    description:
+      "Very high conditioning load. Use only during a focused endurance block, or if your total training load is carefully managed.",
+  },
+});
 const NURSE_ICON = require("../../assets/icons/nurse.png");
 const ARROW_TEXT_ICON = require("../../assets/icons/arrowText.png");
 const CLOSED_KEYBOARD_BOTTOM_OFFSET = 18;
@@ -298,33 +325,80 @@ function ChoiceChip({ label, isSelected, onPress }) {
   );
 }
 
-function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
+function getClampedEnduranceDayCount(value, maxDays = MAX_ENDURANCE_DAYS) {
+  const parsedValue = Number.parseInt(value, 10);
+  const resolvedMaxDays = Math.max(
+    MIN_ENDURANCE_DAYS,
+    Math.min(MAX_ENDURANCE_DAYS, Number.parseInt(maxDays, 10) || MAX_ENDURANCE_DAYS)
+  );
+
+  if (!Number.isFinite(parsedValue)) {
+    return MIN_ENDURANCE_DAYS;
+  }
+
+  return Math.min(Math.max(parsedValue, MIN_ENDURANCE_DAYS), resolvedMaxDays);
+}
+
+function EnduranceDaysSlider({
+  value = MIN_ENDURANCE_DAYS,
+  maxDays = MAX_ENDURANCE_DAYS,
+  onChange,
+}) {
+  const resolvedMaxDays = Math.max(
+    MIN_ENDURANCE_DAYS,
+    Math.min(MAX_ENDURANCE_DAYS, Number.parseInt(maxDays, 10) || MAX_ENDURANCE_DAYS)
+  );
+  const resolvedValue = getClampedEnduranceDayCount(value, resolvedMaxDays);
   const [sliderWidth, setSliderWidth] = useState(0);
-  const [dragValue, setDragValue] = useState(value ?? MIN_ENDURANCE_DAYS);
+  const [dragValue, setDragValue] = useState(resolvedValue);
   const activeTouchIdRef = useRef(null);
   const dragStartPageXRef = useRef(0);
-  const dragStartValueRef = useRef(value ?? MIN_ENDURANCE_DAYS);
-  const dragValueRef = useRef(value ?? MIN_ENDURANCE_DAYS);
+  const dragStartValueRef = useRef(resolvedValue);
+  const dragValueRef = useRef(resolvedValue);
   const activeValue = Math.round(dragValue);
+  const selectedLegend =
+    ENDURANCE_DAYS_LEGEND[getClampedEnduranceDayCount(activeValue, resolvedMaxDays)] ||
+    ENDURANCE_DAYS_LEGEND[MIN_ENDURANCE_DAYS];
+  const previousActiveValueRef = useRef(activeValue);
+  const legendTransitionProgress = useRef(new Animated.Value(1)).current;
   const sliderProgress =
-    (dragValue - MIN_ENDURANCE_DAYS) / (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS);
+    resolvedMaxDays === MIN_ENDURANCE_DAYS
+      ? 0
+      : (dragValue - MIN_ENDURANCE_DAYS) / (resolvedMaxDays - MIN_ENDURANCE_DAYS);
   const thumbLeft = sliderWidth
     ? sliderProgress * (sliderWidth - ENDURANCE_THUMB_SIZE)
     : 0;
 
   useEffect(() => {
-    const nextValue = value ?? MIN_ENDURANCE_DAYS;
+    const nextValue = getClampedEnduranceDayCount(value, resolvedMaxDays);
     dragValueRef.current = nextValue;
     setDragValue(nextValue);
-  }, [value]);
+  }, [resolvedMaxDays, value]);
 
   function setLiveDragValue(nextValue) {
     dragValueRef.current = nextValue;
     setDragValue(nextValue);
   }
 
+  useEffect(() => {
+    if (previousActiveValueRef.current === activeValue) {
+      return;
+    }
+
+    previousActiveValueRef.current = activeValue;
+    legendTransitionProgress.setValue(0);
+    Animated.timing(legendTransitionProgress, {
+      toValue: 1,
+      duration: 120,
+      useNativeDriver: true,
+    }).start();
+  }, [activeValue, legendTransitionProgress]);
+
   function commitDragValue(nextValue = dragValueRef.current) {
-    const roundedValue = Math.round(nextValue);
+    const roundedValue = getClampedEnduranceDayCount(
+      Math.round(nextValue),
+      resolvedMaxDays
+    );
     dragValueRef.current = roundedValue;
     setDragValue(roundedValue);
     onChange?.(roundedValue);
@@ -350,7 +424,7 @@ function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
     const clampedX = Math.min(Math.max(locationX, 0), sliderWidth);
     return (
       MIN_ENDURANCE_DAYS +
-      (clampedX / sliderWidth) * (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS)
+      (clampedX / sliderWidth) * (resolvedMaxDays - MIN_ENDURANCE_DAYS)
     );
   }
 
@@ -361,11 +435,11 @@ function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
 
     const deltaValue =
       ((pageX - dragStartPageXRef.current) / sliderWidth) *
-      (MAX_ENDURANCE_DAYS - MIN_ENDURANCE_DAYS);
+      (resolvedMaxDays - MIN_ENDURANCE_DAYS);
 
     return Math.min(
       Math.max(dragStartValueRef.current + deltaValue, MIN_ENDURANCE_DAYS),
-      MAX_ENDURANCE_DAYS
+      resolvedMaxDays
     );
   }
 
@@ -405,59 +479,80 @@ function EnduranceDaysSlider({ value = MIN_ENDURANCE_DAYS, onChange }) {
   });
 
   return (
-    <View style={styles.sliderSection}>
-      <View style={styles.sliderNumbers}>
-        {Array.from({ length: MAX_ENDURANCE_DAYS }, (_, index) => {
-          const dayCount = index + 1;
-          const isActive = activeValue === dayCount;
-
-          return (
-            <View key={dayCount} style={styles.sliderNumberSlot}>
-              <IBMPlexText defaultWhite
-                style={[
-                  styles.sliderNumber,
-                  isActive ? styles.sliderNumberActive : null,
-                ]}
-              >
-                {dayCount}
-              </IBMPlexText>
-            </View>
-          );
-        })}
-      </View>
-
-      <View
-        style={styles.sliderShell}
-        onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
+    <View style={styles.daysSliderBlock}>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.daysLegend,
+          {
+            opacity: legendTransitionProgress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.35, 1],
+            }),
+            transform: [
+              {
+                translateY: legendTransitionProgress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [8, 0],
+                }),
+              },
+            ],
+          },
+        ]}
       >
-        <View
-          style={styles.sliderTouchArea}
-          accessibilityRole="adjustable"
-          accessibilityValue={{
-            min: MIN_ENDURANCE_DAYS,
-            max: MAX_ENDURANCE_DAYS,
-            now: activeValue,
-          }}
-          {...sliderPanResponder.panHandlers}
-        />
-        <View style={styles.sliderTrack}>
-          <View
-            style={[
-              styles.sliderTrackFill,
-              { width: `${sliderProgress * 100}%` },
-            ]}
-          />
-        </View>
-        <View pointerEvents="none" style={[styles.sliderThumb, { left: thumbLeft }]} />
-      </View>
+        <IBMPlexText defaultWhite style={styles.daysLegendLabel}>
+          {selectedLegend.label}
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.daysLegendDescription}>
+          {selectedLegend.description}
+        </IBMPlexText>
+      </Animated.View>
 
-      <View style={styles.sliderLabels}>
-        <IBMPlexText defaultWhite style={[styles.sliderLabel, styles.sliderLabelLeft]}>
-          Beginner / busy
-        </IBMPlexText>
-        <IBMPlexText defaultWhite style={[styles.sliderLabel, styles.sliderLabelRight]}>
-          Experienced
-        </IBMPlexText>
+      <View style={styles.sliderSection}>
+        <View style={styles.sliderNumbers}>
+          {Array.from({ length: resolvedMaxDays }, (_, index) => {
+            const dayCount = index + 1;
+            const isActive = activeValue === dayCount;
+
+            return (
+              <View key={dayCount} style={styles.sliderNumberSlot}>
+                <IBMPlexText defaultWhite
+                  style={[
+                    styles.sliderNumber,
+                    isActive ? styles.sliderNumberActive : null,
+                  ]}
+                >
+                  {dayCount}
+                </IBMPlexText>
+              </View>
+            );
+          })}
+        </View>
+
+        <View
+          style={styles.sliderShell}
+          onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
+        >
+          <View
+            style={styles.sliderTouchArea}
+            accessibilityRole="adjustable"
+            accessibilityValue={{
+              min: MIN_ENDURANCE_DAYS,
+              max: resolvedMaxDays,
+              now: activeValue,
+            }}
+            {...sliderPanResponder.panHandlers}
+          />
+          <View style={styles.sliderTrack}>
+            <View
+              style={[
+                styles.sliderTrackFill,
+                { width: `${sliderProgress * 100}%` },
+              ]}
+            />
+          </View>
+          <View pointerEvents="none" style={[styles.sliderThumb, { left: thumbLeft }]} />
+        </View>
       </View>
     </View>
   );
@@ -637,6 +732,13 @@ export default function TrainingPreferencesEnduranceSetupView({
       ? values.circuitTrainingSecondaryPriorities
       : []),
   ].filter(Boolean);
+  const maxEnduranceDays = Math.max(
+    MIN_ENDURANCE_DAYS,
+    Math.min(
+      MAX_ENDURANCE_DAYS,
+      Number.parseInt(values?.daysPerWeek, 10) || MAX_ENDURANCE_DAYS
+    )
+  );
   const activeCircuitInfoOption = CIRCUIT_PRIORITY_OPTIONS.find(
     (option) => option.value === activeCircuitInfoValue
   );
@@ -683,6 +785,21 @@ export default function TrainingPreferencesEnduranceSetupView({
       ...nextFields,
     });
   }
+
+  useEffect(() => {
+    if (mode !== "days") {
+      return;
+    }
+
+    const clampedEnduranceDays = getClampedEnduranceDayCount(
+      values?.enduranceSessionsPerWeek,
+      maxEnduranceDays
+    );
+
+    if (clampedEnduranceDays !== values?.enduranceSessionsPerWeek) {
+      updateField("enduranceSessionsPerWeek", clampedEnduranceDays);
+    }
+  }, [maxEnduranceDays, mode, values?.enduranceSessionsPerWeek]);
 
   function commitCircuitMessage(message = draftMessage) {
     const nextMessage = String(message || "").trim();
@@ -771,14 +888,18 @@ export default function TrainingPreferencesEnduranceSetupView({
   if (mode === "days") {
     return (
       <View style={[styles.daysSection, { minHeight: screenHeight }]}>
-        <IBMPlexText titleBlock height={130}>Endurance days</IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.helperText} center>
-          Choose the fewest endurance sessions you want scheduled each week. 3+ days
-          needs solid recovery and low enough sport load.
-        </IBMPlexText>
         <View style={styles.daysContent}>
+          <View style={styles.daysPromptArea}>
+            <IBMPlexText titleBlock height={96} style={styles.daysTitle}>
+              Endurance Sessions
+            </IBMPlexText>
+            <IBMPlexText defaultWhite style={styles.daysDescription} center>
+              Choose how many conditioning sessions to add each week. More sessions can improve endurance, but they also increase fatigue and recovery demands.
+            </IBMPlexText>
+          </View>
           <EnduranceDaysSlider
             value={values?.enduranceSessionsPerWeek ?? MIN_ENDURANCE_DAYS}
+            maxDays={maxEnduranceDays}
             onChange={(nextValue) =>
               updateField("enduranceSessionsPerWeek", nextValue)
             }
@@ -1109,7 +1230,7 @@ export default function TrainingPreferencesEnduranceSetupView({
 const styles = StyleSheet.create({
   daysSection: {
     justifyContent: "flex-start",
-    paddingTop: 88,
+    paddingTop: 18,
   },
   section: {
     justifyContent: "flex-start",
@@ -1167,12 +1288,54 @@ const styles = StyleSheet.create({
   },
   daysContent: {
     flex: 1,
-    justifyContent: "center",
-    paddingBottom: 120,
+    justifyContent: "flex-end",
+    paddingBottom: 72,
+  },
+  daysPromptArea: {
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 82,
+  },
+  daysTitle: {
+    fontSize: 35,
+    lineHeight: 39,
+  },
+  daysDescription: {
+    alignSelf: "center",
+    color: "#9ca3af",
+    fontSize: 16,
+    lineHeight: 20,
+    marginTop: 0,
+    maxWidth: 340,
+    paddingHorizontal: 24,
+    textAlign: "center",
+  },
+  daysSliderBlock: {
+    gap: 18,
+  },
+  daysLegend: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+    gap: 6,
+    marginHorizontal: "6%",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  daysLegendLabel: {
+    color: "#d1d5db",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  daysLegendDescription: {
+    color: "#d1d5db",
+    fontSize: 12,
+    lineHeight: 15,
   },
   sliderSection: {
     alignSelf: "center",
-    maxWidth: 340,
+    maxWidth: 330,
     width: "82%",
   },
   sliderNumbers: {
@@ -1233,24 +1396,6 @@ const styles = StyleSheet.create({
     top: 18,
     width: ENDURANCE_THUMB_SIZE,
     zIndex: 1,
-  },
-  sliderLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 2,
-    paddingHorizontal: ENDURANCE_THUMB_SIZE / 2,
-  },
-  sliderLabel: {
-    color: "#C9B259",
-    lineHeight: 18,
-  },
-  sliderLabelLeft: {
-    fontSize: 13,
-    textAlign: "left",
-  },
-  sliderLabelRight: {
-    fontSize: 16,
-    textAlign: "right",
   },
   styleOptions: {
     gap: 16,

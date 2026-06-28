@@ -8,7 +8,10 @@ import { useLocalSearchParams,
 import {
   Animated,
   Easing,
+  Modal,
+  ScrollView,
   useWindowDimensions,
+  TouchableOpacity,
   View,
   StyleSheet,
 } from "react-native";
@@ -19,11 +22,16 @@ import StartView from "../../src/screens/home/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/questionnaire/QuestionnaireSportView.jsx";
 import QuestionnaireFrequencyView from "../../src/screens/questionnaire/QuestionnaireFrequencyView.jsx";
 import InputFormView from "../../src/screens/InputFormView.jsx";
+import {
+  getTrainingPreferencesStepKeys,
+  getTrainingPreferencesStepLabel,
+} from "../../src/screens/TrainingPreferencesFields.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
 import BlackGradient from "../../src/components/colorComponents/BlackGradient.jsx";
+import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
@@ -103,6 +111,8 @@ const HomeScreen = observer(function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [pushingBackSession, setPushingBackSession] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
+  const [questionnaireNavigatorVisible, setQuestionnaireNavigatorVisible] =
+    useState(false);
   const [error, setError] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
 
@@ -224,10 +234,11 @@ const HomeScreen = observer(function HomeScreen() {
         setStep(STEPS.START);
         break;
       case STEPS.Q_FREQ:
-        setQuestionnaireStep(STEPS.Q_SPORT);
+        setInputActiveStep(1);
+        setQuestionnaireStep(STEPS.INPUT);
         break;
       case STEPS.INPUT:
-        setQuestionnaireStep(STEPS.Q_FREQ);
+        setQuestionnaireStep(STEPS.Q_SPORT);
         break;
       default:
         setStep(STEPS.START);
@@ -236,6 +247,58 @@ const HomeScreen = observer(function HomeScreen() {
 
   function closeQuestionnaire() {
     setStep(STEPS.START);
+  }
+
+  function getQuestionnaireNavigatorItems() {
+    const inputValues = {
+      ...questionnaireDraft,
+      primaryCombatSport:
+        questionnaireDraft?.primaryCombatSport || model.primaryCombatSport,
+      sessionsPerWeek:
+        questionnaireDraft?.sessionsPerWeek || model.sessionsPerWeek || 1,
+      daysPerWeek:
+        questionnaireDraft?.daysPerWeek ||
+        questionnaireDraft?.sessionsPerWeek ||
+        model.sessionsPerWeek ||
+        1,
+    };
+
+    return [
+      {
+        label: "Combat sport",
+        detail: "Question 1",
+        step: STEPS.Q_SPORT,
+      },
+      {
+        label: "Training frequency",
+        detail: "Question 2",
+        step: STEPS.Q_FREQ,
+      },
+      ...getTrainingPreferencesStepKeys(inputValues).map((stepKey, index) => ({
+        label: getTrainingPreferencesStepLabel(stepKey),
+        detail: `Question ${index + 3}`,
+        step: STEPS.INPUT,
+        inputStep: index,
+      })),
+    ];
+  }
+
+  function openQuestionnaireNavigator() {
+    setQuestionnaireNavigatorVisible(true);
+  }
+
+  function closeQuestionnaireNavigator() {
+    setQuestionnaireNavigatorVisible(false);
+  }
+
+  function navigateToQuestionnaireItem(item) {
+    closeQuestionnaireNavigator();
+
+    if (typeof item.inputStep === "number") {
+      setInputActiveStep(item.inputStep);
+    }
+
+    setQuestionnaireStep(item.step);
   }
 
   useAndroidBackHandler(() => {
@@ -253,11 +316,15 @@ const HomeScreen = observer(function HomeScreen() {
   }, [pushBackConfirmVisible, step, inputActiveStep]);
 
   function buildQuestionnairePayload(input, pendingPlanGeneration) {
+    const sessionsPerWeek =
+      Number.parseInt(input.sessionsPerWeek ?? input.daysPerWeek, 10) ||
+      model.sessionsPerWeek;
+
     return {
       ...input,
-      daysPerWeek: model.sessionsPerWeek,
+      daysPerWeek: sessionsPerWeek,
       primaryCombatSport: model.primaryCombatSport,
-      sessionsPerWeek: model.sessionsPerWeek,
+      sessionsPerWeek,
       parentCycleWeeks:
         input.parentCycleWeeks || model.questionnaire?.parentCycleWeeks,
       trainingPlanBatch: model.getTrainingPlanBatch?.() || 1,
@@ -322,6 +389,7 @@ const HomeScreen = observer(function HomeScreen() {
       requiresSubscription
     );
 
+    model.sessionsPerWeek = questionnaire.sessionsPerWeek;
     model.setQuestionnaire?.(questionnaire);
 
     if (requiresSubscription) {
@@ -502,6 +570,7 @@ const HomeScreen = observer(function HomeScreen() {
   const currentSession = getCurrentSession();
   const { completedExerciseCount, totalExerciseCount, hasStartedSession } =
     getExerciseProgressForSession(currentSession);
+  const questionnaireNavigatorItems = getQuestionnaireNavigatorItems();
 
   const renderByStep = {
     [STEPS.START]: () => (
@@ -516,6 +585,7 @@ const HomeScreen = observer(function HomeScreen() {
         hasStartedSession={hasStartedSession}
         isPushingBackSession={pushingBackSession}
         onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
+        onNavigateQuestionnaire={openQuestionnaireNavigator}
         onStartSession={openCurrentSession}
         onPushBackSession={openPushBackConfirm}
         onAdjustPlan={() =>
@@ -546,13 +616,13 @@ const HomeScreen = observer(function HomeScreen() {
         }}
         onBack={goBack}
         onClose={closeQuestionnaire}
-        onContinue={() => setQuestionnaireStep(STEPS.Q_FREQ)}
+        onContinue={() => setQuestionnaireStep(STEPS.INPUT)}
       />
     ),
 
     [STEPS.Q_FREQ]: () => (
       <QuestionnaireFrequencyView
-        value={questionnaireDraft?.sessionsPerWeek ?? 1}
+        value={questionnaireDraft?.sessionsPerWeek ?? model.sessionsPerWeek ?? 1}
         onChange={(freq) => {
           model.sessionsPerWeek = freq;
           setQuestionnaireDraft((currentDraft) => ({
@@ -563,7 +633,21 @@ const HomeScreen = observer(function HomeScreen() {
         }}
         onBack={goBack}
         onClose={closeQuestionnaire}
-        onContinue={() => setQuestionnaireStep(STEPS.INPUT)}
+        onContinue={() => {
+          const freq =
+            Number.parseInt(
+              questionnaireDraft?.sessionsPerWeek ?? model.sessionsPerWeek ?? 1,
+              10
+            ) || 1;
+
+          model.sessionsPerWeek = freq;
+          setQuestionnaireDraft((currentDraft) => ({
+            ...currentDraft,
+            sessionsPerWeek: freq,
+            daysPerWeek: freq,
+          }));
+          setQuestionnaireStep(STEPS.INPUT);
+        }}
       />
     ),
 
@@ -577,6 +661,14 @@ const HomeScreen = observer(function HomeScreen() {
         initialActiveStep={inputActiveStep}
         onActiveStepChange={setInputActiveStep}
         onDraftChange={setQuestionnaireDraft}
+        onDesiredTrainingContinue={(nextStep) => {
+          setInputActiveStep(nextStep);
+          setQuestionnaireStep(STEPS.Q_FREQ);
+        }}
+        onBackToFrequency={(currentStep) => {
+          setInputActiveStep(currentStep);
+          setQuestionnaireStep(STEPS.Q_FREQ);
+        }}
         subscription={model.isSubscribed?.() || false}
         daysRemaining={model.getDaysRemainingInSubscription?.() || 0}
         onClose={closeQuestionnaire}
@@ -609,6 +701,48 @@ const HomeScreen = observer(function HomeScreen() {
         secondaryButtonDisabled={pushingBackSession}
         onSecondaryButtonPress={closePushBackConfirm}
       />
+      <Modal
+        visible={questionnaireNavigatorVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeQuestionnaireNavigator}
+      >
+        <View style={styles.navigatorOverlay}>
+          <View style={styles.navigatorPanel}>
+            <View style={styles.navigatorHeader}>
+              <IBMPlexText style={styles.navigatorTitle}>
+                Navigate questionnaire
+              </IBMPlexText>
+              <TouchableOpacity
+                style={styles.navigatorCloseButton}
+                onPress={closeQuestionnaireNavigator}
+              >
+                <IBMPlexText style={styles.navigatorCloseText}>Close</IBMPlexText>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.navigatorList}
+              contentContainerStyle={styles.navigatorListContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {questionnaireNavigatorItems.map((item) => (
+                <TouchableOpacity
+                  key={`${item.step}:${item.inputStep ?? item.label}`}
+                  style={styles.navigatorItem}
+                  onPress={() => navigateToQuestionnaireItem(item)}
+                >
+                  <IBMPlexText style={styles.navigatorItemLabel}>
+                    {item.label}
+                  </IBMPlexText>
+                  <IBMPlexText style={styles.navigatorItemDetail}>
+                    {item.detail}
+                  </IBMPlexText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 });
@@ -624,5 +758,67 @@ const styles = StyleSheet.create({
   },
   planGenerationContainer: {
     overflow: "hidden",
+  },
+  navigatorOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.52)",
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+  navigatorPanel: {
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    maxHeight: "82%",
+    overflow: "hidden",
+    width: "100%",
+  },
+  navigatorHeader: {
+    alignItems: "center",
+    borderBottomColor: "#e5e7eb",
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  navigatorTitle: {
+    color: "#111827",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  navigatorCloseButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  navigatorCloseText: {
+    color: "#111827",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  navigatorList: {
+    width: "100%",
+  },
+  navigatorListContent: {
+    padding: 10,
+  },
+  navigatorItem: {
+    borderBottomColor: "#f1f5f9",
+    borderBottomWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+  },
+  navigatorItemLabel: {
+    color: "#111827",
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: 21,
+  },
+  navigatorItemDetail: {
+    color: "#6b7280",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+    marginTop: 2,
   },
 });

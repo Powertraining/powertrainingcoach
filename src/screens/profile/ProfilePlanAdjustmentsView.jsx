@@ -161,7 +161,7 @@ export default function ProfilePlanAdjustmentsView(props) {
         <IBMPlexText style={styles.preferenceSummaryLabel}>Plan Structure</IBMPlexText>
         <View style={[styles.preferenceBox, styles.structureBox]}>
           <View style={styles.structureControl}>
-            <IBMPlexText style={styles.preferenceControlLabel}>Loading Strategy</IBMPlexText>
+            <IBMPlexText style={styles.preferenceControlLabel}>Loading Scheme</IBMPlexText>
             <ProfileLoadingStrategyOptions
               compact
               value={props.trainingPreferences?.loadingStrategy}

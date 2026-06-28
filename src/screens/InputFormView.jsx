@@ -47,6 +47,8 @@ export default function InputFormView({
     onActiveStepChange,
     onDraftChange,
     onClose,
+    onDesiredTrainingContinue,
+    onBackToFrequency,
 }) {
     const [trainingPreferences, setTrainingPreferences] = useState(() => {
         const formState = getTrainingPreferencesFormState(initialValues);
@@ -226,6 +228,13 @@ export default function InputFormView({
             return;
         }
 
+        if (isDesiredTrainingStep && onDesiredTrainingContinue) {
+            const nextStep = activeStep + 1;
+            onActiveStepChange?.(nextStep);
+            onDesiredTrainingContinue(nextStep);
+            return;
+        }
+
         updateActiveStep((currentStep) => currentStep + 1);
     }
 
@@ -235,6 +244,11 @@ export default function InputFormView({
 
         if (activeStep === 0) {
             onBack?.();
+            return;
+        }
+
+        if (activeStep === 2 && onBackToFrequency) {
+            onBackToFrequency(activeStep);
             return;
         }
 

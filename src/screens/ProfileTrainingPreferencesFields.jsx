@@ -1018,7 +1018,7 @@ function LiftIntensityOptions({
 
 function getLoadingBarWidths(value) {
   if (value === "flat_loading") {
-    return ["0%", "76%", "0%"];
+    return ["76%", "76%", "76%"];
   }
 
   if (value === "descending_pyramid") {
@@ -1387,7 +1387,7 @@ export function ProfileLoadingStrategyOptions({ value, onChange, compact = false
   return (
     <View style={styles.loadingStrategyCarousel}>
       <Pressable
-        accessibilityLabel="Previous loading strategy"
+        accessibilityLabel="Previous loading scheme"
         accessibilityRole="button"
         onPress={() => selectIndex(activeIndex - 1)}
         style={styles.loadingStrategyArrowButton}
@@ -1460,7 +1460,7 @@ export function ProfileLoadingStrategyOptions({ value, onChange, compact = false
       </View>
 
       <Pressable
-        accessibilityLabel="Next loading strategy"
+        accessibilityLabel="Next loading scheme"
         accessibilityRole="button"
         onPress={() => selectIndex(activeIndex + 1)}
         style={styles.loadingStrategyArrowButton}
@@ -1780,7 +1780,7 @@ export default function ProfileTrainingPreferencesFields({
           ) : null}
 
           {shouldShowPlanField("loadingStrategy") ? (
-            <FieldPanel label="Loading strategy">
+            <FieldPanel label="Loading scheme">
               <ProfileLoadingStrategyOptions
                 value={resolvedValues.loadingStrategy}
                 onChange={(value) => updateField("loadingStrategy", value)}
