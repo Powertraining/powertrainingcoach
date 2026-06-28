@@ -291,6 +291,13 @@ const HomeScreen = observer(function HomeScreen() {
     setQuestionnaireNavigatorVisible(false);
   }
 
+  function resetUserProgressForTesting() {
+    setPushBackConfirmVisible(false);
+    closeQuestionnaireNavigator();
+    resetQuestionnaireProgress();
+    model.resetUserProgressForTesting?.();
+  }
+
   function navigateToQuestionnaireItem(item) {
     closeQuestionnaireNavigator();
 
@@ -588,6 +595,7 @@ const HomeScreen = observer(function HomeScreen() {
         onNavigateQuestionnaire={openQuestionnaireNavigator}
         onStartSession={openCurrentSession}
         onPushBackSession={openPushBackConfirm}
+        onResetUserProgress={resetUserProgressForTesting}
         onAdjustPlan={() =>
           router.push({
             pathname: "/(tabs)/profile-plan-adjustments",

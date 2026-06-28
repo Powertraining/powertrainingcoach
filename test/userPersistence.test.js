@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 
 import {
   SERVER_MANAGED_USER_DATA_FIELDS,
+  applyUserProgressReset,
   buildClientPersistableUserData,
+  createUserProgressResetData,
   isSameAuthenticatedUser,
 } from "../src/services/utils/userPersistence.js";
 
@@ -57,4 +59,42 @@ test("same authenticated user check rejects stale async writes", () => {
     false
   );
   assert.equal(isSameAuthenticatedUser({ user: null }, "user-a"), false);
+});
+
+test("testing reset clears questionnaire and progress while preserving account fields", () => {
+  const model = {
+    user: { uid: "user-a", displayName: "Tester" },
+    subscription: true,
+    subscriptionType: "pro",
+    forumProfile: { likedPostIds: ["post-a"] },
+    questionnaire: { desiredTraining: "strength_power" },
+    primaryCombatSport: "Boxing",
+    sessionsPerWeek: 5,
+    trainingPlan: { weeks: [{ week: 1 }] },
+    trainingPlanHistory: [{ plan: { weeks: [] } }],
+    completedDays: ["1-1"],
+    trainingPlanBatch: 3,
+    completedWeeks: 8,
+    trainingPerformanceState: { sessions: { "1-1": {} } },
+    strengthAssessmentState: { sessions: { "1-1": {} } },
+    trainingCheckInState: { lastCompletedBlock: 2 },
+    activeSessionProgressByKey: { "1-1": { activeExerciseIndex: 1 } },
+    completedSessionProgressByKey: { "1-1": { completedStepKeys: ["0:0"] } },
+  };
+
+  const resetData = applyUserProgressReset(model);
+  const expectedResetData = createUserProgressResetData();
+
+  assert.deepEqual(resetData, expectedResetData);
+  assert.deepEqual(model.questionnaire, expectedResetData.questionnaire);
+  assert.equal(model.primaryCombatSport, "");
+  assert.equal(model.sessionsPerWeek, 3);
+  assert.equal(model.trainingPlan, null);
+  assert.deepEqual(model.completedDays, []);
+  assert.deepEqual(model.activeSessionProgressByKey, {});
+  assert.deepEqual(model.completedSessionProgressByKey, {});
+  assert.deepEqual(model.user, { uid: "user-a", displayName: "Tester" });
+  assert.equal(model.subscription, true);
+  assert.equal(model.subscriptionType, "pro");
+  assert.deepEqual(model.forumProfile, { likedPostIds: ["post-a"] });
 });
