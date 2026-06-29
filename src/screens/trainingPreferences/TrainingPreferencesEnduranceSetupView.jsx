@@ -351,7 +351,9 @@ function EnduranceDaysSlider({
   const resolvedValue = getClampedEnduranceDayCount(value, resolvedMaxDays);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [dragValue, setDragValue] = useState(resolvedValue);
+  const sliderShellRef = useRef(null);
   const activeTouchIdRef = useRef(null);
+  const sliderPageXRef = useRef(0);
   const dragStartPageXRef = useRef(0);
   const dragStartValueRef = useRef(resolvedValue);
   const dragValueRef = useRef(resolvedValue);
@@ -428,8 +430,44 @@ function EnduranceDaysSlider({
     );
   }
 
+  function getFiniteNumber(...values) {
+    return values.find((nextValue) => Number.isFinite(nextValue));
+  }
+
+  function measureSliderPageX() {
+    sliderShellRef.current?.measure?.((_x, _y, _width, _height, pageX) => {
+      if (Number.isFinite(pageX)) {
+        sliderPageXRef.current = pageX;
+      }
+    });
+  }
+
+  function getPageXFromEvent(event, gestureState, touch) {
+    return getFiniteNumber(
+      touch?.pageX,
+      event.nativeEvent.pageX,
+      gestureState?.moveX,
+      gestureState?.x0
+    );
+  }
+
+  function getLocationXFromEvent(event, gestureState, touch) {
+    const pageX = getPageXFromEvent(event, gestureState, touch);
+    const locationX = getFiniteNumber(touch?.locationX, event.nativeEvent.locationX);
+
+    if (Number.isFinite(locationX)) {
+      return locationX;
+    }
+
+    if (Number.isFinite(pageX)) {
+      return pageX - sliderPageXRef.current;
+    }
+
+    return null;
+  }
+
   function valueFromPageX(pageX) {
-    if (!sliderWidth) {
+    if (!sliderWidth || !Number.isFinite(pageX)) {
       return dragValueRef.current;
     }
 
@@ -443,34 +481,40 @@ function EnduranceDaysSlider({
     );
   }
 
-  function startDrag(event) {
+  function startDrag(event, gestureState) {
+    measureSliderPageX();
     const touch = getResponderTouch(event);
-    const nextValue = valueFromLocationX(touch?.locationX ?? event.nativeEvent.locationX ?? 0);
+    const nextValue = valueFromLocationX(
+      getLocationXFromEvent(event, gestureState, touch) ?? 0
+    );
+    const pageX = getPageXFromEvent(event, gestureState, touch);
 
     activeTouchIdRef.current = touch?.identifier ?? event.nativeEvent.identifier ?? null;
-    dragStartPageXRef.current = touch?.pageX ?? event.nativeEvent.pageX ?? 0;
+    dragStartPageXRef.current = pageX ?? 0;
     dragStartValueRef.current = nextValue;
     setLiveDragValue(nextValue);
   }
 
-  function updateDrag(event) {
+  function updateDrag(event, gestureState) {
     const touch = getResponderTouch(event);
+    const pageX = getPageXFromEvent(event, gestureState, touch);
 
-    if (!touch) {
+    if (!Number.isFinite(pageX)) {
       return;
     }
 
-    setLiveDragValue(valueFromPageX(touch.pageX));
+    setLiveDragValue(valueFromPageX(pageX));
   }
 
-  function endDrag(event) {
-    updateDrag(event);
+  function endDrag(event, gestureState) {
+    updateDrag(event, gestureState);
     commitDragValue();
     activeTouchIdRef.current = null;
   }
 
   function pressSlider(event) {
-    commitDragValue(valueFromLocationX(event.nativeEvent.locationX ?? 0));
+    measureSliderPageX();
+    commitDragValue(valueFromLocationX(getLocationXFromEvent(event) ?? 0));
   }
 
   const sliderPanResponder = PanResponder.create({
@@ -534,8 +578,12 @@ function EnduranceDaysSlider({
         </View>
 
         <View
+          ref={sliderShellRef}
           style={styles.sliderShell}
-          onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
+          onLayout={({ nativeEvent }) => {
+            setSliderWidth(nativeEvent.layout.width);
+            measureSliderPageX();
+          }}
         >
           <Pressable
             style={styles.sliderTouchArea}
