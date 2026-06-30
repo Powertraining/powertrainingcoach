@@ -2,7 +2,7 @@ import {
   useEffect,
   useRef,
   useState } from "react";
-import { View, StyleSheet, PanResponder, Pressable } from "react-native";
+import { View, StyleSheet, PanResponder } from "react-native";
 import QuestionnaireShell from "./QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
@@ -93,17 +93,26 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
         });
     }
 
-    function getPageXFromEvent(event, gestureState, touch) {
+    function getPageXFromEvent(event, gestureState, touch, phase = "move") {
+        if (phase === "start") {
+            return getFiniteNumber(
+                touch?.pageX,
+                gestureState?.x0,
+                gestureState?.moveX,
+                event.nativeEvent.pageX
+            );
+        }
+
         return getFiniteNumber(
             touch?.pageX,
-            event.nativeEvent.pageX,
             gestureState?.moveX,
-            gestureState?.x0
+            gestureState?.x0,
+            event.nativeEvent.pageX
         );
     }
 
-    function getLocationXFromEvent(event, gestureState, touch) {
-        const pageX = getPageXFromEvent(event, gestureState, touch);
+    function getLocationXFromEvent(event, gestureState, touch, phase) {
+        const pageX = getPageXFromEvent(event, gestureState, touch, phase);
         const locationX = getFiniteNumber(touch?.locationX, event.nativeEvent.locationX);
 
         if (Number.isFinite(locationX)) {
@@ -133,9 +142,9 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
         measureSliderPageX();
         const touch = getResponderTouch(event);
         const nextValue = valueFromLocationX(
-            getLocationXFromEvent(event, gestureState, touch) ?? 0
+            getLocationXFromEvent(event, gestureState, touch, "start") ?? 0
         );
-        const pageX = getPageXFromEvent(event, gestureState, touch);
+        const pageX = getPageXFromEvent(event, gestureState, touch, "start");
 
         activeTouchIdRef.current = touch?.identifier ?? event.nativeEvent.identifier ?? null;
         dragStartPageXRef.current = pageX ?? 0;
@@ -158,11 +167,6 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
         updateDrag(event, gestureState);
         commitDragValue();
         activeTouchIdRef.current = null;
-    }
-
-    function pressSlider(event) {
-        measureSliderPageX();
-        commitDragValue(valueFromLocationX(getLocationXFromEvent(event) ?? 0));
     }
 
     const sliderPanResponder = PanResponder.create({
@@ -196,9 +200,8 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                                 measureSliderPageX();
                             }}
                         >
-                            <Pressable
+                            <View
                                 style={styles.sliderTouchArea}
-                                onPress={pressSlider}
                                 accessibilityRole="adjustable"
                                 accessibilityValue={{
                                     min: MIN_SESSIONS,

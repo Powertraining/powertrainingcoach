@@ -52,6 +52,7 @@ const EXERCISE_RESULT_RING_CIRCUMFERENCE =
 const SESSION_SCREEN_MODES = Object.freeze({
   SECTION_INTRO: "sectionIntro",
   EXERCISE: "exercise",
+  EXERCISE_ALREADY_COMPLETED: "exerciseAlreadyCompleted",
   SESSION_COMPLETE: "sessionComplete",
 });
 const EXERCISE_SECTION_LABELS = Object.freeze({
@@ -179,6 +180,16 @@ function getDraftKey(exerciseIndex, setIndex = 0) {
 
 function getStepKey(exerciseIndex, setIndex = 0) {
   return `${exerciseIndex}:${setIndex}`;
+}
+
+function isExerciseFullyCompleted(completedStepKeys, exerciseIndex, exercise = {}) {
+  if (!Number.isInteger(exerciseIndex) || exerciseIndex < 0 || !exercise) {
+    return false;
+  }
+
+  return Array.from({ length: parsePrescribedSetCount(exercise) }).every(
+    (_, setIndex) => completedStepKeys.has(getStepKey(exerciseIndex, setIndex))
+  );
 }
 
 function ActiveSessionSlideIn({ children }) {
@@ -1369,6 +1380,57 @@ function ExerciseSessionStep({
   );
 }
 
+function ExerciseAlreadyCompletedView({
+  exercise,
+  setCount = 0,
+  onContinue,
+  onRetry,
+}) {
+  const exerciseName = getExerciseDisplayName(exercise);
+
+  return (
+    <View style={styles.alreadyCompletedCard}>
+      <View style={styles.alreadyCompletedBadge}>
+        <IBMPlexText style={styles.alreadyCompletedBadgeText}>Done</IBMPlexText>
+      </View>
+      <View style={styles.alreadyCompletedCopy}>
+        <IBMPlexText style={styles.alreadyCompletedTitle}>
+          Exercise already completed
+        </IBMPlexText>
+        {exerciseName ? (
+          <IBMPlexText style={styles.alreadyCompletedExercise}>
+            {exerciseName}
+          </IBMPlexText>
+        ) : null}
+        <IBMPlexText style={styles.alreadyCompletedBody}>
+          {setCount > 1
+            ? `${setCount} sets are already logged for this exercise.`
+            : "This exercise is already logged."}
+        </IBMPlexText>
+      </View>
+      <View style={styles.alreadyCompletedActions}>
+        <TouchableOpacity
+          style={[styles.nextButton, styles.alreadyCompletedContinueButton]}
+          onPress={onContinue}
+        >
+          <IBMPlexText defaultWhite style={styles.nextButtonText}>
+            Continue
+          </IBMPlexText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          style={styles.retryCompletedButton}
+          onPress={onRetry}
+        >
+          <IBMPlexText style={styles.retryCompletedText}>
+            Retry this exercise
+          </IBMPlexText>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 export default function ActiveSessionView({
   plan,
   weekNumber = 1,
@@ -1479,6 +1541,9 @@ export default function ActiveSessionView({
     sessionScreenMode === SESSION_SCREEN_MODES.SECTION_INTRO && activeExercise;
   const showExerciseStep =
     sessionScreenMode === SESSION_SCREEN_MODES.EXERCISE && activeExercise;
+  const showAlreadyCompletedExercise =
+    sessionScreenMode === SESSION_SCREEN_MODES.EXERCISE_ALREADY_COMPLETED &&
+    activeExercise;
   const traversedExerciseCount = isSessionCompleteIntro
     ? normalizedExercises.length
     : displayedCompletedExerciseCount;
@@ -1613,9 +1678,23 @@ export default function ActiveSessionView({
   }
 
   function goToSessionStep(stepIndex, { showIntro = false } = {}) {
+    const nextStep = sessionSteps[stepIndex];
+
+    if (!nextStep) {
+      return;
+    }
+
     goToStep(stepIndex);
     setSessionScreenMode(
-      showIntro ? SESSION_SCREEN_MODES.SECTION_INTRO : SESSION_SCREEN_MODES.EXERCISE
+      showIntro
+        ? SESSION_SCREEN_MODES.SECTION_INTRO
+        : isExerciseFullyCompleted(
+            completedStepKeys,
+            nextStep.exerciseIndex,
+            nextStep.exercise
+          )
+          ? SESSION_SCREEN_MODES.EXERCISE_ALREADY_COMPLETED
+          : SESSION_SCREEN_MODES.EXERCISE
     );
   }
 
@@ -1740,6 +1819,53 @@ export default function ActiveSessionView({
     setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
   }
 
+  function continuePastActiveExercise() {
+    if (!activeStep) {
+      return;
+    }
+
+    const nextExerciseStepIndex = sessionSteps.findIndex(
+      (step) => step.exerciseIndex > activeStep.exerciseIndex
+    );
+
+    if (nextExerciseStepIndex >= 0) {
+      const nextStep = sessionSteps[nextExerciseStepIndex];
+      setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
+      setDisplayedCompletedExerciseCount(nextStep.exerciseIndex);
+      goToSessionStep(nextExerciseStepIndex, {
+        showIntro: nextStep?.section !== activeStep.section,
+      });
+      return;
+    }
+
+    setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
+    setDisplayedCompletedExerciseCount(normalizedExercises.length);
+    setSessionScreenMode(SESSION_SCREEN_MODES.SESSION_COMPLETE);
+  }
+
+  function handleRetryCompletedExercise() {
+    if (!activeStep) {
+      return;
+    }
+
+    setCompletedStepKeys((currentCompletedStepKeys) => {
+      const nextCompletedStepKeys = new Set(currentCompletedStepKeys);
+
+      Array.from({ length: activeStep.setCount }).forEach((_, setIndex) => {
+        nextCompletedStepKeys.delete(getStepKey(activeStep.exerciseIndex, setIndex));
+      });
+
+      return nextCompletedStepKeys;
+    });
+    setActiveExerciseIndex(activeStep.exerciseIndex);
+    setActiveSetIndex(0);
+    setPreviousDisplayedCompletedExerciseCount(
+      Math.max(activeStep.exerciseIndex - 1, 0)
+    );
+    setDisplayedCompletedExerciseCount(activeStep.exerciseIndex);
+    setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
+  }
+
   function handleContinueIntro() {
     if (isSessionCompleteIntro) {
       onFinish?.(getTrackedResultsFromDrafts(trackingDrafts), {
@@ -1749,7 +1875,15 @@ export default function ActiveSessionView({
       return;
     }
 
-    setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
+    setSessionScreenMode(
+      isExerciseFullyCompleted(
+        completedStepKeys,
+        activeStep?.exerciseIndex,
+        activeExercise
+      )
+        ? SESSION_SCREEN_MODES.EXERCISE_ALREADY_COMPLETED
+        : SESSION_SCREEN_MODES.EXERCISE
+    );
   }
 
   return (
@@ -1818,6 +1952,13 @@ export default function ActiveSessionView({
               totalExerciseCount={normalizedExercises.length}
               progressAnimationDelayMs={SESSION_CONTENT_SLIDE_DURATION_MS}
               onContinue={handleContinueIntro}
+            />
+          ) : showAlreadyCompletedExercise ? (
+            <ExerciseAlreadyCompletedView
+              exercise={activeExercise}
+              setCount={activeStep.setCount}
+              onContinue={continuePastActiveExercise}
+              onRetry={handleRetryCompletedExercise}
             />
           ) : showExerciseStep ? (
             <ExerciseSessionStep
@@ -2078,6 +2219,78 @@ const styles = StyleSheet.create({
   bottomControls: {
     marginTop: "auto",
     gap: 8,
+  },
+  alreadyCompletedCard: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 26,
+    paddingVertical: 42,
+  },
+  alreadyCompletedBadge: {
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 82,
+    height: 34,
+    borderRadius: 999,
+    backgroundColor: "#C9B259",
+    paddingHorizontal: 16,
+  },
+  alreadyCompletedBadgeText: {
+    color: "#000",
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 16,
+    textTransform: "uppercase",
+  },
+  alreadyCompletedCopy: {
+    alignItems: "center",
+    gap: 10,
+    maxWidth: 320,
+  },
+  alreadyCompletedTitle: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "800",
+    lineHeight: 34,
+    textAlign: "center",
+  },
+  alreadyCompletedExercise: {
+    color: "#C9B259",
+    fontSize: 17,
+    fontWeight: "700",
+    lineHeight: 21,
+    textAlign: "center",
+  },
+  alreadyCompletedBody: {
+    color: "#d4d4d8",
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 19,
+    textAlign: "center",
+  },
+  alreadyCompletedActions: {
+    alignSelf: "stretch",
+    gap: 10,
+    alignItems: "center",
+  },
+  alreadyCompletedContinueButton: {
+    flex: 0,
+    width: "100%",
+    maxWidth: 320,
+  },
+  retryCompletedButton: {
+    minHeight: 30,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+  retryCompletedText: {
+    color: "#a1a1aa",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 15,
+    textAlign: "center",
+    textDecorationLine: "underline",
   },
   footerActions: {
     gap: 8,

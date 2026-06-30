@@ -442,17 +442,26 @@ function EnduranceDaysSlider({
     });
   }
 
-  function getPageXFromEvent(event, gestureState, touch) {
+  function getPageXFromEvent(event, gestureState, touch, phase = "move") {
+    if (phase === "start") {
+      return getFiniteNumber(
+        touch?.pageX,
+        gestureState?.x0,
+        gestureState?.moveX,
+        event.nativeEvent.pageX
+      );
+    }
+
     return getFiniteNumber(
       touch?.pageX,
-      event.nativeEvent.pageX,
       gestureState?.moveX,
-      gestureState?.x0
+      gestureState?.x0,
+      event.nativeEvent.pageX
     );
   }
 
-  function getLocationXFromEvent(event, gestureState, touch) {
-    const pageX = getPageXFromEvent(event, gestureState, touch);
+  function getLocationXFromEvent(event, gestureState, touch, phase) {
+    const pageX = getPageXFromEvent(event, gestureState, touch, phase);
     const locationX = getFiniteNumber(touch?.locationX, event.nativeEvent.locationX);
 
     if (Number.isFinite(locationX)) {
@@ -485,9 +494,9 @@ function EnduranceDaysSlider({
     measureSliderPageX();
     const touch = getResponderTouch(event);
     const nextValue = valueFromLocationX(
-      getLocationXFromEvent(event, gestureState, touch) ?? 0
+      getLocationXFromEvent(event, gestureState, touch, "start") ?? 0
     );
-    const pageX = getPageXFromEvent(event, gestureState, touch);
+    const pageX = getPageXFromEvent(event, gestureState, touch, "start");
 
     activeTouchIdRef.current = touch?.identifier ?? event.nativeEvent.identifier ?? null;
     dragStartPageXRef.current = pageX ?? 0;
@@ -510,11 +519,6 @@ function EnduranceDaysSlider({
     updateDrag(event, gestureState);
     commitDragValue();
     activeTouchIdRef.current = null;
-  }
-
-  function pressSlider(event) {
-    measureSliderPageX();
-    commitDragValue(valueFromLocationX(getLocationXFromEvent(event) ?? 0));
   }
 
   const sliderPanResponder = PanResponder.create({
@@ -585,9 +589,8 @@ function EnduranceDaysSlider({
             measureSliderPageX();
           }}
         >
-          <Pressable
+          <View
             style={styles.sliderTouchArea}
-            onPress={pressSlider}
             accessibilityRole="adjustable"
             accessibilityValue={{
               min: MIN_ENDURANCE_DAYS,
