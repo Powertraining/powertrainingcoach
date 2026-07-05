@@ -95,7 +95,7 @@ export const borderRadius = {
 };
 
 export const fonts = {
-  display: "IBMPlexSans_600SemiBold",
+  display: "BebasKai-Regular",
   body: "IBMPlexSans_400Regular",
   bodyMedium: "IBMPlexSans_500Medium",
   bodySemiBold: "IBMPlexSans_600SemiBold",
