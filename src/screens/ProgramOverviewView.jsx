@@ -11,6 +11,7 @@ import {
   Pressable,
   Animated,
   Easing,
+  useWindowDimensions,
 } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
@@ -26,7 +27,7 @@ import {
   getTrainingDayTypeColor,
   getTrainingDayTypeLabel,
 } from "../constants/trainingDayTypes.js";
-import TrainingDayTypeGradient from "../components/colorComponents/TrainingDayTypeGradient.jsx";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   getCurrentTrainingWeek,
   getTrainingDayPreferredWeekday,
@@ -51,12 +52,6 @@ import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const WEEK_SCHEDULE_ITEM_WIDTH = 78.3;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
-const HEADER_SESSION_RING_SIZE = 76;
-const HEADER_SESSION_RING_CENTER = HEADER_SESSION_RING_SIZE / 2;
-const HEADER_SESSION_RING_RADIUS = 30;
-const HEADER_SESSION_RING_STROKE = 6;
-const HEADER_SESSION_RING_CIRCUMFERENCE =
-  2 * Math.PI * HEADER_SESSION_RING_RADIUS;
 const SKELETON_WEEK_SLOTS = Object.freeze(Array.from({ length: 8 }));
 const SKELETON_DAY_CONTAINERS = Object.freeze([
   { height: 92 },
@@ -71,11 +66,13 @@ const WEEK_SCHEDULE_TILE_LARGE_WIDTH = 78.3;
 const SELECTED_DAY_SLIDE_DISTANCE = 44;
 const PROGRAM_OVERVIEW_CONTENT_TOP_MARGIN = 16;
 const PROGRAM_OVERVIEW_HEADER_TOP_PADDING = 14;
-const PROGRAM_OVERVIEW_PANEL_TO_SCHEDULE_GAP =
-  PROGRAM_OVERVIEW_CONTENT_TOP_MARGIN + PROGRAM_OVERVIEW_HEADER_TOP_PADDING;
+const PROGRAM_OVERVIEW_PANEL_TO_SCHEDULE_GAP = 4;
 const WEEK_SCHEDULE_DAY_FILL_OPACITY = 0.15;
 const WEEK_SCHEDULE_SELECTED_REST_DAY_OPACITY = 0.5;
 const WEEK_SCHEDULE_REST_DAY_COLOR = "#585858";
+const WEEK_SCHEDULE_SURFACE = "#101010";
+const WEEK_SCHEDULE_SURFACE_MUTED = "#0B0B0B";
+const WEEK_SCHEDULE_BORDER = "#252525";
 
 function startOfLocalDay(value) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
@@ -222,27 +219,29 @@ function getWeekScheduleTileColorStyle(day = null, selected = false) {
     WEEK_SCHEDULE_SELECTED_REST_DAY_OPACITY
   );
 
+  if (!isRestDay) {
+    return {
+      backgroundColor: hexToRgba(dayTypeColor, WEEK_SCHEDULE_DAY_FILL_OPACITY),
+      borderColor: dayTypeColor,
+      borderWidth: selected ? 2 : 1,
+    };
+  }
+
   return {
-    backgroundColor: selected
-      ? isRestDay
-        ? selectedRestDayColor
-        : dayTypeColor
-      : day
-      ? hexToRgba(dayTypeColor, WEEK_SCHEDULE_DAY_FILL_OPACITY)
-      : "transparent",
-    borderColor: selected && isRestDay ? selectedRestDayColor : dayTypeColor,
+    backgroundColor: selected ? WEEK_SCHEDULE_SURFACE : WEEK_SCHEDULE_SURFACE_MUTED,
+    borderColor: selected
+      ? selectedRestDayColor
+      : WEEK_SCHEDULE_BORDER,
+    borderWidth: selected ? 1.5 : 1,
   };
 }
 
 function getWeekScheduleTileTextStyle(day = null, selected = false) {
-  if (selected) {
-    return { color: "#000" };
+  if (!day) {
+    return { color: selected ? "#fff" : "#7E7E7E" };
   }
 
-  const dayType = getSelectedDayGradientType(day, !day);
-  const color = getTrainingDayTypeColor(dayType, WEEK_SCHEDULE_REST_DAY_COLOR);
-
-  return { color };
+  return { color: "#fff" };
 }
 
 function getWeekScheduleDayTypeMeta(day = null, selected = false) {
@@ -260,10 +259,10 @@ function getWeekScheduleDayTypeMeta(day = null, selected = false) {
 
   return {
     dayType,
-    iconColor: selected ? "#000" : color,
+    iconColor: color,
     label,
     textStyle: {
-      color: selected ? "#000" : color,
+      color,
       fontSize: label.length >= 11 ? 7 : 9,
       lineHeight: label.length >= 11 ? 9 : 11,
     },
@@ -316,6 +315,17 @@ function WeekScheduleTypeIcon({ color = "#fff", type = "force" }) {
   );
 }
 
+function MoonRestIcon({ size = 30, color = "#7E7E7E" }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M20.65 14.53A8.5 8.5 0 0 1 9.47 3.35a.9.9 0 0 0-1.02-1.3A10.3 10.3 0 1 0 21.95 15.55a.9.9 0 0 0-1.3-1.02Z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
 function hasStartedSessionProgress(progress = {}) {
   const completedStepKeys = Array.isArray(progress?.completedStepKeys)
     ? progress.completedStepKeys
@@ -359,6 +369,59 @@ function buildCompletedStepKeysForExercises(exercises = []) {
   return buildSessionSteps(exercises).map(
     (step) => `${step.exerciseIndex}:${step.setIndex}`
   );
+}
+
+function getNextExerciseLogTarget(exercises = [], progress = {}, requestedExerciseIndex = null) {
+  const sessionSteps = buildSessionSteps(exercises);
+  const completedStepKeys = new Set(
+    Array.isArray(progress?.completedStepKeys) ? progress.completedStepKeys : []
+  );
+  const requestedIndex = Number.isInteger(requestedExerciseIndex)
+    ? requestedExerciseIndex
+    : null;
+  const requestedExercise = requestedIndex != null
+    ? exercises[requestedIndex]
+    : null;
+
+  if (requestedExercise) {
+    const setCount = parsePrescribedSetCount(requestedExercise);
+    const firstOpenSetIndex = Array.from({ length: setCount }).findIndex(
+      (_, setIndex) => !completedStepKeys.has(`${requestedIndex}:${setIndex}`)
+    );
+
+    return {
+      exerciseIndex: requestedIndex,
+      setIndex: firstOpenSetIndex >= 0 ? firstOpenSetIndex : 0,
+    };
+  }
+
+  const savedExerciseIndex = Number.isInteger(progress?.activeExerciseIndex)
+    ? progress.activeExerciseIndex
+    : null;
+  const savedSetIndex = Number.isInteger(progress?.activeSetIndex)
+    ? progress.activeSetIndex
+    : 0;
+
+  if (savedExerciseIndex != null && exercises[savedExerciseIndex]) {
+    const savedStepKey = `${savedExerciseIndex}:${savedSetIndex}`;
+
+    if (!completedStepKeys.has(savedStepKey)) {
+      return {
+        exerciseIndex: savedExerciseIndex,
+        setIndex: savedSetIndex,
+      };
+    }
+  }
+
+  const nextOpenStep =
+    sessionSteps.find(
+      (step) => !completedStepKeys.has(`${step.exerciseIndex}:${step.setIndex}`)
+    ) || sessionSteps[0];
+
+  return {
+    exerciseIndex: nextOpenStep?.exerciseIndex || 0,
+    setIndex: nextOpenStep?.setIndex || 0,
+  };
 }
 
 function isConditioningOnlyDay(day = {}) {
@@ -471,54 +534,6 @@ function SelectedDaySlide({ animationKey, direction = 0, style, children }) {
     >
       {children}
     </Animated.View>
-  );
-}
-
-function HeaderSessionProgressRing({ progressPercent = 0 }) {
-  const safeProgressPercent = Math.max(
-    0,
-    Math.min(100, Number.isFinite(progressPercent) ? progressPercent : 0)
-  );
-  const progressOffset =
-    HEADER_SESSION_RING_CIRCUMFERENCE -
-    HEADER_SESSION_RING_CIRCUMFERENCE * (safeProgressPercent / 100);
-
-  return (
-    <View style={styles.headerSessionProgressRing}>
-      <Svg
-        width={HEADER_SESSION_RING_SIZE}
-        height={HEADER_SESSION_RING_SIZE}
-        viewBox={`0 0 ${HEADER_SESSION_RING_SIZE} ${HEADER_SESSION_RING_SIZE}`}
-      >
-        <Circle
-          cx={HEADER_SESSION_RING_CENTER}
-          cy={HEADER_SESSION_RING_CENTER}
-          r={HEADER_SESSION_RING_RADIUS}
-          fill="none"
-          stroke="#3f3f46"
-          strokeWidth={HEADER_SESSION_RING_STROKE}
-        />
-        <Circle
-          cx={HEADER_SESSION_RING_CENTER}
-          cy={HEADER_SESSION_RING_CENTER}
-          r={HEADER_SESSION_RING_RADIUS}
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth={HEADER_SESSION_RING_STROKE}
-          strokeLinecap="round"
-          strokeDasharray={`${HEADER_SESSION_RING_CIRCUMFERENCE} ${HEADER_SESSION_RING_CIRCUMFERENCE}`}
-          strokeDashoffset={progressOffset}
-          rotation="-90"
-          originX={HEADER_SESSION_RING_CENTER}
-          originY={HEADER_SESSION_RING_CENTER}
-        />
-      </Svg>
-      <View style={styles.headerSessionProgressRingContent}>
-        <IBMPlexText style={styles.headerSessionProgressRingText}>
-          {safeProgressPercent}%
-        </IBMPlexText>
-      </View>
-    </View>
   );
 }
 
@@ -662,6 +677,7 @@ export default function ProgramOverviewView({
   const [rescheduleInfoVisible, setRescheduleInfoVisible] = useState(false);
   const [completeConfirmVisible, setCompleteConfirmVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
+  const [exerciseLogSheet, setExerciseLogSheet] = useState(null);
   const [selectedArchivedDay, setSelectedArchivedDay] = useState(null);
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
   const [restSlotSelectionDismissed, setRestSlotSelectionDismissed] = useState(false);
@@ -673,9 +689,15 @@ export default function ProgramOverviewView({
   const lastInitialScrollToTopKeyRef = useRef("");
   const initialScrollToTopPassesRemainingRef = useRef(0);
   const lastWeekScheduleScrollDateRef = useRef("");
+  const lastSelectedScheduleDateRef = useRef(null);
+  const { height: viewportHeight, width: viewportWidth } = useWindowDimensions();
   const isPhonePreview = isPagesPhonePreview();
   const isOverviewRoute =
     pathname === "/overview" || pathname === "/(tabs)/overview";
+  const headerActionPanelHeight = Math.max(
+    188,
+    Math.min(220, Math.round(viewportWidth * 0.48))
+  );
 
   function openLaunchGatePrompt(promptKey) {
     setLaunchGatePromptKey(promptKey);
@@ -698,7 +720,7 @@ export default function ProgramOverviewView({
       label: testPrompt.label,
       onPress: () => openLaunchGatePrompt(testPrompt.key),
     })),
-  ], isOverviewRoute && !activeSessionDay);
+  ], isOverviewRoute && !activeSessionDay && !exerciseLogSheet);
 
   useEffect(() => {
     if (selectedDay) {
@@ -750,6 +772,11 @@ export default function ProgramOverviewView({
       return;
     }
 
+    if (exerciseLogSheet) {
+      setExerciseLogSheet(null);
+      return;
+    }
+
     if (activeSessionDay) {
       setActiveSessionDay(null);
       return;
@@ -770,6 +797,7 @@ export default function ProgramOverviewView({
     activeSessionDay,
     completeConfirmVisible,
     detailsVisible,
+    exerciseLogSheet,
     pushBackConfirmVisible,
     rescheduleInfoVisible,
     launchGatePromptKey,
@@ -799,7 +827,8 @@ export default function ProgramOverviewView({
   const planStartDate = getPlanStartDate(plan);
   const shouldHideTabBarForCheckIn =
     Boolean(pendingTrainingCheckIn) || Boolean(launchGatePromptKey);
-  const shouldHideTabBar = swapEditorVisible || shouldHideTabBarForCheckIn;
+  const shouldHideTabBar =
+    swapEditorVisible || shouldHideTabBarForCheckIn || Boolean(exerciseLogSheet);
   const archivedPlanContexts = Array.isArray(trainingPlanHistory)
     ? trainingPlanHistory
         .map((entry = {}) => ({
@@ -949,6 +978,10 @@ export default function ProgramOverviewView({
     selectedHeaderDay,
     Boolean(selectedRestSlot)
   );
+  const selectedHeaderGradientColor = getTrainingDayTypeColor(
+    selectedHeaderGradientType,
+    WEEK_SCHEDULE_REST_DAY_COLOR
+  );
   const selectedScheduleAnimationKey = selectedScheduleSlot
     ? [
         selectedScheduleSlot.dateKey,
@@ -957,12 +990,22 @@ export default function ProgramOverviewView({
       ].join(":")
     : "";
   const selectedScheduleSlideDirection = selectedScheduleSlot
-    ? isSameCalendarDay(selectedScheduleSlot.date, today)
-      ? 0
-      : selectedScheduleSlot.date < today
-        ? -1
-        : 1
+    ? (() => {
+        const currentSelectedDate = startOfLocalDay(selectedScheduleSlot.date);
+        const previousSelectedDate = lastSelectedScheduleDateRef.current;
+
+        if (currentSelectedDate && previousSelectedDate) {
+          return currentSelectedDate < previousSelectedDate ? -1 : 1;
+        }
+
+        return selectedScheduleSlot.date < today ? -1 : 1;
+      })()
     : 0;
+  useEffect(() => {
+    lastSelectedScheduleDateRef.current = selectedScheduleSlot
+      ? startOfLocalDay(selectedScheduleSlot.date)
+      : null;
+  }, [selectedScheduleSlot]);
   const selectedTrainingSlotIsToday =
     Boolean(selectedTrainingSlot) &&
     isSameCalendarDay(selectedTrainingSlot.date, today);
@@ -1002,12 +1045,6 @@ export default function ProgramOverviewView({
     selectedDayIsComplete &&
     !selectedRestSlot &&
     !selectedDayIsPushedBack;
-  const showPreviousSessionStatus =
-    Boolean(activeSelectedDay) &&
-    selectedTrainingSlotIsPast &&
-    !selectedDayIsComplete &&
-    !selectedRestSlot &&
-    !selectedDayIsPushedBack;
   const showPushedBackSessionStatus =
     Boolean(activeSelectedDay) && selectedDayIsPushedBack && !selectedRestSlot;
   const showRestSessionStatus = Boolean(selectedRestSlot);
@@ -1018,7 +1055,6 @@ export default function ProgramOverviewView({
   const hasKnownHeaderActionContent =
     showStartButton ||
     showCompletedSessionStatus ||
-    showPreviousSessionStatus ||
     showPushedBackSessionStatus ||
     showRestSessionStatus;
   const showFallbackSessionStatus = !hasKnownHeaderActionContent;
@@ -1028,6 +1064,14 @@ export default function ProgramOverviewView({
     Boolean(detailSelectedDay) &&
     !selectedRestSlot &&
     detailSelectedDay.status === "rescheduled";
+  const canLogSelectedExercises =
+    Boolean(activeSelectedDay) &&
+    !selectedArchivedDay &&
+    !selectedRestSlot &&
+    !selectedDayIsComplete &&
+    !selectedDayIsPushedBack &&
+    Array.isArray(activeSelectedDay.exercises) &&
+    activeSelectedDay.exercises.length > 0;
   const rescheduleInfoSummary =
     detailSelectedDay?.adjustmentSummary ||
     "This session was moved after a missed slot.";
@@ -1042,10 +1086,6 @@ export default function ProgramOverviewView({
     );
   const activeSessionProgressPercent =
     getSessionProgressPercent(activeSelectedDay, selectedDaySessionProgress);
-  const previousSessionProgressPercent =
-    selectedDayCompletedSessionProgress
-      ? completedSessionProgressPercent
-      : activeSessionProgressPercent;
   const nextTrainingSlot = currentWeekSchedule.find((slot) => {
     if (!slot.trainingDay || slot.isArchived || !(slot.date instanceof Date)) {
       return false;
@@ -1076,6 +1116,14 @@ export default function ProgramOverviewView({
         ? "Next session in 1 day"
         : `Next session in ${nextSessionDayCount} days`
       : "Next session coming up";
+  const exerciseLogSheetDay = exerciseLogSheet?.day || null;
+  const exerciseLogSheetKey = exerciseLogSheetDay
+    ? `${exerciseLogSheetDay.week}-${exerciseLogSheetDay.day}`
+    : "";
+  const exerciseLogSheetHeight = Math.min(
+    Math.max(0, viewportHeight - 28),
+    Math.max(420, Math.round(viewportHeight * 0.9))
+  );
 
   function scrollOverviewToTop() {
     overviewScrollRef.current?.scrollTo?.({
@@ -1169,6 +1217,48 @@ export default function ProgramOverviewView({
     );
   }
 
+  function openExerciseLogSheet(requestedExerciseIndex = null) {
+    if (!activeSelectedDay || selectedDayIsComplete || selectedDayIsPushedBack) {
+      return;
+    }
+
+    const sessionKey = `${activeSelectedDay.week}-${activeSelectedDay.day}`;
+    const progress = getActiveSessionProgress?.(sessionKey);
+    const target = getNextExerciseLogTarget(
+      activeSelectedDay.exercises,
+      progress,
+      requestedExerciseIndex
+    );
+
+    onSelectDay(activeSelectedDay.week, activeSelectedDay.day);
+    setExerciseLogSheet({
+      day: activeSelectedDay,
+      exerciseIndex: target.exerciseIndex,
+      setIndex: target.setIndex,
+    });
+  }
+
+  function closeExerciseLogSheet() {
+    setExerciseLogSheet(null);
+  }
+
+  function finishExerciseLogSheet(trackedResults = [], completedProgress = {}) {
+    if (!exerciseLogSheetDay || !exerciseLogSheetKey) {
+      closeExerciseLogSheet();
+      return;
+    }
+
+    onCompletedSessionProgressSave?.(exerciseLogSheetKey, {
+      completedStepKeys:
+        completedProgress.completedStepKeys ||
+        buildCompletedStepKeysForExercises(exerciseLogSheetDay.exercises),
+      trackingDrafts: completedProgress.trackingDrafts || {},
+    });
+    onActiveSessionProgressClear?.(exerciseLogSheetKey);
+    onFinishDay?.(trackedResults);
+    closeExerciseLogSheet();
+  }
+
   function openPushBackConfirm() {
     if (updatingPlan) {
       return;
@@ -1250,13 +1340,27 @@ export default function ProgramOverviewView({
         }}
       >
         <View style={styles.header}>
-          <View
+          <SelectedDaySlide
+            animationKey={selectedScheduleAnimationKey}
+            direction={selectedScheduleSlideDirection}
             style={[
               styles.headerActionPanel,
+              { height: headerActionPanelHeight },
               !showHeaderActionContent && styles.headerActionPanelEmpty,
             ]}
           >
-            <TrainingDayTypeGradient type={selectedHeaderGradientType} />
+            <LinearGradient
+              pointerEvents="none"
+              colors={[
+                hexToRgba(selectedHeaderGradientColor, 0.58),
+                "rgba(0, 0, 0, 0.95)",
+                "#000000",
+              ]}
+              locations={[0, 0.34, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.headerActionPanelTopLeftTint}
+            />
 
             <View style={styles.headerActionPanelHeading}>
               <IBMPlexText defaultWhite style={styles.headerDate}>{selectedDateLabel}</IBMPlexText>
@@ -1268,9 +1372,7 @@ export default function ProgramOverviewView({
               ) : null}
             </View>
 
-            <SelectedDaySlide
-              animationKey={selectedScheduleAnimationKey}
-              direction={selectedScheduleSlideDirection}
+            <View
               style={[
                 styles.headerActionArea,
                 !showHeaderActionContent && styles.headerActionAreaEmpty,
@@ -1280,41 +1382,22 @@ export default function ProgramOverviewView({
                 <View style={styles.headerCompletedStatus}>
                   <View style={styles.headerCompletedCopy}>
                     <IBMPlexText defaultWhite style={styles.headerCompletedTitle}>
-                      Session complete.
-                    </IBMPlexText>
-                    <IBMPlexText defaultWhite style={styles.headerCompletedSubtitle}>
-                      {nextSessionText}
+                      Exercises completed
                     </IBMPlexText>
                   </View>
-                  <View style={styles.headerCompletedRingSlot}>
-                    <HeaderSessionProgressRing
-                      progressPercent={completedSessionProgressPercent}
-                    />
-                  </View>
-                </View>
-              ) : null}
-              {showPreviousSessionStatus ? (
-                <View style={styles.headerCompletedStatus}>
-                  <View style={styles.headerCompletedCopy}>
-                    <IBMPlexText defaultWhite style={styles.headerCompletedTitle}>
-                      Previous session
-                    </IBMPlexText>
-                    <IBMPlexText defaultWhite style={styles.headerCompletedSubtitle}>
-                      Session progress
-                    </IBMPlexText>
-                  </View>
-                  <View style={styles.headerCompletedRingSlot}>
-                    <HeaderSessionProgressRing
-                      progressPercent={previousSessionProgressPercent}
+                  <View style={styles.headerCompletedProgressTrack}>
+                    <View
+                      style={[
+                        styles.headerCompletedProgressFill,
+                        { width: `${completedSessionProgressPercent}%` },
+                      ]}
                     />
                   </View>
                 </View>
               ) : null}
               {showRestSessionStatus ? (
                 <View style={styles.restSessionContent}>
-                  <IBMPlexText defaultWhite lines={1} style={styles.restSessionText}>
-                    Rest
-                  </IBMPlexText>
+                  <MoonRestIcon />
                 </View>
               ) : null}
               {showPushedBackSessionStatus ? (
@@ -1335,9 +1418,12 @@ export default function ProgramOverviewView({
                         Saved progress
                       </IBMPlexText>
                     </View>
-                    <View style={styles.headerCompletedRingSlot}>
-                      <HeaderSessionProgressRing
-                        progressPercent={previousSessionProgressPercent}
+                    <View style={styles.headerCompletedProgressTrack}>
+                      <View
+                        style={[
+                          styles.headerCompletedProgressFill,
+                          { width: `${activeSessionProgressPercent}%` },
+                        ]}
                       />
                     </View>
                   </View>
@@ -1387,8 +1473,8 @@ export default function ProgramOverviewView({
                   </View>
                 </View>
               ) : null}
-            </SelectedDaySlide>
-          </View>
+            </View>
+          </SelectedDaySlide>
 
           <ScrollView
             ref={weekScheduleScrollRef}
@@ -1520,7 +1606,11 @@ export default function ProgramOverviewView({
           ) : null}
 
           {detailSelectedDay ? (
-            <View style={styles.dayDetailEdgeToEdge}>
+            <SelectedDaySlide
+              animationKey={selectedScheduleAnimationKey}
+              direction={selectedScheduleSlideDirection}
+              style={styles.dayDetailEdgeToEdge}
+            >
               <DayDetailView
                 week={detailSelectedDay.week}
                 day={detailSelectedDay.dayData}
@@ -1547,11 +1637,14 @@ export default function ProgramOverviewView({
                 onReplaceExercise={selectedArchivedDay ? undefined : onReplaceExercise}
                 onFinish={selectedArchivedDay ? undefined : onFinishDay}
                 onMissed={selectedArchivedDay ? undefined : onMissedDay}
+                onLogExercise={
+                  canLogSelectedExercises ? openExerciseLogSheet : undefined
+                }
                 onSwapEditorVisibilityChange={setSwapEditorVisible}
                 updatingPlan={selectedArchivedDay ? true : updatingPlan}
                 showRescheduledNotice={false}
               />
-            </View>
+            </SelectedDaySlide>
           ) : null}
 
           <View style={styles.programDetailsFooter}>
@@ -1621,6 +1714,41 @@ export default function ProgramOverviewView({
           </Svg>
         </TouchableOpacity>
       ) : null}
+      <WhiteBottomMenu
+        visible={Boolean(exerciseLogSheetDay)}
+        onDismiss={closeExerciseLogSheet}
+        sheetStyle={[
+          styles.exerciseLogSheet,
+          { height: exerciseLogSheetHeight },
+        ]}
+        contentStyle={styles.exerciseLogSheetContent}
+        bottomPadding={8}
+        avoidKeyboard
+        content={
+          exerciseLogSheetDay ? (
+            <ActiveSessionView
+              key={`${exerciseLogSheetKey}-${exerciseLogSheet.exerciseIndex}-${exerciseLogSheet.setIndex}`}
+              embedded
+              plan={plan}
+              weekNumber={exerciseLogSheetDay.week}
+              day={exerciseLogSheetDay.dayData}
+              exercises={exerciseLogSheetDay.exercises}
+              initialPerformanceResults={selectedDayPerformanceResults}
+              initialAssessmentResults={selectedDayAssessmentResults}
+              strengthAssessmentSummary={strengthAssessmentSummary}
+              initialSessionProgress={getActiveSessionProgress?.(exerciseLogSheetKey)}
+              initialExerciseIndex={exerciseLogSheet.exerciseIndex}
+              initialSetIndex={exerciseLogSheet.setIndex}
+              startAtExercise
+              onSessionProgressChange={(progress) =>
+                onActiveSessionProgressChange?.(exerciseLogSheetKey, progress)
+              }
+              onBack={closeExerciseLogSheet}
+              onFinish={finishExerciseLogSheet}
+            />
+          ) : null
+        }
+      />
       <WhiteBottomMenu
         visible={detailsVisible}
         onDismiss={() => setDetailsVisible(false)}
@@ -1812,6 +1940,18 @@ const styles = StyleSheet.create({
     width: 48,
     zIndex: 10,
   },
+  exerciseLogSheet: {
+    backgroundColor: "#000000",
+    borderColor: "#222222",
+    borderBottomColor: "#000000",
+    maxHeight: "92%",
+    paddingHorizontal: 18,
+    paddingTop: 8,
+  },
+  exerciseLogSheetContent: {
+    flex: 1,
+    minHeight: 0,
+  },
   rescheduleInfoButtonIcon: {
     marginLeft: 1,
   },
@@ -1830,7 +1970,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginHorizontal: -8,
     marginTop: 0,
-    minHeight: 188,
     paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 18,
@@ -1839,6 +1978,9 @@ const styles = StyleSheet.create({
   },
   headerActionPanelEmpty: {
     marginTop: 0,
+  },
+  headerActionPanelTopLeftTint: {
+    ...StyleSheet.absoluteFillObject,
   },
   headerActionPanelHeading: {
     alignSelf: "stretch",
@@ -1871,22 +2013,14 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   headerCompletedStatus: {
-    minHeight: 64,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 18,
+    gap: 8,
+    minHeight: 56,
     width: "100%",
   },
   headerCompletedCopy: {
-    gap: 6,
+    gap: 4,
     minWidth: 0,
-    width: "50%",
-  },
-  headerCompletedRingSlot: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "50%",
+    width: "100%",
   },
   headerCompletedTitle: {
     color: "#fff",
@@ -1898,23 +2032,17 @@ const styles = StyleSheet.create({
     fontSize: 13, fontWeight: "700",
     lineHeight: 16,
   },
-  headerSessionProgressRing: {
-    alignItems: "center",
-    flexShrink: 0,
-    height: HEADER_SESSION_RING_SIZE,
-    justifyContent: "center",
-    width: HEADER_SESSION_RING_SIZE,
+  headerCompletedProgressTrack: {
+    backgroundColor: "#2a2a2a",
+    borderRadius: 999,
+    height: 10,
+    overflow: "hidden",
+    width: "100%",
   },
-  headerSessionProgressRingContent: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerSessionProgressRingText: {
-    color: "#fff",
-    fontSize: 13, fontWeight: "800",
-    lineHeight: 16,
-    textAlign: "center",
+  headerCompletedProgressFill: {
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    height: "100%",
   },
   restSessionContent: {
     alignItems: "center",
@@ -1978,18 +2106,18 @@ const styles = StyleSheet.create({
   weekSchedule: {
     flexDirection: "row",
     gap: 0,
-    paddingHorizontal: 28,
+    paddingHorizontal: 0,
   },
   weekScheduleScroller: {
     flexGrow: 0,
     alignSelf: "stretch",
-    marginHorizontal: -28,
+    marginHorizontal: -8,
     marginTop: PROGRAM_OVERVIEW_PANEL_TO_SCHEDULE_GAP,
   },
   dayDetailEdgeToEdge: {
     alignSelf: "stretch",
     marginHorizontal: -28,
-    marginTop: 28,
+    marginTop: 7,
   },
   weekScheduleItem: {
     alignItems: "center",
@@ -1998,12 +2126,16 @@ const styles = StyleSheet.create({
   weekScheduleTileSlot: {
     height: WEEK_SCHEDULE_TILE_LARGE_HEIGHT,
     justifyContent: "flex-end",
+    position: "relative",
+    zIndex: 2,
   },
   weekSchedulePressable: {
     height: WEEK_SCHEDULE_TILE_LARGE_HEIGHT,
     width: WEEK_SCHEDULE_TILE_LARGE_WIDTH,
     justifyContent: "flex-end",
     alignItems: "center",
+    position: "relative",
+    zIndex: 2,
   },
   weekScheduleDay: {
     height: WEEK_SCHEDULE_TILE_SMALL_HEIGHT,
@@ -2014,15 +2146,19 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 6,
     gap: 2,
-    borderColor: "#585858",
+    borderColor: WEEK_SCHEDULE_BORDER,
     borderWidth: 1,
     borderStyle: "solid",
   },
   weekScheduleArchivedDay: {
-    opacity: 0.62,
+    opacity: 0.52,
   },
   weekScheduleToday: {
     borderStyle: "solid",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
   },
   weekScheduleLabel: {
     fontSize: 13, fontWeight: "700",
@@ -2066,9 +2202,14 @@ const styles = StyleSheet.create({
     minWidth: 34,
     paddingHorizontal: 6,
     paddingVertical: 3,
+    position: "relative",
+    zIndex: 1,
   },
   weekScheduleTodayDateContainer: {
-    backgroundColor: "#0F0F0F",
+    backgroundColor: "#171717",
+    marginTop: 3,
+    minWidth: 52,
+    paddingTop: 3,
   },
   skeletonBlock: {
     backgroundColor: "#242424",

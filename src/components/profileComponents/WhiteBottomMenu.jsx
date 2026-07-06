@@ -133,7 +133,9 @@ export default function WhiteBottomMenu({
               <View style={styles.handle} />
             </View>
 
-            <IBMPlexText style={styles.title}>{title}</IBMPlexText>
+            {title ? (
+              <IBMPlexText style={styles.title}>{title}</IBMPlexText>
+            ) : null}
             {description ? (
               <IBMPlexText style={styles.description}>{description}</IBMPlexText>
             ) : null}

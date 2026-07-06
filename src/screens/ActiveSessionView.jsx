@@ -813,22 +813,28 @@ function ActiveSessionHeader({
   title = "",
   progressText = "",
   showHelp = false,
+  compact = false,
   onHelp,
   onBack,
 }) {
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, compact ? styles.compactHeader : null]}>
       <TouchableOpacity
-        style={styles.backButton}
+        style={[styles.backButton, compact ? styles.compactBackButton : null]}
         onPress={onBack}
         accessibilityRole="button"
         accessibilityLabel="Back"
       >
-        <IBMPlexText style={styles.backButtonIcon}>←</IBMPlexText>
+        <IBMPlexText style={[styles.backButtonIcon, compact ? styles.compactBackButtonIcon : null]}>
+          ←
+        </IBMPlexText>
       </TouchableOpacity>
       <View style={styles.headerTitleWrap}>
         {title ? (
-          <IBMPlexText style={styles.headerTitle} numberOfLines={1}>
+          <IBMPlexText
+            style={[styles.headerTitle, compact ? styles.compactHeaderTitle : null]}
+            numberOfLines={1}
+          >
             {title}
           </IBMPlexText>
         ) : null}
@@ -838,14 +844,18 @@ function ActiveSessionHeader({
           accessibilityRole="button"
           accessibilityLabel="Show exercise guidance"
           activeOpacity={0.7}
-          style={styles.headerHelpButton}
+          style={[styles.headerHelpButton, compact ? styles.compactHeaderHelpButton : null]}
           onPress={onHelp}
         >
-          <IBMPlexText style={styles.headerHelpIcon}>?</IBMPlexText>
+          <IBMPlexText style={[styles.headerHelpIcon, compact ? styles.compactHeaderHelpIcon : null]}>
+            ?
+          </IBMPlexText>
         </TouchableOpacity>
       ) : progressText ? (
         <View style={styles.progressRow}>
-          <IBMPlexText style={styles.progressText}>{progressText}</IBMPlexText>
+          <IBMPlexText style={[styles.progressText, compact ? styles.compactProgressText : null]}>
+            {progressText}
+          </IBMPlexText>
         </View>
       ) : null}
     </View>
@@ -1227,6 +1237,7 @@ function ExerciseSessionStep({
   onDraftChange,
   canGoPrevious = false,
   strengthReferenceOneRepMaxByLift,
+  compact = false,
 }) {
   const {
     performanceTarget,
@@ -1300,20 +1311,24 @@ function ExerciseSessionStep({
     )
   );
   return (
-    <View style={styles.exerciseCard}>
-      <View style={styles.setTabsBlock}>
+    <View style={[styles.exerciseCard, compact ? styles.compactExerciseCard : null]}>
+      <View style={[styles.setTabsBlock, compact ? styles.compactSetTabsBlock : null]}>
         <PlanSetTabs
           prescribedSets={prescribedSets}
           activeSetIndex={setIndex}
           completedSetIndexes={completedSetIndexes}
+          compact={compact}
           onSelectSet={onSelectSet}
         />
       </View>
 
       {exerciseRecommendationMetrics.length > 0 ? (
-        <View style={styles.exerciseMetricsRow}>
+        <View style={[styles.exerciseMetricsRow, compact ? styles.compactExerciseMetricsRow : null]}>
           {exerciseRecommendationMetrics.map((metric) => (
-            <IBMPlexText key={metric} style={styles.exerciseMetricLabel}>
+            <IBMPlexText
+              key={metric}
+              style={[styles.exerciseMetricLabel, compact ? styles.compactExerciseMetricLabel : null]}
+            >
               {metric}
             </IBMPlexText>
           ))}
@@ -1321,12 +1336,12 @@ function ExerciseSessionStep({
       ) : null}
 
       {showRpe ? (
-        <IBMPlexText style={styles.workingSetsNote}>
+        <IBMPlexText style={[styles.workingSetsNote, compact ? styles.compactWorkingSetsNote : null]}>
           Do not include warm-up sets.
         </IBMPlexText>
       ) : null}
 
-      <View style={styles.bottomControls}>
+      <View style={[styles.bottomControls, compact ? styles.compactBottomControls : null]}>
         {showInputs || customFields.length > 0 ? (
           <ActiveSessionSetLoggingInputPanel
             exerciseIndex={exerciseIndex}
@@ -1341,37 +1356,62 @@ function ExerciseSessionStep({
             customFields={customFields}
             recommendedLoadKg={recommendedLoadKg}
             onDraftChange={onDraftChange}
+            compact={compact}
           />
         ) : null}
 
-        <View style={styles.footerActions}>
-          <View style={styles.navigationRow}>
+        <View style={[styles.footerActions, compact ? styles.compactFooterActions : null]}>
+          <View style={[styles.navigationRow, compact ? styles.compactNavigationRow : null]}>
             <TouchableOpacity
               accessibilityState={{ disabled: !canGoPrevious }}
               disabled={!canGoPrevious}
               style={[
                 styles.secondaryActionButton,
+                compact ? styles.compactSecondaryActionButton : null,
                 !canGoPrevious ? styles.secondaryActionButtonDisabled : null,
               ]}
               onPress={onPrevious}
             >
-              <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>
+              <IBMPlexText
+                defaultWhite
+                style={[
+                  styles.secondaryActionButtonText,
+                  compact ? styles.compactSecondaryActionButtonText : null,
+                ]}
+              >
                 Previous
               </IBMPlexText>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.stepActionButton} onPress={onNext}>
+            <TouchableOpacity
+              style={[styles.stepActionButton, compact ? styles.compactStepActionButton : null]}
+              onPress={onNext}
+            >
               <IBMPlexText
                 defaultWhite
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.82}
-                style={styles.nextButtonText}
+                style={[styles.nextButtonText, compact ? styles.compactNextButtonText : null]}
               >
                 Finish set
               </IBMPlexText>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryActionButton} onPress={onSkip}>
-              <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>Skip</IBMPlexText>
+            <TouchableOpacity
+              style={[
+                styles.secondaryActionButton,
+                compact ? styles.compactSecondaryActionButton : null,
+              ]}
+              onPress={onSkip}
+            >
+              <IBMPlexText
+                defaultWhite
+                style={[
+                  styles.secondaryActionButtonText,
+                  compact ? styles.compactSecondaryActionButtonText : null,
+                ]}
+              >
+                Skip
+              </IBMPlexText>
             </TouchableOpacity>
           </View>
         </View>
@@ -1440,6 +1480,12 @@ export default function ActiveSessionView({
   initialAssessmentResults = [],
   strengthAssessmentSummary,
   initialSessionProgress = null,
+  initialExerciseIndex = null,
+  initialSetIndex = null,
+  startAtExercise = false,
+  embedded = false,
+  scrollStyle,
+  contentContainerStyle,
   onSessionProgressChange,
   onBack,
   onFinish,
@@ -1472,20 +1518,30 @@ export default function ActiveSessionView({
     () => getSessionPhaseDetails(plan, weekNumber),
     [plan, weekNumber]
   );
-  const [activeExerciseIndex, setActiveExerciseIndex] = useState(() =>
+  const resolvedInitialExerciseIndex = getSavedNumber(
+    initialExerciseIndex,
     getSavedNumber(initialSessionProgress?.activeExerciseIndex)
   );
+  const resolvedInitialSetIndex = getSavedNumber(
+    initialSetIndex,
+    startAtExercise ? 0 : getSavedNumber(initialSessionProgress?.activeSetIndex)
+  );
+  const [activeExerciseIndex, setActiveExerciseIndex] = useState(() =>
+    resolvedInitialExerciseIndex
+  );
   const [activeSetIndex, setActiveSetIndex] = useState(() =>
-    getSavedNumber(initialSessionProgress?.activeSetIndex)
+    resolvedInitialSetIndex
   );
   const [displayedCompletedExerciseCount, setDisplayedCompletedExerciseCount] =
-    useState(() => getSavedNumber(initialSessionProgress?.activeExerciseIndex));
+    useState(() => resolvedInitialExerciseIndex);
   const [
     previousDisplayedCompletedExerciseCount,
     setPreviousDisplayedCompletedExerciseCount,
-  ] = useState(() => getSavedNumber(initialSessionProgress?.activeExerciseIndex));
+  ] = useState(() => resolvedInitialExerciseIndex);
   const [sessionScreenMode, setSessionScreenMode] = useState(
-    SESSION_SCREEN_MODES.SECTION_INTRO
+    startAtExercise
+      ? SESSION_SCREEN_MODES.EXERCISE
+      : SESSION_SCREEN_MODES.SECTION_INTRO
   );
   const [isDescriptionMenuVisible, setIsDescriptionMenuVisible] = useState(false);
   const advanceTimeoutRef = useRef(null);
@@ -1588,17 +1644,24 @@ export default function ActiveSessionView({
       initialAssessmentResults
     );
 
-    setActiveExerciseIndex(
+    const nextExerciseIndex = getSavedNumber(
+      initialExerciseIndex,
       getSavedNumber(initialSessionProgress?.activeExerciseIndex)
     );
-    setActiveSetIndex(getSavedNumber(initialSessionProgress?.activeSetIndex));
-    setDisplayedCompletedExerciseCount(
-      getSavedNumber(initialSessionProgress?.activeExerciseIndex)
+    const nextSetIndex = getSavedNumber(
+      initialSetIndex,
+      startAtExercise ? 0 : getSavedNumber(initialSessionProgress?.activeSetIndex)
     );
-    setPreviousDisplayedCompletedExerciseCount(
-      getSavedNumber(initialSessionProgress?.activeExerciseIndex)
+
+    setActiveExerciseIndex(nextExerciseIndex);
+    setActiveSetIndex(nextSetIndex);
+    setDisplayedCompletedExerciseCount(nextExerciseIndex);
+    setPreviousDisplayedCompletedExerciseCount(nextExerciseIndex);
+    setSessionScreenMode(
+      startAtExercise
+        ? SESSION_SCREEN_MODES.EXERCISE
+        : SESSION_SCREEN_MODES.SECTION_INTRO
     );
-    setSessionScreenMode(SESSION_SCREEN_MODES.SECTION_INTRO);
     setCompletedStepKeys(
       getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
     );
@@ -1608,7 +1671,15 @@ export default function ActiveSessionView({
         fallbackDrafts
       )
     );
-  }, [day?.day, initialAssessmentResults, initialPerformanceResults, normalizedExercises]);
+  }, [
+    day?.day,
+    initialAssessmentResults,
+    initialExerciseIndex,
+    initialPerformanceResults,
+    initialSetIndex,
+    normalizedExercises,
+    startAtExercise,
+  ]);
 
   useEffect(
     () => () => {
@@ -1886,18 +1957,27 @@ export default function ActiveSessionView({
     );
   }
 
-  return (
-    <QuestionnaireShell hideTabBar={true}>
+  const content = (
+    <>
       <ScrollView
-        contentContainerStyle={styles.center}
+        contentContainerStyle={[
+          styles.center,
+          embedded ? styles.embeddedCenter : null,
+          contentContainerStyle,
+        ]}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
-        style={styles.sessionScroll}
+        style={[
+          styles.sessionScroll,
+          embedded ? styles.embeddedSessionScroll : null,
+          scrollStyle,
+        ]}
       >
         <ActiveSessionHeader
           title={headerTitle}
           progressText={headerProgressText}
           showHelp={showExerciseStep}
+          compact={embedded}
           onHelp={() => setIsDescriptionMenuVisible(true)}
           onBack={handleExitSession}
         />
@@ -1986,6 +2066,7 @@ export default function ActiveSessionView({
               canGoPrevious={activeStep.setIndex > 0}
               onDraftChange={updateTrackingDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
+              compact={embedded}
             />
           ) : (
             <View style={styles.emptyState}>
@@ -2005,6 +2086,16 @@ export default function ActiveSessionView({
         buttonText="Got it"
         onButtonPress={() => setIsDescriptionMenuVisible(false)}
       />
+    </>
+  );
+
+  if (embedded) {
+    return <View style={styles.embeddedRoot}>{content}</View>;
+  }
+
+  return (
+    <QuestionnaireShell hideTabBar={true}>
+      {content}
     </QuestionnaireShell>
   );
 }
@@ -2013,11 +2104,24 @@ const styles = StyleSheet.create({
   sessionScroll: {
     flex: 1,
   },
+  embeddedRoot: {
+    flex: 1,
+    minHeight: 0,
+  },
+  embeddedSessionScroll: {
+    backgroundColor: "#000",
+  },
   center: {
     flexGrow: 1,
     padding: SESSION_HORIZONTAL_PADDING,
     paddingBottom: 48,
     gap: 18,
+  },
+  embeddedCenter: {
+    gap: 12,
+    paddingHorizontal: 2,
+    paddingTop: 0,
+    paddingBottom: 12,
   },
   sessionContentTransition: {
     flex: 1,
@@ -2031,16 +2135,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
   },
+  compactHeader: {
+    marginTop: 0,
+    minHeight: 34,
+  },
   backButton: {
     flexShrink: 0,
     minWidth: 28,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
+  compactBackButton: {
+    minWidth: 24,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
   backButtonIcon: {
     color: "#fff",
     fontSize: 24, fontWeight: "700",
     lineHeight: 24,
+  },
+  compactBackButtonIcon: {
+    fontSize: 20,
+    lineHeight: 20,
   },
   headerTitleWrap: {
     flex: 1,
@@ -2054,6 +2171,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: "center",
   },
+  compactHeaderTitle: {
+    fontSize: 15,
+    lineHeight: 18,
+  },
   progressRow: {
     flexShrink: 0,
     minWidth: 52,
@@ -2064,6 +2185,10 @@ const styles = StyleSheet.create({
     fontSize: 13, fontWeight: "700",
     textTransform: "uppercase",
   },
+  compactProgressText: {
+    fontSize: 11,
+    lineHeight: 14,
+  },
   headerHelpButton: {
     width: 48,
     height: 36,
@@ -2071,12 +2196,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  compactHeaderHelpButton: {
+    height: 30,
+    width: 36,
+  },
   headerHelpIcon: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "600",
     lineHeight: 22,
     textAlign: "center",
+  },
+  compactHeaderHelpIcon: {
+    fontSize: 16,
+    lineHeight: 18,
   },
   resultsBlock: {
     gap: 18,
@@ -2189,8 +2322,15 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingVertical: 16,
   },
+  compactExerciseCard: {
+    gap: 10,
+    paddingVertical: 6,
+  },
   setTabsBlock: {
     marginTop: 16,
+  },
+  compactSetTabsBlock: {
+    marginTop: 2,
   },
   exerciseMetricsRow: {
     flexDirection: "row",
@@ -2201,12 +2341,21 @@ const styles = StyleSheet.create({
     rowGap: 8,
     paddingHorizontal: 8,
   },
+  compactExerciseMetricsRow: {
+    columnGap: 12,
+    rowGap: 5,
+    paddingHorizontal: 2,
+  },
   exerciseMetricLabel: {
     color: "#C9B259",
     fontSize: 17,
     fontWeight: "600",
     lineHeight: 21,
     textAlign: "center",
+  },
+  compactExerciseMetricLabel: {
+    fontSize: 13,
+    lineHeight: 16,
   },
   workingSetsNote: {
     color: "#A1A1AA",
@@ -2216,9 +2365,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     textAlign: "center",
   },
+  compactWorkingSetsNote: {
+    fontSize: 11,
+    lineHeight: 14,
+    paddingHorizontal: 8,
+  },
   bottomControls: {
     marginTop: "auto",
     gap: 8,
+  },
+  compactBottomControls: {
+    gap: 4,
   },
   alreadyCompletedCard: {
     flex: 1,
@@ -2296,6 +2453,9 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: "center",
   },
+  compactFooterActions: {
+    gap: 4,
+  },
   navigationRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -2303,6 +2463,10 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingTop: 12,
     width: "100%",
+  },
+  compactNavigationRow: {
+    gap: 7,
+    paddingTop: 6,
   },
   secondaryActionButton: {
     height: 44,
@@ -2316,12 +2480,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E1E1E",
     paddingHorizontal: 14,
   },
+  compactSecondaryActionButton: {
+    height: 38,
+    minWidth: 58,
+    paddingHorizontal: 10,
+  },
   secondaryActionButtonDisabled: {
     opacity: 0.45,
   },
   secondaryActionButtonText: {
     color: "#fff",
     fontSize: 13, fontWeight: "700",
+  },
+  compactSecondaryActionButtonText: {
+    fontSize: 12,
+    lineHeight: 15,
   },
   stepActionButton: {
     flex: 1,
@@ -2334,6 +2507,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 16,
   },
+  compactStepActionButton: {
+    height: 38,
+    minWidth: 96,
+    maxWidth: 150,
+    paddingHorizontal: 12,
+  },
   nextButton: {
     flex: 1,
     height: 48,
@@ -2345,6 +2524,10 @@ const styles = StyleSheet.create({
   nextButtonText: {
     color: "#000",
     fontSize: 17, fontWeight: "700",
+  },
+  compactNextButtonText: {
+    fontSize: 14,
+    lineHeight: 17,
   },
   emptyState: {
     gap: 14,
