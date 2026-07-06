@@ -22,7 +22,10 @@ import LaunchGateCheckInModal, {
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
 import { getWeekdayNameFromIndex } from "../constants/weekdays.js";
-import { getTrainingDayTypeLabel } from "../constants/trainingDayTypes.js";
+import {
+  getTrainingDayTypeColor,
+  getTrainingDayTypeLabel,
+} from "../constants/trainingDayTypes.js";
 import TrainingDayTypeGradient from "../components/colorComponents/TrainingDayTypeGradient.jsx";
 import {
   getCurrentTrainingWeek,
@@ -45,7 +48,7 @@ import {
 import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-const WEEK_SCHEDULE_ITEM_WIDTH = 58;
+const WEEK_SCHEDULE_ITEM_WIDTH = 78.3;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
 const HEADER_SESSION_RING_SIZE = 76;
@@ -61,15 +64,18 @@ const SKELETON_DAY_CONTAINERS = Object.freeze([
   { height: 150 },
   { height: 118 },
 ]);
-const WEEK_SCHEDULE_TILE_SMALL_HEIGHT = 55;
-const WEEK_SCHEDULE_TILE_SMALL_WIDTH = 50;
-const WEEK_SCHEDULE_TILE_LARGE_HEIGHT = 64;
-const WEEK_SCHEDULE_TILE_LARGE_WIDTH = 58;
-const WEEK_SCHEDULE_TILE_SELECTED_SCALE = Math.min(
-  WEEK_SCHEDULE_TILE_LARGE_HEIGHT / WEEK_SCHEDULE_TILE_SMALL_HEIGHT,
-  WEEK_SCHEDULE_TILE_LARGE_WIDTH / WEEK_SCHEDULE_TILE_SMALL_WIDTH
-);
+const WEEK_SCHEDULE_TILE_SMALL_HEIGHT = 110;
+const WEEK_SCHEDULE_TILE_SMALL_WIDTH = 67.5;
+const WEEK_SCHEDULE_TILE_LARGE_HEIGHT = 128;
+const WEEK_SCHEDULE_TILE_LARGE_WIDTH = 78.3;
 const SELECTED_DAY_SLIDE_DISTANCE = 44;
+const PROGRAM_OVERVIEW_CONTENT_TOP_MARGIN = 16;
+const PROGRAM_OVERVIEW_HEADER_TOP_PADDING = 14;
+const PROGRAM_OVERVIEW_PANEL_TO_SCHEDULE_GAP =
+  PROGRAM_OVERVIEW_CONTENT_TOP_MARGIN + PROGRAM_OVERVIEW_HEADER_TOP_PADDING;
+const WEEK_SCHEDULE_DAY_FILL_OPACITY = 0.15;
+const WEEK_SCHEDULE_SELECTED_REST_DAY_OPACITY = 0.5;
+const WEEK_SCHEDULE_REST_DAY_COLOR = "#585858";
 
 function startOfLocalDay(value) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
@@ -190,6 +196,126 @@ function getSelectedDayGradientType(day = null, isRest = false) {
   return primaryQuality || (isConditioningOnlyDay(day) ? "conditioning" : "rest");
 }
 
+function hexToRgba(hexColor, alpha = 1) {
+  const normalizedHex = String(hexColor || "").replace("#", "");
+
+  if (!/^[0-9a-f]{6}$/i.test(normalizedHex)) {
+    return hexColor;
+  }
+
+  const red = Number.parseInt(normalizedHex.slice(0, 2), 16);
+  const green = Number.parseInt(normalizedHex.slice(2, 4), 16);
+  const blue = Number.parseInt(normalizedHex.slice(4, 6), 16);
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function getWeekScheduleTileColorStyle(day = null, selected = false) {
+  const isRestDay = !day;
+  const dayType = getSelectedDayGradientType(day, !day);
+  const dayTypeColor = getTrainingDayTypeColor(
+    dayType,
+    WEEK_SCHEDULE_REST_DAY_COLOR
+  );
+  const selectedRestDayColor = hexToRgba(
+    dayTypeColor,
+    WEEK_SCHEDULE_SELECTED_REST_DAY_OPACITY
+  );
+
+  return {
+    backgroundColor: selected
+      ? isRestDay
+        ? selectedRestDayColor
+        : dayTypeColor
+      : day
+      ? hexToRgba(dayTypeColor, WEEK_SCHEDULE_DAY_FILL_OPACITY)
+      : "transparent",
+    borderColor: selected && isRestDay ? selectedRestDayColor : dayTypeColor,
+  };
+}
+
+function getWeekScheduleTileTextStyle(day = null, selected = false) {
+  if (selected) {
+    return { color: "#000" };
+  }
+
+  const dayType = getSelectedDayGradientType(day, !day);
+  const color = getTrainingDayTypeColor(dayType, WEEK_SCHEDULE_REST_DAY_COLOR);
+
+  return { color };
+}
+
+function getWeekScheduleDayTypeMeta(day = null, selected = false) {
+  if (!day) {
+    return null;
+  }
+
+  const dayType = getSelectedDayGradientType(day);
+  const label = getTrainingDayTypeLabel(dayType);
+  const color = getTrainingDayTypeColor(dayType);
+
+  if (!label || !color) {
+    return null;
+  }
+
+  return {
+    dayType,
+    iconColor: selected ? "#000" : color,
+    label,
+    textStyle: {
+      color: selected ? "#000" : color,
+      fontSize: label.length >= 11 ? 7 : 9,
+      lineHeight: label.length >= 11 ? 9 : 11,
+    },
+  };
+}
+
+function WeekScheduleTypeIcon({ color = "#fff", type = "force" }) {
+  if (type === "power") {
+    return (
+      <Svg width={16} height={16} viewBox="0 0 24 24">
+        <Path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z" fill={color} />
+      </Svg>
+    );
+  }
+
+  if (type === "fatigue" || type === "conditioning") {
+    return (
+      <Svg width={16} height={16} viewBox="0 0 24 24">
+        <Circle
+          cx={12}
+          cy={12}
+          r={8}
+          fill="none"
+          stroke={color}
+          strokeWidth={2.4}
+        />
+        <Path
+          d="M7 12h2l1.5-3.5L13 15l1.5-3H17"
+          fill="none"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2.2}
+        />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24">
+      <Path
+        d="M5 9v6M19 9v6M8 12h8M3.5 10.5v3M20.5 10.5v3"
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2.4}
+      />
+    </Svg>
+  );
+}
+
 function hasStartedSessionProgress(progress = {}) {
   const completedStepKeys = Array.isArray(progress?.completedStepKeys)
     ? progress.completedStepKeys
@@ -285,31 +411,7 @@ function SkeletonDayDetailPreview() {
   );
 }
 
-function WeekScheduleTile({ selected, onPress, tileStyle, children }) {
-  const selectedProgress = useRef(new Animated.Value(selected ? 1 : 0)).current;
-
-  useEffect(() => {
-    selectedProgress.stopAnimation();
-
-    if (!selected) {
-      selectedProgress.setValue(0);
-      return;
-    }
-
-    selectedProgress.setValue(0);
-    Animated.timing(selectedProgress, {
-      toValue: 1,
-      duration: 170,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [selected, selectedProgress]);
-
-  const scale = selectedProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, WEEK_SCHEDULE_TILE_SELECTED_SCALE],
-  });
-
+function WeekScheduleTile({ onPress, tileStyle, children }) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -320,7 +422,6 @@ function WeekScheduleTile({ selected, onPress, tileStyle, children }) {
         style={[
           styles.weekScheduleDay,
           tileStyle,
-          { transform: [{ scale: selected ? scale : 1 }] },
         ]}
       >
         {children}
@@ -1322,6 +1423,19 @@ export default function ProgramOverviewView({
                 isSelectedArchivedDay ||
                 isSelectedRestDay;
               const showConditioningMarker = isConditioningOnlyDay(trainingDay);
+              const scheduleTileColorStyle =
+                getWeekScheduleTileColorStyle(
+                  trainingDay,
+                  isSelectedScheduleDay
+                );
+              const scheduleDayTypeMeta = getWeekScheduleDayTypeMeta(
+                trainingDay,
+                isSelectedScheduleDay
+              );
+              const scheduleTileTextStyle = getWeekScheduleTileTextStyle(
+                trainingDay,
+                isSelectedScheduleDay
+              );
 
               return (
                 <View key={date.toISOString()} style={styles.weekScheduleItem}>
@@ -1338,7 +1452,7 @@ export default function ProgramOverviewView({
                         }
                       }}
                       tileStyle={[
-                        trainingDay && styles.weekScheduleTrainingDay,
+                        scheduleTileColorStyle,
                         isArchived && styles.weekScheduleArchivedDay,
                         isToday && styles.weekScheduleToday,
                       ]}
@@ -1346,24 +1460,49 @@ export default function ProgramOverviewView({
                       {showConditioningMarker ? (
                         <View style={styles.weekScheduleConditioningMarker} />
                       ) : null}
-                      <IBMPlexText defaultWhite
-                        style={styles.weekScheduleLabel}
-                        textColor="#fff"
+                      {scheduleDayTypeMeta ? (
+                        <View style={styles.weekScheduleTypeIcon}>
+                          <WeekScheduleTypeIcon
+                            color={scheduleDayTypeMeta.iconColor}
+                            type={scheduleDayTypeMeta.dayType}
+                          />
+                        </View>
+                      ) : null}
+                      <IBMPlexText
+                        style={[
+                          styles.weekScheduleLabel,
+                          scheduleTileTextStyle,
+                        ]}
                       >
-                        {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
+                        {trainingDay ? `Day\n${trainingDay.day}` : "Rest"}
                       </IBMPlexText>
+                      {scheduleDayTypeMeta ? (
+                        <IBMPlexText
+                          adjustsFontSizeToFit
+                          lines={1}
+                          minimumFontScale={0.82}
+                          style={[
+                            styles.weekScheduleTypeLabel,
+                            scheduleDayTypeMeta.textStyle,
+                          ]}
+                        >
+                          {scheduleDayTypeMeta.label}
+                        </IBMPlexText>
+                      ) : null}
                     </WeekScheduleTile>
                   </View>
-                  <IBMPlexText defaultWhite
+                  <View
                     style={[
-                      styles.weekScheduleDate,
-                      isToday && styles.weekScheduleTodayDate,
+                      styles.weekScheduleDateContainer,
+                      isToday && styles.weekScheduleTodayDateContainer,
                     ]}
                   >
-                    {weekday.slice(0, 3)}
-                    {"\n"}
-                    {date.getDate()}
-                  </IBMPlexText>
+                    <IBMPlexText defaultWhite style={styles.weekScheduleDate}>
+                      {weekday.slice(0, 3)}
+                      {"\n"}
+                      {date.getDate()}
+                    </IBMPlexText>
+                  </View>
                 </View>
               );
             })}
@@ -1572,7 +1711,7 @@ const styles = StyleSheet.create({
   center: {
     flexGrow: 1,
     alignItems: "center",
-    marginTop: 16,
+    marginTop: PROGRAM_OVERVIEW_CONTENT_TOP_MARGIN,
     paddingHorizontal: 28,
     paddingBottom: 120,
   },
@@ -1599,7 +1738,7 @@ const styles = StyleSheet.create({
     top : 0,
     alignSelf: "stretch",
     flexGrow: 1,
-    paddingTop: 14,
+    paddingTop: PROGRAM_OVERVIEW_HEADER_TOP_PADDING,
     width: "100%",
     position: "relative",
   },
@@ -1685,15 +1824,16 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     alignItems: "center",
     backgroundColor: "#101010",
-    borderRadius: 22,
-    borderColor: "#fff",
-    borderWidth: 0.0,
+    borderRadius: 18,
+    borderColor: "#252525",
+    borderWidth: 1,
     overflow: "hidden",
+    marginHorizontal: -8,
     marginTop: 0,
-    minHeight: 230,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
+    minHeight: 188,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 18,
     position: "relative",
     justifyContent: "space-between",
   },
@@ -1717,22 +1857,21 @@ const styles = StyleSheet.create({
     borderRadius: 120,
     flex: 1,
     justifyContent: "center",
-    height: 38,
+    height: 36,
     minWidth: 0,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
   },
   headerStartButtonText: {
     color: "#000",
     alignSelf: "center",
-    fontFamily: fonts.display,
-    fontSize: 30,
-    fontWeight: "400",
-    lineHeight: 34,
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 20,
     textAlign: "center",
     textTransform: "uppercase",
   },
   headerCompletedStatus: {
-    minHeight: 76,
+    minHeight: 64,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -1781,7 +1920,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "stretch",
     justifyContent: "center",
-    minHeight: 76,
+    minHeight: 64,
     width: "100%",
   },
   restSessionText: {
@@ -1799,16 +1938,16 @@ const styles = StyleSheet.create({
   currentSessionActions: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 4,
+    gap: 8,
     justifyContent: "center",
     minWidth: 0,
     width: "100%",
   },
   currentSessionSecondaryButton: {
     alignItems: "center",
-    height: 38,
+    height: 36,
     justifyContent: "center",
-    width: 30,
+    width: 34,
   },
   currentSessionSecondaryButtonDisabled: {
     opacity: 0.5,
@@ -1845,7 +1984,7 @@ const styles = StyleSheet.create({
     flexGrow: 0,
     alignSelf: "stretch",
     marginHorizontal: -28,
-    marginTop: 56,
+    marginTop: PROGRAM_OVERVIEW_PANEL_TO_SCHEDULE_GAP,
   },
   dayDetailEdgeToEdge: {
     alignSelf: "stretch",
@@ -1857,7 +1996,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   weekScheduleTileSlot: {
-    height: 64,
+    height: WEEK_SCHEDULE_TILE_LARGE_HEIGHT,
     justifyContent: "flex-end",
   },
   weekSchedulePressable: {
@@ -1879,9 +2018,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "solid",
   },
-  weekScheduleTrainingDay: {
-    backgroundColor: "#1E1E1E",
-  },
   weekScheduleArchivedDay: {
     opacity: 0.62,
   },
@@ -1893,6 +2029,21 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     textAlign: "center",
   },
+  weekScheduleTypeLabel: {
+    bottom: 18,
+    fontWeight: "800",
+    paddingHorizontal: 2,
+    position: "absolute",
+    textAlign: "center",
+    width: "100%",
+  },
+  weekScheduleTypeIcon: {
+    alignItems: "center",
+    justifyContent: "center",
+    position: "absolute",
+    top: 18,
+    width: "100%",
+  },
   weekScheduleConditioningMarker: {
     position: "absolute",
     top: 7,
@@ -1903,13 +2054,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#2F80ED",
   },
   weekScheduleDate: {
-    marginTop: 3,
     fontSize: 12, fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
   },
-  weekScheduleTodayDate: {
-    color: "#C9B259",
+  weekScheduleDateContainer: {
+    alignItems: "center",
+    borderRadius: 8,
+    justifyContent: "center",
+    marginTop: 3,
+    minWidth: 34,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  weekScheduleTodayDateContainer: {
+    backgroundColor: "#0F0F0F",
   },
   skeletonBlock: {
     backgroundColor: "#242424",
@@ -1974,17 +2133,17 @@ const styles = StyleSheet.create({
   },
   skeletonActionPanel: {
     backgroundColor: "#242424",
-    borderRadius: 22,
+    borderRadius: 18,
     marginTop: 0,
-    minHeight: 230,
-    paddingTop: 24,
-    paddingBottom: 24,
+    minHeight: 188,
+    paddingTop: 18,
+    paddingBottom: 18,
     justifyContent: "space-between",
   },
   skeletonActionPanelContent: {
     alignSelf: "stretch",
     borderRadius: 0,
-    height: 76,
+    height: 64,
     marginTop: 0,
   },
   skeletonDayDetailCard: {
