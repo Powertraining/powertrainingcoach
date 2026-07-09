@@ -34,6 +34,10 @@ import {
 } from "../services/utils/strengthAssessment.js";
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 import { parseRpeFromText } from "../services/utils/trainingPerformance.js";
+import {
+  getExerciseSetDisplayValue,
+  getPrescribedSetCount,
+} from "../services/utils/exerciseSets.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
@@ -165,13 +169,7 @@ function buildExerciseSectionRuns(exercises = []) {
 }
 
 function parsePrescribedSetCount(exercise = {}) {
-  const parsedValue = Number.parseInt(exercise?.sets, 10);
-
-  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
-    return 1;
-  }
-
-  return Math.min(parsedValue, 12);
+  return getPrescribedSetCount(exercise);
 }
 
 function getDraftKey(exerciseIndex, setIndex = 0) {
@@ -245,7 +243,7 @@ function getExerciseText(exercise = {}) {
 }
 
 function getExercisePrescriptionDisplay(exercise = {}) {
-  const sets = String(exercise.sets || "").trim();
+  const sets = getExerciseSetDisplayValue(exercise);
   const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
   const hasSimpleSetCount = /^\d+$/.test(sets);
   const formatWithSets = (prescription) =>
@@ -809,6 +807,57 @@ function getSavedTrackingDrafts(value, fallbackDrafts) {
   return value && typeof value === "object" ? value : fallbackDrafts;
 }
 
+function buildSessionSteps(exercises = []) {
+  return (Array.isArray(exercises) ? exercises : []).flatMap((exercise, exerciseIndex) =>
+    Array.from({ length: parsePrescribedSetCount(exercise) }).map((_, setIndex) => ({
+      exercise,
+      exerciseIndex,
+      setIndex,
+      setCount: parsePrescribedSetCount(exercise),
+      section: getExplicitExerciseSection(exercise),
+    }))
+  );
+}
+
+function getInitialSessionStep({
+  exercises = [],
+  initialSessionProgress = null,
+  initialExerciseIndex = null,
+  initialSetIndex = null,
+  startAtExercise = false,
+} = {}) {
+  const sessionSteps = buildSessionSteps(exercises);
+  const fallbackStep = sessionSteps[0] || { exerciseIndex: 0, setIndex: 0 };
+
+  if (startAtExercise) {
+    const requestedExerciseIndex = getSavedNumber(
+      initialExerciseIndex,
+      getSavedNumber(initialSessionProgress?.activeExerciseIndex)
+    );
+    const requestedSetIndex = getSavedNumber(
+      initialSetIndex,
+      getSavedNumber(initialSessionProgress?.activeSetIndex)
+    );
+    const requestedStep = sessionSteps.find(
+      (step) =>
+        step.exerciseIndex === requestedExerciseIndex &&
+        step.setIndex === requestedSetIndex
+    );
+
+    return requestedStep || fallbackStep;
+  }
+
+  const completedStepKeys = getSavedCompletedStepKeys(
+    initialSessionProgress?.completedStepKeys
+  );
+
+  return (
+    sessionSteps.find((step) =>
+      !completedStepKeys.has(getStepKey(step.exerciseIndex, step.setIndex))
+    ) || fallbackStep
+  );
+}
+
 function ActiveSessionHeader({
   title = "",
   progressText = "",
@@ -1290,9 +1339,14 @@ function ExerciseSessionStep({
     .split(/\s*\*\s*/)
     .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
   const endurancePrescription = exercise?.endurancePrescription || {};
+  const setDisplayValue = getExerciseSetDisplayValue(exercise);
+  const setProgressLabel =
+    prescribedSets.length > 1 ? `Set ${setIndex + 1} of ${prescribedSets.length}` : "";
   const exerciseRecommendationMetrics = Array.from(
     new Set(
       [
+        setProgressLabel,
+        setDisplayValue ? `${setDisplayValue} sets` : "",
         exercisePrescription,
         exerciseRecommendation.primary,
         ...exerciseRecommendationDetails,
@@ -1362,26 +1416,21 @@ function ExerciseSessionStep({
 
         <View style={[styles.footerActions, compact ? styles.compactFooterActions : null]}>
           <View style={[styles.navigationRow, compact ? styles.compactNavigationRow : null]}>
-            <TouchableOpacity
-              accessibilityState={{ disabled: !canGoPrevious }}
-              disabled={!canGoPrevious}
-              style={[
-                styles.secondaryActionButton,
-                compact ? styles.compactSecondaryActionButton : null,
-                !canGoPrevious ? styles.secondaryActionButtonDisabled : null,
-              ]}
-              onPress={onPrevious}
-            >
-              <IBMPlexText
-                defaultWhite
+            {!compact ? (
+              <TouchableOpacity
+                accessibilityState={{ disabled: !canGoPrevious }}
+                disabled={!canGoPrevious}
                 style={[
-                  styles.secondaryActionButtonText,
-                  compact ? styles.compactSecondaryActionButtonText : null,
+                  styles.secondaryActionButton,
+                  !canGoPrevious ? styles.secondaryActionButtonDisabled : null,
                 ]}
+                onPress={onPrevious}
               >
-                Previous
-              </IBMPlexText>
-            </TouchableOpacity>
+                <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>
+                  Previous
+                </IBMPlexText>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
               style={[styles.stepActionButton, compact ? styles.compactStepActionButton : null]}
               onPress={onNext}
@@ -1396,23 +1445,13 @@ function ExerciseSessionStep({
                 Finish set
               </IBMPlexText>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.secondaryActionButton,
-                compact ? styles.compactSecondaryActionButton : null,
-              ]}
-              onPress={onSkip}
-            >
-              <IBMPlexText
-                defaultWhite
-                style={[
-                  styles.secondaryActionButtonText,
-                  compact ? styles.compactSecondaryActionButtonText : null,
-                ]}
-              >
-                Skip
-              </IBMPlexText>
-            </TouchableOpacity>
+            {!compact ? (
+              <TouchableOpacity style={styles.secondaryActionButton} onPress={onSkip}>
+                <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>
+                  Skip
+                </IBMPlexText>
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
       </View>
@@ -1518,26 +1557,25 @@ export default function ActiveSessionView({
     () => getSessionPhaseDetails(plan, weekNumber),
     [plan, weekNumber]
   );
-  const resolvedInitialExerciseIndex = getSavedNumber(
+  const resolvedInitialStep = getInitialSessionStep({
+    exercises: normalizedExercises,
+    initialSessionProgress,
     initialExerciseIndex,
-    getSavedNumber(initialSessionProgress?.activeExerciseIndex)
-  );
-  const resolvedInitialSetIndex = getSavedNumber(
     initialSetIndex,
-    startAtExercise ? 0 : getSavedNumber(initialSessionProgress?.activeSetIndex)
-  );
+    startAtExercise,
+  });
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(() =>
-    resolvedInitialExerciseIndex
+    resolvedInitialStep.exerciseIndex
   );
   const [activeSetIndex, setActiveSetIndex] = useState(() =>
-    resolvedInitialSetIndex
+    resolvedInitialStep.setIndex
   );
   const [displayedCompletedExerciseCount, setDisplayedCompletedExerciseCount] =
-    useState(() => resolvedInitialExerciseIndex);
+    useState(() => resolvedInitialStep.exerciseIndex);
   const [
     previousDisplayedCompletedExerciseCount,
     setPreviousDisplayedCompletedExerciseCount,
-  ] = useState(() => resolvedInitialExerciseIndex);
+  ] = useState(() => resolvedInitialStep.exerciseIndex);
   const [sessionScreenMode, setSessionScreenMode] = useState(
     startAtExercise
       ? SESSION_SCREEN_MODES.EXERCISE
@@ -1565,16 +1603,7 @@ export default function ActiveSessionView({
     [normalizedExercises]
   );
   const sessionSteps = useMemo(
-    () =>
-      normalizedExercises.flatMap((exercise, exerciseIndex) =>
-        Array.from({ length: parsePrescribedSetCount(exercise) }).map((_, setIndex) => ({
-          exercise,
-          exerciseIndex,
-          setIndex,
-          setCount: parsePrescribedSetCount(exercise),
-          section: getExplicitExerciseSection(exercise),
-        }))
-      ),
+    () => buildSessionSteps(normalizedExercises),
     [normalizedExercises]
   );
   const activeStepIndex = sessionSteps.findIndex(
@@ -1644,19 +1673,18 @@ export default function ActiveSessionView({
       initialAssessmentResults
     );
 
-    const nextExerciseIndex = getSavedNumber(
+    const nextInitialStep = getInitialSessionStep({
+      exercises: normalizedExercises,
+      initialSessionProgress,
       initialExerciseIndex,
-      getSavedNumber(initialSessionProgress?.activeExerciseIndex)
-    );
-    const nextSetIndex = getSavedNumber(
       initialSetIndex,
-      startAtExercise ? 0 : getSavedNumber(initialSessionProgress?.activeSetIndex)
-    );
+      startAtExercise,
+    });
 
-    setActiveExerciseIndex(nextExerciseIndex);
-    setActiveSetIndex(nextSetIndex);
-    setDisplayedCompletedExerciseCount(nextExerciseIndex);
-    setPreviousDisplayedCompletedExerciseCount(nextExerciseIndex);
+    setActiveExerciseIndex(nextInitialStep.exerciseIndex);
+    setActiveSetIndex(nextInitialStep.setIndex);
+    setDisplayedCompletedExerciseCount(nextInitialStep.exerciseIndex);
+    setPreviousDisplayedCompletedExerciseCount(nextInitialStep.exerciseIndex);
     setSessionScreenMode(
       startAtExercise
         ? SESSION_SCREEN_MODES.EXERCISE
@@ -1800,13 +1828,26 @@ export default function ActiveSessionView({
       return;
     }
 
+    const nextCompletedStepKeys = new Set(completedStepKeys);
+    nextCompletedStepKeys.add(
+      getStepKey(activeStep.exerciseIndex, activeStep.setIndex)
+    );
+
     setCompletedStepKeys((currentCompletedStepKeys) => {
-      const nextCompletedStepKeys = new Set(currentCompletedStepKeys);
-      nextCompletedStepKeys.add(
+      const updatedCompletedStepKeys = new Set(currentCompletedStepKeys);
+      updatedCompletedStepKeys.add(
         getStepKey(activeStep.exerciseIndex, activeStep.setIndex)
       );
-      return nextCompletedStepKeys;
+      return updatedCompletedStepKeys;
     });
+
+    if (embedded) {
+      onFinish?.(getTrackedResultsFromDrafts(trackingDrafts), {
+        completedStepKeys: Array.from(nextCompletedStepKeys),
+        trackingDrafts,
+      });
+      return;
+    }
 
     if (!isLastStep) {
       const nextStep = sessionSteps[resolvedActiveStepIndex + 1];

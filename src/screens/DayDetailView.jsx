@@ -41,6 +41,11 @@ import {
     MISSED_REP_REASON_OPTIONS,
     parseRpeFromText,
 } from "../services/utils/trainingPerformance.js";
+import {
+    getExerciseSetDisplayValue,
+    getPrescribedSetCount,
+} from "../services/utils/exerciseSets.js";
+import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 function buildTrackingDrafts(
     exercises = [],
@@ -111,13 +116,7 @@ function getExerciseSearchText(exercise = {}) {
 }
 
 function parsePrescribedSetCount(exercise = {}) {
-    const parsedValue = Number.parseInt(exercise?.sets, 10);
-
-    if (!Number.isFinite(parsedValue) || parsedValue < 1) {
-        return 1;
-    }
-
-    return Math.min(parsedValue, 12);
+    return getPrescribedSetCount(exercise);
 }
 
 function CompletedExerciseProgressRing({ completedSetCount = 0, totalSetCount = 0 }) {
@@ -462,7 +461,7 @@ function getExercisePrescriptionDisplay(exercise = {}) {
         return `${endurancePrescription.durationMinutes} min`;
     }
 
-    const sets = String(safeExercise.sets || "").trim();
+    const sets = getExerciseSetDisplayValue(safeExercise);
     const reps = String(safeExercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
     const hasSimpleSetCount = /^\d+$/.test(sets);
     const formatWithSets = (prescription) =>
@@ -774,7 +773,8 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
     const intensity = formatIntensityDisplay(displayedTargetRpe
         ? `RPE ${displayedTargetRpe}`
         : endurancePrescription.intensity || intensityFromDetails);
-    const sets = String(exercise?.sets || sprintPrescription.sets || "").trim();
+    const exerciseSetCount = getExerciseSetDisplayValue(exercise);
+    const sets = String(exerciseSetCount || sprintPrescription.sets || "").trim();
     const formatRepDisplay = (value = "") =>
         String(value || "")
             .trim()
@@ -841,6 +841,7 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
     }
 
     if (hasHeavyBagPrescription) {
+        addMetric("Sets", exerciseSetCount);
         addMetric("Rounds", heavyBagPrescription.rounds || endurancePrescription.rounds);
         addMetric("Time", heavyBagPrescription.roundLength);
         addMetric("Rest", heavyBagPrescription.rest || endurancePrescription.rest);
@@ -850,6 +851,7 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
     }
 
     if (hasCircuitPrescription) {
+        addMetric("Sets", exerciseSetCount);
         addMetric("Work", circuitPrescription.workSeconds ? `${circuitPrescription.workSeconds}s` : endurancePrescription.work);
         addMetric("Rest", circuitPrescription.restSeconds ? `${circuitPrescription.restSeconds}s` : endurancePrescription.rest);
         addMetric("Rounds", circuitPrescription.rounds || endurancePrescription.rounds);
@@ -859,6 +861,7 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
     }
 
     if (hasEndurancePrescription) {
+        addMetric("Sets", exerciseSetCount);
         addMetric("Time", endurancePrescription.durationMinutes ? `${endurancePrescription.durationMinutes} min` : "");
         addMetric("Work", endurancePrescription.work);
         addMetric("Rest", endurancePrescription.rest);
@@ -2298,21 +2301,19 @@ const styles = StyleSheet.create({
     },
     tabButtonLogButton: {
         alignItems: "center",
-        backgroundColor: "#ffffff",
-        borderRadius: 999,
         bottom: 12,
-        height: 34,
+        height: 38,
         justifyContent: "center",
         position: "absolute",
         right: 14,
-        width: 34,
+        width: 30,
     },
     tabButtonLogButtonText: {
-        color: "#000000",
-        fontSize: 22,
-        fontWeight: "800",
-        lineHeight: 24,
-        marginLeft: 1,
+        color: "#ffffff",
+        fontFamily: fonts.display,
+        fontSize: 36,
+        fontWeight: "400",
+        lineHeight: 38,
         textAlign: "center",
     },
     tabButtonReportedList: {

@@ -30,7 +30,6 @@ export default function PlanSetTabs({
         return (
           <TouchableOpacity
             key={prescribedSet.setIndex}
-            disabled={!isActive}
             style={[
               styles.setTabButton,
               compact ? styles.compactSetTabButton : null,
@@ -38,9 +37,7 @@ export default function PlanSetTabs({
               isCompleted && styles.setTabButtonCompleted,
             ]}
             onPress={() => {
-              if (isActive) {
-                onSelectSet?.(prescribedSet.setIndex);
-              }
+              onSelectSet?.(prescribedSet.setIndex);
             }}
           >
             <IBMPlexText defaultWhite

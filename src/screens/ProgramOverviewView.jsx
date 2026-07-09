@@ -46,10 +46,11 @@ import {
   isPagesPhonePreview,
   useWebTestActions,
 } from "../services/utils/webTestActions.js";
+import { getPrescribedSetCount } from "../services/utils/exerciseSets.js";
 import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-const WEEK_SCHEDULE_ITEM_WIDTH = 78.3;
+const WEEK_SCHEDULE_ITEM_WIDTH = 86;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
 const SKELETON_WEEK_SLOTS = Object.freeze(Array.from({ length: 8 }));
@@ -59,20 +60,23 @@ const SKELETON_DAY_CONTAINERS = Object.freeze([
   { height: 150 },
   { height: 118 },
 ]);
-const WEEK_SCHEDULE_TILE_SMALL_HEIGHT = 110;
-const WEEK_SCHEDULE_TILE_SMALL_WIDTH = 67.5;
-const WEEK_SCHEDULE_TILE_LARGE_HEIGHT = 128;
-const WEEK_SCHEDULE_TILE_LARGE_WIDTH = 78.3;
+const WEEK_SCHEDULE_TILE_SMALL_HEIGHT = 126;
+const WEEK_SCHEDULE_TILE_SMALL_WIDTH = 72;
+const WEEK_SCHEDULE_TILE_LARGE_HEIGHT = 132;
+const WEEK_SCHEDULE_TILE_LARGE_WIDTH = 86;
 const SELECTED_DAY_SLIDE_DISTANCE = 44;
 const PROGRAM_OVERVIEW_CONTENT_TOP_MARGIN = 16;
 const PROGRAM_OVERVIEW_HEADER_TOP_PADDING = 14;
-const PROGRAM_OVERVIEW_PANEL_TO_SCHEDULE_GAP = 4;
 const WEEK_SCHEDULE_DAY_FILL_OPACITY = 0.15;
 const WEEK_SCHEDULE_SELECTED_REST_DAY_OPACITY = 0.5;
 const WEEK_SCHEDULE_REST_DAY_COLOR = "#585858";
 const WEEK_SCHEDULE_SURFACE = "#101010";
 const WEEK_SCHEDULE_SURFACE_MUTED = "#0B0B0B";
 const WEEK_SCHEDULE_BORDER = "#252525";
+const PLAN_CARD_SURFACE = "#111111";
+const PLAN_CARD_BORDER = "#252525";
+const PLAN_CARD_TEXT_MUTED = "#9A9AA2";
+const PLAN_CARD_BLUE = "#0A84FF";
 
 function startOfLocalDay(value) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
@@ -181,6 +185,14 @@ function getSelectedDayMetaLabel(day = null) {
     .join(" - ");
 }
 
+function getSessionName(day = null) {
+  if (!day) {
+    return "";
+  }
+
+  return `Day ${day.day}`;
+}
+
 function getSelectedDayGradientType(day = null, isRest = false) {
   if (isRest || !day) {
     return "rest";
@@ -191,6 +203,22 @@ function getSelectedDayGradientType(day = null, isRest = false) {
     : [];
 
   return primaryQuality || (isConditioningOnlyDay(day) ? "conditioning" : "rest");
+}
+
+function getWeekScheduleType(day = null) {
+  return getSelectedDayGradientType(day);
+}
+
+function getWeekScheduleTypeColor(day = null) {
+  const dayType = getWeekScheduleType(day);
+
+  return getTrainingDayTypeColor(dayType, WEEK_SCHEDULE_REST_DAY_COLOR);
+}
+
+function getWeekScheduleTypeLabel(day = null) {
+  const dayType = getWeekScheduleType(day);
+
+  return getTrainingDayTypeLabel(dayType);
 }
 
 function hexToRgba(hexColor, alpha = 1) {
@@ -249,9 +277,9 @@ function getWeekScheduleDayTypeMeta(day = null, selected = false) {
     return null;
   }
 
-  const dayType = getSelectedDayGradientType(day);
-  const label = getTrainingDayTypeLabel(dayType);
-  const color = getTrainingDayTypeColor(dayType);
+  const dayType = getWeekScheduleType(day);
+  const label = getWeekScheduleTypeLabel(day);
+  const color = getWeekScheduleTypeColor(day);
 
   if (!label || !color) {
     return null;
@@ -263,16 +291,18 @@ function getWeekScheduleDayTypeMeta(day = null, selected = false) {
     label,
     textStyle: {
       color,
-      fontSize: label.length >= 11 ? 7 : 9,
-      lineHeight: label.length >= 11 ? 9 : 11,
+      fontSize: label.length >= 11 ? 9 : 10,
+      lineHeight: label.length >= 11 ? 10 : 12,
     },
   };
 }
 
-function WeekScheduleTypeIcon({ color = "#fff", type = "force" }) {
+function WeekScheduleTypeIcon({ color = "#fff", type = "force", size = 20 }) {
+  const strokeWidth = 2.4;
+
   if (type === "power") {
     return (
-      <Svg width={16} height={16} viewBox="0 0 24 24">
+      <Svg width={size} height={size} viewBox="0 0 24 24">
         <Path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z" fill={color} />
       </Svg>
     );
@@ -280,36 +310,29 @@ function WeekScheduleTypeIcon({ color = "#fff", type = "force" }) {
 
   if (type === "fatigue" || type === "conditioning") {
     return (
-      <Svg width={16} height={16} viewBox="0 0 24 24">
-        <Circle
-          cx={12}
-          cy={12}
-          r={8}
-          fill="none"
-          stroke={color}
-          strokeWidth={2.4}
-        />
+      <Svg width={size} height={size} viewBox="0 0 24 24">
+        <Circle cx={12} cy={6} r={2.1} fill={color} />
         <Path
-          d="M7 12h2l1.5-3.5L13 15l1.5-3H17"
+          d="m10 9 3.2 1.6 2.2 2.8M13.2 10.6 11 14l-3 1.5M12.1 14.3l2.9 1.3 2.1 3.4M10.8 14l-1.5 2.6-2.8 2"
           fill="none"
           stroke={color}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth={2.2}
+          strokeWidth={strokeWidth}
         />
       </Svg>
     );
   }
 
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24">
+    <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path
         d="M5 9v6M19 9v6M8 12h8M3.5 10.5v3M20.5 10.5v3"
         fill="none"
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth={2.4}
+        strokeWidth={strokeWidth}
       />
     </Svg>
   );
@@ -346,13 +369,7 @@ function hasStartedSessionProgress(progress = {}) {
 }
 
 function parsePrescribedSetCount(exercise = {}) {
-  const parsedValue = Number.parseInt(exercise?.sets, 10);
-
-  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
-    return 1;
-  }
-
-  return Math.min(parsedValue, 12);
+  return getPrescribedSetCount(exercise);
 }
 
 function buildSessionSteps(exercises = []) {
@@ -452,6 +469,31 @@ function getSessionProgressPercent(day = {}, progress = {}, isComplete = false) 
   ).length;
 
   return Math.round((completedStepCount / steps.length) * 100);
+}
+
+function getSessionExerciseProgressPercent(day = {}, progress = {}, isComplete = false) {
+  const exercises = Array.isArray(day?.exercises) ? day.exercises : [];
+  const completedStepKeys = new Set(
+    Array.isArray(progress?.completedStepKeys) ? progress.completedStepKeys : []
+  );
+
+  if (exercises.length === 0) {
+    return isComplete ? 100 : 0;
+  }
+
+  if (isComplete && completedStepKeys.size === 0) {
+    return 100;
+  }
+
+  const completedExerciseCount = exercises.filter((exercise, exerciseIndex) => {
+    const setCount = getPrescribedSetCount(exercise);
+
+    return Array.from({ length: setCount }).every((_, setIndex) =>
+      completedStepKeys.has(`${exerciseIndex}:${setIndex}`)
+    );
+  }).length;
+
+  return Math.round((completedExerciseCount / exercises.length) * 100);
 }
 
 function SkeletonBlock({ style }) {
@@ -690,14 +732,10 @@ export default function ProgramOverviewView({
   const initialScrollToTopPassesRemainingRef = useRef(0);
   const lastWeekScheduleScrollDateRef = useRef("");
   const lastSelectedScheduleDateRef = useRef(null);
-  const { height: viewportHeight, width: viewportWidth } = useWindowDimensions();
+  const { height: viewportHeight } = useWindowDimensions();
   const isPhonePreview = isPagesPhonePreview();
   const isOverviewRoute =
     pathname === "/overview" || pathname === "/(tabs)/overview";
-  const headerActionPanelHeight = Math.max(
-    188,
-    Math.min(220, Math.round(viewportWidth * 0.48))
-  );
 
   function openLaunchGatePrompt(promptKey) {
     setLaunchGatePromptKey(promptKey);
@@ -1052,14 +1090,62 @@ export default function ProgramOverviewView({
   const showCompleteButton = showSelectedTrainingActions && Boolean(onFinishDay);
   const showPushBackButton =
     showSelectedTrainingActions && Boolean(onMissedDay);
-  const hasKnownHeaderActionContent =
+  const hasKnownSelectedCardContent =
     showStartButton ||
     showCompletedSessionStatus ||
     showPushedBackSessionStatus ||
-    showRestSessionStatus;
-  const showFallbackSessionStatus = !hasKnownHeaderActionContent;
-  const showHeaderActionContent =
-    hasKnownHeaderActionContent || showFallbackSessionStatus;
+    showRestSessionStatus ||
+    Boolean(selectedArchivedDay);
+  const showFallbackSessionStatus = !hasKnownSelectedCardContent;
+  const selectedCardAccentColor =
+    selectedHeaderDay && !selectedRestSlot
+      ? selectedHeaderGradientColor
+      : PLAN_CARD_BLUE;
+  const selectedCardTitle =
+    selectedHeaderDay && !selectedRestSlot
+      ? getSessionName(selectedHeaderDay)
+      : "Recovery day";
+  const selectedCardBaseDescription = [
+    selectedPhaseLabel,
+    selectedDayMetaLabel,
+  ].filter(Boolean).join(" - ");
+  const selectedCardDescription = (() => {
+    if (showRestSessionStatus) {
+      return `${selectedPhaseLabel} - No training session scheduled.`;
+    }
+
+    if (showPushedBackSessionStatus) {
+      return selectedCardBaseDescription
+        ? `${selectedCardBaseDescription} - Pushed back.`
+        : "This session was pushed back in your plan.";
+    }
+
+    if (selectedArchivedDay) {
+      return selectedCardBaseDescription
+        ? `${selectedCardBaseDescription} - Archived plan session.`
+        : "Archived plan session.";
+    }
+
+    if (showCompletedSessionStatus) {
+      return selectedCardBaseDescription || "Completed session.";
+    }
+
+    if (showStartButton) {
+      return selectedCardBaseDescription || "Ready when you are.";
+    }
+
+    if (activeSelectedDay && selectedTrainingSlotIsPast) {
+      return selectedCardBaseDescription || "Past session.";
+    }
+
+    if (activeSelectedDay) {
+      return selectedCardBaseDescription || "Saved session progress.";
+    }
+
+    return selectedCardBaseDescription || "Select a day in the schedule.";
+  })();
+  const primarySessionActionLabel =
+    selectedDayHasStartedSession ? "Continue" : "Start";
   const showRescheduleInfoButton =
     Boolean(detailSelectedDay) &&
     !selectedRestSlot &&
@@ -1086,6 +1172,15 @@ export default function ProgramOverviewView({
     );
   const activeSessionProgressPercent =
     getSessionProgressPercent(activeSelectedDay, selectedDaySessionProgress);
+  const showSelectedCardProgress =
+    showCompletedSessionStatus ||
+    (showFallbackSessionStatus && Boolean(activeSelectedDay));
+  const selectedCardProgressPercent = showCompletedSessionStatus
+    ? completedSessionProgressPercent
+    : activeSessionProgressPercent;
+  const selectedCardProgressLabel = showCompletedSessionStatus
+    ? "Exercises completed"
+    : "Saved progress";
   const nextTrainingSlot = currentWeekSchedule.find((slot) => {
     if (!slot.trainingDay || slot.isArchived || !(slot.date instanceof Date)) {
       return false;
@@ -1248,14 +1343,13 @@ export default function ProgramOverviewView({
       return;
     }
 
-    onCompletedSessionProgressSave?.(exerciseLogSheetKey, {
-      completedStepKeys:
-        completedProgress.completedStepKeys ||
-        buildCompletedStepKeysForExercises(exerciseLogSheetDay.exercises),
+    onActiveSessionProgressChange?.(exerciseLogSheetKey, {
+      activeExerciseIndex: exerciseLogSheet.exerciseIndex,
+      activeSetIndex: exerciseLogSheet.setIndex,
+      completedStepKeys: completedProgress.completedStepKeys || [],
       trackingDrafts: completedProgress.trackingDrafts || {},
+      updatedAt: new Date().toISOString(),
     });
-    onActiveSessionProgressClear?.(exerciseLogSheetKey);
-    onFinishDay?.(trackedResults);
     closeExerciseLogSheet();
   }
 
@@ -1340,142 +1434,6 @@ export default function ProgramOverviewView({
         }}
       >
         <View style={styles.header}>
-          <SelectedDaySlide
-            animationKey={selectedScheduleAnimationKey}
-            direction={selectedScheduleSlideDirection}
-            style={[
-              styles.headerActionPanel,
-              { height: headerActionPanelHeight },
-              !showHeaderActionContent && styles.headerActionPanelEmpty,
-            ]}
-          >
-            <LinearGradient
-              pointerEvents="none"
-              colors={[
-                hexToRgba(selectedHeaderGradientColor, 0.58),
-                "rgba(0, 0, 0, 0.95)",
-                "#000000",
-              ]}
-              locations={[0, 0.34, 1]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.headerActionPanelTopLeftTint}
-            />
-
-            <View style={styles.headerActionPanelHeading}>
-              <IBMPlexText defaultWhite style={styles.headerDate}>{selectedDateLabel}</IBMPlexText>
-              <IBMPlexText defaultWhite style={styles.headerPhase}>{selectedPhaseLabel}</IBMPlexText>
-              {selectedDayMetaLabel ? (
-                <IBMPlexText defaultWhite lines={1} style={styles.headerMeta}>
-                  {selectedDayMetaLabel}
-                </IBMPlexText>
-              ) : null}
-            </View>
-
-            <View
-              style={[
-                styles.headerActionArea,
-                !showHeaderActionContent && styles.headerActionAreaEmpty,
-              ]}
-            >
-              {showCompletedSessionStatus ? (
-                <View style={styles.headerCompletedStatus}>
-                  <View style={styles.headerCompletedCopy}>
-                    <IBMPlexText defaultWhite style={styles.headerCompletedTitle}>
-                      Exercises completed
-                    </IBMPlexText>
-                  </View>
-                  <View style={styles.headerCompletedProgressTrack}>
-                    <View
-                      style={[
-                        styles.headerCompletedProgressFill,
-                        { width: `${completedSessionProgressPercent}%` },
-                      ]}
-                    />
-                  </View>
-                </View>
-              ) : null}
-              {showRestSessionStatus ? (
-                <View style={styles.restSessionContent}>
-                  <MoonRestIcon />
-                </View>
-              ) : null}
-              {showPushedBackSessionStatus ? (
-                <View style={styles.restSessionContent}>
-                  <IBMPlexText defaultWhite lines={1} style={styles.restSessionText}>
-                    Pushed back
-                  </IBMPlexText>
-                </View>
-              ) : null}
-              {showFallbackSessionStatus ? (
-                activeSelectedDay ? (
-                  <View style={styles.headerCompletedStatus}>
-                    <View style={styles.headerCompletedCopy}>
-                      <IBMPlexText defaultWhite style={styles.headerCompletedTitle}>
-                        Session progress
-                      </IBMPlexText>
-                      <IBMPlexText defaultWhite style={styles.headerCompletedSubtitle}>
-                        Saved progress
-                      </IBMPlexText>
-                    </View>
-                    <View style={styles.headerCompletedProgressTrack}>
-                      <View
-                        style={[
-                          styles.headerCompletedProgressFill,
-                          { width: `${activeSessionProgressPercent}%` },
-                        ]}
-                      />
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.restSessionContent}>
-                    <IBMPlexText defaultWhite lines={1} style={styles.restSessionText}>
-                      No session selected
-                    </IBMPlexText>
-                  </View>
-                )
-              ) : null}
-              {showStartButton ? (
-                <View style={styles.currentSessionContent}>
-                  <View style={styles.currentSessionActions}>
-                    <TouchableOpacity
-                      style={styles.headerStartButton}
-                      onPress={handleStartSession}
-                    >
-                      <IBMPlexText defaultWhite lines={1} style={styles.headerStartButtonText}>
-                        {selectedDayHasStartedSession ? "Continue" : "Start"}
-                      </IBMPlexText>
-                    </TouchableOpacity>
-                    {showPushBackButton ? (
-                      <TouchableOpacity
-                        accessibilityLabel="Push back session"
-                        accessibilityRole="button"
-                        style={[
-                          styles.currentSessionSecondaryButton,
-                          updatingPlan && styles.currentSessionSecondaryButtonDisabled,
-                        ]}
-                        onPress={openPushBackConfirm}
-                        disabled={updatingPlan}
-                      >
-                        <PushBackActionIcon />
-                      </TouchableOpacity>
-                    ) : null}
-                    {showCompleteButton ? (
-                      <TouchableOpacity
-                        accessibilityLabel="Complete session"
-                        accessibilityRole="button"
-                        style={styles.currentSessionSecondaryButton}
-                        onPress={openCompleteConfirm}
-                      >
-                        <CompleteActionIcon />
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                </View>
-              ) : null}
-            </View>
-          </SelectedDaySlide>
-
           <ScrollView
             ref={weekScheduleScrollRef}
             horizontal
@@ -1514,17 +1472,50 @@ export default function ProgramOverviewView({
                   trainingDay,
                   isSelectedScheduleDay
                 );
-              const scheduleDayTypeMeta = getWeekScheduleDayTypeMeta(
-                trainingDay,
-                isSelectedScheduleDay
-              );
-              const scheduleTileTextStyle = getWeekScheduleTileTextStyle(
-                trainingDay,
-                isSelectedScheduleDay
-              );
+              const scheduleDayTypeMeta =
+                getWeekScheduleDayTypeMeta(
+                  trainingDay,
+                  isSelectedScheduleDay
+                );
+              const scheduleTileTextStyle =
+                getWeekScheduleTileTextStyle(
+                  trainingDay,
+                  isSelectedScheduleDay
+                );
+              const scheduleDayKey =
+                trainingDay && weekNumber ? `${weekNumber}-${trainingDay.day}` : "";
+              const scheduleDayIsComplete =
+                Boolean(scheduleDayKey) && completedDayEntries.includes(scheduleDayKey);
+              const scheduleDayProgress =
+                scheduleDayKey && !isArchived
+                  ? getActiveSessionProgress?.(scheduleDayKey)
+                  : null;
+              const scheduleDayCompletedProgress =
+                scheduleDayKey && !isArchived
+                  ? getCompletedSessionProgress?.(scheduleDayKey)
+                  : null;
+              const scheduleDayProgressPercent = trainingDay
+                ? getSessionExerciseProgressPercent(
+                    trainingDay,
+                    scheduleDayIsComplete
+                      ? scheduleDayCompletedProgress
+                      : scheduleDayProgress,
+                    scheduleDayIsComplete
+                  )
+                : 0;
 
               return (
                 <View key={date.toISOString()} style={styles.weekScheduleItem}>
+                  <View
+                    style={[
+                      styles.weekScheduleDateContainer,
+                      isToday && styles.weekScheduleTodayDateContainer,
+                    ]}
+                  >
+                    <IBMPlexText defaultWhite style={styles.weekScheduleDate}>
+                      {isToday ? "Today" : `${weekday.slice(0, 3)}\n${date.getDate()}`}
+                    </IBMPlexText>
+                  </View>
                   <View style={styles.weekScheduleTileSlot}>
                     <WeekScheduleTile
                       selected={isSelectedScheduleDay}
@@ -1548,19 +1539,30 @@ export default function ProgramOverviewView({
                       ) : null}
                       {scheduleDayTypeMeta ? (
                         <View style={styles.weekScheduleTypeIcon}>
-                          <WeekScheduleTypeIcon
-                            color={scheduleDayTypeMeta.iconColor}
-                            type={scheduleDayTypeMeta.dayType}
-                          />
+                          <View
+                            style={[
+                              styles.weekScheduleTypeIconBadge,
+                              { backgroundColor: scheduleDayTypeMeta.iconColor },
+                            ]}
+                          >
+                            <WeekScheduleTypeIcon
+                              color="#050505"
+                              type={scheduleDayTypeMeta.dayType}
+                            />
+                          </View>
                         </View>
-                      ) : null}
+                      ) : (
+                        <View style={styles.weekScheduleTypeIcon}>
+                          <MoonRestIcon size={31} color="#6F6F6F" />
+                        </View>
+                      )}
                       <IBMPlexText
                         style={[
                           styles.weekScheduleLabel,
                           scheduleTileTextStyle,
                         ]}
                       >
-                        {trainingDay ? `Day\n${trainingDay.day}` : "Rest"}
+                        {trainingDay ? `Day ${trainingDay.day}` : "Rest"}
                       </IBMPlexText>
                       {scheduleDayTypeMeta ? (
                         <IBMPlexText
@@ -1577,22 +1579,168 @@ export default function ProgramOverviewView({
                       ) : null}
                     </WeekScheduleTile>
                   </View>
-                  <View
-                    style={[
-                      styles.weekScheduleDateContainer,
-                      isToday && styles.weekScheduleTodayDateContainer,
-                    ]}
-                  >
-                    <IBMPlexText defaultWhite style={styles.weekScheduleDate}>
-                      {weekday.slice(0, 3)}
-                      {"\n"}
-                      {date.getDate()}
-                    </IBMPlexText>
-                  </View>
+                  {trainingDay ? (
+                    <View style={styles.weekScheduleIndicatorTrack}>
+                      <View
+                        style={[
+                          styles.weekScheduleIndicatorFill,
+                          {
+                            backgroundColor:
+                              scheduleDayTypeMeta?.iconColor || "#2F80ED",
+                            width: `${scheduleDayProgressPercent}%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                  ) : (
+                    <View style={styles.weekScheduleIndicatorSpacer} />
+                  )}
                 </View>
               );
             })}
           </ScrollView>
+
+          <SelectedDaySlide
+            animationKey={selectedScheduleAnimationKey}
+            direction={selectedScheduleSlideDirection}
+            style={styles.todayPanel}
+          >
+            <LinearGradient
+              pointerEvents="none"
+              colors={[
+                hexToRgba(selectedCardAccentColor, 0.18),
+                "rgba(17, 17, 17, 0.98)",
+                "rgba(10, 10, 10, 0.98)",
+              ]}
+              locations={[0, 0.42, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.todayPanelTint}
+            />
+            <View style={styles.todayPanelContent}>
+              <View style={styles.todayPanelHeader}>
+                <View
+                  style={[
+                    styles.todayIconHalo,
+                    { backgroundColor: hexToRgba(selectedCardAccentColor, 0.14) },
+                  ]}
+                >
+                  {selectedHeaderDay && !selectedRestSlot ? (
+                    <WeekScheduleTypeIcon
+                      color={selectedCardAccentColor}
+                      type={selectedHeaderGradientType}
+                      size={32}
+                    />
+                  ) : (
+                    <MoonRestIcon size={39} color={PLAN_CARD_BLUE} />
+                  )}
+                </View>
+                <View style={styles.todayCopy}>
+                  <IBMPlexText
+                    lines={1}
+                    style={[styles.todayKicker, { color: selectedCardAccentColor }]}
+                  >
+                    {selectedDateLabel}
+                  </IBMPlexText>
+                  <IBMPlexText defaultWhite lines={2} style={styles.todayTitle}>
+                    {selectedCardTitle}
+                  </IBMPlexText>
+                  <IBMPlexText lines={3} style={styles.todayDescription}>
+                    {selectedCardDescription}
+                  </IBMPlexText>
+                </View>
+              </View>
+
+              {showSelectedCardProgress ? (
+                <View style={styles.todayProgressBlock}>
+                  <View style={styles.todayProgressTrack}>
+                    <View
+                      style={[
+                        styles.todayProgressFill,
+                        {
+                          backgroundColor: selectedCardAccentColor,
+                          width: `${selectedCardProgressPercent}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <IBMPlexText style={styles.todayProgressText}>
+                    {selectedCardProgressLabel}
+                  </IBMPlexText>
+                </View>
+              ) : null}
+
+              <View style={styles.sessionMoveRow}>
+                {showStartButton ? (
+                  <>
+                    <TouchableOpacity
+                      activeOpacity={0.84}
+                      onPress={handleStartSession}
+                      style={[
+                        styles.moveSessionButton,
+                        styles.moveSessionButtonPrimary,
+                      ]}
+                    >
+                      <IBMPlexText
+                        defaultWhite
+                        adjustsFontSizeToFit
+                        lines={1}
+                        minimumFontScale={0.78}
+                        style={[
+                          styles.moveSessionButtonText,
+                          styles.primarySessionButtonText,
+                        ]}
+                      >
+                        {primarySessionActionLabel}
+                      </IBMPlexText>
+                    </TouchableOpacity>
+                    {showPushBackButton ? (
+                      <TouchableOpacity
+                        accessibilityLabel="Push back session"
+                        accessibilityRole="button"
+                        activeOpacity={0.78}
+                        disabled={updatingPlan}
+                        onPress={openPushBackConfirm}
+                        style={[
+                          styles.moveSessionIconButton,
+                          updatingPlan && styles.currentSessionSecondaryButtonDisabled,
+                        ]}
+                      >
+                        <PushBackActionIcon />
+                      </TouchableOpacity>
+                    ) : null}
+                    {showCompleteButton ? (
+                      <TouchableOpacity
+                        accessibilityLabel="Complete session"
+                        accessibilityRole="button"
+                        activeOpacity={0.78}
+                        onPress={openCompleteConfirm}
+                        style={styles.moveSessionIconButton}
+                      >
+                        <CompleteActionIcon />
+                      </TouchableOpacity>
+                    ) : null}
+                  </>
+                ) : (
+                  <View style={styles.planStatusPill}>
+                    <IBMPlexText defaultWhite lines={1} style={styles.planStatusPillText}>
+                      {showCompletedSessionStatus
+                        ? "Completed"
+                        : showRestSessionStatus
+                          ? "Rest day"
+                          : showPushedBackSessionStatus
+                            ? "Pushed back"
+                            : selectedArchivedDay
+                              ? "Archived session"
+                              : activeSelectedDay
+                                ? "Saved progress"
+                                : "No session selected"}
+                    </IBMPlexText>
+                  </View>
+                )}
+              </View>
+            </View>
+          </SelectedDaySlide>
 
           {pendingTrainingCheckIn ? (
             <TrainingCheckInCard
@@ -2080,6 +2228,146 @@ const styles = StyleSheet.create({
   currentSessionSecondaryButtonDisabled: {
     opacity: 0.5,
   },
+  todayPanel: {
+    backgroundColor: PLAN_CARD_SURFACE,
+    borderColor: PLAN_CARD_BORDER,
+    borderRadius: 18,
+    borderWidth: 1,
+    height: 270,
+    marginTop: 22,
+    overflow: "hidden",
+    paddingHorizontal: 18,
+    paddingTop: 22,
+    paddingBottom: 18,
+    position: "relative",
+  },
+  todayPanelTint: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  todayPanelContent: {
+    flex: 1,
+  },
+  todayPanelHeader: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 18,
+    position: "relative",
+    zIndex: 1,
+  },
+  todayIconHalo: {
+    alignItems: "center",
+    borderRadius: 999,
+    height: 64,
+    justifyContent: "center",
+    width: 64,
+  },
+  todayCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 8,
+  },
+  todayKicker: {
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+    marginBottom: 6,
+    textTransform: "uppercase",
+  },
+  todayTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    lineHeight: 31,
+    marginBottom: 9,
+  },
+  todayDescription: {
+    color: "#B8B8C2",
+    fontSize: 15,
+    fontWeight: "600",
+    lineHeight: 22,
+    maxWidth: 250,
+  },
+  todayProgressBlock: {
+    gap: 6,
+    marginTop: 10,
+    position: "relative",
+    zIndex: 1,
+  },
+  todayProgressTrack: {
+    backgroundColor: "#202024",
+    borderRadius: 999,
+    height: 7,
+    overflow: "hidden",
+  },
+  todayProgressFill: {
+    borderRadius: 999,
+    height: "100%",
+  },
+  todayProgressText: {
+    color: PLAN_CARD_TEXT_MUTED,
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 16,
+  },
+  sessionMoveRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: "auto",
+    paddingTop: 14,
+    position: "relative",
+    zIndex: 1,
+  },
+  moveSessionButton: {
+    alignItems: "center",
+    borderRadius: 16,
+    flex: 1,
+    flexDirection: "row",
+    gap: 10,
+    height: 58,
+    justifyContent: "center",
+    minWidth: 0,
+    paddingHorizontal: 10,
+  },
+  moveSessionButtonPrimary: {
+    backgroundColor: PLAN_CARD_BLUE,
+  },
+  moveSessionIconButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.18)",
+    borderColor: "#56565F",
+    borderRadius: 16,
+    borderWidth: 1,
+    height: 58,
+    justifyContent: "center",
+    width: 58,
+  },
+  moveSessionButtonText: {
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 19,
+    textAlign: "center",
+  },
+  primarySessionButtonText: {
+    fontSize: 16,
+  },
+  planStatusPill: {
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.18)",
+    borderColor: "#56565F",
+    borderRadius: 16,
+    borderWidth: 1,
+    flex: 1,
+    height: 58,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+  },
+  planStatusPillText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 19,
+    textAlign: "center",
+  },
   detailsSheet: {
     maxHeight: "72%",
   },
@@ -2105,14 +2393,14 @@ const styles = StyleSheet.create({
   },
   weekSchedule: {
     flexDirection: "row",
-    gap: 0,
-    paddingHorizontal: 0,
+    gap: -8,
+    paddingHorizontal: 2,
   },
   weekScheduleScroller: {
     flexGrow: 0,
     alignSelf: "stretch",
     marginHorizontal: -8,
-    marginTop: PROGRAM_OVERVIEW_PANEL_TO_SCHEDULE_GAP,
+    marginTop: 0,
   },
   dayDetailEdgeToEdge: {
     alignSelf: "stretch",
@@ -2121,18 +2409,19 @@ const styles = StyleSheet.create({
   },
   weekScheduleItem: {
     alignItems: "center",
-    gap: 6,
+    gap: 0,
+    width: WEEK_SCHEDULE_ITEM_WIDTH,
   },
   weekScheduleTileSlot: {
     height: WEEK_SCHEDULE_TILE_LARGE_HEIGHT,
-    justifyContent: "flex-end",
+    justifyContent: "center",
     position: "relative",
     zIndex: 2,
   },
   weekSchedulePressable: {
     height: WEEK_SCHEDULE_TILE_LARGE_HEIGHT,
     width: WEEK_SCHEDULE_TILE_LARGE_WIDTH,
-    justifyContent: "flex-end",
+    justifyContent: "center",
     alignItems: "center",
     position: "relative",
     zIndex: 2,
@@ -2143,9 +2432,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    borderRadius: 18,
-    padding: 6,
-    gap: 2,
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    gap: 0,
     borderColor: WEEK_SCHEDULE_BORDER,
     borderWidth: 1,
     borderStyle: "solid",
@@ -2161,12 +2451,13 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
   },
   weekScheduleLabel: {
-    fontSize: 13, fontWeight: "700",
-    lineHeight: 15,
+    fontSize: 15, fontWeight: "800",
+    lineHeight: 18,
+    marginTop: 15,
     textAlign: "center",
   },
   weekScheduleTypeLabel: {
-    bottom: 18,
+    bottom: 16,
     fontWeight: "800",
     paddingHorizontal: 2,
     position: "absolute",
@@ -2180,6 +2471,13 @@ const styles = StyleSheet.create({
     top: 18,
     width: "100%",
   },
+  weekScheduleTypeIconBadge: {
+    alignItems: "center",
+    borderRadius: 999,
+    height: 27,
+    justifyContent: "center",
+    width: 27,
+  },
   weekScheduleConditioningMarker: {
     position: "absolute",
     top: 7,
@@ -2190,26 +2488,40 @@ const styles = StyleSheet.create({
     backgroundColor: "#2F80ED",
   },
   weekScheduleDate: {
-    fontSize: 12, fontWeight: "700",
-    lineHeight: 15,
+    fontSize: 13, fontWeight: "800",
+    lineHeight: 16,
     textAlign: "center",
   },
   weekScheduleDateContainer: {
     alignItems: "center",
-    borderRadius: 8,
     justifyContent: "center",
-    marginTop: 3,
-    minWidth: 34,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    marginBottom: 4,
+    minHeight: 40,
+    minWidth: WEEK_SCHEDULE_TILE_SMALL_WIDTH,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     position: "relative",
     zIndex: 1,
   },
   weekScheduleTodayDateContainer: {
+    backgroundColor: "transparent",
+  },
+  weekScheduleIndicatorTrack: {
     backgroundColor: "#171717",
-    marginTop: 3,
-    minWidth: 52,
-    paddingTop: 3,
+    borderRadius: 999,
+    height: 5,
+    marginTop: 6,
+    overflow: "hidden",
+    width: WEEK_SCHEDULE_TILE_SMALL_WIDTH,
+  },
+  weekScheduleIndicatorFill: {
+    borderRadius: 999,
+    height: "100%",
+  },
+  weekScheduleIndicatorSpacer: {
+    height: 5,
+    marginTop: 6,
+    width: WEEK_SCHEDULE_TILE_SMALL_WIDTH,
   },
   skeletonBlock: {
     backgroundColor: "#242424",

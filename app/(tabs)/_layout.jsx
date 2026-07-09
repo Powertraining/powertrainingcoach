@@ -6,18 +6,32 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  Platform,
   View,
   StyleSheet,
   Pressable,
 } from "react-native";
-import Svg, { Path, Rect } from "react-native-svg";
+import { GlassView } from "expo-glass-effect";
+import { requireOptionalNativeModule } from "expo-modules-core";
+import { Ionicons } from "@expo/vector-icons";
+import Svg, { Path } from "react-native-svg";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 
+const ANDROID_NATIVE_BLUR_AVAILABLE =
+  Platform.OS === "android" &&
+  Boolean(requireOptionalNativeModule("ExpoBlur"));
+const androidBlurComponents = ANDROID_NATIVE_BLUR_AVAILABLE
+  ? require("expo-blur")
+  : {};
+const AndroidBlurTargetView = androidBlurComponents.BlurTargetView;
+const AndroidBlurView = androidBlurComponents.BlurView;
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const TAB_BAR_ANIMATION_DURATION = 220;
+const TAB_BAR_INACTIVE_FLEX = 1;
+const TAB_BAR_ACTIVE_FLEX = 1.45;
 const TAB_SCREEN_TRANSITION = {
   animation: "timing",
   config: {
@@ -28,46 +42,25 @@ const TAB_SCREEN_TRANSITION = {
 
 function HomeNavIcon({ size, color }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 182 177" fill="none">
-      <Path d="M97 0H104C147.078 0 182 34.9218 182 78V157C182 168.046 173.046 177 162 177H117C105.954 177 97 168.046 97 157V0Z" fill={color} />
-      <Path d="M85 0H78C34.9218 0 0 34.9218 0 78V157C0 168.046 8.95431 177 20 177H65C76.0457 177 85 168.046 85 157V0Z" fill={color} />
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 10.8 12 4l8 6.8v7.7a1.5 1.5 0 0 1-1.5 1.5h-4.2v-5.6H9.7V20H5.5A1.5 1.5 0 0 1 4 18.5v-7.7Z"
+        fill={color}
+      />
     </Svg>
   );
 }
 
-function PlanNavIcon({ size, color }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 562 562" fill="none">
-      <Rect x="432.829" y="59.2859" width="98.2751" height="98.2747" rx="49.1374" transform="rotate(44.8952 432.829 59.2859)" fill={color} />
-      <Path d="M254.457 130.3C252.104 127.946 252.104 124.131 254.457 121.778C277.989 98.2464 316.141 98.2463 339.673 121.778L478.174 260.279C480.527 262.632 480.527 266.447 478.174 268.8C454.642 292.332 416.489 292.332 392.958 268.8L254.457 130.3Z" fill={color} />
-      <Path d="M228.267 225.633C226.256 227.644 222.996 227.644 220.985 225.633C200.876 205.524 200.876 172.921 220.985 152.812L235.101 138.696C237.891 135.905 242.415 135.905 245.206 138.696L266.77 160.26C274.19 167.68 274.19 179.71 266.77 187.13L228.267 225.633Z" fill={color} />
-      <Path d="M504.268 164.623C506.279 162.612 509.539 162.612 511.55 164.623C531.659 184.732 531.659 217.336 511.55 237.445L497.434 251.56C494.644 254.351 490.12 254.351 487.329 251.56L465.765 229.996C458.345 222.576 458.345 210.546 465.765 203.126L504.268 164.623Z" fill={color} />
-      <Path d="M326.89 248.663C334.701 240.853 347.364 240.853 355.174 248.663L377.265 270.754C383.139 276.628 383.139 286.152 377.265 292.026L313.51 355.781C289.978 379.313 251.826 379.313 228.294 355.781C225.941 353.428 225.941 349.613 228.294 347.259L326.89 248.663Z" fill={color} />
-      <Path d="M272.894 194.668C280.704 186.857 293.368 186.857 301.178 194.668L319.763 213.252C327.573 221.063 327.573 233.726 319.763 241.536L136.359 424.94C112.828 448.471 74.6754 448.471 51.1437 424.94C48.7905 422.586 48.7905 418.771 51.1437 416.418L272.894 194.668Z" fill={color} />
-    </Svg>
-  );
-}
-
-function ForumNavIcon({ size, color }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 252 182" fill="none">
-      <Path d="M234.653 182C244.234 182 252 174.234 252 164.653C252 127.289 221.711 97 184.347 97H117.5C94.0279 97 75 116.028 75 139.5C75 162.972 94.0279 182 117.5 182H234.653Z" fill={color} />
-      <Path d="M134.5 85C157.972 85 177 65.9721 177 42.5C177 19.0279 157.972 0 134.5 0H67.6531C30.2893 0 0 30.2893 0 67.6531C0 77.2335 7.76649 85 17.3469 85H134.5Z" fill={color} />
-    </Svg>
-  );
-}
-
-function ProfileNavIcon({ size, color }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 263 176" fill="none">
-      <Rect x="82" width="98.2751" height="98.2747" rx="49.1374" fill={color} />
-      <Path d="M6.02565 175.591C2.69777 175.591 0 172.894 0 169.566C0 136.287 26.9778 109.309 60.2566 109.309L256.126 109.309C259.454 109.309 262.152 112.007 262.152 115.335C262.152 148.613 235.174 175.591 201.895 175.591L6.02565 175.591Z" fill={color} />
-    </Svg>
-  );
-}
-
-function TabIcon({ icon: Icon, size, iconSize, focused, label, showLabel = focused }) {
-  const iconColor = focused ? "#fff" : "#000";
+function TabIcon({
+  icon: Icon,
+  iconName,
+  size,
+  iconSize,
+  focused,
+  label,
+  showLabel = focused,
+}) {
+  const iconColor = focused ? "#FFFFFF" : "#E0E0E6";
   const visualSize = iconSize ?? size;
 
   return (
@@ -78,9 +71,21 @@ function TabIcon({ icon: Icon, size, iconSize, focused, label, showLabel = focus
           focused ? styles.tabIconContentActive : styles.tabIconContentInactive,
         ]}
       >
-        <Icon size={visualSize} color={iconColor} />
+        <View style={styles.tabIconGlyph}>
+          {Icon ? (
+            <Icon color={iconColor} size={visualSize} />
+          ) : (
+            <Ionicons color={iconColor} name={iconName} size={visualSize} />
+          )}
+        </View>
         {showLabel ? (
-          <IBMPlexText numberOfLines={1} style={styles.tabIconLabel}>
+          <IBMPlexText
+            numberOfLines={1}
+            style={[
+              styles.tabIconLabel,
+              focused ? styles.tabIconLabelActive : styles.tabIconLabelInactive,
+            ]}
+          >
             {label}
           </IBMPlexText>
         ) : null}
@@ -190,20 +195,39 @@ function shouldHideTabBar(pathname, activeTabName, requestedHidden) {
   return Boolean(requestedHidden) && GLOBAL_HIDDEN_TAB_ROUTES.has(pathname);
 }
 
-function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, bottomOffset }) {
+function CustomTabBar({
+  state,
+  descriptors,
+  navigation,
+  activeTabName,
+  blurTargets,
+  hidden,
+  bottomOffset,
+}) {
+  const navigationActiveRouteName = state.routes[state.index]?.name;
+  const currentActiveTabName = VISIBLE_TAB_ROUTES.has(navigationActiveRouteName)
+    ? navigationActiveRouteName
+    : activeTabName;
   const pillTranslateX = useRef(new Animated.Value(0)).current;
+  const pillSmearProgress = useRef(new Animated.Value(0)).current;
   const hiddenProgress = useRef(new Animated.Value(hidden ? 1 : 0)).current;
+  const emptyBlurTarget = useRef(null);
   const pillInitializedRef = useRef(false);
   const routeIconAnimationsRef = useRef({});
+  const routePressAnimationsRef = useRef({});
   const transitionIdRef = useRef(0);
+  const transitionAnimationRef = useRef(null);
+  const transitionFrameRef = useRef(null);
   const transitionTargetRef = useRef(null);
   const [tabBarWidth, setTabBarWidth] = useState(0);
-  const [visualActiveTabName, setVisualActiveTabName] = useState(activeTabName);
-  const [labelVisibleTabName, setLabelVisibleTabName] = useState(activeTabName);
+  const [visualActiveTabName, setVisualActiveTabName] = useState(currentActiveTabName);
+  const [labelVisibleTabName, setLabelVisibleTabName] = useState(currentActiveTabName);
 
   const visibleRoutes = state.routes.filter((route) => VISIBLE_TAB_ROUTES.has(route.name));
   const visibleRouteNames = visibleRoutes.map((route) => route.name).join("|");
-  const resolvedActiveTabName = visualActiveTabName || activeTabName;
+  const resolvedActiveTabName = visualActiveTabName || currentActiveTabName;
+  const activeBlurTarget =
+    blurTargets.current[resolvedActiveTabName] || emptyBlurTarget;
   const activePillLayout = getPillTarget(resolvedActiveTabName);
   const collapsedSlotWidth = activePillLayout?.unitWidth || 0;
 
@@ -215,6 +239,42 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     return routeIconAnimationsRef.current[routeName];
   }
 
+  function getRoutePressAnimation(routeName) {
+    if (!routePressAnimationsRef.current[routeName]) {
+      routePressAnimationsRef.current[routeName] = new Animated.Value(0);
+    }
+
+    return routePressAnimationsRef.current[routeName];
+  }
+
+  function stopRunningTabBarAnimation() {
+    if (!transitionAnimationRef.current) {
+      return;
+    }
+
+    const animation = transitionAnimationRef.current;
+    transitionAnimationRef.current = null;
+    animation.stop();
+  }
+
+  function applyTabBarPosition(tabName) {
+    const activeLayout = getPillTarget(tabName);
+
+    if (!activeLayout) {
+      return false;
+    }
+
+    pillTranslateX.setValue(activeLayout.x);
+    pillSmearProgress.setValue(0);
+    visibleRoutes.forEach((route) => {
+      getRouteIconAnimation(route.name).setValue(
+        getRouteIconX(route.name, tabName)
+      );
+    });
+    pillInitializedRef.current = true;
+    return true;
+  }
+
   function getPillTarget(tabName) {
     const activeIndex = visibleRoutes.findIndex((route) => route.name === tabName);
     const innerWidth = Math.max(tabBarWidth - 12, 0);
@@ -223,14 +283,12 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
       return null;
     }
 
-    const inactiveFlex = 1;
-    const activeFlex = 3;
-    const totalFlex = visibleRoutes.length - 1 + activeFlex;
+    const totalFlex = visibleRoutes.length - 1 + TAB_BAR_ACTIVE_FLEX;
     const unitWidth = innerWidth / totalFlex;
 
     return {
-      x: 6 + activeIndex * inactiveFlex * unitWidth,
-      width: activeFlex * unitWidth,
+      x: 6 + activeIndex * TAB_BAR_INACTIVE_FLEX * unitWidth,
+      width: TAB_BAR_ACTIVE_FLEX * unitWidth,
       unitWidth,
       activeIndex,
     };
@@ -249,10 +307,14 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     }
 
     if (routeIndex > activeLayout.activeIndex) {
-      return 6 + (routeIndex + 2) * activeLayout.unitWidth;
+      return 6 + (
+        routeIndex +
+        TAB_BAR_ACTIVE_FLEX -
+        TAB_BAR_INACTIVE_FLEX
+      ) * activeLayout.unitWidth;
     }
 
-    return activeLayout.x + activeLayout.unitWidth;
+    return activeLayout.x + (activeLayout.width - activeLayout.unitWidth) / 2;
   }
 
   function getRouteHitTarget(routeName, tabName) {
@@ -277,47 +339,50 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
   }
 
   function setTabBarPosition(tabName) {
-    const activeLayout = getPillTarget(tabName);
-
-    if (!activeLayout) {
-      return false;
-    }
-
-    pillTranslateX.stopAnimation();
-    pillTranslateX.setValue(activeLayout.x);
-    visibleRoutes.forEach((route) => {
-      const routeIconAnimation = getRouteIconAnimation(route.name);
-      routeIconAnimation.stopAnimation();
-      routeIconAnimation.setValue(getRouteIconX(route.name, tabName));
-    });
-    pillInitializedRef.current = true;
-    return true;
+    stopRunningTabBarAnimation();
+    return applyTabBarPosition(tabName);
   }
 
   function animateTabBarPosition(tabName, onComplete) {
     const activeLayout = getPillTarget(tabName);
 
     if (!activeLayout) {
-      onComplete?.();
+      onComplete?.({ finished: false });
       return;
     }
 
-    pillTranslateX.stopAnimation();
+    stopRunningTabBarAnimation();
 
     if (!pillInitializedRef.current) {
       setTabBarPosition(tabName);
       pillInitializedRef.current = true;
-      onComplete?.();
+      onComplete?.({ finished: true });
       return;
     }
 
-    Animated.parallel([
+    pillSmearProgress.setValue(0);
+
+    const animation = Animated.parallel([
       Animated.timing(pillTranslateX, {
         toValue: activeLayout.x,
         duration: TAB_BAR_ANIMATION_DURATION,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
+      Animated.sequence([
+        Animated.timing(pillSmearProgress, {
+          duration: 90,
+          easing: Easing.out(Easing.cubic),
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pillSmearProgress, {
+          duration: 130,
+          easing: Easing.inOut(Easing.cubic),
+          toValue: 0,
+          useNativeDriver: true,
+        }),
+      ]),
       ...visibleRoutes.map((route) => {
         const routeIconAnimation = getRouteIconAnimation(route.name);
         routeIconAnimation.stopAnimation();
@@ -329,12 +394,32 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
           useNativeDriver: true,
         });
       }),
-    ]).start(onComplete);
+    ], { stopTogether: false });
+
+    transitionAnimationRef.current = animation;
+    animation.start(({ finished }) => {
+      if (transitionAnimationRef.current !== animation) {
+        return;
+      }
+
+      transitionAnimationRef.current = null;
+
+      if (finished !== false) {
+        applyTabBarPosition(tabName);
+      }
+
+      onComplete?.({ finished });
+    });
   }
 
   function runTabTransition(tabName, onMovedToTab) {
     if (!tabName) {
       return;
+    }
+
+    if (transitionFrameRef.current != null) {
+      cancelAnimationFrame(transitionFrameRef.current);
+      transitionFrameRef.current = null;
     }
 
     transitionIdRef.current += 1;
@@ -344,18 +429,20 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
     setVisualActiveTabName(tabName);
     setLabelVisibleTabName(tabName);
 
-    requestAnimationFrame(() => {
+    transitionFrameRef.current = requestAnimationFrame(() => {
+      transitionFrameRef.current = null;
+
       if (transitionIdRef.current !== transitionId) {
         return;
       }
 
       animateTabBarPosition(tabName, ({ finished }) => {
-        if (transitionTargetRef.current === tabName) {
-          transitionTargetRef.current = null;
-        }
-
         if (finished === false || transitionIdRef.current !== transitionId) {
           return;
+        }
+
+        if (transitionTargetRef.current === tabName) {
+          transitionTargetRef.current = null;
         }
       });
 
@@ -364,42 +451,64 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
   }
 
   useEffect(() => {
-    Animated.timing(hiddenProgress, {
+    hiddenProgress.stopAnimation();
+
+    const animation = Animated.timing(hiddenProgress, {
       toValue: hidden ? 1 : 0,
       duration: TAB_BAR_ANIMATION_DURATION,
       easing: hidden ? Easing.in(Easing.cubic) : Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start();
+    });
+
+    animation.start(({ finished }) => {
+      if (finished) {
+        hiddenProgress.setValue(hidden ? 1 : 0);
+      }
+    });
+
+    return () => animation.stop();
   }, [hidden, hiddenProgress]);
 
   useEffect(() => {
-    if (!activeTabName) {
+    if (!currentActiveTabName) {
+      transitionTargetRef.current = null;
+      stopRunningTabBarAnimation();
       setVisualActiveTabName(null);
       setLabelVisibleTabName(null);
       return;
     }
 
-    if (!pillInitializedRef.current || activeTabName === visualActiveTabName) {
-      setVisualActiveTabName(activeTabName);
-      setLabelVisibleTabName(activeTabName);
-      if (transitionTargetRef.current === activeTabName) {
+    if (!pillInitializedRef.current || currentActiveTabName === visualActiveTabName) {
+      setVisualActiveTabName(currentActiveTabName);
+      setLabelVisibleTabName(currentActiveTabName);
+      if (transitionTargetRef.current === currentActiveTabName) {
+        runTabTransition(currentActiveTabName);
         return;
       }
 
-      setTabBarPosition(activeTabName);
+      setTabBarPosition(currentActiveTabName);
       return;
     }
 
-    runTabTransition(activeTabName);
-  }, [activeTabName, tabBarWidth, visibleRouteNames]);
+    runTabTransition(currentActiveTabName);
+  }, [currentActiveTabName, tabBarWidth, visibleRouteNames]);
 
   useEffect(() => {
-    if (activeTabName || !visualActiveTabName) {
+    if (currentActiveTabName || !visualActiveTabName) {
       return;
     }
 
     setVisualActiveTabName(null);
-  }, [activeTabName, visualActiveTabName]);
+  }, [currentActiveTabName, visualActiveTabName]);
+
+  useEffect(() => () => {
+    if (transitionFrameRef.current != null) {
+      cancelAnimationFrame(transitionFrameRef.current);
+      transitionFrameRef.current = null;
+    }
+
+    stopRunningTabBarAnimation();
+  }, []);
 
   return (
     <Animated.View
@@ -412,6 +521,12 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
       pointerEvents={hidden ? "none" : "auto"}
       style={[
         styles.customTabBar,
+        Platform.OS === "web"
+          ? {
+              backdropFilter: "blur(14px) saturate(135%)",
+              WebkitBackdropFilter: "blur(14px) saturate(135%)",
+            }
+          : null,
         {
           bottom: bottomOffset,
           transform: [
@@ -425,17 +540,80 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
         },
       ]}
     >
+      {Platform.OS === "ios" ? (
+        <GlassView
+          colorScheme="dark"
+          glassEffectStyle="regular"
+          pointerEvents="none"
+          style={styles.tabBarMaterial}
+          tintColor="rgba(18, 18, 22, 0.64)"
+        />
+      ) : ANDROID_NATIVE_BLUR_AVAILABLE ? (
+        <AndroidBlurView
+          blurTarget={activeBlurTarget}
+          blurMethod="dimezisBlurView"
+          blurReductionFactor={2}
+          intensity={48}
+          pointerEvents="none"
+          style={styles.tabBarMaterial}
+          tint="systemChromeMaterialDark"
+        />
+      ) : null}
+      <View pointerEvents="none" style={styles.tabBarFallbackMaterial} />
       {activePillLayout ? (
         <Animated.View
           pointerEvents="none"
           style={[
             styles.tabBarActivePill,
             {
-              transform: [{ translateX: pillTranslateX }],
+              transform: [
+                { translateX: pillTranslateX },
+                {
+                  scaleX: pillSmearProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 1.08],
+                  }),
+                },
+                {
+                  scaleY: pillSmearProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 0.97],
+                  }),
+                },
+                {
+                  scale: getRoutePressAnimation(resolvedActiveTabName).interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 0.95],
+                  }),
+                },
+              ],
               width: activePillLayout.width,
             },
           ]}
         >
+          {Platform.OS === "ios" ? (
+            <GlassView
+              colorScheme="dark"
+              glassEffectStyle="clear"
+              pointerEvents="none"
+              style={styles.tabBarActivePillMaterial}
+              tintColor="rgba(255, 255, 255, 0.12)"
+            />
+          ) : ANDROID_NATIVE_BLUR_AVAILABLE ? (
+            <AndroidBlurView
+              blurTarget={activeBlurTarget}
+              blurMethod="dimezisBlurView"
+              blurReductionFactor={2}
+              intensity={64}
+              pointerEvents="none"
+              style={styles.tabBarActivePillMaterial}
+              tint="systemThinMaterialDark"
+            />
+          ) : null}
+          <View
+            pointerEvents="none"
+            style={styles.tabBarActivePillFallback}
+          />
           {visibleRoutes.map((route) => {
             if (route.name !== resolvedActiveTabName) {
               return null;
@@ -471,6 +649,12 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
                     opacity: isVisuallyActive ? 0 : 1,
                     transform: [
                       { translateX: getRouteIconAnimation(route.name) },
+                      {
+                        scale: getRoutePressAnimation(route.name).interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, 0.88],
+                        }),
+                      },
                     ],
                     width: collapsedSlotWidth,
                   },
@@ -479,7 +663,7 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
                 {typeof options.tabBarIcon === "function"
                   ? options.tabBarIcon({
                       focused: false,
-                      showLabel: false,
+                      showLabel: true,
                       color: "#000",
                       size: 24,
                     })
@@ -490,7 +674,7 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
         : null}
       {visibleRoutes.map((route) => {
         const options = descriptors[route.key]?.options ?? {};
-        const routeFocused = activeTabName === route.name;
+        const routeFocused = currentActiveTabName === route.name;
         const focused = resolvedActiveTabName === route.name;
         const hitTarget = getRouteHitTarget(route.name, resolvedActiveTabName);
 
@@ -502,11 +686,9 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
           });
 
           if (!routeFocused && !event.defaultPrevented) {
-            runTabTransition(route.name, () => {
-              navigation.navigate(route.name, route.params);
-            });
+            navigation.navigate(route.name, route.params);
           } else if (event.defaultPrevented) {
-            runTabTransition(activeTabName);
+            runTabTransition(currentActiveTabName);
           }
         }
 
@@ -517,6 +699,26 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
           });
         }
 
+        function onPressIn() {
+          Animated.spring(getRoutePressAnimation(route.name), {
+            damping: 18,
+            mass: 0.55,
+            stiffness: 340,
+            toValue: 1,
+            useNativeDriver: true,
+          }).start();
+        }
+
+        function onPressOut() {
+          Animated.spring(getRoutePressAnimation(route.name), {
+            damping: 15,
+            mass: 0.5,
+            stiffness: 260,
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+
         return (
           <AnimatedPressable
             key={route.key}
@@ -525,6 +727,8 @@ function CustomTabBar({ state, descriptors, navigation, activeTabName, hidden, b
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarButtonTestID}
             onPress={onPress}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
             onLongPress={onLongPress}
             style={[
               styles.tabBarButton,
@@ -547,6 +751,7 @@ const TabsLayout = observer(function TabsLayout() {
   const pathname = usePathname();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  const blurTargets = useRef({});
   const activeTabName = getActiveTabName(pathname);
   const isTabBarHidden = shouldHideTabBar(
     pathname,
@@ -556,6 +761,14 @@ const TabsLayout = observer(function TabsLayout() {
       model.planGenerationTabBarHidden
   );
   const tabBarBottomOffset = getTabBarBottomOffset(insets.bottom);
+
+  function getBlurTarget(routeName) {
+    if (!blurTargets.current[routeName]) {
+      blurTargets.current[routeName] = { current: null };
+    }
+
+    return blurTargets.current[routeName];
+  }
 
   function buildProtectedReturnTo() {
     if (typeof pathname !== "string" || !pathname.startsWith("/")) {
@@ -604,6 +817,7 @@ const TabsLayout = observer(function TabsLayout() {
           <CustomTabBar
             {...props}
             activeTabName={activeTabName}
+            blurTargets={blurTargets}
             hidden={isTabBarHidden}
             bottomOffset={tabBarBottomOffset}
           />
@@ -614,6 +828,18 @@ const TabsLayout = observer(function TabsLayout() {
           sceneStyle: { backgroundColor: "transparent" },
           transitionSpec: TAB_SCREEN_TRANSITION,
         }}
+        screenLayout={({ children, route }) =>
+          ANDROID_NATIVE_BLUR_AVAILABLE ? (
+            <AndroidBlurTargetView
+              ref={getBlurTarget(route.name)}
+              style={styles.container}
+            >
+              {children}
+            </AndroidBlurTargetView>
+          ) : (
+            children
+          )
+        }
       >
         <Tabs.Screen
           name="index"
@@ -623,25 +849,9 @@ const TabsLayout = observer(function TabsLayout() {
               <TabIcon
                 icon={HomeNavIcon}
                 size={size}
-                iconSize={24}
+                iconSize={28}
                 focused={focused}
                 label="Home"
-                showLabel={showLabel}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="overview"
-          options={{
-            title: "Plan",
-            tabBarIcon: ({ size, focused, showLabel }) => (
-              <TabIcon
-                icon={PlanNavIcon}
-                size={size}
-                iconSize={38}
-                focused={focused}
-                label="Plan"
                 showLabel={showLabel}
               />
             ),
@@ -653,11 +863,27 @@ const TabsLayout = observer(function TabsLayout() {
             title: "Forum",
             tabBarIcon: ({ size, focused, showLabel }) => (
               <TabIcon
-                icon={ForumNavIcon}
+                iconName="people"
                 size={size}
-                iconSize={33}
+                iconSize={24}
                 focused={focused}
                 label="Forum"
+                showLabel={showLabel}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="overview"
+          options={{
+            title: "Plan",
+            tabBarIcon: ({ size, focused, showLabel }) => (
+              <TabIcon
+                iconName="calendar"
+                size={size}
+                iconSize={25}
+                focused={focused}
+                label="Plan"
                 showLabel={showLabel}
               />
             ),
@@ -669,9 +895,9 @@ const TabsLayout = observer(function TabsLayout() {
             title: "Profile",
             tabBarIcon: ({ size, focused, showLabel }) => (
               <TabIcon
-                icon={ProfileNavIcon}
+                iconName="person"
                 size={size}
-                iconSize={36}
+                iconSize={28}
                 focused={focused}
                 label="Profile"
                 showLabel={showLabel}
@@ -782,25 +1008,59 @@ const styles = StyleSheet.create({
   },
   customTabBar: {
     position: "absolute",
-    left: 16,
-    right: 16,
-    backgroundColor: "#fff",
-    height: 70,
-    borderRadius: 120,
+    left: 24,
+    right: 24,
+    backgroundColor: "rgba(10, 10, 12, 0.14)",
+    borderColor: "rgba(255, 255, 255, 0.18)",
+    borderWidth: 1,
+    height: 72,
+    borderRadius: 30,
     overflow: "hidden",
     padding: 6,
     flexDirection: "row",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.34,
+    shadowRadius: 24,
+    elevation: 18,
     zIndex: 10,
     marginBottom: 5,
+  },
+  tabBarMaterial: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 30,
+    overflow: "hidden",
+  },
+  tabBarFallbackMaterial: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(12, 12, 15, 0.14)",
+    borderRadius: 30,
   },
   tabBarActivePill: {
     position: "absolute",
     top: 6,
     bottom: 6,
     left: 0,
-    backgroundColor: "#000",
-    borderRadius: 120,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: "rgba(255, 255, 255, 0.28)",
+    borderRadius: 25,
+    borderWidth: 1,
+    overflow: "hidden",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.24,
+    shadowRadius: 12,
     zIndex: 0,
+  },
+  tabBarActivePillMaterial: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 25,
+    overflow: "hidden",
+  },
+  tabBarActivePillFallback: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderRadius: 25,
   },
   tabBarInactiveIconSlot: {
     alignItems: "center",
@@ -813,16 +1073,16 @@ const styles = StyleSheet.create({
   },
   tabBarDisabledOverlay: {
     backgroundColor: "rgba(0, 0, 0, 0.72)",
-    height: 70,
+    height: 72,
     position: "absolute",
-    left: 16,
-    right: 16,
-    borderRadius: 120,
+    left: 24,
+    right: 24,
+    borderRadius: 26,
     zIndex: 20,
   },
   tabBarButton: {
     bottom: 6,
-    borderRadius: 120,
+    borderRadius: 22,
     left: 0,
     overflow: "hidden",
     position: "absolute",
@@ -832,28 +1092,40 @@ const styles = StyleSheet.create({
   tabIcon: {
     flex: 1,
     width: "100%",
-    borderRadius: 120,
+    borderRadius: 22,
   },
   tabIconContent: {
     flex: 1,
     width: "100%",
     alignItems: "center",
   },
+  tabIconGlyph: {
+    alignItems: "center",
+    height: 30,
+    justifyContent: "center",
+    width: 30,
+  },
   tabIconContentInactive: {
+    gap: 4,
     justifyContent: "center",
   },
   tabIconContentActive: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 18,
+    gap: 5,
+    paddingHorizontal: 8,
   },
   tabIconLabel: {
-    color: "#fff",
     fontFamily: "IBMPlexSans_600SemiBold",
-    fontSize: 24,
-    letterSpacing: 0.8,
+    fontSize: 14,
     flexShrink: 1,
+    lineHeight: 18,
+  },
+  tabIconLabelActive: {
+    color: "#FFFFFF",
+  },
+  tabIconLabelInactive: {
+    color: "#E0E0E6",
   },
 });

@@ -111,6 +111,7 @@ const HomeScreen = observer(function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [pushingBackSession, setPushingBackSession] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
+  const [pushBackTarget, setPushBackTarget] = useState(null);
   const [questionnaireNavigatorVisible, setQuestionnaireNavigatorVisible] =
     useState(false);
   const [error, setError] = useState(null);
@@ -443,52 +444,6 @@ const HomeScreen = observer(function HomeScreen() {
     };
   }
 
-  function getExerciseProgressForSession(session) {
-    if (!session) {
-      return {
-        completedExerciseCount: 0,
-        totalExerciseCount: 0,
-        hasStartedSession: false,
-      };
-    }
-
-    const sessionKey = `${session.week}-${session.day}`;
-    const sessionProgress = model.activeSessionProgressByKey?.[sessionKey];
-    const completedStepKeys = new Set(
-      Array.isArray(sessionProgress?.completedStepKeys)
-        ? sessionProgress.completedStepKeys
-        : []
-    );
-    const exercises = Array.isArray(session.exercises) ? session.exercises : [];
-    const completedExerciseCount = exercises.filter((exercise, exerciseIndex) => {
-      const parsedSetCount = Number.parseInt(exercise?.sets, 10);
-      const setCount =
-        Number.isFinite(parsedSetCount) && parsedSetCount > 0
-          ? Math.min(parsedSetCount, 12)
-          : 1;
-
-      return Array.from({ length: setCount }).every((_, setIndex) =>
-        completedStepKeys.has(`${exerciseIndex}:${setIndex}`)
-      );
-    }).length;
-
-    return {
-      completedExerciseCount,
-      totalExerciseCount: exercises.length,
-      hasStartedSession:
-        completedStepKeys.size > 0 ||
-        Boolean(
-          sessionProgress?.trackingDrafts &&
-            Object.values(sessionProgress.trackingDrafts).some((draft) =>
-              draft?.loadKg ||
-              draft?.reps ||
-              draft?.rpe ||
-              Object.values(draft?.customValues || {}).some(Boolean)
-            )
-        ),
-    };
-  }
-
   function openCurrentSession() {
     const currentSession = getCurrentSession();
 
@@ -508,8 +463,57 @@ const HomeScreen = observer(function HomeScreen() {
     });
   }
 
-  async function pushBackCurrentSession() {
-    const currentSession = getCurrentSession();
+  function openTrainingSession(weekNumber, dayNumber) {
+    const parsedWeekNumber = Number.parseInt(weekNumber, 10);
+    const parsedDayNumber = Number.parseInt(dayNumber, 10);
+
+    if (!Number.isFinite(parsedWeekNumber) || !Number.isFinite(parsedDayNumber)) {
+      openCurrentSession();
+      return;
+    }
+
+    model.setForumTabBarHidden?.(true);
+    router.push({
+      pathname: "/(tabs)/active-session",
+      params: {
+        week: String(parsedWeekNumber),
+        day: String(parsedDayNumber),
+        returnTo: "/(tabs)",
+      },
+    });
+  }
+
+  function openOverviewDay(weekNumber, dayNumber) {
+    const parsedWeekNumber = Number.parseInt(weekNumber, 10);
+    const parsedDayNumber = Number.parseInt(dayNumber, 10);
+
+    if (!Number.isFinite(parsedWeekNumber) || !Number.isFinite(parsedDayNumber)) {
+      router.push("/(tabs)/overview");
+      return;
+    }
+
+    router.push({
+      pathname: "/(tabs)/overview",
+      params: {
+        week: String(parsedWeekNumber),
+        day: String(parsedDayNumber),
+      },
+    });
+  }
+
+  function openPlanAdjustments() {
+    router.push({
+      pathname: "/(tabs)/profile-plan-adjustments",
+      params: { returnTo: "/(tabs)" },
+    });
+  }
+
+  function openReportInjury() {
+    router.push("/(tabs)/profile-injuries");
+  }
+
+  async function pushBackCurrentSession(targetSession = null) {
+    const currentSession = targetSession || getCurrentSession();
 
     if (!currentSession || pushingBackSession) {
       return;
@@ -530,11 +534,22 @@ const HomeScreen = observer(function HomeScreen() {
     }
   }
 
-  function openPushBackConfirm() {
+  function openPushBackConfirm(weekNumber, dayNumber) {
     if (pushingBackSession) {
       return;
     }
 
+    const parsedWeekNumber = Number.parseInt(weekNumber, 10);
+    const parsedDayNumber = Number.parseInt(dayNumber, 10);
+
+    setPushBackTarget(
+      Number.isFinite(parsedWeekNumber) && Number.isFinite(parsedDayNumber)
+        ? {
+            week: parsedWeekNumber,
+            day: parsedDayNumber,
+          }
+        : null
+    );
     setPushBackConfirmVisible(true);
   }
 
@@ -544,11 +559,15 @@ const HomeScreen = observer(function HomeScreen() {
     }
 
     setPushBackConfirmVisible(false);
+    setPushBackTarget(null);
   }
 
   async function confirmPushBackCurrentSession() {
+    const targetSession = pushBackTarget;
+
     setPushBackConfirmVisible(false);
-    await pushBackCurrentSession();
+    setPushBackTarget(null);
+    await pushBackCurrentSession(targetSession);
   }
 
   if (loading) {
@@ -574,9 +593,6 @@ const HomeScreen = observer(function HomeScreen() {
     );
   }
 
-  const currentSession = getCurrentSession();
-  const { completedExerciseCount, totalExerciseCount, hasStartedSession } =
-    getExerciseProgressForSession(currentSession);
   const questionnaireNavigatorItems = getQuestionnaireNavigatorItems();
 
   const renderByStep = {
@@ -584,30 +600,19 @@ const HomeScreen = observer(function HomeScreen() {
       <StartView
         hasProgram={Boolean(model.trainingPlan)}
         plan={model.trainingPlan}
+        trainingPlanHistory={model.trainingPlanHistory}
         questionnaire={model.questionnaire}
         completedDays={model.completedDays}
-        currentSession={currentSession}
-        completedExerciseCount={completedExerciseCount}
-        totalExerciseCount={totalExerciseCount}
-        hasStartedSession={hasStartedSession}
-        isPushingBackSession={pushingBackSession}
+        activeSessionProgressByKey={model.activeSessionProgressByKey}
+        completedSessionProgressByKey={model.completedSessionProgressByKey}
         onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
         onNavigateQuestionnaire={openQuestionnaireNavigator}
-        onStartSession={openCurrentSession}
-        onPushBackSession={openPushBackConfirm}
+        onStartSession={openTrainingSession}
+        onOpenOverview={openOverviewDay}
         onResetUserProgress={resetUserProgressForTesting}
-        onAdjustPlan={() =>
-          router.push({
-            pathname: "/(tabs)/profile-plan-adjustments",
-            params: { returnTo: "/(tabs)" },
-          })
-        }
-        onMyPosts={() =>
-          router.push({
-            pathname: "/(tabs)/profile-my-posts",
-            params: { returnTo: "/(tabs)" },
-          })
-        }
+        onAdjustPlan={openPlanAdjustments}
+        onOpenWellness={openReportInjury}
+        onMoveSessionLater={openPushBackConfirm}
       />
     ),
 
@@ -700,9 +705,9 @@ const HomeScreen = observer(function HomeScreen() {
       <WhiteBottomMenu
         visible={pushBackConfirmVisible}
         onDismiss={closePushBackConfirm}
-        title="Push back session?"
+        title="Move session forward?"
         description="This moves the session forward and updates the plan around the missed slot."
-        buttonText={pushingBackSession ? "Updating..." : "Yes, push back"}
+        buttonText={pushingBackSession ? "Updating..." : "Move 2 days forward"}
         buttonDisabled={pushingBackSession}
         onButtonPress={confirmPushBackCurrentSession}
         secondaryButtonText="Cancel"
