@@ -732,6 +732,9 @@ export default function ProgramOverviewView({
   const initialScrollToTopPassesRemainingRef = useRef(0);
   const lastWeekScheduleScrollDateRef = useRef("");
   const lastSelectedScheduleDateRef = useRef(null);
+  const cardContentAnimation = useRef(new Animated.Value(1)).current;
+  const cardContentTranslateX = useRef(new Animated.Value(0)).current;
+  const cardSlideDirection = useRef(1);
   const { height: viewportHeight } = useWindowDimensions();
   const isPhonePreview = isPagesPhonePreview();
   const isOverviewRoute =
@@ -1040,6 +1043,31 @@ export default function ProgramOverviewView({
       })()
     : 0;
   useEffect(() => {
+    cardContentAnimation.stopAnimation();
+    cardContentTranslateX.stopAnimation();
+    cardContentAnimation.setValue(0);
+    cardContentTranslateX.setValue(28 * cardSlideDirection.current);
+
+    Animated.parallel([
+      Animated.timing(cardContentAnimation, {
+        duration: 240,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardContentTranslateX, {
+        duration: 240,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [
+    cardContentAnimation,
+    cardContentTranslateX,
+    selectedScheduleAnimationKey,
+  ]);
+  useEffect(() => {
     lastSelectedScheduleDateRef.current = selectedScheduleSlot
       ? startOfLocalDay(selectedScheduleSlot.date)
       : null;
@@ -1276,6 +1304,36 @@ export default function ProgramOverviewView({
     setRestSlotSelectionDismissed(false);
     setSelectedTrainingSlotKey("");
     onClearSelectedDay?.("rest");
+  }
+
+  function handleJumpToNextSession() {
+    if (!nextTrainingSlot?.trainingDay || !nextTrainingSlot?.weekNumber) {
+      return;
+    }
+
+    cardSlideDirection.current =
+      nextTrainingSlot.date < selectedHeaderDate ? -1 : 1;
+
+    handleSelectTrainingDay(
+      nextTrainingSlot.weekNumber,
+      nextTrainingSlot.trainingDay.day,
+      nextTrainingSlot.dateKey
+    );
+
+    const nextSlotIndex = currentWeekSchedule.findIndex(
+      (slot) =>
+        slot.dateKey === nextTrainingSlot.dateKey &&
+        slot.weekNumber === nextTrainingSlot.weekNumber &&
+        slot.trainingDay?.day === nextTrainingSlot.trainingDay.day
+    );
+
+    if (nextSlotIndex >= 0) {
+      weekScheduleScrollRef.current?.scrollTo?.({
+        x: Math.max(0, nextSlotIndex * WEEK_SCHEDULE_ITEM_WIDTH - WEEK_SCHEDULE_ITEM_WIDTH),
+        y: 0,
+        animated: true,
+      });
+    }
   }
 
   function buildSessionDayPayload(dayData = {}, weekNumber = currentWeek?.week) {
@@ -1520,6 +1578,9 @@ export default function ProgramOverviewView({
                     <WeekScheduleTile
                       selected={isSelectedScheduleDay}
                       onPress={() => {
+                        cardSlideDirection.current =
+                          date < selectedHeaderDate ? -1 : 1;
+
                         if (isSelectableCurrentTrainingDay) {
                           handleSelectTrainingDay(weekNumber, trainingDay.day, dateKey);
                         } else if (trainingDay && isArchived) {
@@ -1600,11 +1661,7 @@ export default function ProgramOverviewView({
             })}
           </ScrollView>
 
-          <SelectedDaySlide
-            animationKey={selectedScheduleAnimationKey}
-            direction={selectedScheduleSlideDirection}
-            style={styles.todayPanel}
-          >
+          <View style={styles.todayPanel}>
             <LinearGradient
               pointerEvents="none"
               colors={[
@@ -1617,7 +1674,15 @@ export default function ProgramOverviewView({
               end={{ x: 1, y: 1 }}
               style={styles.todayPanelTint}
             />
-            <View style={styles.todayPanelContent}>
+            <Animated.View
+              style={[
+                styles.todayPanelContent,
+                {
+                  opacity: cardContentAnimation,
+                  transform: [{ translateX: cardContentTranslateX }],
+                },
+              ]}
+            >
               <View style={styles.todayPanelHeader}>
                 <View
                   style={[
@@ -1721,13 +1786,35 @@ export default function ProgramOverviewView({
                       </TouchableOpacity>
                     ) : null}
                   </>
+                ) : showRestSessionStatus && nextTrainingSlot ? (
+                  <TouchableOpacity
+                    activeOpacity={0.84}
+                    onPress={handleJumpToNextSession}
+                    style={[
+                      styles.moveSessionButton,
+                      styles.moveSessionButtonPrimary,
+                    ]}
+                  >
+                    <IBMPlexText
+                      defaultWhite
+                      adjustsFontSizeToFit
+                      lines={1}
+                      minimumFontScale={0.78}
+                      style={[
+                        styles.moveSessionButtonText,
+                        styles.primarySessionButtonText,
+                      ]}
+                    >
+                      Jump to next session
+                    </IBMPlexText>
+                  </TouchableOpacity>
                 ) : (
                   <View style={styles.planStatusPill}>
                     <IBMPlexText defaultWhite lines={1} style={styles.planStatusPillText}>
                       {showCompletedSessionStatus
                         ? "Completed"
                         : showRestSessionStatus
-                          ? "Rest day"
+                          ? "No upcoming session"
                           : showPushedBackSessionStatus
                             ? "Pushed back"
                             : selectedArchivedDay
@@ -1739,8 +1826,8 @@ export default function ProgramOverviewView({
                   </View>
                 )}
               </View>
-            </View>
-          </SelectedDaySlide>
+            </Animated.View>
+          </View>
 
           {pendingTrainingCheckIn ? (
             <TrainingCheckInCard
