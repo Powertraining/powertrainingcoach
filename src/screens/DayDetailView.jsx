@@ -16,6 +16,7 @@ import {
   Animated,
   Easing,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle, Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
@@ -164,6 +165,20 @@ function CompletedExerciseProgressRing({ completedSetCount = 0, totalSetCount = 
                 </IBMPlexText>
             </View>
         </View>
+    );
+}
+
+function ExerciseCardActionIcon({ color = "#B8B8C2", size = 16 }) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+            <Path
+                d="M8 7h9m0 0-3-3m3 3-3 3M16 17H7m0 0 3 3m-3-3 3-3"
+                stroke={color}
+                strokeWidth={2.3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </Svg>
     );
 }
 
@@ -693,31 +708,6 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
             getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
         details: notesDetails,
     };
-}
-
-function ForumActionIcon({ width = 25, color = "#000" }) {
-    const height = Math.round((width * 182) / 252);
-
-    return (
-        <Svg width={width} height={height} viewBox="0 0 252 182" fill="none">
-            <Path d="M234.653 182C244.234 182 252 174.234 252 164.653C252 127.289 221.711 97 184.347 97H117.5C94.0279 97 75 116.028 75 139.5C75 162.972 94.0279 182 117.5 182H234.653Z" fill={color} />
-            <Path d="M134.5 85C157.972 85 177 65.9721 177 42.5C177 19.0279 157.972 0 134.5 0H67.6531C30.2893 0 0 30.2893 0 67.6531C0 77.2335 7.76649 85 17.3469 85H134.5Z" fill={color} />
-        </Svg>
-    );
-}
-
-function SwapActionIcon({ size = 20, color = "#fff" }) {
-    return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-            <Path
-                d="M8 7h9m0 0-3-3m3 3-3 3M16 17H7m0 0 3 3m-3-3 3-3"
-                stroke={color}
-                strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </Svg>
-    );
 }
 
 function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
@@ -1345,149 +1335,173 @@ export default function DayDetailView({
                                                 >
                                                     <View style={styles.tabButtonContent}>
                                                         <View style={styles.tabButtonHeader}>
-                                                            <IBMPlexText defaultWhite
-                                                                style={styles.tabButtonIndex}
-                                                                lines={1}
-                                                            >
-                                                                {exerciseIndex + 1}
-                                                            </IBMPlexText>
-                                                            <IBMPlexText defaultWhite
-                                                                style={styles.tabButtonName}
-                                                                lines={2}
-                                                                textColor="#fff"
-                                                            >
-                                                                {getExerciseDisplayName(ex)}
-                                                            </IBMPlexText>
-                                                        </View>
-                                                        {exerciseCardMetrics.length > 0 ? (
-                                                            <View style={styles.tabButtonMetricsRow}>
-                                                                {exerciseCardMetrics.map((metric) => (
-                                                                    <View
-                                                                        key={metric.label}
-                                                                        style={styles.tabButtonMetricColumn}
-                                                                    >
-                                                                        <IBMPlexText
-                                                                            style={styles.tabButtonMetricLabel}
-                                                                            lines={1}
-                                                                        >
-                                                                            {metric.label}
-                                                                        </IBMPlexText>
-                                                                        <IBMPlexText defaultWhite
-                                                                            style={styles.tabButtonMetricValue}
-                                                                            lines={1}
-                                                                            adjustsFontSizeToFit
-                                                                            minimumFontScale={0.72}
-                                                                            textColor="#CDBB58"
-                                                                        >
-                                                                            {metric.value}
-                                                                        </IBMPlexText>
-                                                                    </View>
-                                                                ))}
-                                                            </View>
-                                                        ) : null}
-                                                        {reportedResults.length > 0 ? (
-                                                            <View style={styles.tabButtonReportedList}>
-                                                                {reportedResults.map(({ setIndex, result }) => (
-                                                                    <IBMPlexText defaultWhite
-                                                                        key={`${exerciseIndex}-${setIndex}`}
-                                                                        style={styles.tabButtonReportedText}
-                                                                        lines={1}
-                                                                    >
-                                                                        Set {setIndex + 1}: {result}
-                                                                    </IBMPlexText>
-                                                                ))}
-                                                            </View>
-                                                        ) : null}
-                                                        <View style={styles.tabButtonDivider} />
-                                                        <View
-                                                            style={styles.tabButtonFooter}
-                                                            onTouchStart={(event) => {
-                                                                handleTabTouchStart(event);
-                                                            }}
-                                                        >
-                                                            <View style={styles.tabButtonActionGroup}>
-                                                                {isSessionComplete ? (
-                                                                    <CompletedExerciseProgressRing
-                                                                        completedSetCount={completedSetCount}
-                                                                        totalSetCount={totalSetCount}
-                                                                    />
-                                                                ) : (
-                                                                    <>
-                                                                        {canSwapExercise ? (
-                                                                            <TouchableOpacity
-                                                                                accessibilityRole="button"
-                                                                                accessibilityLabel={`Swap ${getExerciseDisplayName(ex)}`}
-                                                                                style={styles.tabButtonActionButton}
-                                                                                onPress={(event) => {
-                                                                                    event.stopPropagation?.();
-                                                                                    openSwapOptions(exerciseIndex);
-                                                                                }}
-                                                                                onTouchStart={(event) => {
-                                                                                    handleTabTouchStart(event);
-                                                                                }}
-                                                                            >
-                                                                                <SwapActionIcon size={21} color="#fff" />
-                                                                            </TouchableOpacity>
-                                                                        ) : null}
-                                                                        {hasExerciseTips ? (
-                                                                            <TouchableOpacity
-                                                                                accessibilityRole="button"
-                                                                                accessibilityLabel={`Show tips for ${getExerciseDisplayName(ex)}`}
-                                                                                style={styles.tabButtonActionButton}
-                                                                                onPress={(event) => {
-                                                                                    event.stopPropagation?.();
-                                                                                    openTips(exerciseIndex);
-                                                                                }}
-                                                                                onTouchStart={(event) => {
-                                                                                    handleTabTouchStart(event);
-                                                                                }}
-                                                                            >
-                                                                                <IBMPlexText
-                                                                                    style={[
-                                                                                        styles.tabButtonActionIcon,
-                                                                                        styles.tabButtonTipsActionIcon,
-                                                                                    ]}
-                                                                                >
-                                                                                    ?
-                                                                                </IBMPlexText>
-                                                                            </TouchableOpacity>
-                                                                        ) : null}
-                                                                    </>
-                                                                )}
-                                                                <TouchableOpacity
-                                                                    accessibilityRole="button"
-                                                                    accessibilityLabel={`Search forum for ${getExerciseDisplayName(ex)}`}
-                                                                    style={styles.tabButtonForumButton}
-                                                                    onPress={(event) => {
-                                                                        event.stopPropagation?.();
-                                                                        openForumSearch(ex);
-                                                                    }}
-                                                                    onTouchStart={(event) => {
-                                                                        handleTabTouchStart(event);
-                                                                    }}
+                                                            <View style={styles.tabButtonIndexBadge}>
+                                                                <IBMPlexText defaultWhite
+                                                                    style={styles.tabButtonIndex}
+                                                                    lines={1}
                                                                 >
-                                                                    <ForumActionIcon width={24} color="#fff" />
-                                                                </TouchableOpacity>
+                                                                    {exerciseIndex + 1}
+                                                                </IBMPlexText>
+                                                            </View>
+                                                            <View style={styles.tabButtonTitleBlock}>
+                                                                <IBMPlexText defaultWhite
+                                                                    style={styles.tabButtonName}
+                                                                    lines={2}
+                                                                    textColor="#fff"
+                                                                >
+                                                                    {getExerciseDisplayName(ex)}
+                                                                </IBMPlexText>
                                                             </View>
                                                         </View>
-                                                        {!isSessionComplete && onLogExercise ? (
-                                                            <TouchableOpacity
-                                                                accessibilityRole="button"
-                                                                accessibilityLabel={`Log ${getExerciseDisplayName(ex)}`}
-                                                                style={styles.tabButtonLogButton}
-                                                                onPress={(event) => {
-                                                                    event.stopPropagation?.();
-                                                                    onLogExercise(exerciseIndex);
-                                                                }}
+                                                        <View style={styles.tabButtonBody}>
+                                                            {exerciseCardMetrics.length > 0 ? (
+                                                                <View style={styles.tabButtonMetricsRow}>
+                                                                    {exerciseCardMetrics.map((metric) => (
+                                                                        <View
+                                                                            key={metric.label}
+                                                                            style={styles.tabButtonMetricColumn}
+                                                                        >
+                                                                            <IBMPlexText
+                                                                                style={styles.tabButtonMetricLabel}
+                                                                            >
+                                                                                {metric.label}
+                                                                            </IBMPlexText>
+                                                                            <IBMPlexText defaultWhite
+                                                                                style={styles.tabButtonMetricValue}
+                                                                                textColor="#CDBB58"
+                                                                            >
+                                                                                {metric.value}
+                                                                            </IBMPlexText>
+                                                                        </View>
+                                                                    ))}
+                                                                </View>
+                                                            ) : null}
+                                                            {reportedResults.length > 0 ? (
+                                                                <View style={styles.tabButtonReportedList}>
+                                                                    {reportedResults.map(({ setIndex, result }) => (
+                                                                        <IBMPlexText defaultWhite
+                                                                            key={`${exerciseIndex}-${setIndex}`}
+                                                                            style={styles.tabButtonReportedText}
+                                                                            lines={1}
+                                                                        >
+                                                                            Set {setIndex + 1}: {result}
+                                                                        </IBMPlexText>
+                                                                    ))}
+                                                                </View>
+                                                            ) : null}
+                                                            <View style={styles.tabButtonDivider} />
+                                                            <View
+                                                                style={styles.tabButtonFooter}
                                                                 onTouchStart={(event) => {
                                                                     handleTabTouchStart(event);
                                                                 }}
                                                             >
-                                                                <IBMPlexText style={styles.tabButtonLogButtonText}>
-                                                                    &gt;
-                                                                </IBMPlexText>
-                                                            </TouchableOpacity>
-                                                        ) : null}
+                                                                <View style={styles.tabButtonActionGroup}>
+                                                                    {isSessionComplete ? (
+                                                                        <CompletedExerciseProgressRing
+                                                                            completedSetCount={completedSetCount}
+                                                                            totalSetCount={totalSetCount}
+                                                                        />
+                                                                    ) : (
+                                                                        <>
+                                                                            {canSwapExercise ? (
+                                                                                <TouchableOpacity
+                                                                                    accessibilityRole="button"
+                                                                                    accessibilityLabel={`Swap ${getExerciseDisplayName(ex)}`}
+                                                                                    style={styles.tabButtonActionButton}
+                                                                                    onPress={(event) => {
+                                                                                        event.stopPropagation?.();
+                                                                                        openSwapOptions(exerciseIndex);
+                                                                                    }}
+                                                                                    onTouchStart={(event) => {
+                                                                                        handleTabTouchStart(event);
+                                                                                    }}
+                                                                                >
+                                                                                    <ExerciseCardActionIcon
+                                                                                        color="#F3D04F"
+                                                                                    />
+                                                                                    <IBMPlexText
+                                                                                        lines={1}
+                                                                                        style={[
+                                                                                            styles.tabButtonActionLabel,
+                                                                                            styles.tabButtonSwapActionLabel,
+                                                                                        ]}
+                                                                                    >
+                                                                                        Swap
+                                                                                    </IBMPlexText>
+                                                                                </TouchableOpacity>
+                                                                            ) : null}
+                                                                            {hasExerciseTips ? (
+                                                                                <TouchableOpacity
+                                                                                    accessibilityRole="button"
+                                                                                    accessibilityLabel={`Show tips for ${getExerciseDisplayName(ex)}`}
+                                                                                    style={styles.tabButtonActionButton}
+                                                                                    onPress={(event) => {
+                                                                                        event.stopPropagation?.();
+                                                                                        openTips(exerciseIndex);
+                                                                                    }}
+                                                                                    onTouchStart={(event) => {
+                                                                                        handleTabTouchStart(event);
+                                                                                    }}
+                                                                                >
+                                                                                    <IBMPlexText style={styles.tabButtonQuestionIcon}>
+                                                                                        ?
+                                                                                    </IBMPlexText>
+                                                                                    <IBMPlexText
+                                                                                        lines={1}
+                                                                                        style={[
+                                                                                            styles.tabButtonActionLabel,
+                                                                                            styles.tabButtonTipsActionLabel,
+                                                                                        ]}
+                                                                                    >
+                                                                                        Tips
+                                                                                    </IBMPlexText>
+                                                                                </TouchableOpacity>
+                                                                            ) : null}
+                                                                        </>
+                                                                    )}
+                                                                    <TouchableOpacity
+                                                                        accessibilityRole="button"
+                                                                        accessibilityLabel={`Search forum for ${getExerciseDisplayName(ex)}`}
+                                                                        style={styles.tabButtonForumButton}
+                                                                        onPress={(event) => {
+                                                                            event.stopPropagation?.();
+                                                                            openForumSearch(ex);
+                                                                        }}
+                                                                        onTouchStart={(event) => {
+                                                                            handleTabTouchStart(event);
+                                                                        }}
+                                                                    >
+                                                                        <Ionicons
+                                                                            color="#B8B8C2"
+                                                                            name="people"
+                                                                            size={16}
+                                                                        />
+                                                                        <IBMPlexText lines={1} style={styles.tabButtonActionLabel}>
+                                                                            Forum
+                                                                        </IBMPlexText>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                                {!isSessionComplete && onLogExercise ? (
+                                                                    <TouchableOpacity
+                                                                        accessibilityRole="button"
+                                                                        accessibilityLabel={`Log ${getExerciseDisplayName(ex)}`}
+                                                                        style={styles.tabButtonLogButton}
+                                                                        onPress={(event) => {
+                                                                            event.stopPropagation?.();
+                                                                            onLogExercise(exerciseIndex);
+                                                                        }}
+                                                                        onTouchStart={(event) => {
+                                                                            handleTabTouchStart(event);
+                                                                        }}
+                                                                    >
+                                                                        <IBMPlexText style={styles.tabButtonLogButtonText}>
+                                                                            Log &gt;
+                                                                        </IBMPlexText>
+                                                                    </TouchableOpacity>
+                                                                ) : null}
+                                                            </View>
+                                                        </View>
                                                     </View>
                                                 </AnimatedTouchableOpacity>
                                             );
@@ -2171,21 +2185,22 @@ const styles = StyleSheet.create({
     tabsLabel: { fontSize: 14, fontWeight: '600', opacity: 0.7 },
     tabsContainer: {
         flexDirection: 'column',
-        gap: 10,
+        gap: 12,
         paddingLeft: 20,
         paddingRight: 20,
     },
     tabButton: {
-        backgroundColor: '#000000',
-        borderColor: "#242424",
-        borderRadius: 20,
+        backgroundColor: '#111111',
+        borderColor: "#252525",
+        borderRadius: 16,
         borderWidth: 1,
-        minHeight: 164,
+        minHeight: 184,
+        overflow: "hidden",
         shadowColor: '#000000',
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.18,
+        shadowOpacity: 0.14,
         shadowRadius: 14,
-        elevation: 6,
+        elevation: 4,
     },
     verticalTabButton: {
         alignSelf: "stretch",
@@ -2193,9 +2208,9 @@ const styles = StyleSheet.create({
     },
     tabButtonContent: {
         flex: 1,
-        paddingBottom: 14,
-        paddingHorizontal: 18,
-        paddingTop: 16,
+        gap: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 16,
         position: "relative",
     },
     completedExerciseProgressRing: {
@@ -2216,116 +2231,156 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     tabButtonHeader: {
-        alignItems: 'baseline',
-        flexDirection: 'row',
-        gap: 2,
-        marginBottom: 14,
-        minHeight: 26,
+        alignItems: 'flex-start',
+        flexDirection: "row",
+        gap: 12,
+        minHeight: 0,
+    },
+    tabButtonIndexBadge: {
+        alignItems: "flex-start",
+        height: 30,
+        justifyContent: "center",
+        minWidth: 22,
+    },
+    tabButtonTitleBlock: {
+        flex: 1,
+        minWidth: 0,
     },
     tabButtonIndex: {
-        color: '#9A9A9A',
-        flexShrink: 0,
-        fontSize: 11, fontWeight: '800',
-        lineHeight: 14,
-        marginRight: 1,
+        color: '#9A9AA2',
+        fontSize: 15,
+        fontWeight: '800',
+        lineHeight: 19,
+        textAlign: "left",
     },
     tabButtonName: {
         color: 'white',
-        flex: 1,
-        fontSize: 18, fontWeight: '700',
+        fontSize: 19,
+        fontWeight: '800',
         lineHeight: 24,
+    },
+    tabButtonBody: {
+        flex: 1,
+        gap: 12,
+        justifyContent: "flex-end",
     },
     tabButtonMetricsRow: {
         alignItems: 'flex-start',
         flexDirection: 'row',
         flexWrap: 'wrap',
         columnGap: 18,
-        rowGap: 10,
+        rowGap: 8,
     },
     tabButtonMetricColumn: {
         alignItems: 'flex-start',
         flexShrink: 1,
         gap: 5,
-        maxWidth: 132,
         minWidth: 52,
     },
     tabButtonMetricLabel: {
-        color: '#858585',
-        fontSize: 10, fontWeight: '800',
+        color: '#8B8B94',
+        fontSize: 10,
+        fontWeight: '800',
         lineHeight: 12,
+        textTransform: "uppercase",
     },
     tabButtonMetricValue: {
-        color: "#CDBB58",
-        fontSize: 15, fontWeight: '800',
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: '800',
         lineHeight: 19,
     },
     tabButtonDivider: {
-        backgroundColor: '#222222',
+        backgroundColor: '#252525',
         height: 1,
-        marginBottom: 9,
-        marginTop: 16,
     },
     tabButtonFooter: {
-        minHeight: 28,
-        justifyContent: 'center',
+        alignItems: "center",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 16,
+        justifyContent: "flex-start",
+        minHeight: 17,
     },
     tabButtonActionGroup: {
         alignItems: 'center',
         flexDirection: 'row',
-        gap: 18,
+        flexWrap: "wrap",
+        gap: 16,
+        minWidth: 0,
     },
     tabButtonActionButton: {
         alignItems: 'center',
-        height: 30,
+        backgroundColor: "transparent",
+        flexDirection: "row",
+        gap: 5,
+        height: 24,
         justifyContent: 'center',
-        width: 30,
+        paddingHorizontal: 0,
     },
-    tabButtonActionIcon: {
-        color: '#fff',
-        fontSize: 20, fontWeight: '800',
-        height: 30,
-        lineHeight: 30,
-        textAlign: 'center',
-        textAlignVertical: 'center',
-        width: 30,
-        includeFontPadding: false,
+    tabButtonActionLabel: {
+        color: "#B8B8C2",
+        fontSize: 13,
+        fontWeight: "800",
+        lineHeight: 17,
+        textAlign: "center",
     },
-    tabButtonTipsActionIcon: {
-        fontSize: 20,
+    tabButtonSwapActionLabel: {
+        color: "#F3D04F",
+    },
+    tabButtonTipsActionLabel: {
+        color: "#34C759",
+    },
+    tabButtonQuestionIcon: {
+        color: "#34C759",
+        fontSize: 17,
+        fontWeight: "800",
+        lineHeight: 17,
+        textAlign: "center",
+        width: 16,
     },
     tabButtonForumButton: {
         alignItems: 'center',
-        height: 30,
+        backgroundColor: "transparent",
+        flexDirection: "row",
+        gap: 5,
+        height: 24,
         justifyContent: 'center',
-        width: 30,
+        paddingHorizontal: 0,
     },
     tabButtonLogButton: {
         alignItems: "center",
-        bottom: 12,
-        height: 38,
+        backgroundColor: "transparent",
+        height: 24,
         justifyContent: "center",
-        position: "absolute",
-        right: 14,
-        width: 30,
+        marginLeft: "auto",
+        paddingHorizontal: 0,
     },
     tabButtonLogButtonText: {
-        color: "#ffffff",
-        fontFamily: fonts.display,
-        fontSize: 36,
-        fontWeight: "400",
-        lineHeight: 38,
+        color: "#0A84FF",
+        fontSize: 13,
+        fontWeight: "800",
+        lineHeight: 17,
         textAlign: "center",
     },
     tabButtonReportedList: {
-        gap: 2,
-        marginTop: 8,
+        backgroundColor: "rgba(255, 255, 255, 0.04)",
+        borderColor: "#252525",
+        borderRadius: 12,
+        borderWidth: 1,
+        gap: 3,
+        marginTop: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
     },
     tabButtonReportedText: {
-        color: "#B8B8B8",
-        fontSize: 11, fontWeight: "700",
+        color: "#B8B8C2",
+        fontSize: 11,
+        fontWeight: "700",
         lineHeight: 14,
     },
     tabButtonActive: {
+        backgroundColor: '#141414',
         borderColor: '#3A3A3A',
     },
     tabButtonInactive: { },
