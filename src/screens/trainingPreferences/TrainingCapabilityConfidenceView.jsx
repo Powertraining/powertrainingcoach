@@ -6,9 +6,24 @@ import {
 import PressedShadowButton from "../../components/questionnaireComponents/PressedShadowButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const CONFIDENCE_OPTIONS = [
-  { label: "I'm not", value: "no" },
-  { label: "Fairly", value: "somewhat" },
-  { label: "Very", value: "yes" },
+  {
+    label: "Not yet",
+    value: "no",
+    description:
+      "I'm still learning proper technique for major lifts and may need simpler variations or extra guidance.",
+  },
+  {
+    label: "Fairly",
+    value: "somewhat",
+    description:
+      "I can perform most compound lifts with decent technique, but still prefer moderate loading and conservative progressions.",
+  },
+  {
+    label: "Very",
+    value: "yes",
+    description:
+      "I'm confident with heavy compound lifts, know my working weights, and can maintain good form under fatigue.",
+  },
 ];
 const OPTION_BUTTON_HEIGHT = 48;
 const OPTION_SHADOW_OFFSET = 6;
@@ -92,6 +107,9 @@ export default function TrainingCapabilityConfidenceView({
     item?.exerciseExamples ?? item?.description
   );
   const exerciseRows = getExerciseRows(exerciseExamples);
+  const selectedConfidenceOption = CONFIDENCE_OPTIONS.find(
+    (option) => option.value === value
+  );
 
   return (
     <View style={styles.container}>
@@ -115,6 +133,16 @@ export default function TrainingCapabilityConfidenceView({
       </View>
 
       <View style={styles.options}>
+        {selectedConfidenceOption ? (
+          <View style={styles.confidenceDescriptionBox}>
+            <IBMPlexText defaultWhite style={styles.confidenceDescriptionLabel}>
+              {selectedConfidenceOption.label}
+            </IBMPlexText>
+            <IBMPlexText defaultWhite style={styles.confidenceDescriptionText}>
+              {selectedConfidenceOption.description}
+            </IBMPlexText>
+          </View>
+        ) : null}
         <IBMPlexText defaultWhite style={styles.confidenceQuestion}>
           How confident are you?
         </IBMPlexText>
@@ -212,6 +240,25 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: "center",
     marginBottom: 18,
+  },
+  confidenceDescriptionBox: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  confidenceDescriptionLabel: {
+    color: "#d1d5db",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 18,
+    textTransform: "uppercase",
+  },
+  confidenceDescriptionText: {
+    color: "#d1d5db",
+    fontSize: 12,
+    lineHeight: 15,
   },
   optionRow: {
     flexDirection: "row",
