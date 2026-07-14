@@ -17,7 +17,13 @@ import {
   Easing,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, {
+    Circle,
+    Defs,
+    LinearGradient as SvgLinearGradient,
+    Path,
+    Stop,
+} from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import {
@@ -108,8 +114,6 @@ const COMPLETED_EXERCISE_RING_STROKE = 4;
 const COMPLETED_EXERCISE_RING_CIRCUMFERENCE =
     2 * Math.PI * COMPLETED_EXERCISE_RING_RADIUS;
 
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-
 function getExerciseSearchText(exercise = {}) {
     const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
 
@@ -118,6 +122,18 @@ function getExerciseSearchText(exercise = {}) {
 
 function parsePrescribedSetCount(exercise = {}) {
     return getPrescribedSetCount(exercise);
+}
+
+function formatSwapOptionSetsLabel(value = "") {
+    const normalizedValue = String(value || "").trim();
+
+    if (!normalizedValue) {
+        return "";
+    }
+
+    return /\bsets?\b/i.test(normalizedValue)
+        ? normalizedValue
+        : `${normalizedValue} sets`;
 }
 
 function CompletedExerciseProgressRing({ completedSetCount = 0, totalSetCount = 0 }) {
@@ -164,6 +180,37 @@ function CompletedExerciseProgressRing({ completedSetCount = 0, totalSetCount = 
                     {completedSetCount}/{totalSetCount}
                 </IBMPlexText>
             </View>
+        </View>
+    );
+}
+
+function CompletedExerciseCheckIcon() {
+    return (
+        <View pointerEvents="none" style={styles.completedExerciseCheckIcon}>
+            <Svg width={27} height={27} viewBox="0 0 24 24">
+                <Defs>
+                    <SvgLinearGradient
+                        id="completedExerciseGoldCheckGradient"
+                        x1="4"
+                        y1="4"
+                        x2="20"
+                        y2="20"
+                        gradientUnits="userSpaceOnUse"
+                    >
+                        <Stop offset="0" stopColor="#FFF2A8" />
+                        <Stop offset="0.48" stopColor="#D8BD4A" />
+                        <Stop offset="1" stopColor="#8F7317" />
+                    </SvgLinearGradient>
+                </Defs>
+                <Path
+                    d="M5.25 12.35 9.45 16.55 18.95 7.05"
+                    fill="none"
+                    stroke="url(#completedExerciseGoldCheckGradient)"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3.1}
+                />
+            </Svg>
         </View>
     );
 }
@@ -1121,13 +1168,6 @@ export default function DayDetailView({
         });
     }
 
-    function toggleHighlightedExercise(exerciseIndex) {
-        setSelectedExerciseIndex(exerciseIndex);
-        setHighlightedExerciseIndex((currentIndex) =>
-            currentIndex === exerciseIndex ? null : exerciseIndex
-        );
-    }
-
     return (
         <QuestionnaireShell hideTabBar={!onSwapEditorVisibilityChange && isSwapEditorVisible}>
             <Modal
@@ -1155,8 +1195,13 @@ export default function DayDetailView({
                             ]}
                         >
                             <View style={styles.swapEditorTopArea}>
-                                <IBMPlexText style={styles.swapCurrentLabel}>Current exercise</IBMPlexText>
+                                <IBMPlexText style={styles.swapCurrentLabel}>Swap exercise</IBMPlexText>
                                 <View style={styles.swapCurrentExerciseCard}>
+                                    <View style={styles.swapCurrentExerciseBadge}>
+                                        <IBMPlexText style={styles.swapCurrentExerciseBadgeText}>
+                                            Selected
+                                        </IBMPlexText>
+                                    </View>
                                     <IBMPlexText defaultWhite
                                         lines={2}
                                         style={styles.swapCurrentExerciseName}
@@ -1181,6 +1226,9 @@ export default function DayDetailView({
                             </View>
 
                             <View style={styles.swapEditorBottomArea}>
+                                <IBMPlexText style={styles.swapOptionsLabel}>
+                                    Choose replacement
+                                </IBMPlexText>
                                 <View style={styles.swapOptionCards}>
                                     {visibleSwapExerciseOptions.map((option) => (
                                         <View
@@ -1188,12 +1236,27 @@ export default function DayDetailView({
                                             style={styles.swapOptionCard}
                                         >
                                             <View style={styles.swapOptionTextBlock}>
-                                                <IBMPlexText style={styles.swapOptionName}>{option.name}</IBMPlexText>
-                                                <IBMPlexText style={styles.swapOptionPrescription}>
-                                                    {option.sets} x {option.reps}
+                                                <IBMPlexText lines={2} style={styles.swapOptionName}>
+                                                    {option.name}
                                                 </IBMPlexText>
+                                                <View style={styles.swapOptionMetricRow}>
+                                                    {option.sets ? (
+                                                        <View style={styles.swapOptionMetricPill}>
+                                                            <IBMPlexText style={styles.swapOptionMetricText}>
+                                                                {formatSwapOptionSetsLabel(option.sets)}
+                                                            </IBMPlexText>
+                                                        </View>
+                                                    ) : null}
+                                                    {option.reps ? (
+                                                        <View style={styles.swapOptionMetricPill}>
+                                                            <IBMPlexText style={styles.swapOptionMetricText}>
+                                                                {option.reps}
+                                                            </IBMPlexText>
+                                                        </View>
+                                                    ) : null}
+                                                </View>
                                                 {option.notes ? (
-                                                    <IBMPlexText style={styles.swapOptionNotes}>
+                                                    <IBMPlexText lines={2} style={styles.swapOptionNotes}>
                                                         {option.notes}
                                                     </IBMPlexText>
                                                 ) : null}
@@ -1204,7 +1267,11 @@ export default function DayDetailView({
                                                 onPress={() => replaceExerciseFromOverlay(option.id)}
                                                 style={styles.swapOptionAction}
                                             >
-                                                <IBMPlexText style={styles.swapOptionActionIcon}>⇅</IBMPlexText>
+                                                <Ionicons
+                                                    color="#FFFFFF"
+                                                    name="swap-horizontal"
+                                                    size={19}
+                                                />
                                             </TouchableOpacity>
                                         </View>
                                     ))}
@@ -1311,12 +1378,20 @@ export default function DayDetailView({
                                                     ? Array.from({ length: totalSetCount }).filter((_, setIndex) =>
                                                         completedSessionStepKeys.has(`${exerciseIndex}:${setIndex}`)
                                                     ).length
-                                                    : totalSetCount;
+                                                    : isSessionComplete
+                                                        ? totalSetCount
+                                                        : 0;
+                                            const isExerciseComplete =
+                                                isSessionComplete ||
+                                                (
+                                                    totalSetCount > 0 &&
+                                                    completedSetCount >= totalSetCount
+                                                );
                                             const reportedResults =
                                                 reportedResultsByExercise.get(exerciseIndex) || [];
 
                                             return (
-                                                <AnimatedTouchableOpacity
+                                                <Animated.View
                                                     key={exerciseIndex}
                                                     style={[
                                                         styles.tabButton,
@@ -1325,71 +1400,84 @@ export default function DayDetailView({
                                                             ? styles.tabButtonActive
                                                             : styles.tabButtonInactive,
                                                     ]}
-                                                    onPress={(event) => {
-                                                        event.stopPropagation?.();
-                                                        toggleHighlightedExercise(exerciseIndex);
-                                                    }}
-                                                    onTouchStart={(event) => {
-                                                        handleTabTouchStart(event);
-                                                    }}
                                                 >
                                                     <View style={styles.tabButtonContent}>
-                                                        <View style={styles.tabButtonHeader}>
-                                                            <View style={styles.tabButtonIndexBadge}>
-                                                                <IBMPlexText defaultWhite
-                                                                    style={styles.tabButtonIndex}
-                                                                    lines={1}
-                                                                >
-                                                                    {exerciseIndex + 1}
-                                                                </IBMPlexText>
-                                                            </View>
-                                                            <View style={styles.tabButtonTitleBlock}>
-                                                                <IBMPlexText defaultWhite
-                                                                    style={styles.tabButtonName}
-                                                                    lines={2}
-                                                                    textColor="#fff"
-                                                                >
-                                                                    {getExerciseDisplayName(ex)}
-                                                                </IBMPlexText>
+                                                        {isExerciseComplete ? (
+                                                            <CompletedExerciseCheckIcon />
+                                                        ) : null}
+                                                        <View
+                                                            style={
+                                                                isExerciseComplete
+                                                                    ? styles.completedExerciseDimmedContent
+                                                                    : null
+                                                            }
+                                                        >
+                                                            <View style={styles.tabButtonHeader}>
+                                                                <View style={styles.tabButtonIndexBadge}>
+                                                                    <IBMPlexText defaultWhite
+                                                                        style={styles.tabButtonIndex}
+                                                                        lines={1}
+                                                                    >
+                                                                        {exerciseIndex + 1}
+                                                                    </IBMPlexText>
+                                                                </View>
+                                                                <View style={styles.tabButtonTitleBlock}>
+                                                                    <IBMPlexText defaultWhite
+                                                                        style={styles.tabButtonName}
+                                                                        lines={2}
+                                                                        textColor="#fff"
+                                                                    >
+                                                                        {getExerciseDisplayName(ex)}
+                                                                    </IBMPlexText>
+                                                                </View>
                                                             </View>
                                                         </View>
                                                         <View style={styles.tabButtonBody}>
-                                                            {exerciseCardMetrics.length > 0 ? (
-                                                                <View style={styles.tabButtonMetricsRow}>
-                                                                    {exerciseCardMetrics.map((metric) => (
-                                                                        <View
-                                                                            key={metric.label}
-                                                                            style={styles.tabButtonMetricColumn}
-                                                                        >
-                                                                            <IBMPlexText
-                                                                                style={styles.tabButtonMetricLabel}
+                                                            <View
+                                                                style={[
+                                                                    styles.tabButtonBodyMain,
+                                                                    isExerciseComplete
+                                                                        ? styles.completedExerciseDimmedContent
+                                                                        : null,
+                                                                ]}
+                                                            >
+                                                                {exerciseCardMetrics.length > 0 ? (
+                                                                    <View style={styles.tabButtonMetricsRow}>
+                                                                        {exerciseCardMetrics.map((metric) => (
+                                                                            <View
+                                                                                key={metric.label}
+                                                                                style={styles.tabButtonMetricColumn}
                                                                             >
-                                                                                {metric.label}
-                                                                            </IBMPlexText>
+                                                                                <IBMPlexText
+                                                                                    style={styles.tabButtonMetricLabel}
+                                                                                >
+                                                                                    {metric.label}
+                                                                                </IBMPlexText>
+                                                                                <IBMPlexText defaultWhite
+                                                                                    style={styles.tabButtonMetricValue}
+                                                                                    textColor="#CDBB58"
+                                                                                >
+                                                                                    {metric.value}
+                                                                                </IBMPlexText>
+                                                                            </View>
+                                                                        ))}
+                                                                    </View>
+                                                                ) : null}
+                                                                {reportedResults.length > 0 ? (
+                                                                    <View style={styles.tabButtonReportedList}>
+                                                                        {reportedResults.map(({ setIndex, result }) => (
                                                                             <IBMPlexText defaultWhite
-                                                                                style={styles.tabButtonMetricValue}
-                                                                                textColor="#CDBB58"
+                                                                                key={`${exerciseIndex}-${setIndex}`}
+                                                                                style={styles.tabButtonReportedText}
+                                                                                lines={1}
                                                                             >
-                                                                                {metric.value}
+                                                                                Set {setIndex + 1}: {result}
                                                                             </IBMPlexText>
-                                                                        </View>
-                                                                    ))}
-                                                                </View>
-                                                            ) : null}
-                                                            {reportedResults.length > 0 ? (
-                                                                <View style={styles.tabButtonReportedList}>
-                                                                    {reportedResults.map(({ setIndex, result }) => (
-                                                                        <IBMPlexText defaultWhite
-                                                                            key={`${exerciseIndex}-${setIndex}`}
-                                                                            style={styles.tabButtonReportedText}
-                                                                            lines={1}
-                                                                        >
-                                                                            Set {setIndex + 1}: {result}
-                                                                        </IBMPlexText>
-                                                                    ))}
-                                                                </View>
-                                                            ) : null}
-                                                            <View style={styles.tabButtonDivider} />
+                                                                        ))}
+                                                                    </View>
+                                                                ) : null}
+                                                                <View style={styles.tabButtonDivider} />
+                                                            </View>
                                                             <View
                                                                 style={styles.tabButtonFooter}
                                                                 onTouchStart={(event) => {
@@ -1403,7 +1491,14 @@ export default function DayDetailView({
                                                                             totalSetCount={totalSetCount}
                                                                         />
                                                                     ) : (
-                                                                        <>
+                                                                        <View
+                                                                            style={[
+                                                                                styles.tabButtonInlineActions,
+                                                                                isExerciseComplete
+                                                                                    ? styles.completedExerciseDimmedContent
+                                                                                    : null,
+                                                                            ]}
+                                                                        >
                                                                             {canSwapExercise ? (
                                                                                 <TouchableOpacity
                                                                                     accessibilityRole="button"
@@ -1458,7 +1553,7 @@ export default function DayDetailView({
                                                                                     </IBMPlexText>
                                                                                 </TouchableOpacity>
                                                                             ) : null}
-                                                                        </>
+                                                                        </View>
                                                                     )}
                                                                     <TouchableOpacity
                                                                         accessibilityRole="button"
@@ -1485,7 +1580,9 @@ export default function DayDetailView({
                                                                 {!isSessionComplete && onLogExercise ? (
                                                                     <TouchableOpacity
                                                                         accessibilityRole="button"
-                                                                        accessibilityLabel={`Log ${getExerciseDisplayName(ex)}`}
+                                                                        accessibilityLabel={`${
+                                                                            isExerciseComplete ? "Edit" : "Log"
+                                                                        } ${getExerciseDisplayName(ex)}`}
                                                                         style={styles.tabButtonLogButton}
                                                                         onPress={(event) => {
                                                                             event.stopPropagation?.();
@@ -1496,14 +1593,14 @@ export default function DayDetailView({
                                                                         }}
                                                                     >
                                                                         <IBMPlexText style={styles.tabButtonLogButtonText}>
-                                                                            Log &gt;
+                                                                            {isExerciseComplete ? "Edit >" : "Log >"}
                                                                         </IBMPlexText>
                                                                     </TouchableOpacity>
                                                                 ) : null}
                                                             </View>
                                                         </View>
                                                     </View>
-                                                </AnimatedTouchableOpacity>
+                                                </Animated.View>
                                             );
                                         })}
                         </View>
@@ -1854,7 +1951,7 @@ const styles = StyleSheet.create({
     },
     swapEditorDimLayer: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.48)',
+        backgroundColor: 'rgba(0,0,0,0.66)',
         zIndex: 19,
     },
     swapEditorLayer: {
@@ -1873,20 +1970,38 @@ const styles = StyleSheet.create({
     },
     swapCurrentExerciseCard: {
         alignItems: 'stretch',
-        backgroundColor: '#141414',
-        borderColor: '#1E1E1E',
-        borderRadius: 20,
-        borderWidth: 2,
+        backgroundColor: '#111111',
+        borderColor: '#252525',
+        borderRadius: 18,
+        borderWidth: 1,
         minHeight: 118,
         justifyContent: 'center',
         paddingHorizontal: 18,
         paddingVertical: 18,
+        position: "relative",
         shadowColor: '#000000',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
         shadowRadius: 18,
         width: '100%',
         elevation: 12,
+    },
+    swapCurrentExerciseBadge: {
+        alignSelf: "flex-start",
+        backgroundColor: "rgba(255, 255, 255, 0.08)",
+        borderColor: "rgba(255, 255, 255, 0.16)",
+        borderRadius: 999,
+        borderWidth: 1,
+        marginBottom: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+    },
+    swapCurrentExerciseBadgeText: {
+        color: "#CDBB58",
+        fontSize: 11,
+        fontWeight: "900",
+        lineHeight: 13,
+        textTransform: "uppercase",
     },
     swapCurrentLabel: {
         color: '#7E7E7E',
@@ -1919,64 +2034,96 @@ const styles = StyleSheet.create({
     },
     swapEditorBottomArea: {
         alignSelf: 'stretch',
-        gap: 24,
+        gap: 12,
+    },
+    swapOptionsLabel: {
+        color: "#9A9AA2",
+        fontSize: 12,
+        fontWeight: "900",
+        lineHeight: 15,
+        paddingHorizontal: 2,
+        textAlign: "center",
+        textTransform: "uppercase",
     },
     swapOptionCards: {
         gap: 10,
     },
     swapOptionCard: {
         alignItems: 'center',
-        backgroundColor: '#141414',
-        borderColor: '#1E1E1E',
+        backgroundColor: '#111111',
+        borderColor: '#252525',
         borderRadius: 16,
-        borderWidth: 2,
+        borderWidth: 1,
         flexDirection: 'row',
-        gap: 12,
+        gap: 14,
         justifyContent: 'space-between',
-        minHeight: 82,
+        minHeight: 104,
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingVertical: 16,
     },
     swapOptionTextBlock: {
         flex: 1,
-        gap: 3,
+        gap: 8,
+        minWidth: 0,
     },
     swapOptionName: {
-        fontSize: 15, fontWeight: '700',
         color: '#ffffff',
+        fontSize: 17,
+        fontWeight: '800',
+        lineHeight: 21,
     },
-    swapOptionPrescription: {
-        fontSize: 13,
-        color: '#d1d5db',
+    swapOptionMetricRow: {
+        alignItems: "center",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 7,
+    },
+    swapOptionMetricPill: {
+        backgroundColor: "rgba(205, 187, 88, 0.12)",
+        borderColor: "rgba(205, 187, 88, 0.24)",
+        borderRadius: 999,
+        borderWidth: 1,
+        paddingHorizontal: 9,
+        paddingVertical: 4,
+    },
+    swapOptionMetricText: {
+        color: "#CDBB58",
+        fontSize: 11,
+        fontWeight: "900",
+        lineHeight: 13,
     },
     swapOptionNotes: {
         fontSize: 12,
         lineHeight: 16,
-        color: '#9ca3af',
+        color: '#9A9AA2',
+        fontWeight: "700",
     },
     swapOptionAction: {
         alignItems: 'center',
-        backgroundColor: 'transparent',
+        backgroundColor: '#0A84FF',
+        borderColor: "rgba(255, 255, 255, 0.18)",
+        borderRadius: 999,
+        borderWidth: 1,
         flexShrink: 0,
-        height: 34,
+        height: 42,
         justifyContent: 'center',
-        width: 34,
-    },
-    swapOptionActionIcon: {
-        color: '#ffffff',
-        fontSize: 20, fontWeight: '800',
-        lineHeight: 22,
-        textAlign: 'center',
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.22,
+        shadowRadius: 10,
+        width: 42,
     },
     swapEditorCancelButton: {
         alignItems: 'center',
         alignSelf: 'center',
-        backgroundColor: '#141414',
+        backgroundColor: '#111111',
+        borderColor: '#252525',
+        borderWidth: 1,
         borderRadius: 999,
         justifyContent: 'center',
-        minHeight: 34,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        minHeight: 38,
+        paddingHorizontal: 18,
+        paddingVertical: 9,
     },
     swapEditorCancelButtonText: {
         color: '#ffffff',
@@ -2213,6 +2360,19 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         position: "relative",
     },
+    completedExerciseDimmedContent: {
+        opacity: 0.42,
+    },
+    completedExerciseCheckIcon: {
+        alignItems: "center",
+        height: 32,
+        justifyContent: "center",
+        position: "absolute",
+        right: 14,
+        top: 13,
+        width: 32,
+        zIndex: 3,
+    },
     completedExerciseProgressRing: {
         alignItems: "center",
         height: COMPLETED_EXERCISE_RING_SIZE,
@@ -2264,6 +2424,9 @@ const styles = StyleSheet.create({
         gap: 12,
         justifyContent: "flex-end",
     },
+    tabButtonBodyMain: {
+        gap: 12,
+    },
     tabButtonMetricsRow: {
         alignItems: 'flex-start',
         flexDirection: 'row',
@@ -2305,6 +2468,13 @@ const styles = StyleSheet.create({
     tabButtonActionGroup: {
         alignItems: 'center',
         flexDirection: 'row',
+        flexWrap: "wrap",
+        gap: 16,
+        minWidth: 0,
+    },
+    tabButtonInlineActions: {
+        alignItems: "center",
+        flexDirection: "row",
         flexWrap: "wrap",
         gap: 16,
         minWidth: 0,

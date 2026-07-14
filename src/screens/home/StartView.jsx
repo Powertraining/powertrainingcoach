@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import Dotted from "../../components/colorComponents/Dotted.jsx";
 import { PowertrainingLogo } from "../../components/homeComponents/ProgramProgressRing.jsx";
 import { getWeekdayNameFromIndex } from "../../constants/weekdays.js";
@@ -1064,6 +1065,7 @@ export default function StartView({
 
     return (
         <View style={styles.homeRoot}>
+            <BlackGradient />
             <Dotted>
                 <ScrollView
                     contentContainerStyle={[

@@ -7,9 +7,10 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { WEEKDAY_OPTIONS } from "../../constants/weekdays.js";
+import { TRAINING_DAY_TYPE_META } from "../../constants/trainingDayTypes.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const WEEKDAY_CHIP_OPTIONS = WEEKDAY_OPTIONS.filter((option) => option.value);
 const WEEKDAY_INDEX_BY_VALUE = Object.freeze(
@@ -22,6 +23,11 @@ const WEEKDAY_SEQUENCE_LENGTH = WEEKDAY_CHIP_OPTIONS.length;
 const ENTRANCE_DURATION = 240;
 const ENTRANCE_ROW_STAGGER = 42;
 const CHIP_STATE_DURATION = 140;
+const DAY_TYPE_OPTIONS = Object.freeze([
+  TRAINING_DAY_TYPE_META.force,
+  TRAINING_DAY_TYPE_META.power,
+  Object.freeze({ ...TRAINING_DAY_TYPE_META.fatigue, label: "Endurance" }),
+]);
 
 function FadeInView({ children, delay = 0, travel = 12, style }) {
   const entranceProgress = useRef(new Animated.Value(0)).current;
@@ -97,6 +103,7 @@ function WeekdayOptionButton({
   isSelected,
   isUnavailable,
   label,
+  selectedColor,
   onPress,
 }) {
   const selectedProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
@@ -178,6 +185,7 @@ function WeekdayOptionButton({
           pointerEvents="none"
           style={[
             styles.weekdayButtonSelectedFill,
+            selectedColor ? { backgroundColor: selectedColor, borderColor: selectedColor } : null,
             { opacity: selectedProgress },
           ]}
         />
@@ -205,9 +213,62 @@ function WeekdayOptionButton({
 export default function TrainingPreferencesPreferredWeekdaysView({
   daysPerWeek,
   preferredWeekdays,
-  onChange,
+  preferredDayTypes,
+  desiredTraining,
+  enduranceSessionsPerWeek,
+  onAssignmentChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
+  const [pendingAssignment, setPendingAssignment] = useState(null);
+  const includesEndurance =
+    desiredTraining === "endurance" ||
+    desiredTraining === "strength_power_endurance";
+  const enduranceTarget = includesEndurance
+    ? Math.min(daysPerWeek, Math.max(1, Number(enduranceSessionsPerWeek) || 1))
+    : 0;
+  const strengthPowerTarget = daysPerWeek - enduranceTarget;
+  const assignedEnduranceCount = preferredDayTypes.filter(
+    (type) => type === "fatigue"
+  ).length;
+  const assignedStrengthPowerCount = preferredDayTypes.filter(
+    (type) => type === "force" || type === "power"
+  ).length;
+
+  function isDayTypeUnavailable(type, rowIndex) {
+    const currentType = preferredDayTypes[rowIndex];
+
+    if (type === "fatigue") {
+      return !includesEndurance ||
+        (currentType !== "fatigue" && assignedEnduranceCount >= enduranceTarget);
+    }
+
+    return currentType !== "force" &&
+      currentType !== "power" &&
+      assignedStrengthPowerCount >= strengthPowerTarget;
+  }
+
+  function handleWeekdayPress(index, weekday, isSelected) {
+    if (isSelected) {
+      onAssignmentChange?.(index, "", "");
+      setPendingAssignment(null);
+      return;
+    }
+
+    setPendingAssignment({ index, weekday });
+  }
+
+  function assignDayType(type) {
+    if (!pendingAssignment) {
+      return;
+    }
+
+    onAssignmentChange?.(
+      pendingAssignment.index,
+      pendingAssignment.weekday,
+      type
+    );
+    setPendingAssignment(null);
+  }
 
   return (
     <ScrollView
@@ -225,14 +286,29 @@ export default function TrainingPreferencesPreferredWeekdaysView({
         </FadeInView>
         <FadeInView delay={36} travel={8}>
           <IBMPlexText defaultWhite style={styles.helperText} textColor="#9ca3af" center>
-            Optional. Choose fixed weekdays for training days that need them.
-            Leave the rest flexible.
+            Optional. Choose a weekday, then assign the session type. Leave the
+            rest flexible.
           </IBMPlexText>
         </FadeInView>
+
+        <View style={styles.assignmentSummary}>
+          <IBMPlexText style={styles.assignmentSummaryText}>
+            Strength / Power {assignedStrengthPowerCount}/{strengthPowerTarget}
+          </IBMPlexText>
+          {includesEndurance ? (
+            <IBMPlexText style={styles.assignmentSummaryText}>
+              Endurance {assignedEnduranceCount}/{enduranceTarget}
+            </IBMPlexText>
+          ) : null}
+        </View>
 
         <View style={styles.preferenceBox}>
           <View style={styles.preferenceGrid}>
             {Array.from({ length: daysPerWeek }, (_, index) => {
+              const selectedType = preferredDayTypes[index] || "";
+              const selectedTypeMeta = TRAINING_DAY_TYPE_META[selectedType];
+              const isAssignmentMenuOpen = pendingAssignment?.index === index;
+
               return (
                 <FadeInView
                   key={`preferred-weekday-${index + 1}`}
@@ -243,7 +319,7 @@ export default function TrainingPreferencesPreferredWeekdaysView({
                   <IBMPlexText
                     style={styles.preferenceLabel}
                   >
-                    Day {index + 1}
+                    {selectedType === "fatigue" ? "Endurance" : selectedTypeMeta?.label || `Day ${index + 1}`}
                   </IBMPlexText>
                   <View style={styles.weekdayRow}>
                     {WEEKDAY_CHIP_OPTIONS.map((option) => {
@@ -262,13 +338,53 @@ export default function TrainingPreferencesPreferredWeekdaysView({
                           isSelected={isSelected}
                           isUnavailable={isUnavailable}
                           label={option.label.slice(0, 3)}
+                          selectedColor={selectedTypeMeta?.color}
                           onPress={() =>
-                            onChange(index, isSelected ? "" : option.value)
+                            handleWeekdayPress(index, option.value, isSelected)
                           }
                         />
                       );
                     })}
                   </View>
+                  {isAssignmentMenuOpen ? (
+                    <View style={styles.dayTypeMenu}>
+                      <IBMPlexText style={styles.dayTypeMenuTitle}>
+                        What type of session is this?
+                      </IBMPlexText>
+                      <View style={styles.dayTypeOptions}>
+                        {DAY_TYPE_OPTIONS.map((typeOption) => {
+                          const isUnavailable = isDayTypeUnavailable(
+                            typeOption.value,
+                            index
+                          );
+
+                          return (
+                            <Pressable
+                              key={typeOption.value}
+                              disabled={isUnavailable}
+                              onPress={() => assignDayType(typeOption.value)}
+                              style={({ pressed }) => [
+                                styles.dayTypeOption,
+                                { borderColor: typeOption.color },
+                                isUnavailable ? styles.dayTypeOptionUnavailable : null,
+                                pressed ? styles.dayTypeOptionPressed : null,
+                              ]}
+                            >
+                              <View
+                                style={[
+                                  styles.dayTypeDot,
+                                  { backgroundColor: typeOption.color },
+                                ]}
+                              />
+                              <IBMPlexText style={styles.dayTypeOptionText}>
+                                {typeOption.label}
+                              </IBMPlexText>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ) : null}
                 </FadeInView>
               );
             })}
@@ -298,6 +414,64 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     fontSize: 14,
     lineHeight: 20,
+  },
+  assignmentSummary: {
+    alignSelf: "center",
+    flexDirection: "row",
+    gap: 18,
+    marginBottom: 14,
+  },
+  assignmentSummaryText: {
+    color: "#C9B259",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  dayTypeMenu: {
+    backgroundColor: "#202020",
+    borderColor: "#3b3b3b",
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+    marginTop: 8,
+    padding: 12,
+  },
+  dayTypeMenuTitle: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  dayTypeOptions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  dayTypeOption: {
+    alignItems: "center",
+    borderRadius: 9,
+    borderWidth: 1,
+    flex: 1,
+    gap: 5,
+    justifyContent: "center",
+    minHeight: 58,
+    paddingHorizontal: 5,
+  },
+  dayTypeOptionUnavailable: {
+    opacity: 0.25,
+  },
+  dayTypeOptionPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
+  },
+  dayTypeDot: {
+    borderRadius: 5,
+    height: 10,
+    width: 10,
+  },
+  dayTypeOptionText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
   },
   preferenceBox: {
     alignSelf: "center",
@@ -376,6 +550,6 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   weekdayButtonTextSelected: {
-    color: "#000000",
+    color: "#ffffff",
   },
 });

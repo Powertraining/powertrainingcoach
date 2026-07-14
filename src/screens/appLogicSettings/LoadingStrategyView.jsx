@@ -199,7 +199,7 @@ export default function LoadingStrategyView({ value, onChange }) {
           </IBMPlexText>
 
           <IBMPlexText defaultWhite style={styles.exampleText} textColor="#C9B259" center>
-            {activeOption?.example}
+            {activeOption?.example ? `Example: ${activeOption.example}` : ""}
           </IBMPlexText>
 
           <IBMPlexText defaultWhite style={styles.descriptionText} textColor="#A6A6A6" center>

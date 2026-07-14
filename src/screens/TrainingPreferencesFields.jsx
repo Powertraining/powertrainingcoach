@@ -496,14 +496,19 @@ export default function TrainingPreferencesFields({
     updateFields({ [field]: value });
   }
 
-  function updatePreferredWeekday(index, value) {
-    const nextPreferredWeekdays = Array.from(
+  function updatePreferredWeekdayAssignment(index, weekday, dayType) {
+    const preferredWeekdays = Array.from(
       { length: resolvedValues.daysPerWeek },
       (_, currentIndex) => resolvedValues.preferredWeekdays[currentIndex] || ""
     );
+    const preferredDayTypes = Array.from(
+      { length: resolvedValues.daysPerWeek },
+      (_, currentIndex) => resolvedValues.preferredDayTypes[currentIndex] || ""
+    );
 
-    nextPreferredWeekdays[index] = value;
-    updateField("preferredWeekdays", nextPreferredWeekdays);
+    preferredWeekdays[index] = weekday;
+    preferredDayTypes[index] = weekday ? dayType : "";
+    updateFields({ preferredWeekdays, preferredDayTypes });
   }
 
   function updateNullableCapability(capability, rating) {
@@ -766,7 +771,10 @@ export default function TrainingPreferencesFields({
       <TrainingPreferencesPreferredWeekdaysView
         daysPerWeek={resolvedValues.daysPerWeek}
         preferredWeekdays={resolvedValues.preferredWeekdays}
-        onChange={updatePreferredWeekday}
+        preferredDayTypes={resolvedValues.preferredDayTypes}
+        desiredTraining={resolvedValues.desiredTraining}
+        enduranceSessionsPerWeek={resolvedValues.enduranceSessionsPerWeek}
+        onAssignmentChange={updatePreferredWeekdayAssignment}
       />
     ),
   ];

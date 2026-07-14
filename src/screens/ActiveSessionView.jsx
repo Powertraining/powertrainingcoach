@@ -529,7 +529,7 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
   };
 }
 
-function getRecommendedLoadKg(
+export function getRecommendedLoadKg(
   exercise = {},
   setIndex = 0,
   strengthReferenceOneRepMaxByLift = {}
@@ -575,7 +575,7 @@ function getRecommendedLoadKg(
     : null;
 }
 
-function getRecommendedRepCount(exercise = {}, setIndex = 0) {
+export function getRecommendedRepCount(exercise = {}, setIndex = 0) {
   const percentagePrescription = getExercisePercentagePrescription(exercise);
   const workingSets = Array.isArray(percentagePrescription?.workingSets)
     ? percentagePrescription.workingSets.flatMap((workingSet) =>
@@ -1217,7 +1217,7 @@ function ActiveSessionResultsList({
   );
 }
 
-function getSetLoggingConfig(exercise = {}) {
+export function getSetLoggingConfig(exercise = {}) {
   const performanceTarget = getExercisePerformanceTarget(exercise);
   const strengthAssessment = getExerciseStrengthAssessment(exercise);
   const strengthRequirements = strengthAssessment

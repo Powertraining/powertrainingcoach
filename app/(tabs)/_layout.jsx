@@ -460,11 +460,7 @@ function CustomTabBar({
       useNativeDriver: true,
     });
 
-    animation.start(({ finished }) => {
-      if (finished) {
-        hiddenProgress.setValue(hidden ? 1 : 0);
-      }
-    });
+    animation.start();
 
     return () => animation.stop();
   }, [hidden, hiddenProgress]);

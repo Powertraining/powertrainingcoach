@@ -105,6 +105,9 @@ export function buildTrainingPlanScaffold(userInput = {}) {
   const preferredWeekdays = Array.isArray(userInput?.preferredWeekdays)
     ? userInput.preferredWeekdays
     : [];
+  const preferredDayTypes = Array.isArray(userInput?.preferredDayTypes)
+    ? userInput.preferredDayTypes
+    : [];
 
   return {
     phaseOverview: buildPhaseOverviewScaffold(parentCycleWeeks),
@@ -121,6 +124,7 @@ export function buildTrainingPlanScaffold(userInput = {}) {
             originalDayNumber: dayNumber,
             sessionLabel: `Day ${dayNumber}`,
             preferredWeekday: preferredWeekdays[dayIndex] || "",
+            preferredDayType: preferredDayTypes[dayIndex] || "",
           };
         }),
       };
@@ -211,10 +215,11 @@ function buildPlanSchemaInstructions(userInput = {}) {
 - Return exactly one direct training plan object. No wrapper keys, commentary, markdown, or alternatives.
 - Include top-level "summary" and "phaseOverview".
 - Treat "phaseOverview" as the compact parent-cycle overview: cover the full ${parentCycleWeeks}-week cycle as ${phaseRangeText}. Keep each phase focus to one concise sentence.
-- Use the provided scaffold for week numbers, day numbers, session labels, and preferred weekdays. Do not invent or reorder week/day shells.
+- Use the provided scaffold for week numbers, day numbers, session labels, preferred weekdays, and preferred day types. Do not invent or reorder week/day shells.
 - Include exactly ${generatedBlockWeeks} week objects in "weeks", numbered ${blockStartWeek}-${blockEndWeek}. Do not generate week objects outside this block.
 - Each generated week must contain exactly ${userInput?.daysPerWeek || "the requested"} sessions in "days".
-- You may omit "sessionLabel" and "preferredWeekday" because the app fills them from the scaffold.
+- You may omit "sessionLabel", "preferredWeekday", and "preferredDayType" because the app fills them from the scaffold.
+- When "preferredDayType" is set, make it the session's primary quality: "force" means Strength, "power" means Power, and "fatigue" means dedicated Endurance/conditioning.
 - Every training day must include "sessionProfile" with:
   - "regions": one or more of "upper_body", "lower_body", "full_body", "core"
   - "qualities": one or more of "force", "power", "fatigue", "speed", "hypertrophy", "recovery"
@@ -411,7 +416,7 @@ ${buildUserVisibleTextInstructions()}
 ${buildPlanJsonExample(userInput)}
 
 ### PLAN SCAFFOLD (APP-CREATED)
-Use this scaffold exactly for week numbers, day numbers, session labels, and preferred weekdays. Fill the coaching choices inside each session.
+Use this scaffold exactly for week numbers, day numbers, session labels, preferred weekdays, and preferred day types. Fill the coaching choices inside each session and honor each typed assignment.
 ${JSON.stringify(scaffold, null, 2)}
 
 ### USER INPUT (JSON)

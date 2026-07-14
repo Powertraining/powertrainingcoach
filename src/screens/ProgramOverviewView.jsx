@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState } from "react";
 import { usePathname } from "expo-router";
@@ -11,17 +12,21 @@ import {
   Pressable,
   Animated,
   Easing,
-  useWindowDimensions,
 } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
-import ActiveSessionView from "./ActiveSessionView.jsx";
+import ActiveSessionView, {
+  getRecommendedLoadKg,
+  getRecommendedRepCount,
+  getSetLoggingConfig,
+} from "./ActiveSessionView.jsx";
 import DayDetailView from "./DayDetailView.jsx";
 import LaunchGateCheckInModal, {
   LAUNCH_GATE_CHECK_IN_TESTS,
 } from "./LaunchGateCheckInModal.jsx";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import TrainingCheckInCard from "./TrainingCheckInCard.jsx";
+import ActiveSessionSetLoggingInputPanel from "../components/planComponents/ActiveSessionSetLoggingInputPanel.jsx";
 import { getWeekdayNameFromIndex } from "../constants/weekdays.js";
 import {
   getTrainingDayTypeColor,
@@ -47,6 +52,10 @@ import {
   useWebTestActions,
 } from "../services/utils/webTestActions.js";
 import { getPrescribedSetCount } from "../services/utils/exerciseSets.js";
+import {
+  getStrengthAssessmentLiftKey,
+  getStrengthAssessmentReferenceOneRepMaxKg,
+} from "../services/utils/strengthAssessment.js";
 import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
@@ -388,6 +397,120 @@ function buildCompletedStepKeysForExercises(exercises = []) {
   );
 }
 
+function getExerciseLogDraftKey(exerciseIndex, setIndex = 0) {
+  return `${exerciseIndex}:${setIndex}`;
+}
+
+function createExerciseLogDraft({
+  exercise = {},
+  exerciseIndex = 0,
+  setIndex = 0,
+  progress = {},
+  initialPerformanceResults = [],
+  initialAssessmentResults = [],
+}) {
+  const draftKey = getExerciseLogDraftKey(exerciseIndex, setIndex);
+  const progressDraft = progress?.trackingDrafts?.[draftKey];
+
+  if (progressDraft && typeof progressDraft === "object") {
+    return {
+      exerciseIndex,
+      setIndex,
+      loadKg: "",
+      reps: "",
+      durationMinutes: "",
+      rpe: "",
+      customValues: {},
+      ...progressDraft,
+      exerciseIndex,
+      setIndex,
+      customValues:
+        progressDraft.customValues && typeof progressDraft.customValues === "object"
+          ? progressDraft.customValues
+          : {},
+    };
+  }
+
+  const savedResult = [
+    ...(Array.isArray(initialPerformanceResults) ? initialPerformanceResults : []),
+    ...(Array.isArray(initialAssessmentResults) ? initialAssessmentResults : []),
+  ].find(
+    (result) =>
+      result?.exerciseIndex === exerciseIndex &&
+      (Number.isInteger(result?.setIndex) ? result.setIndex : 0) === setIndex
+  );
+  const recommendedRepCount = getRecommendedRepCount(exercise, setIndex);
+
+  return {
+    exerciseIndex,
+    setIndex,
+    loadKg: savedResult?.loadKg != null ? String(savedResult.loadKg) : "",
+    reps:
+      savedResult?.reps != null && savedResult.reps !== ""
+        ? String(savedResult.reps)
+        : String(recommendedRepCount),
+    durationMinutes:
+      savedResult?.durationMinutes != null
+        ? String(savedResult.durationMinutes)
+        : exercise?.endurancePrescription?.durationMinutes
+          ? String(exercise.endurancePrescription.durationMinutes)
+          : "",
+    rpe: savedResult?.rpe != null ? String(savedResult.rpe) : "",
+    customValues:
+      savedResult?.customValues && typeof savedResult.customValues === "object"
+        ? Object.fromEntries(
+            Object.entries(savedResult.customValues).map(([key, value]) => [
+              key,
+              String(value ?? ""),
+            ])
+          )
+        : {},
+  };
+}
+
+function ExerciseLogSheetContent({
+  exercise,
+  exerciseIndex,
+  setIndex,
+  draft,
+  onDraftChange,
+  strengthReferenceOneRepMaxByLift,
+}) {
+  const {
+    strengthAssessment,
+    strengthRequirements,
+    showLoad,
+    showReps,
+    showTime,
+    showRpe,
+    customFields,
+  } = getSetLoggingConfig(exercise);
+  const recommendedLoadKg = getRecommendedLoadKg(
+    exercise,
+    setIndex,
+    strengthReferenceOneRepMaxByLift
+  );
+
+  return (
+    <View style={styles.exerciseLogForm}>
+      <ActiveSessionSetLoggingInputPanel
+        exerciseIndex={exerciseIndex}
+        setIndex={setIndex}
+        draft={draft}
+        showLoad={showLoad}
+        showReps={showReps}
+        showTime={showTime}
+        showRpe={showRpe}
+        strengthAssessment={strengthAssessment}
+        strengthRequirements={strengthRequirements}
+        customFields={customFields}
+        recommendedLoadKg={recommendedLoadKg}
+        onDraftChange={onDraftChange}
+      />
+    </View>
+  );
+}
+
 function getNextExerciseLogTarget(exercises = [], progress = {}, requestedExerciseIndex = null) {
   const sessionSteps = buildSessionSteps(exercises);
   const completedStepKeys = new Set(
@@ -471,27 +594,38 @@ function getSessionProgressPercent(day = {}, progress = {}, isComplete = false) 
   return Math.round((completedStepCount / steps.length) * 100);
 }
 
-function getSessionExerciseProgressPercent(day = {}, progress = {}, isComplete = false) {
+function getCompletedExerciseCount(day = {}, progress = {}, isComplete = false) {
   const exercises = Array.isArray(day?.exercises) ? day.exercises : [];
   const completedStepKeys = new Set(
     Array.isArray(progress?.completedStepKeys) ? progress.completedStepKeys : []
   );
 
   if (exercises.length === 0) {
-    return isComplete ? 100 : 0;
+    return 0;
   }
 
   if (isComplete && completedStepKeys.size === 0) {
-    return 100;
+    return exercises.length;
   }
 
-  const completedExerciseCount = exercises.filter((exercise, exerciseIndex) => {
+  return exercises.filter((exercise, exerciseIndex) => {
     const setCount = getPrescribedSetCount(exercise);
 
     return Array.from({ length: setCount }).every((_, setIndex) =>
       completedStepKeys.has(`${exerciseIndex}:${setIndex}`)
     );
   }).length;
+}
+
+function getSessionExerciseProgressPercent(day = {}, progress = {}, isComplete = false) {
+  const exercises = Array.isArray(day?.exercises) ? day.exercises : [];
+
+  if (exercises.length === 0) {
+    return isComplete ? 100 : 0;
+  }
+
+  const completedExerciseCount =
+    getCompletedExerciseCount(day, progress, isComplete);
 
   return Math.round((completedExerciseCount / exercises.length) * 100);
 }
@@ -720,6 +854,7 @@ export default function ProgramOverviewView({
   const [completeConfirmVisible, setCompleteConfirmVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
   const [exerciseLogSheet, setExerciseLogSheet] = useState(null);
+  const [exerciseLogDraft, setExerciseLogDraft] = useState(null);
   const [selectedArchivedDay, setSelectedArchivedDay] = useState(null);
   const [selectedRestSlotKey, setSelectedRestSlotKey] = useState("");
   const [restSlotSelectionDismissed, setRestSlotSelectionDismissed] = useState(false);
@@ -735,10 +870,26 @@ export default function ProgramOverviewView({
   const cardContentAnimation = useRef(new Animated.Value(1)).current;
   const cardContentTranslateX = useRef(new Animated.Value(0)).current;
   const cardSlideDirection = useRef(1);
-  const { height: viewportHeight } = useWindowDimensions();
   const isPhonePreview = isPagesPhonePreview();
   const isOverviewRoute =
     pathname === "/overview" || pathname === "/(tabs)/overview";
+  const strengthReferenceOneRepMaxByLift = useMemo(
+    () =>
+      (Array.isArray(strengthAssessmentSummary?.latestByLift)
+        ? strengthAssessmentSummary.latestByLift
+        : []
+      ).reduce((accumulator, entry) => {
+        const liftKey = getStrengthAssessmentLiftKey(entry?.liftName || "");
+        const referenceOneRepMaxKg = getStrengthAssessmentReferenceOneRepMaxKg(entry);
+
+        if (liftKey && referenceOneRepMaxKg) {
+          accumulator[liftKey] = referenceOneRepMaxKg;
+        }
+
+        return accumulator;
+      }, {}),
+    [strengthAssessmentSummary]
+  );
 
   function openLaunchGatePrompt(promptKey) {
     setLaunchGatePromptKey(promptKey);
@@ -814,7 +965,7 @@ export default function ProgramOverviewView({
     }
 
     if (exerciseLogSheet) {
-      setExerciseLogSheet(null);
+      closeExerciseLogSheet();
       return;
     }
 
@@ -869,7 +1020,7 @@ export default function ProgramOverviewView({
   const shouldHideTabBarForCheckIn =
     Boolean(pendingTrainingCheckIn) || Boolean(launchGatePromptKey);
   const shouldHideTabBar =
-    swapEditorVisible || shouldHideTabBarForCheckIn || Boolean(exerciseLogSheet);
+    swapEditorVisible || shouldHideTabBarForCheckIn;
   const archivedPlanContexts = Array.isArray(trainingPlanHistory)
     ? trainingPlanHistory
         .map((entry = {}) => ({
@@ -1194,21 +1345,26 @@ export default function ProgramOverviewView({
     : "";
   const completedSessionProgressPercent =
     getSessionProgressPercent(
-      activeSelectedDay,
+      selectedHeaderDay,
       selectedDayCompletedSessionProgress,
       selectedDayIsComplete
     );
   const activeSessionProgressPercent =
-    getSessionProgressPercent(activeSelectedDay, selectedDaySessionProgress);
-  const showSelectedCardProgress =
-    showCompletedSessionStatus ||
-    (showFallbackSessionStatus && Boolean(activeSelectedDay));
+    getSessionProgressPercent(selectedHeaderDay, selectedDaySessionProgress);
+  const showSelectedCardProgress = Boolean(selectedHeaderDay) && !selectedRestSlot;
   const selectedCardProgressPercent = showCompletedSessionStatus
     ? completedSessionProgressPercent
     : activeSessionProgressPercent;
-  const selectedCardProgressLabel = showCompletedSessionStatus
-    ? "Exercises completed"
-    : "Saved progress";
+  const selectedCompletedExerciseCount = getCompletedExerciseCount(
+    selectedHeaderDay,
+    showCompletedSessionStatus
+      ? selectedDayCompletedSessionProgress
+      : selectedDaySessionProgress,
+    showCompletedSessionStatus
+  );
+  const selectedCardProgressLabel =
+    `${selectedCompletedExerciseCount} ` +
+    `${selectedCompletedExerciseCount === 1 ? "exercise" : "exercises"} completed`;
   const nextTrainingSlot = currentWeekSchedule.find((slot) => {
     if (!slot.trainingDay || slot.isArchived || !(slot.date instanceof Date)) {
       return false;
@@ -1224,6 +1380,10 @@ export default function ProgramOverviewView({
       slot.trainingDay.status !== "skipped"
     );
   });
+  const showJumpToNextSessionButton =
+    Boolean(nextTrainingSlot) &&
+    (showRestSessionStatus ||
+      (showFallbackSessionStatus && Boolean(activeSelectedDay)));
   const nextSessionDayCount = nextTrainingSlot
     ? Math.max(
         0,
@@ -1243,11 +1403,17 @@ export default function ProgramOverviewView({
   const exerciseLogSheetKey = exerciseLogSheetDay
     ? `${exerciseLogSheetDay.week}-${exerciseLogSheetDay.day}`
     : "";
-  const exerciseLogSheetHeight = Math.min(
-    Math.max(0, viewportHeight - 28),
-    Math.max(420, Math.round(viewportHeight * 0.9))
-  );
-
+  const exerciseLogSheetExercise = exerciseLogSheetDay
+    ? exerciseLogSheetDay.exercises?.[exerciseLogSheet.exerciseIndex]
+    : null;
+  const exerciseLogSheetSetCount = exerciseLogSheetExercise
+    ? parsePrescribedSetCount(exerciseLogSheetExercise)
+    : 0;
+  const exerciseLogSheetTitle = exerciseLogSheetExercise?.name || "Log exercise";
+  const exerciseLogSheetDescription =
+    exerciseLogSheetSetCount > 1
+      ? `Set ${exerciseLogSheet.setIndex + 1} of ${exerciseLogSheetSetCount}`
+      : "Log this set";
   function scrollOverviewToTop() {
     overviewScrollRef.current?.scrollTo?.({
       x: 0,
@@ -1382,8 +1548,19 @@ export default function ProgramOverviewView({
       progress,
       requestedExerciseIndex
     );
+    const targetExercise = activeSelectedDay.exercises[target.exerciseIndex] || {};
 
     onSelectDay(activeSelectedDay.week, activeSelectedDay.day);
+    setExerciseLogDraft(
+      createExerciseLogDraft({
+        exercise: targetExercise,
+        exerciseIndex: target.exerciseIndex,
+        setIndex: target.setIndex,
+        progress,
+        initialPerformanceResults: selectedDayPerformanceResults,
+        initialAssessmentResults: selectedDayAssessmentResults,
+      })
+    );
     setExerciseLogSheet({
       day: activeSelectedDay,
       exerciseIndex: target.exerciseIndex,
@@ -1393,19 +1570,70 @@ export default function ProgramOverviewView({
 
   function closeExerciseLogSheet() {
     setExerciseLogSheet(null);
+    setExerciseLogDraft(null);
   }
 
-  function finishExerciseLogSheet(trackedResults = [], completedProgress = {}) {
+  function updateExerciseLogDraft(exerciseIndex, setIndex, field, value, isCustomField = false) {
+    setExerciseLogDraft((currentDraft) => {
+      const safeDraft = currentDraft || {
+        exerciseIndex,
+        setIndex,
+        loadKg: "",
+        reps: "",
+        durationMinutes: "",
+        rpe: "",
+        customValues: {},
+      };
+
+      return {
+        ...safeDraft,
+        exerciseIndex,
+        setIndex,
+        ...(isCustomField
+          ? {
+              customValues: {
+                ...(safeDraft.customValues || {}),
+                [field]: value,
+              },
+            }
+          : {
+              [field]: value,
+            }),
+      };
+    });
+  }
+
+  function finishExerciseLogSheet() {
     if (!exerciseLogSheetDay || !exerciseLogSheetKey) {
       closeExerciseLogSheet();
       return;
     }
 
+    const currentProgress = getActiveSessionProgress?.(exerciseLogSheetKey) || {};
+    const completedStepKeys = new Set(
+      Array.isArray(currentProgress.completedStepKeys)
+        ? currentProgress.completedStepKeys
+        : []
+    );
+    const draftKey = getExerciseLogDraftKey(
+      exerciseLogSheet.exerciseIndex,
+      exerciseLogSheet.setIndex
+    );
+    const nextTrackingDrafts = {
+      ...(currentProgress.trackingDrafts || {}),
+      [draftKey]: exerciseLogDraft || {
+        exerciseIndex: exerciseLogSheet.exerciseIndex,
+        setIndex: exerciseLogSheet.setIndex,
+        customValues: {},
+      },
+    };
+
+    completedStepKeys.add(draftKey);
     onActiveSessionProgressChange?.(exerciseLogSheetKey, {
       activeExerciseIndex: exerciseLogSheet.exerciseIndex,
       activeSetIndex: exerciseLogSheet.setIndex,
-      completedStepKeys: completedProgress.completedStepKeys || [],
-      trackingDrafts: completedProgress.trackingDrafts || {},
+      completedStepKeys: Array.from(completedStepKeys),
+      trackingDrafts: nextTrackingDrafts,
       updatedAt: new Date().toISOString(),
     });
     closeExerciseLogSheet();
@@ -1786,7 +2014,7 @@ export default function ProgramOverviewView({
                       </TouchableOpacity>
                     ) : null}
                   </>
-                ) : showRestSessionStatus && nextTrainingSlot ? (
+                ) : showJumpToNextSessionButton ? (
                   <TouchableOpacity
                     activeOpacity={0.84}
                     onPress={handleJumpToNextSession}
@@ -1952,34 +2180,23 @@ export default function ProgramOverviewView({
       <WhiteBottomMenu
         visible={Boolean(exerciseLogSheetDay)}
         onDismiss={closeExerciseLogSheet}
-        sheetStyle={[
-          styles.exerciseLogSheet,
-          { height: exerciseLogSheetHeight },
-        ]}
+        sheetStyle={styles.exerciseLogSheet}
         contentStyle={styles.exerciseLogSheetContent}
-        bottomPadding={8}
-        avoidKeyboard
+        title={exerciseLogSheetTitle}
+        description={exerciseLogSheetDescription}
+        buttonText="Finish set"
+        onButtonPress={finishExerciseLogSheet}
+        bottomPadding={14}
         content={
-          exerciseLogSheetDay ? (
-            <ActiveSessionView
+          exerciseLogSheetExercise && exerciseLogDraft ? (
+            <ExerciseLogSheetContent
               key={`${exerciseLogSheetKey}-${exerciseLogSheet.exerciseIndex}-${exerciseLogSheet.setIndex}`}
-              embedded
-              plan={plan}
-              weekNumber={exerciseLogSheetDay.week}
-              day={exerciseLogSheetDay.dayData}
-              exercises={exerciseLogSheetDay.exercises}
-              initialPerformanceResults={selectedDayPerformanceResults}
-              initialAssessmentResults={selectedDayAssessmentResults}
-              strengthAssessmentSummary={strengthAssessmentSummary}
-              initialSessionProgress={getActiveSessionProgress?.(exerciseLogSheetKey)}
-              initialExerciseIndex={exerciseLogSheet.exerciseIndex}
-              initialSetIndex={exerciseLogSheet.setIndex}
-              startAtExercise
-              onSessionProgressChange={(progress) =>
-                onActiveSessionProgressChange?.(exerciseLogSheetKey, progress)
-              }
-              onBack={closeExerciseLogSheet}
-              onFinish={finishExerciseLogSheet}
+              exercise={exerciseLogSheetExercise}
+              exerciseIndex={exerciseLogSheet.exerciseIndex}
+              setIndex={exerciseLogSheet.setIndex}
+              draft={exerciseLogDraft}
+              onDraftChange={updateExerciseLogDraft}
+              strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
             />
           ) : null
         }
@@ -2176,16 +2393,14 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   exerciseLogSheet: {
-    backgroundColor: "#000000",
-    borderColor: "#222222",
-    borderBottomColor: "#000000",
-    maxHeight: "92%",
-    paddingHorizontal: 18,
-    paddingTop: 8,
+    maxHeight: "78%",
   },
   exerciseLogSheetContent: {
-    flex: 1,
-    minHeight: 0,
+    alignSelf: "stretch",
+  },
+  exerciseLogForm: {
+    alignSelf: "stretch",
+    paddingTop: 4,
   },
   rescheduleInfoButtonIcon: {
     marginLeft: 1,

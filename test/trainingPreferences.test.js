@@ -26,6 +26,19 @@ test("endurance modality options include the configured methods and tools", () =
   ]);
 });
 
+test("normalizeTrainingPreferences preserves typed weekday assignments", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    daysPerWeek: 3,
+    preferredWeekdays: ["Monday", "Wednesday", "Friday"],
+    preferredDayTypes: ["force", "power", "fatigue", "speed"],
+  });
+
+  assert.deepEqual(normalizedPreferences.preferredDayTypes, [
+    "force",
+    "power",
+    "fatigue",
+  ]);
+});
 test("normalizeTrainingPreferences preserves preferred endurance modalities", () => {
   const normalizedPreferences = normalizeTrainingPreferences({
     desiredTraining: "strength_power_endurance",

@@ -29,13 +29,13 @@ import {
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ENDURANCE_FORMAT_DETAILS = Object.freeze({
   low_intensity_aerobic:
-    "Easy steady work for base fitness and recovery. Usually the safest default.",
+    "Sustained low-intensity work used to develop aerobic capacity, improve efficiency, and support recovery between harder sessions.\nBest for: Base phases, beginners, recovery support, and athletes with high sport-training load.",
   aerobic_intervals:
-    "Repeated moderate efforts with controlled rest. Good when steady work feels too flat.",
+    "Structured submaximal intervals used to improve aerobic power, pacing, and repeatable output with controlled fatigue.\nBest for: Athletes who need more conditioning stimulus than steady work, without excessive intensity.",
   high_intensity_intervals:
-    "Hard intervals for repeat output. Best used sparingly around combat training.",
+    "High-output intervals used to improve repeated bursts and fatigue tolerance. Applied selectively when overall training load allows.\nBest for: Intermediate to advanced athletes, pre-competition phases, and sports with repeated explosive efforts.",
   sport_specific_conditioning:
-    "Conditioning that stays close to your sport, rounds, or competition demands.",
+    "Conditioning matched to the sport’s movement demands, work-rest structure, round length, and competitive context.\nBest for: Competition preparation, combat sports, field sports, and athletes who need direct transfer to performance.",
 });
 
 const MIN_ENDURANCE_DAYS = 1;

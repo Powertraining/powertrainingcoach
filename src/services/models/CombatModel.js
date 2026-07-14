@@ -1435,6 +1435,14 @@ export const model = {
     const preferredWeekdays = Array.from({ length: daysPerWeek }, (_, index) =>
       getNormalizedWeekday(rawPreferredWeekdays[index])
     );
+    const rawPreferredDayTypes = Array.isArray(source.preferredDayTypes)
+      ? source.preferredDayTypes
+      : [];
+    const preferredDayTypes = Array.from({ length: daysPerWeek }, (_, index) =>
+      ["force", "power", "fatigue"].includes(rawPreferredDayTypes[index])
+        ? rawPreferredDayTypes[index]
+        : ""
+    );
 
     const parentCycleWeeks = resolveTrainingCycleWeeks({
       trainingPhase: normalizedAppLogicSettings.trainingPhase,
@@ -1479,6 +1487,7 @@ export const model = {
           daysPerWeek,
       daysPerWeek,
       preferredWeekdays,
+      preferredDayTypes,
       focusEmphasis,
       preferences:
         Array.isArray(source.preferences) && source.preferences.length > 0 ?
