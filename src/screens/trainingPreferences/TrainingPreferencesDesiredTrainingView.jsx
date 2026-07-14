@@ -1,54 +1,108 @@
+import { useState } from "react";
 import {
-  DESIRED_TRAINING_OPTIONS } from "../../constants/trainingPreferences.js";
-import { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  Image,
+  Pressable,
   StyleSheet,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
+import { DESIRED_TRAINING_OPTIONS } from "../../constants/trainingPreferences.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
-const DESIRED_TRAINING_ICONS = Object.freeze({
-  endurance: require("../../assets/icons/sports/power.png"),
-  strength_power: require("../../assets/icons/sports/fitness.png"),
-  strength_power_endurance: require("../../assets/icons/sports/balance.png"),
+const FOCUS_META = Object.freeze({
+  strength_power: Object.freeze({
+    label: "Power",
+    description: "Max strength, explosive power, and fast force production.",
+    icon: "flash",
+    accent: "#F82929",
+    accentMuted: "rgba(248, 41, 41, 0.14)",
+  }),
+  strength_power_endurance: Object.freeze({
+    label: "Hybrid",
+    description: "Balanced strength, power, and conditioning.",
+    icon: "hybrid",
+    accent: "#F3D04F",
+    accentMuted: "rgba(243, 208, 79, 0.14)",
+  }),
+  endurance: Object.freeze({
+    label: "Endurance",
+    description: "Stamina, repeat efforts, pace, and recovery.",
+    icon: "pulse",
+    accent: "#34C759",
+    accentMuted: "rgba(52, 199, 89, 0.14)",
+  }),
 });
 
-const DESIRED_TRAINING_LABELS = Object.freeze({
-  endurance: "Endurance",
-  strength_power: "Power",
-  strength_power_endurance: "Balance",
-});
+const OPTIONS_BOTTOM_OFFSET = 104;
 
-const OPTION_FACE_HEIGHT = 288;
-const OPTION_ICON_SLIDE_OFFSET = 10;
-const OPTION_ANIMATION_DURATION = 220;
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-
-function getOptionSlideOffset(optionIndex, selectedIndex) {
-  if (selectedIndex < 0 || selectedIndex === optionIndex) {
-    return 0;
-  }
-
-  return optionIndex < selectedIndex
-    ? -OPTION_ICON_SLIDE_OFFSET
-    : OPTION_ICON_SLIDE_OFFSET;
+function HybridFocusIcon() {
+  return (
+    <View style={styles.hybridIcon}>
+      <View style={[styles.hybridIconHalf, styles.hybridIconLeft]}>
+        <Ionicons color="#F3D04F" name="flash" size={22} />
+      </View>
+      <View style={[styles.hybridIconHalf, styles.hybridIconRight]}>
+        <Ionicons color="#F3D04F" name="pulse" size={22} />
+      </View>
+    </View>
+  );
 }
 
-function FocusIcon({ type, isSelected }) {
+function FocusOption({ option, selected, onPress }) {
+  const meta = FOCUS_META[option.value] || {
+    label: option.label,
+    description: "",
+    icon: "fitness",
+    accent: "#0A84FF",
+    accentMuted: "rgba(10, 132, 255, 0.14)",
+  };
+
   return (
-    <View style={styles.iconCanvas}>
-      <Image
-        source={DESIRED_TRAINING_ICONS[type]}
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.option,
+        selected ? styles.optionSelected : null,
+        selected ? { borderColor: meta.accent } : null,
+        pressed ? styles.optionPressed : null,
+      ]}
+    >
+      <View
         style={[
-          styles.focusIcon,
-          isSelected ? styles.focusIconSelected : null,
+          styles.iconContainer,
+          { backgroundColor: meta.accentMuted },
         ]}
-      />
-    </View>
+      >
+        {meta.icon === "hybrid" ? (
+          <HybridFocusIcon />
+        ) : (
+          <Ionicons color={meta.accent} name={meta.icon} size={27} />
+        )}
+      </View>
+
+      <View style={styles.optionCopy}>
+        <IBMPlexText defaultWhite style={styles.optionTitle}>
+          {meta.label}
+        </IBMPlexText>
+        <IBMPlexText style={styles.optionDescription}>
+          {meta.description}
+        </IBMPlexText>
+      </View>
+
+      <View
+        style={[
+          styles.radio,
+          selected ? { borderColor: meta.accent } : null,
+        ]}
+      >
+        {selected ? (
+          <View style={[styles.radioFill, { backgroundColor: meta.accent }]} />
+        ) : null}
+      </View>
+    </Pressable>
   );
 }
 
@@ -59,104 +113,32 @@ export default function TrainingPreferencesDesiredTrainingView({
   const { height: screenHeight } = useWindowDimensions();
   const [isSelectionCleared, setIsSelectionCleared] = useState(false);
   const displayedValue = isSelectionCleared ? null : value;
-  const selectedIndex = DESIRED_TRAINING_OPTIONS.findIndex(
-    (option) => option.value === displayedValue
-  );
-  const optionAnimations = useRef(
-    DESIRED_TRAINING_OPTIONS.map((_, index) => ({
-      flex: new Animated.Value(index === selectedIndex ? 1 : 0),
-      slide: new Animated.Value(getOptionSlideOffset(index, selectedIndex)),
-    }))
-  ).current;
-
-  useEffect(() => {
-    const animations = optionAnimations.flatMap((optionAnimation, index) => {
-      optionAnimation.flex.stopAnimation();
-      optionAnimation.slide.stopAnimation();
-
-      return [
-        Animated.timing(optionAnimation.flex, {
-          toValue: index === selectedIndex ? 1 : 0,
-          duration: OPTION_ANIMATION_DURATION,
-          useNativeDriver: false,
-        }),
-        Animated.timing(optionAnimation.slide, {
-          toValue: getOptionSlideOffset(index, selectedIndex),
-          duration: OPTION_ANIMATION_DURATION,
-          useNativeDriver: false,
-        }),
-      ];
-    });
-
-    Animated.parallel(animations).start();
-  }, [optionAnimations, selectedIndex]);
 
   return (
     <View style={[styles.container, { minHeight: screenHeight }]}>
-      <IBMPlexText titleBlock height={140}>What would you like to focus on?</IBMPlexText>
-      <IBMPlexText defaultWhite style={styles.helperText} center>
-        Choose what your plan should prioritize so training matches your goals.
-      </IBMPlexText>
+      <View style={styles.header}>
+        <IBMPlexText titleBlock height={112}>
+          What should your plan focus on?
+        </IBMPlexText>
+        <IBMPlexText defaultWhite style={styles.helperText} center>
+          Choose the training priority that best matches your goal.
+        </IBMPlexText>
+      </View>
 
-      <View style={styles.options}>
-        {DESIRED_TRAINING_OPTIONS.map((option, index) => {
-          const isSelected = displayedValue === option.value;
-          const optionAnimation = optionAnimations[index];
-          const optionFlexStyle = {
-            flex: optionAnimation.flex.interpolate({
-              inputRange: [0, 1],
-              outputRange: [1, 2],
-            }),
-          };
-          const optionIconPositionStyle = {
-            transform: [
-              {
-                translateX: optionAnimation.slide,
-              },
-            ],
-          };
-          const optionPositionStyle =
-            index === 0
-              ? styles.optionFaceLeft
-              : index === DESIRED_TRAINING_OPTIONS.length - 1
-                ? styles.optionFaceRight
-                : styles.optionFaceMiddle;
+      <View accessibilityRole="radiogroup" style={styles.options}>
+        {DESIRED_TRAINING_OPTIONS.map((option) => {
+          const selected = displayedValue === option.value;
 
           return (
-            <AnimatedTouchableOpacity
+            <FocusOption
               key={option.value}
+              option={option}
+              selected={selected}
               onPress={() => {
-                setIsSelectionCleared(isSelected);
-                onChange?.(isSelected ? null : option.value);
+                setIsSelectionCleared(selected);
+                onChange?.(selected ? null : option.value);
               }}
-              style={[
-                styles.optionButton,
-                optionFlexStyle,
-              ]}
-            >
-              <View
-                style={[
-                  styles.optionFace,
-                  optionPositionStyle,
-                  isSelected ? styles.optionFaceSelected : null,
-                ]}
-              >
-                <Animated.View
-                  style={[styles.optionIconRow, optionIconPositionStyle]}
-                >
-                  <FocusIcon type={option.value} isSelected={isSelected} />
-                </Animated.View>
-              </View>
-              <IBMPlexText defaultWhite
-                style={[
-                  styles.optionText,
-                  isSelected ? styles.optionTextSelected : null,
-                ]}
-                center
-              >
-                {DESIRED_TRAINING_LABELS[option.value] ?? option.label}
-              </IBMPlexText>
-            </AnimatedTouchableOpacity>
+            />
           );
         })}
       </View>
@@ -166,87 +148,106 @@ export default function TrainingPreferencesDesiredTrainingView({
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 28,
+    justifyContent: "flex-start",
+    paddingHorizontal: 24,
+    paddingTop: 150,
+    position: "relative",
   },
-  options: {
-    width: "100%",
-    flexDirection: "row",
-    gap: 2,
-    marginTop: 68,
+  header: {
+    alignSelf: "stretch",
   },
   helperText: {
-    width: "82%",
     alignSelf: "center",
-    color: "#9ca3af",
-    fontSize: 16,
+    color: "#9A9AA2",
+    fontSize: 15,
     lineHeight: 20,
-    textAlign: "center",
+    maxWidth: 330,
+    width: "88%",
   },
-  optionButton: {
+  options: {
+    alignSelf: "stretch",
+    bottom: OPTIONS_BOTTOM_OFFSET,
+    gap: 12,
+    left: 24,
+    position: "absolute",
+    right: 24,
+  },
+  option: {
+    alignItems: "center",
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 14,
+    minHeight: 96,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  optionSelected: {
+    backgroundColor: "#171717",
+    borderWidth: 2,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+  },
+  optionPressed: {
+    opacity: 0.76,
+    transform: [{ scale: 0.985 }],
+  },
+  iconContainer: {
+    alignItems: "center",
+    borderRadius: 12,
+    height: 52,
+    justifyContent: "center",
+    width: 52,
+  },
+  hybridIcon: {
+    flexDirection: "row",
+    height: 30,
+    width: 42,
+  },
+  hybridIconHalf: {
+    alignItems: "center",
     flex: 1,
-    minHeight: 58,
-    position: "relative",
-    overflow: "visible",
-    alignItems: "center",
-  },
-  optionFace: {
-    width: "100%",
-    minHeight: OPTION_FACE_HEIGHT,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-    zIndex: 1,
-    overflow: "hidden",
-  },
-  optionIconRow: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  iconCanvas: {
-    width: 128,
-    height: 128,
-    alignItems: "center",
     justifyContent: "center",
   },
-  focusIcon: {
-    width: 92,
-    height: 92,
-    resizeMode: "contain",
-    tintColor: "#000000",
+  hybridIconLeft: {
+    alignItems: "flex-end",
+    paddingRight: 1,
   },
-  focusIconSelected: {
-    tintColor: "#000000",
+  hybridIconRight: {
+    alignItems: "flex-start",
+    paddingLeft: 1,
   },
-  optionFaceLeft: {
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
-    borderTopRightRadius: 2,
-    borderBottomRightRadius: 2,
+  optionCopy: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
   },
-  optionFaceMiddle: {
-    borderRadius: 2,
-  },
-  optionFaceRight: {
-    borderTopLeftRadius: 2,
-    borderBottomLeftRadius: 2,
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
-  },
-  optionFaceSelected: {
-    backgroundColor: "#C9B259",
-  },
-  optionText: {
-    width: "100%",
-    marginTop: 12,
-    color: "#ffffff",
+  optionTitle: {
     fontSize: 17,
-    textAlign: "center",
+    fontWeight: "800",
+    lineHeight: 22,
   },
-  optionTextSelected: {
-    color: "#ffffff",
+  optionDescription: {
+    color: "#9A9AA2",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+  },
+  radio: {
+    alignItems: "center",
+    borderColor: "#56565F",
+    borderRadius: 12,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  radioFill: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
   },
 });

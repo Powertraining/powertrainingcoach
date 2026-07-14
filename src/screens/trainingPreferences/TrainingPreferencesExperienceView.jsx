@@ -15,17 +15,20 @@ const EXPERIENCE_ORDER = Object.freeze([
   {
     value: "beginner",
     label: "BEGINNER",
-    description: "Little to no lifting or conditioning experience",
+    description:
+      "You are newer to structured S&C. Focus: Basic strength, foundation building, and consistency.",
   },
   {
     value: "intermediate",
-    label: "AVERAGE",
-    description: "Has some experience with strength and conditioning",
+    label: "INTERMEDIATE",
+    description:
+      "You have some S&C experience and are comfortable with common lifts, intervals, and progressive loading while managing sport fatigue.",
   },
   {
     value: "advanced",
     label: "ADVANCED",
-    description: "Very experienced with strength and conditioning",
+    description:
+      "You have strong S&C experience and are confident with heavy lifts, power work, plyometrics, and high-intensity conditioning.",
   },
 ]);
 
