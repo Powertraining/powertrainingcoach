@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Stack } from "expo-router";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { observer } from "mobx-react-lite";
 import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -14,6 +15,13 @@ import BlackGradient from "../src/components/colorComponents/BlackGradient.jsx";
 import { preloadQuestionnaireImages } from "../src/services/utils/preloadAssets.js";
 import { fonts } from "../src/theme/colors.js";
 
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "transparent",
+  },
+};
 
 // Make model globally available for debugging
 if (typeof global !== "undefined") {
@@ -22,7 +30,7 @@ if (typeof global !== "undefined") {
 
 const RootLayout = observer(function RootLayout() {
   const model = reactiveModel;
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     [fonts.display]: require("../src/shared/fonts/bebaskai/BebasKai.ttf"),
     [fonts.body]: require("../src/shared/fonts/cmu-sans-serif/cmunss.ttf"),
     [fonts.bodyMedium]: require("../src/shared/fonts/cmu-bright/cmunbmr.ttf"),
@@ -47,9 +55,15 @@ const RootLayout = observer(function RootLayout() {
     };
   }, [model]);
 
+  useEffect(() => {
+    if (fontError) {
+      console.warn("Could not load app fonts:", fontError);
+    }
+  }, [fontError]);
+
   const isLoading = !model.ready;
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
@@ -57,35 +71,37 @@ const RootLayout = observer(function RootLayout() {
     <StripeProviderWrapper>
       <View style={styles.root}>
         <BlackGradient />
-        <SafeAreaProvider style={styles.provider}>
-          <StatusBar style="light" backgroundColor="transparent" hidden/>
-          <View style={styles.container}>
-            {isLoading && (
-              <View pointerEvents="none" style={styles.loadingOverlay}>
-                <LoadingView />
-              </View>
-            )}
+        <ThemeProvider value={navigationTheme}>
+          <SafeAreaProvider style={styles.provider}>
+            <StatusBar style="light" backgroundColor="transparent" hidden/>
+            <View style={styles.container}>
+              {isLoading && (
+                <View pointerEvents="none" style={styles.loadingOverlay}>
+                  <LoadingView />
+                </View>
+              )}
 
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: "transparent" },
-                animation: "slide_from_right",
-              }}
-            >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="modal"
-                options={{
-                  presentation: "modal",
-                  animation: "slide_from_bottom",
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: "transparent" },
+                  animation: "slide_from_right",
                 }}
-              />
-            </Stack>
-          </View>
-        </SafeAreaProvider>
+              >
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{
+                    presentation: "modal",
+                    animation: "slide_from_bottom",
+                  }}
+                />
+              </Stack>
+            </View>
+          </SafeAreaProvider>
+        </ThemeProvider>
       </View>
     </StripeProviderWrapper>
   );

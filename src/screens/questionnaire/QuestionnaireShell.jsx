@@ -11,11 +11,13 @@ export default function QuestionnaireShell({
 }) {
     useEffect(() => {
         reactiveModel.setForumTabBarHidden(hideTabBar);
+    }, [hideTabBar]);
 
+    useEffect(() => {
         return () => {
             reactiveModel.setForumTabBarHidden(false);
         };
-    }, [hideTabBar]);
+    }, []);
 
     return (
         <View style={ styles.container} >

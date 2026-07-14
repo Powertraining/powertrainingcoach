@@ -29,6 +29,9 @@ import ProfileReportInjuryView from "./profile/ProfileReportInjuryView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 
 const FLOATING_ACTION_SLIDE_DISTANCE = 86;
+const HOME_BLUE = "#0A84FF";
+const HOME_GREEN = "#34C759";
+const HOME_YELLOW = "#F3D04F";
 
 export function MyProfileView(props) {
   const insets = useSafeAreaInsets();
@@ -223,6 +226,8 @@ export function MyProfileView(props) {
               title="Personal Details"
               description="Account and login info"
               actionLabel="View"
+              accentColor={HOME_BLUE}
+              iconName="person"
               onPress={props.onOpenPersonalDetails}
             />
 
@@ -230,6 +235,8 @@ export function MyProfileView(props) {
               title="Adjust Plan"
               description="Sport, schedule, and training logic"
               actionLabel="Adjust"
+              accentColor={HOME_YELLOW}
+              iconName="calendar"
               onPress={props.onOpenPlanAdjustments}
               obscureContent={shouldObscurePlanActions}
               featured
@@ -243,6 +250,8 @@ export function MyProfileView(props) {
               title="Register Event"
               description="Competition date and details"
               actionLabel="Register"
+              accentColor={HOME_YELLOW}
+              iconName="trophy"
               onPress={props.onOpenEventPreparation}
               obscureContent={shouldObscurePlanActions}
             />
@@ -251,6 +260,8 @@ export function MyProfileView(props) {
               title="Report Injury"
               description="Injuries and limitations"
               actionLabel="Report"
+              accentColor={HOME_GREEN}
+              iconName="heart"
               onPress={props.onOpenInjuries}
               obscureContent={shouldObscurePlanActions}
             />
@@ -263,6 +274,8 @@ export function MyProfileView(props) {
               title="My posts"
               description="Forum posts you created"
               actionLabel="View"
+              accentColor={HOME_BLUE}
+              iconName="chatbubble-ellipses"
               onPress={props.onOpenMyPosts}
             />
 
@@ -270,6 +283,8 @@ export function MyProfileView(props) {
               title="Saved Posts"
               description="Forum posts you saved"
               actionLabel="View"
+              accentColor={HOME_BLUE}
+              iconName="bookmark"
               onPress={props.onOpenSavedPosts}
             />
           </View>
@@ -579,7 +594,7 @@ const styles = StyleSheet.create({
   },
   navigationRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   pageHeader: {
     gap: 14,

@@ -5,6 +5,7 @@ export default function PlanSetTabs({
   prescribedSets = [],
   activeSetIndex = 0,
   completedSetIndexes = [],
+  compact = false,
   onSelectSet,
 }) {
   if (prescribedSets.length <= 1) {
@@ -17,7 +18,10 @@ export default function PlanSetTabs({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.setTabsContainer}
+      contentContainerStyle={[
+        styles.setTabsContainer,
+        compact ? styles.compactSetTabsContainer : null,
+      ]}
     >
       {prescribedSets.map((prescribedSet) => {
         const isActive = prescribedSet.setIndex === activeSetIndex;
@@ -26,21 +30,20 @@ export default function PlanSetTabs({
         return (
           <TouchableOpacity
             key={prescribedSet.setIndex}
-            disabled={!isActive}
             style={[
               styles.setTabButton,
+              compact ? styles.compactSetTabButton : null,
               isActive ? styles.setTabButtonActive : styles.setTabButtonInactive,
               isCompleted && styles.setTabButtonCompleted,
             ]}
             onPress={() => {
-              if (isActive) {
-                onSelectSet?.(prescribedSet.setIndex);
-              }
+              onSelectSet?.(prescribedSet.setIndex);
             }}
           >
             <IBMPlexText defaultWhite
               style={[
                 styles.setTabButtonText,
+                compact ? styles.compactSetTabButtonText : null,
                 isActive ? styles.setTabButtonTextActive : styles.setTabButtonTextInactive,
                 isCompleted && styles.setTabButtonTextCompleted,
               ]}
@@ -62,6 +65,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 2,
   },
+  compactSetTabsContainer: {
+    gap: 5,
+    paddingVertical: 0,
+  },
   setTabButton: {
     height: 55,
     width: 50,
@@ -73,6 +80,12 @@ const styles = StyleSheet.create({
     borderColor: "#585858",
     borderStyle: "solid",
     backgroundColor: "#1E1E1E",
+  },
+  compactSetTabButton: {
+    borderRadius: 12,
+    height: 44,
+    padding: 4,
+    width: 42,
   },
   setTabButtonActive: {
     borderColor: "#fff",
@@ -89,6 +102,10 @@ const styles = StyleSheet.create({
     fontSize: 14, fontWeight: "700",
     lineHeight: 15,
     textAlign: "center",
+  },
+  compactSetTabButtonText: {
+    fontSize: 11,
+    lineHeight: 12,
   },
   setTabButtonTextActive: {
     color: "#fff",

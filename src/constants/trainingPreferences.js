@@ -132,7 +132,7 @@ export const ENDURANCE_SESSION_COUNT_OPTIONS = Object.freeze(
 
 export const ENDURANCE_FORMAT_OPTIONS = Object.freeze([
   {
-    label: "Low-intensity aerobic work",
+    label: "Low-intensity aerobic development",
     value: "low_intensity_aerobic",
   },
   {
@@ -357,6 +357,7 @@ export const TRAINING_PREFERENCES_DEFAULTS = Object.freeze({
   equipment: "full_gym",
   daysPerWeek: 3,
   preferredWeekdays: [],
+  preferredDayTypes: [],
   injuriesInput: "",
 });
 
@@ -810,6 +811,17 @@ function normalizePreferredWeekdays(source = {}, daysPerWeek) {
     getNormalizedWeekday(rawPreferredWeekdays[index])
   );
 }
+const PREFERRED_DAY_TYPES = Object.freeze(["force", "power", "fatigue"]);
+
+function normalizePreferredDayTypes(source = {}, daysPerWeek) {
+  const rawTypes = Array.isArray(source.preferredDayTypes)
+    ? source.preferredDayTypes
+    : [];
+
+  return Array.from({ length: daysPerWeek }, (_, index) =>
+    PREFERRED_DAY_TYPES.includes(rawTypes[index]) ? rawTypes[index] : ""
+  );
+}
 
 export function getTrainingPreferencesFormState(source = {}) {
   const safeSource = source && typeof source === "object" ? source : {};
@@ -853,6 +865,7 @@ export function getTrainingPreferencesFormState(source = {}) {
     equipment,
     daysPerWeek,
     preferredWeekdays: normalizePreferredWeekdays(safeSource, daysPerWeek),
+    preferredDayTypes: normalizePreferredDayTypes(safeSource, daysPerWeek),
     injuriesInput: Array.isArray(safeSource.injuries)
       ? safeSource.injuries.join(", ")
       : typeof safeSource.injuriesInput === "string"
@@ -916,6 +929,7 @@ export function normalizeTrainingPreferences(source = {}) {
     equipment,
     daysPerWeek,
     preferredWeekdays: normalizePreferredWeekdays(safeSource, daysPerWeek),
+    preferredDayTypes: normalizePreferredDayTypes(safeSource, daysPerWeek),
     injuries: normalizeInjuries(safeSource),
     ...appLogicSettings,
   };
@@ -989,6 +1003,11 @@ export function areTrainingPreferencesEqual(left, right) {
       normalizedRight.preferredWeekdays.length &&
     normalizedLeft.preferredWeekdays.every(
       (value, index) => value === normalizedRight.preferredWeekdays[index]
+    ) &&
+    normalizedLeft.preferredDayTypes.length ===
+      normalizedRight.preferredDayTypes.length &&
+    normalizedLeft.preferredDayTypes.every(
+      (value, index) => value === normalizedRight.preferredDayTypes[index]
     ) &&
     normalizedLeft.injuries.length === normalizedRight.injuries.length &&
     normalizedLeft.injuries.every(

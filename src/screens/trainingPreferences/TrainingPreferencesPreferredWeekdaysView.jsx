@@ -7,9 +7,10 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { WEEKDAY_OPTIONS } from "../../constants/weekdays.js";
+import { TRAINING_DAY_TYPE_META } from "../../constants/trainingDayTypes.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const WEEKDAY_CHIP_OPTIONS = WEEKDAY_OPTIONS.filter((option) => option.value);
 const WEEKDAY_INDEX_BY_VALUE = Object.freeze(
@@ -22,6 +23,15 @@ const WEEKDAY_SEQUENCE_LENGTH = WEEKDAY_CHIP_OPTIONS.length;
 const ENTRANCE_DURATION = 240;
 const ENTRANCE_ROW_STAGGER = 42;
 const CHIP_STATE_DURATION = 140;
+const DAY_TYPE_OPTIONS = Object.freeze([
+  TRAINING_DAY_TYPE_META.power,
+  Object.freeze({ ...TRAINING_DAY_TYPE_META.fatigue, label: "Endurance" }),
+]);
+const DAY_TYPE_MENU_WIDTH = 176;
+const DAY_TYPE_MENU_ROW_HEIGHT = 38;
+const DAY_TYPE_MENU_GAP = 5;
+const DAY_TYPE_MENU_ARROW_SIZE = 8;
+const WEEKDAY_ROW_GAP = 4;
 
 function FadeInView({ children, delay = 0, travel = 12, style }) {
   const entranceProgress = useRef(new Animated.Value(0)).current;
@@ -97,6 +107,7 @@ function WeekdayOptionButton({
   isSelected,
   isUnavailable,
   label,
+  selectedColor,
   onPress,
 }) {
   const selectedProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
@@ -178,6 +189,7 @@ function WeekdayOptionButton({
           pointerEvents="none"
           style={[
             styles.weekdayButtonSelectedFill,
+            selectedColor ? { backgroundColor: selectedColor, borderColor: selectedColor } : null,
             { opacity: selectedProgress },
           ]}
         />
@@ -202,12 +214,175 @@ function WeekdayOptionButton({
   );
 }
 
+function DayTypeAssignmentMenu({
+  anchorLeft,
+  assignedEnduranceCount,
+  assignedPowerCount,
+  enduranceTarget,
+  includesEndurance,
+  isOpeningUp,
+  isDayTypeUnavailable,
+  onAssign,
+  powerTarget,
+  rowIndex,
+}) {
+  const entranceProgress = useRef(new Animated.Value(0)).current;
+  const visibleOptions = DAY_TYPE_OPTIONS.filter(
+    (typeOption) => typeOption.value !== "fatigue" || includesEndurance
+  );
+
+  useEffect(() => {
+    entranceProgress.setValue(0);
+    Animated.timing(entranceProgress, {
+      toValue: 1,
+      duration: 150,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [entranceProgress, isOpeningUp, rowIndex]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.dayTypeMenu,
+        isOpeningUp ? styles.dayTypeMenuUp : styles.dayTypeMenuDown,
+        { left: anchorLeft.menu },
+        {
+          opacity: entranceProgress,
+          transform: [
+            {
+              translateY: entranceProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [isOpeningUp ? 8 : -8, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <View
+        pointerEvents="none"
+        style={[
+          styles.dayTypeMenuArrow,
+          isOpeningUp ? styles.dayTypeMenuArrowDown : styles.dayTypeMenuArrowUp,
+          { left: anchorLeft.arrow - DAY_TYPE_MENU_ARROW_SIZE },
+          isOpeningUp
+            ? styles.dayTypeMenuArrowDownColor
+            : styles.dayTypeMenuArrowUpColor,
+        ]}
+      />
+      <View style={styles.dayTypeOptions}>
+        {visibleOptions.map((typeOption) => {
+          const isUnavailable = isDayTypeUnavailable(typeOption.value, rowIndex);
+
+          return (
+            <Pressable
+              key={typeOption.value}
+              disabled={isUnavailable}
+              onPress={() => onAssign(typeOption.value)}
+              style={({ pressed }) => [
+                styles.dayTypeOption,
+                isUnavailable ? styles.dayTypeOptionUnavailable : null,
+                pressed ? styles.dayTypeOptionPressed : null,
+              ]}
+            >
+              <View
+                style={[
+                  styles.dayTypeDot,
+                  { backgroundColor: typeOption.color },
+                ]}
+              />
+              <IBMPlexText style={styles.dayTypeOptionText}>
+                {typeOption.label} ({typeOption.value === "fatigue"
+                  ? assignedEnduranceCount
+                  : assignedPowerCount}/{typeOption.value === "fatigue"
+                  ? enduranceTarget
+                  : powerTarget})
+              </IBMPlexText>
+            </Pressable>
+          );
+        })}
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function TrainingPreferencesPreferredWeekdaysView({
   daysPerWeek,
-  preferredWeekdays,
-  onChange,
+  preferredWeekdays = [],
+  preferredDayTypes = [],
+  desiredTraining,
+  enduranceSessionsPerWeek,
+  onAssignmentChange,
 }) {
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const [pendingAssignment, setPendingAssignment] = useState(null);
+  const preferenceBoxWidth = screenWidth * 0.9;
+  const includesEndurance =
+    desiredTraining === "endurance" ||
+    desiredTraining === "strength_power_endurance";
+  const enduranceTarget = includesEndurance
+    ? Math.min(daysPerWeek, Math.max(1, Number(enduranceSessionsPerWeek) || 1))
+    : 0;
+  const powerTarget = daysPerWeek - enduranceTarget;
+  const assignedEnduranceCount = preferredDayTypes.filter(
+    (type) => type === "fatigue"
+  ).length;
+  const assignedPowerCount = preferredDayTypes.filter(
+    (type) => type === "power"
+  ).length;
+
+  function isDayTypeUnavailable(type, rowIndex) {
+    const currentType = preferredDayTypes[rowIndex];
+
+    if (type === "fatigue") {
+      return !includesEndurance ||
+        (currentType !== "fatigue" && assignedEnduranceCount >= enduranceTarget);
+    }
+
+    return currentType !== "power" && assignedPowerCount >= powerTarget;
+  }
+
+  function handleWeekdayPress(index, weekday, isSelected) {
+    if (isSelected) {
+      onAssignmentChange?.(index, "", "");
+      setPendingAssignment(null);
+      return;
+    }
+
+    setPendingAssignment({ index, weekday });
+  }
+
+  function assignDayType(type) {
+    if (!pendingAssignment) {
+      return;
+    }
+
+    onAssignmentChange?.(
+      pendingAssignment.index,
+      pendingAssignment.weekday,
+      type
+    );
+    setPendingAssignment(null);
+  }
+
+  function getMenuAnchorLeft(weekday) {
+    const weekdayIndex = WEEKDAY_INDEX_BY_VALUE[weekday] ?? 0;
+    const totalGapWidth = WEEKDAY_ROW_GAP * (WEEKDAY_CHIP_OPTIONS.length - 1);
+    const chipWidth =
+      (preferenceBoxWidth - totalGapWidth) / WEEKDAY_CHIP_OPTIONS.length;
+    const anchorCenter =
+      weekdayIndex * (chipWidth + WEEKDAY_ROW_GAP) + chipWidth / 2;
+    const menuLeft = Math.max(
+      0,
+      Math.min(anchorCenter - DAY_TYPE_MENU_WIDTH / 2, preferenceBoxWidth - DAY_TYPE_MENU_WIDTH)
+    );
+
+    return {
+      arrow: anchorCenter - menuLeft,
+      menu: menuLeft,
+    };
+  }
 
   return (
     <ScrollView
@@ -230,13 +405,23 @@ export default function TrainingPreferencesPreferredWeekdaysView({
           </IBMPlexText>
         </FadeInView>
 
+
         <View style={styles.preferenceBox}>
           <View style={styles.preferenceGrid}>
             {Array.from({ length: daysPerWeek }, (_, index) => {
+              const selectedType = preferredDayTypes[index] || "";
+              const selectedTypeMeta = TRAINING_DAY_TYPE_META[selectedType];
+              const isAssignmentMenuOpen = pendingAssignment?.index === index;
+              const isMenuOpeningUp =
+                daysPerWeek > 2 && index >= Math.ceil(daysPerWeek / 2);
+
               return (
                 <FadeInView
                   key={`preferred-weekday-${index + 1}`}
-                  style={styles.preferenceItem}
+                  style={[
+                    styles.preferenceItem,
+                    isAssignmentMenuOpen ? styles.preferenceItemMenuOpen : null,
+                  ]}
                   delay={82 + index * ENTRANCE_ROW_STAGGER}
                   travel={14}
                 >
@@ -262,13 +447,28 @@ export default function TrainingPreferencesPreferredWeekdaysView({
                           isSelected={isSelected}
                           isUnavailable={isUnavailable}
                           label={option.label.slice(0, 3)}
+                          selectedColor={selectedTypeMeta?.color}
                           onPress={() =>
-                            onChange(index, isSelected ? "" : option.value)
+                            handleWeekdayPress(index, option.value, isSelected)
                           }
                         />
                       );
                     })}
                   </View>
+                  {isAssignmentMenuOpen ? (
+                    <DayTypeAssignmentMenu
+                      anchorLeft={getMenuAnchorLeft(pendingAssignment.weekday)}
+                      assignedEnduranceCount={assignedEnduranceCount}
+                      assignedPowerCount={assignedPowerCount}
+                      enduranceTarget={enduranceTarget}
+                      includesEndurance={includesEndurance}
+                      isDayTypeUnavailable={isDayTypeUnavailable}
+                      isOpeningUp={isMenuOpeningUp}
+                      onAssign={assignDayType}
+                      powerTarget={powerTarget}
+                      rowIndex={index}
+                    />
+                  ) : null}
                 </FadeInView>
               );
             })}
@@ -299,6 +499,88 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+
+  dayTypeMenu: {
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderRadius: 9,
+    borderWidth: 0,
+    elevation: 12,
+    padding: 0,
+    position: "absolute",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.34,
+    shadowRadius: 8,
+    width: DAY_TYPE_MENU_WIDTH,
+    zIndex: 30,
+  },
+  dayTypeMenuDown: {
+    top: 74,
+  },
+  dayTypeMenuUp: {
+    bottom: 58,
+  },
+  dayTypeMenuArrow: {
+    height: 0,
+    position: "absolute",
+    width: 0,
+    zIndex: 2,
+  },
+  dayTypeMenuArrowUp: {
+    borderBottomWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderLeftColor: "transparent",
+    borderLeftWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderRightColor: "transparent",
+    borderRightWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    top: -DAY_TYPE_MENU_ARROW_SIZE,
+  },
+  dayTypeMenuArrowUpColor: {
+    borderBottomColor: "#2B2B2B",
+  },
+  dayTypeMenuArrowDown: {
+    borderLeftColor: "transparent",
+    borderLeftWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderRightColor: "transparent",
+    borderRightWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderTopWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    bottom: -DAY_TYPE_MENU_ARROW_SIZE,
+  },
+  dayTypeMenuArrowDownColor: {
+    borderTopColor: "#2B2B2B",
+  },
+  dayTypeOptions: {
+    gap: DAY_TYPE_MENU_GAP,
+  },
+  dayTypeOption: {
+    alignItems: "center",
+    backgroundColor: "#2B2B2B",
+    borderRadius: 7,
+    borderWidth: 0,
+    flexDirection: "row",
+    gap: 7,
+    justifyContent: "flex-start",
+    minHeight: DAY_TYPE_MENU_ROW_HEIGHT,
+    paddingHorizontal: 10,
+  },
+  dayTypeOptionUnavailable: {
+    opacity: 0.25,
+  },
+  dayTypeOptionPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
+  },
+  dayTypeDot: {
+    borderRadius: 5,
+    height: 10,
+    width: 10,
+  },
+  dayTypeOptionText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+    textAlign: "center",
+  },
   preferenceBox: {
     alignSelf: "center",
     backgroundColor: "transparent",
@@ -315,6 +597,11 @@ const styles = StyleSheet.create({
   },
   preferenceItem: {
     gap: 6,
+    position: "relative",
+  },
+  preferenceItemMenuOpen: {
+    elevation: 20,
+    zIndex: 20,
   },
   preferenceLabel: {
     color: "#C9B259",
@@ -376,6 +663,6 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   weekdayButtonTextSelected: {
-    color: "#000000",
+    color: "#ffffff",
   },
 });

@@ -62,6 +62,7 @@ test("missed-session prompt embeds rescue priority rules", () => {
     targetDay: {
       day: 3,
       preferredWeekday: "Friday",
+      preferredDayType: "fatigue",
     },
     mode: "priority_rescue",
     reason: "schedule_travel",
@@ -222,6 +223,7 @@ test("training scaffold fixes week and preferred weekday shells", () => {
     generatedBlockWeeks: 4,
     blockStartWeek: 5,
     preferredWeekdays: ["Tuesday", "Friday"],
+    preferredDayTypes: ["power", "fatigue"],
   });
 
   assert.deepEqual(
@@ -234,12 +236,14 @@ test("training scaffold fixes week and preferred weekday shells", () => {
       originalDayNumber: 1,
       sessionLabel: "Day 1",
       preferredWeekday: "Tuesday",
+      preferredDayType: "power",
     },
     {
       day: 2,
       originalDayNumber: 2,
       sessionLabel: "Day 2",
       preferredWeekday: "Friday",
+      preferredDayType: "fatigue",
     },
   ]);
   assert.deepEqual(

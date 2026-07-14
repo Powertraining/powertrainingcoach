@@ -2,28 +2,44 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Defs, Pattern, Circle, Rect } from 'react-native-svg';
 
+const DOT_SPACING = 10;
+const DOT_CENTER = DOT_SPACING / 2;
+const DOT_RADIUS = 1;
+const DOT_COLOR = "#CCCCCC";
+const DOT_OPACITY = 0.07;
+
 const Dotted = ({ children }) => {
   return (
-    <View style={{ flex: 1, backgroundColor: 'transparent',}}>
-      {/* 1. The SVG Pattern Layer */}
+    <View style={styles.container}>
       <View pointerEvents="none" style={styles.dotLayer}>
-        <Svg style={StyleSheet.absoluteFill}>
+        <Svg
+          width="100%"
+          height="100%"
+          style={StyleSheet.absoluteFill}
+        >
           <Defs>
             <Pattern
               id="dotPattern"
-              width="10"   // Spacing between dots
-              height="10"
+              width={DOT_SPACING}
+              height={DOT_SPACING}
+              x="0"
+              y="0"
               patternUnits="userSpaceOnUse"
             >
-              <Circle cx="2" cy="2" r="1" fill="#CCCCCC" opacity={0.07}/>
+              <Circle
+                cx={DOT_CENTER}
+                cy={DOT_CENTER}
+                r={DOT_RADIUS}
+                fill={DOT_COLOR}
+                opacity={DOT_OPACITY}
+              />
             </Pattern>
           </Defs>
-          <Rect width="100%" height="100%" fill="url(#dotPattern)" />
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#dotPattern)" />
         </Svg>
       </View>
 
-      {/* 2. Your Content Layer */}
-      <View style={{ flex: 1 }}>
+      <View style={styles.content}>
         {children}
       </View>
     </View>
@@ -33,7 +49,14 @@ const Dotted = ({ children }) => {
 export default Dotted;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   dotLayer: {
     ...StyleSheet.absoluteFillObject,
+  },
+  content: {
+    flex: 1,
   },
 });

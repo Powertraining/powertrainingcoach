@@ -14,7 +14,9 @@ const THUMB_SIZE = 24;
 export default function QuestionnaireFrequencyView({ value, onChange, onBack, onContinue, onLogoClick, onClose }) {
     const [sliderWidth, setSliderWidth] = useState(0);
     const [dragValue, setDragValue] = useState(value ?? MIN_SESSIONS);
+    const sliderShellRef = useRef(null);
     const activeTouchIdRef = useRef(null);
+    const sliderPageXRef = useRef(0);
     const dragStartPageXRef = useRef(0);
     const dragStartValueRef = useRef(value ?? MIN_SESSIONS);
     const dragValueRef = useRef(value ?? MIN_SESSIONS);
@@ -79,8 +81,53 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
         return MIN_SESSIONS + (clampedX / sliderWidth) * (MAX_SESSIONS - MIN_SESSIONS);
     }
 
+    function getFiniteNumber(...values) {
+        return values.find((nextValue) => Number.isFinite(nextValue));
+    }
+
+    function measureSliderPageX() {
+        sliderShellRef.current?.measure?.((_x, _y, _width, _height, pageX) => {
+            if (Number.isFinite(pageX)) {
+                sliderPageXRef.current = pageX;
+            }
+        });
+    }
+
+    function getPageXFromEvent(event, gestureState, touch, phase = "move") {
+        if (phase === "start") {
+            return getFiniteNumber(
+                touch?.pageX,
+                gestureState?.x0,
+                gestureState?.moveX,
+                event.nativeEvent.pageX
+            );
+        }
+
+        return getFiniteNumber(
+            touch?.pageX,
+            gestureState?.moveX,
+            gestureState?.x0,
+            event.nativeEvent.pageX
+        );
+    }
+
+    function getLocationXFromEvent(event, gestureState, touch, phase) {
+        const pageX = getPageXFromEvent(event, gestureState, touch, phase);
+        const locationX = getFiniteNumber(touch?.locationX, event.nativeEvent.locationX);
+
+        if (Number.isFinite(locationX)) {
+            return locationX;
+        }
+
+        if (Number.isFinite(pageX)) {
+            return pageX - sliderPageXRef.current;
+        }
+
+        return null;
+    }
+
     function valueFromPageX(pageX) {
-        if (!sliderWidth) {
+        if (!sliderWidth || !Number.isFinite(pageX)) {
             return dragValueRef.current;
         }
 
@@ -91,28 +138,33 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
         );
     }
 
-    function startDrag(event) {
+    function startDrag(event, gestureState) {
+        measureSliderPageX();
         const touch = getResponderTouch(event);
-        const nextValue = valueFromLocationX(touch?.locationX ?? event.nativeEvent.locationX ?? 0);
+        const nextValue = valueFromLocationX(
+            getLocationXFromEvent(event, gestureState, touch, "start") ?? 0
+        );
+        const pageX = getPageXFromEvent(event, gestureState, touch, "start");
 
         activeTouchIdRef.current = touch?.identifier ?? event.nativeEvent.identifier ?? null;
-        dragStartPageXRef.current = touch?.pageX ?? event.nativeEvent.pageX ?? 0;
+        dragStartPageXRef.current = pageX ?? 0;
         dragStartValueRef.current = nextValue;
         setLiveDragValue(nextValue);
     }
 
-    function updateDrag(event) {
+    function updateDrag(event, gestureState) {
         const touch = getResponderTouch(event);
+        const pageX = getPageXFromEvent(event, gestureState, touch);
 
-        if (!touch) {
+        if (!Number.isFinite(pageX)) {
             return;
         }
 
-        setLiveDragValue(valueFromPageX(touch.pageX));
+        setLiveDragValue(valueFromPageX(pageX));
     }
 
-    function endDrag(event) {
-        updateDrag(event);
+    function endDrag(event, gestureState) {
+        updateDrag(event, gestureState);
         commitDragValue();
         activeTouchIdRef.current = null;
     }
@@ -141,8 +193,12 @@ export default function QuestionnaireFrequencyView({ value, onChange, onBack, on
                         </View>
 
                         <View
+                            ref={sliderShellRef}
                             style={styles.sliderShell}
-                            onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
+                            onLayout={({ nativeEvent }) => {
+                                setSliderWidth(nativeEvent.layout.width);
+                                measureSliderPageX();
+                            }}
                         >
                             <View
                                 style={styles.sliderTouchArea}

@@ -29,13 +29,13 @@ import {
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 const ENDURANCE_FORMAT_DETAILS = Object.freeze({
   low_intensity_aerobic:
-    "Easy steady work for base fitness and recovery. Usually the safest default.",
+    "Sustained low-intensity work used to develop aerobic capacity, improve efficiency, and support recovery between harder sessions.\nBest for: Base phases, beginners, recovery support, and athletes with high sport-training load.",
   aerobic_intervals:
-    "Repeated moderate efforts with controlled rest. Good when steady work feels too flat.",
+    "Structured submaximal intervals used to improve aerobic power, pacing, and repeatable output with controlled fatigue.\nBest for: Athletes who need more conditioning stimulus than steady work, without excessive intensity.",
   high_intensity_intervals:
-    "Hard intervals for repeat output. Best used sparingly around combat training.",
+    "High-output intervals used to improve repeated bursts and fatigue tolerance. Applied selectively when overall training load allows.\nBest for: Intermediate to advanced athletes, pre-competition phases, and sports with repeated explosive efforts.",
   sport_specific_conditioning:
-    "Conditioning that stays close to your sport, rounds, or competition demands.",
+    "Conditioning matched to the sport’s movement demands, work-rest structure, round length, and competitive context.\nBest for: Competition preparation, combat sports, field sports, and athletes who need direct transfer to performance.",
 });
 
 const MIN_ENDURANCE_DAYS = 1;
@@ -351,7 +351,9 @@ function EnduranceDaysSlider({
   const resolvedValue = getClampedEnduranceDayCount(value, resolvedMaxDays);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [dragValue, setDragValue] = useState(resolvedValue);
+  const sliderShellRef = useRef(null);
   const activeTouchIdRef = useRef(null);
+  const sliderPageXRef = useRef(0);
   const dragStartPageXRef = useRef(0);
   const dragStartValueRef = useRef(resolvedValue);
   const dragValueRef = useRef(resolvedValue);
@@ -428,8 +430,53 @@ function EnduranceDaysSlider({
     );
   }
 
+  function getFiniteNumber(...values) {
+    return values.find((nextValue) => Number.isFinite(nextValue));
+  }
+
+  function measureSliderPageX() {
+    sliderShellRef.current?.measure?.((_x, _y, _width, _height, pageX) => {
+      if (Number.isFinite(pageX)) {
+        sliderPageXRef.current = pageX;
+      }
+    });
+  }
+
+  function getPageXFromEvent(event, gestureState, touch, phase = "move") {
+    if (phase === "start") {
+      return getFiniteNumber(
+        touch?.pageX,
+        gestureState?.x0,
+        gestureState?.moveX,
+        event.nativeEvent.pageX
+      );
+    }
+
+    return getFiniteNumber(
+      touch?.pageX,
+      gestureState?.moveX,
+      gestureState?.x0,
+      event.nativeEvent.pageX
+    );
+  }
+
+  function getLocationXFromEvent(event, gestureState, touch, phase) {
+    const pageX = getPageXFromEvent(event, gestureState, touch, phase);
+    const locationX = getFiniteNumber(touch?.locationX, event.nativeEvent.locationX);
+
+    if (Number.isFinite(locationX)) {
+      return locationX;
+    }
+
+    if (Number.isFinite(pageX)) {
+      return pageX - sliderPageXRef.current;
+    }
+
+    return null;
+  }
+
   function valueFromPageX(pageX) {
-    if (!sliderWidth) {
+    if (!sliderWidth || !Number.isFinite(pageX)) {
       return dragValueRef.current;
     }
 
@@ -443,28 +490,33 @@ function EnduranceDaysSlider({
     );
   }
 
-  function startDrag(event) {
+  function startDrag(event, gestureState) {
+    measureSliderPageX();
     const touch = getResponderTouch(event);
-    const nextValue = valueFromLocationX(touch?.locationX ?? event.nativeEvent.locationX ?? 0);
+    const nextValue = valueFromLocationX(
+      getLocationXFromEvent(event, gestureState, touch, "start") ?? 0
+    );
+    const pageX = getPageXFromEvent(event, gestureState, touch, "start");
 
     activeTouchIdRef.current = touch?.identifier ?? event.nativeEvent.identifier ?? null;
-    dragStartPageXRef.current = touch?.pageX ?? event.nativeEvent.pageX ?? 0;
+    dragStartPageXRef.current = pageX ?? 0;
     dragStartValueRef.current = nextValue;
     setLiveDragValue(nextValue);
   }
 
-  function updateDrag(event) {
+  function updateDrag(event, gestureState) {
     const touch = getResponderTouch(event);
+    const pageX = getPageXFromEvent(event, gestureState, touch);
 
-    if (!touch) {
+    if (!Number.isFinite(pageX)) {
       return;
     }
 
-    setLiveDragValue(valueFromPageX(touch.pageX));
+    setLiveDragValue(valueFromPageX(pageX));
   }
 
-  function endDrag(event) {
-    updateDrag(event);
+  function endDrag(event, gestureState) {
+    updateDrag(event, gestureState);
     commitDragValue();
     activeTouchIdRef.current = null;
   }
@@ -530,8 +582,12 @@ function EnduranceDaysSlider({
         </View>
 
         <View
+          ref={sliderShellRef}
           style={styles.sliderShell}
-          onLayout={({ nativeEvent }) => setSliderWidth(nativeEvent.layout.width)}
+          onLayout={({ nativeEvent }) => {
+            setSliderWidth(nativeEvent.layout.width);
+            measureSliderPageX();
+          }}
         >
           <View
             style={styles.sliderTouchArea}
