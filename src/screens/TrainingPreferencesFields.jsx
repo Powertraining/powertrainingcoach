@@ -33,15 +33,15 @@ import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenc
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 22;
+const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 21;
 const APP_LOGIC_SECTION_COUNT = 4;
 export const DESIRED_TRAINING_STEP_INDEX = 1;
-export const TRAINING_PHASE_STEP_INDEX = 17;
-export const EVENT_DESCRIPTION_STEP_INDEX = 18;
-export const INJURIES_STEP_INDEX = 20;
-export const LIFT_INTENSITY_METHOD_STEP_INDEX = 22;
-export const PERCENTAGE_REFERENCE_METHOD_STEP_INDEX = 23;
-export const DELOAD_STRATEGY_STEP_INDEX = 24;
+export const TRAINING_PHASE_STEP_INDEX = 16;
+export const EVENT_DESCRIPTION_STEP_INDEX = 17;
+export const INJURIES_STEP_INDEX = 19;
+export const LIFT_INTENSITY_METHOD_STEP_INDEX = 21;
+export const PERCENTAGE_REFERENCE_METHOD_STEP_INDEX = 22;
+export const DELOAD_STRATEGY_STEP_INDEX = 23;
 
 function shouldShowEnduranceMethods(values = {}) {
   return (
@@ -71,15 +71,6 @@ const CAPABILITY_CONFIDENCE_GROUPS = [
           bench: require("../assets/icons/sports/benchPress.png"),
           row: require("../assets/icons/sports/row.png"),
           "overhead press": require("../assets/icons/sports/overheadPress.png"),
-        },
-      },
-      {
-        key: "singleLegLifts",
-        item: TRAINING_CAPABILITY_GROUPS[0].items[1],
-        exerciseImages: {
-          "split squat": require("../assets/icons/sports/splitSquat.png"),
-          lunge: require("../assets/icons/sports/lunge.png"),
-          "step-up": require("../assets/icons/sports/stepUp.png"),
         },
       },
       {
@@ -275,15 +266,14 @@ function preserveExplicitEmptyValues(normalizedValues, sourceValues = {}) {
 
 export const CONFIDENCE_STEP_KEYS = Object.freeze({
   3: "compoundLifts",
-  4: "singleLegLifts",
-  5: "pullingWork",
-  7: "olympicLiftVariations",
-  8: "plyometrics",
-  9: "ballisticTraining",
-  11: "runningSprinting",
-  12: "bikeRowerAssaultBike",
-  13: "circuitTraining",
-  14: "heavyBag",
+  4: "pullingWork",
+  6: "olympicLiftVariations",
+  7: "plyometrics",
+  8: "ballisticTraining",
+  10: "runningSprinting",
+  11: "bikeRowerAssaultBike",
+  12: "circuitTraining",
+  13: "heavyBag",
 });
 
 export function getTrainingPreferencesStepKeys(values = {}) {
@@ -524,6 +514,7 @@ export default function TrainingPreferencesFields({
   function renderCapabilityConfidencePage(page) {
     return (
       <TrainingCapabilityConfidenceView
+        capabilityKey={page.key}
         item={page.item}
         value={values?.trainingCapabilities?.[page.key] ?? null}
         onChange={(sectionValue) => updateNullableCapability(page.key, sectionValue)}

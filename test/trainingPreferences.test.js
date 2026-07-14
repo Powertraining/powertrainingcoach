@@ -124,6 +124,17 @@ test("striking questionnaires retain heavy bag choices", () => {
   assert.equal(normalizedPreferences.trainingCapabilities.heavyBag, "yes");
 });
 
+test("single-leg lift capability defaults to fairly experienced", () => {
+  const formState = getTrainingPreferencesFormState({});
+  const normalizedPreferences = normalizeTrainingPreferences({});
+
+  assert.equal(formState.trainingCapabilities.singleLegLifts, "somewhat");
+  assert.equal(
+    normalizedPreferences.trainingCapabilities.singleLegLifts,
+    "somewhat"
+  );
+});
+
 test("normalizeTrainingPreferences caps endurance sessions at five per week", () => {
   const normalizedPreferences = normalizeTrainingPreferences({
     daysPerWeek: 5,

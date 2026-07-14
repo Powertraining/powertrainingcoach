@@ -102,7 +102,9 @@ export default function InputFormView({
             trainingCapabilities: {
                 ...formState.trainingCapabilities,
                 compoundLifts: initialValues?.trainingCapabilities?.compoundLifts ?? null,
-                singleLegLifts: initialValues?.trainingCapabilities?.singleLegLifts ?? null,
+                singleLegLifts:
+                    initialValues?.trainingCapabilities?.singleLegLifts ??
+                    formState.trainingCapabilities.singleLegLifts,
                 pullingWork: initialValues?.trainingCapabilities?.pullingWork ?? null,
                 olympicLiftVariations: initialValues?.trainingCapabilities?.olympicLiftVariations ?? null,
                 plyometrics: initialValues?.trainingCapabilities?.plyometrics ?? null,
