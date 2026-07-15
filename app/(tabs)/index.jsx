@@ -31,7 +31,6 @@ import ErrorView from "../../src/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
 import SessionMoveCalendar from "../../src/components/planComponents/SessionMoveCalendar.jsx";
-import SessionMoveMethodPicker from "../../src/components/planComponents/SessionMoveMethodPicker.jsx";
 import BlackGradient from "../../src/components/colorComponents/BlackGradient.jsx";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
@@ -117,7 +116,6 @@ const HomeScreen = observer(function HomeScreen() {
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [pushBackTarget, setPushBackTarget] = useState(null);
   const [selectedMoveDate, setSelectedMoveDate] = useState(null);
-  const [moveSessionSheetStep, setMoveSessionSheetStep] = useState("options");
   const [questionnaireNavigatorVisible, setQuestionnaireNavigatorVisible] =
     useState(false);
   const [error, setError] = useState(null);
@@ -223,12 +221,7 @@ const HomeScreen = observer(function HomeScreen() {
 
   useAndroidBackHandler(() => {
     if (pushBackConfirmVisible) {
-      if (moveSessionSheetStep !== "options") {
-        setSelectedMoveDate(null);
-        setMoveSessionSheetStep("options");
-      } else {
-        closePushBackConfirm();
-      }
+      closePushBackConfirm();
       return;
     }
 
@@ -238,7 +231,7 @@ const HomeScreen = observer(function HomeScreen() {
     }
 
     return false;
-  }, [pushBackConfirmVisible, moveSessionSheetStep, step, inputActiveStep]);
+  }, [pushBackConfirmVisible, step, inputActiveStep]);
 
   if (!model.ready) {
     return (
@@ -551,28 +544,6 @@ const HomeScreen = observer(function HomeScreen() {
     }
   }
 
-  async function delayCurrentSession(targetSession = null) {
-    const currentSession = targetSession || getCurrentSession();
-
-    if (!currentSession || pushingBackSession) {
-      return;
-    }
-
-    setPushingBackSession(true);
-
-    try {
-      await model.reportMissedSession?.({
-        weekNumber: currentSession.week,
-        dayNumber: currentSession.day,
-      });
-    } catch (error) {
-      console.error("Could not delay session:", error);
-      model.showError?.(error, "Could not delay this session. Please try again.");
-    } finally {
-      setPushingBackSession(false);
-    }
-  }
-
   function openPushBackConfirm(weekNumber, dayNumber, sourceDate) {
     if (pushingBackSession) {
       return;
@@ -594,7 +565,6 @@ const HomeScreen = observer(function HomeScreen() {
         : null
     );
     setSelectedMoveDate(null);
-    setMoveSessionSheetStep("options");
     setPushBackConfirmVisible(true);
   }
 
@@ -606,7 +576,6 @@ const HomeScreen = observer(function HomeScreen() {
     setPushBackConfirmVisible(false);
     setPushBackTarget(null);
     setSelectedMoveDate(null);
-    setMoveSessionSheetStep("options");
   }
 
   async function confirmPushBackCurrentSession() {
@@ -617,16 +586,6 @@ const HomeScreen = observer(function HomeScreen() {
     setPushBackTarget(null);
     setSelectedMoveDate(null);
     await moveCurrentSession(targetSession, targetDate);
-  }
-
-  async function confirmDelayCurrentSession() {
-    const targetSession = pushBackTarget;
-
-    setPushBackConfirmVisible(false);
-    setPushBackTarget(null);
-    setSelectedMoveDate(null);
-    setMoveSessionSheetStep("options");
-    await delayCurrentSession(targetSession);
   }
 
   if (loading) {
@@ -764,83 +723,38 @@ const HomeScreen = observer(function HomeScreen() {
       <WhiteBottomMenu
         visible={pushBackConfirmVisible}
         onDismiss={closePushBackConfirm}
-        transitionKey={moveSessionSheetStep}
-        transitionDirection={moveSessionSheetStep === "options" ? -1 : 1}
-        title={
-          moveSessionSheetStep === "calendar"
-            ? "Change date"
-            : moveSessionSheetStep === "delayConfirm"
-              ? "Delay session?"
-              : "Move session?"
-        }
-        description={
-          moveSessionSheetStep === "calendar"
-            ? "Choose an exact available date from this training week."
-            : moveSessionSheetStep === "delayConfirm"
-              ? "This moves the session to the next viable training slot and updates the plan around the new date."
-            : "Choose how you want to adjust this session."
-        }
+        title="Reschedule session"
+        description="Choose an exact available date from this training week."
         content={
-          moveSessionSheetStep === "calendar" ? (
-            <SessionMoveCalendar
-              sourceDate={pushBackTarget?.sourceDate}
-              weekStartDate={getPlanWeekStartDate(
-                model.trainingPlan,
-                pushBackTarget?.week
-              )}
-              selectedDate={selectedMoveDate}
-              scheduledDays={
-                model.trainingPlan?.weeks
-                  ?.find((week) => week.week === pushBackTarget?.week)
-                  ?.days?.filter((day) => day.status !== "skipped") || []
-              }
-              onSelectDate={setSelectedMoveDate}
-            />
-          ) : moveSessionSheetStep === "options" ? (
-            <SessionMoveMethodPicker
-              disabled={pushingBackSession}
-              onChangeDate={() => setMoveSessionSheetStep("calendar")}
-              onDelaySession={() => setMoveSessionSheetStep("delayConfirm")}
-            />
-          ) : null
+          <SessionMoveCalendar
+            sourceDate={pushBackTarget?.sourceDate}
+            weekStartDate={getPlanWeekStartDate(
+              model.trainingPlan,
+              pushBackTarget?.week
+            )}
+            selectedDate={selectedMoveDate}
+            scheduledDays={
+              model.trainingPlan?.weeks
+                ?.find((week) => week.week === pushBackTarget?.week)
+                ?.days?.filter((day) => day.status !== "skipped") || []
+            }
+            onSelectDate={setSelectedMoveDate}
+          />
         }
         buttonText={
-          moveSessionSheetStep === "delayConfirm"
-            ? pushingBackSession
-              ? "Updating..."
-              : "Confirm delay"
-            : moveSessionSheetStep === "calendar"
-              ? pushingBackSession
+          pushingBackSession
             ? "Updating..."
             : selectedMoveDate && pushBackTarget?.sourceDate
               ? selectedMoveDate > pushBackTarget.sourceDate
-                ? "Delay session"
+                ? "Reschedule later"
                 : "Move earlier"
               : "Select a day"
-              : undefined
         }
-        buttonDisabled={
-          pushingBackSession ||
-          (moveSessionSheetStep === "calendar" && !selectedMoveDate) ||
-          moveSessionSheetStep === "options"
-        }
-        onButtonPress={
-          moveSessionSheetStep === "delayConfirm"
-            ? confirmDelayCurrentSession
-            : confirmPushBackCurrentSession
-        }
-        secondaryButtonText={
-          moveSessionSheetStep === "options" ? "Cancel" : "Go back"
-        }
+        buttonDisabled={pushingBackSession || !selectedMoveDate}
+        onButtonPress={confirmPushBackCurrentSession}
+        secondaryButtonText="Cancel"
         secondaryButtonDisabled={pushingBackSession}
-        onSecondaryButtonPress={
-          moveSessionSheetStep !== "options"
-            ? () => {
-                setSelectedMoveDate(null);
-                setMoveSessionSheetStep("options");
-              }
-            : closePushBackConfirm
-        }
+        onSecondaryButtonPress={closePushBackConfirm}
       />
       <Modal
         visible={questionnaireNavigatorVisible}

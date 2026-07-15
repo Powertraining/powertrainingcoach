@@ -15,7 +15,6 @@ import {
 import Svg, { Circle, Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import SessionMoveCalendar from "../components/planComponents/SessionMoveCalendar.jsx";
-import SessionMoveMethodPicker from "../components/planComponents/SessionMoveMethodPicker.jsx";
 import ActiveSessionView, {
   getRecommendedLoadKg,
   getRecommendedRepCount,
@@ -828,7 +827,6 @@ export default function ProgramOverviewView({
   onReplaceExercise,
   onFinishDay,
   onMoveDay,
-  onDelayDay,
   getActiveSessionProgress,
   onActiveSessionProgressChange,
   onActiveSessionProgressClear,
@@ -841,7 +839,6 @@ export default function ProgramOverviewView({
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [selectedMoveDate, setSelectedMoveDate] = useState(null);
-  const [moveSessionSheetStep, setMoveSessionSheetStep] = useState("options");
   const [rescheduleInfoVisible, setRescheduleInfoVisible] = useState(false);
   const [completeConfirmVisible, setCompleteConfirmVisible] = useState(false);
   const [activeSessionDay, setActiveSessionDay] = useState(null);
@@ -924,12 +921,7 @@ export default function ProgramOverviewView({
     }
 
     if (pushBackConfirmVisible) {
-      if (moveSessionSheetStep !== "options") {
-        setSelectedMoveDate(null);
-        setMoveSessionSheetStep("options");
-      } else {
-        closePushBackConfirm();
-      }
+      closePushBackConfirm();
       return;
     }
 
@@ -970,7 +962,6 @@ export default function ProgramOverviewView({
     detailsVisible,
     exerciseLogSheet,
     pushBackConfirmVisible,
-    moveSessionSheetStep,
     rescheduleInfoVisible,
     launchGatePromptKey,
     selectedArchivedDay,
@@ -1251,7 +1242,7 @@ export default function ProgramOverviewView({
   const showStartButton = showSelectedTrainingActions;
   const showCompleteButton = showSelectedTrainingActions && Boolean(onFinishDay);
   const showPushBackButton =
-    showSelectedTrainingActions && Boolean(onMoveDay || onDelayDay);
+    showSelectedTrainingActions && Boolean(onMoveDay);
   const hasKnownSelectedCardContent =
     showStartButton ||
     showCompletedSessionStatus ||
@@ -1628,14 +1619,12 @@ export default function ProgramOverviewView({
     }
 
     setSelectedMoveDate(null);
-    setMoveSessionSheetStep("options");
     setPushBackConfirmVisible(true);
   }
 
   function closePushBackConfirm() {
     setPushBackConfirmVisible(false);
     setSelectedMoveDate(null);
-    setMoveSessionSheetStep("options");
   }
 
   function openRescheduleInfo() {
@@ -1654,14 +1643,6 @@ export default function ProgramOverviewView({
     setPushBackConfirmVisible(false);
     onMoveDay?.(selectedMoveDate);
     setSelectedMoveDate(null);
-    setMoveSessionSheetStep("options");
-  }
-
-  function confirmDelaySession() {
-    setPushBackConfirmVisible(false);
-    setSelectedMoveDate(null);
-    setMoveSessionSheetStep("options");
-    onDelayDay?.();
   }
 
   function openCompleteConfirm() {
@@ -1989,7 +1970,7 @@ export default function ProgramOverviewView({
                     </TouchableOpacity>
                     {showPushBackButton ? (
                       <TouchableOpacity
-                        accessibilityLabel="Move session to another day"
+                        accessibilityLabel="Reschedule session"
                         accessibilityRole="button"
                         activeOpacity={0.78}
                         disabled={updatingPlan}
@@ -2264,79 +2245,34 @@ export default function ProgramOverviewView({
       <WhiteBottomMenu
         visible={pushBackConfirmVisible}
         onDismiss={closePushBackConfirm}
-        transitionKey={moveSessionSheetStep}
-        transitionDirection={moveSessionSheetStep === "options" ? -1 : 1}
-        title={
-          moveSessionSheetStep === "calendar"
-            ? "Change date"
-            : moveSessionSheetStep === "delayConfirm"
-              ? "Delay session?"
-              : "Move session?"
-        }
-        description={
-          moveSessionSheetStep === "calendar"
-            ? "Choose an exact available date from this training week."
-            : moveSessionSheetStep === "delayConfirm"
-              ? "This moves the session to the next viable training slot and updates the plan around the new date."
-            : "Choose how you want to adjust this session."
-        }
+        title="Reschedule session"
+        description="Choose an exact available date from this training week."
         content={
-          moveSessionSheetStep === "calendar" ? (
-            <SessionMoveCalendar
-              sourceDate={selectedTrainingSlot?.date}
-              weekStartDate={getPlanWeekStartDate(plan, activeSelectedDay?.week)}
-              selectedDate={selectedMoveDate}
-              scheduledDays={
-                moveWeek?.days
-                  ?.filter((day) => day.status !== "skipped") || []
-              }
-              onSelectDate={setSelectedMoveDate}
-            />
-          ) : moveSessionSheetStep === "options" ? (
-            <SessionMoveMethodPicker
-              disabled={updatingPlan}
-              onChangeDate={() => setMoveSessionSheetStep("calendar")}
-              onDelaySession={() => setMoveSessionSheetStep("delayConfirm")}
-            />
-          ) : null
+          <SessionMoveCalendar
+            sourceDate={selectedTrainingSlot?.date}
+            weekStartDate={getPlanWeekStartDate(plan, activeSelectedDay?.week)}
+            selectedDate={selectedMoveDate}
+            scheduledDays={
+              moveWeek?.days
+                ?.filter((day) => day.status !== "skipped") || []
+            }
+            onSelectDate={setSelectedMoveDate}
+          />
         }
         buttonText={
-          moveSessionSheetStep === "delayConfirm"
-            ? updatingPlan
-              ? "Updating..."
-              : "Confirm delay"
-            : moveSessionSheetStep === "calendar"
-              ? updatingPlan
+          updatingPlan
             ? "Updating..."
             : selectedMoveDate && selectedTrainingSlot?.date
               ? selectedMoveDate > selectedTrainingSlot.date
-                ? "Delay session"
+                ? "Reschedule later"
                 : "Move earlier"
               : "Select a day"
-              : undefined
         }
-        buttonDisabled={
-          updatingPlan ||
-          (moveSessionSheetStep === "calendar" && !selectedMoveDate) ||
-          moveSessionSheetStep === "options"
-        }
-        onButtonPress={
-          moveSessionSheetStep === "delayConfirm"
-            ? confirmDelaySession
-            : confirmPushBack
-        }
-        secondaryButtonText={
-          moveSessionSheetStep === "options" ? "Cancel" : "Go back"
-        }
+        buttonDisabled={updatingPlan || !selectedMoveDate}
+        onButtonPress={confirmPushBack}
+        secondaryButtonText="Cancel"
         secondaryButtonDisabled={updatingPlan}
-        onSecondaryButtonPress={
-          moveSessionSheetStep !== "options"
-            ? () => {
-                setSelectedMoveDate(null);
-                setMoveSessionSheetStep("options");
-              }
-            : closePushBackConfirm
-        }
+        onSecondaryButtonPress={closePushBackConfirm}
       />
       <WhiteBottomMenu
         visible={completeConfirmVisible}

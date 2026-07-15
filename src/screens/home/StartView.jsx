@@ -962,7 +962,7 @@ function HomePlanSchedule({
                                 {canMoveSelectedSession ? (
                                     <TouchableOpacity
                                         activeOpacity={0.78}
-                                        accessibilityLabel="Move session to another day"
+                                        accessibilityLabel="Reschedule session"
                                         onPress={openMoveSessionCalendar}
                                         style={[
                                             styles.moveSessionButton,
@@ -976,7 +976,7 @@ function HomePlanSchedule({
                                             minimumFontScale={0.72}
                                             style={styles.moveSessionButtonText}
                                         >
-                                            Move session
+                                            Reschedule
                                         </IBMPlexText>
                                     </TouchableOpacity>
                                 ) : null}

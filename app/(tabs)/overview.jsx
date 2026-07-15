@@ -371,26 +371,6 @@ const OverviewScreen = observer(function OverviewScreen() {
     }
   }
 
-  async function handleDelayDay() {
-    if (!selectedDay || updatingPlan) {
-      return;
-    }
-
-    setUpdatingPlan(true);
-
-    try {
-      await model.reportMissedSession?.({
-        weekNumber: selectedDay.week,
-        dayNumber: selectedDay.day,
-      });
-      setSelectedDayPointer(null);
-    } catch (error) {
-      console.error("Could not delay session:", error);
-    } finally {
-      setUpdatingPlan(false);
-    }
-  }
-
   function handleFinishDay(trackedResults = []) {
     if (!selectedDay) return;
 
@@ -486,7 +466,6 @@ const OverviewScreen = observer(function OverviewScreen() {
         onReplaceExercise={handleReplaceExercise}
         onFinishDay={handleFinishDay}
         onMoveDay={handleMoveDay}
-        onDelayDay={handleDelayDay}
         getActiveSessionProgress={getActiveSessionProgress}
         onActiveSessionProgressChange={handleActiveSessionProgressChange}
         onActiveSessionProgressClear={handleActiveSessionProgressClear}
