@@ -30,10 +30,7 @@ export default function TrainingPreferencesHybridSessionStructureView({
     <View style={[styles.container, { minHeight: screenHeight }]}>
       <View style={styles.header}>
         <IBMPlexText titleBlock height={112}>
-          How do you want to schedule power and endurance?
-        </IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.helperText} center>
-          Choose whether they should have their own training days or share a session.
+          How do you want to organize your power and endurance training?
         </IBMPlexText>
       </View>
 
@@ -107,14 +104,6 @@ const styles = StyleSheet.create({
   header: {
     alignSelf: "stretch",
   },
-  helperText: {
-    alignSelf: "center",
-    color: "#9A9AA2",
-    fontSize: 15,
-    lineHeight: 20,
-    maxWidth: 340,
-    width: "90%",
-  },
   options: {
     alignSelf: "stretch",
     bottom: 104,
@@ -131,7 +120,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     gap: 14,
-    minHeight: 108,
+    minHeight: 144,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },

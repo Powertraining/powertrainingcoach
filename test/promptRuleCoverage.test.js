@@ -33,7 +33,7 @@ test("training prompt embeds the key striking and percentage instruction rules",
   );
   assert.match(
     prompt,
-    /"method" must be exactly one of "multi_rm" or "true_1rm"/i
+    /missing-max bridge work.*"rpe_based_1rm".*scheduled RM tests.*"multi_rm" or "true_1rm"/i
   );
 });
 
@@ -298,6 +298,23 @@ test("training prompt instructs true 1RM to be blocked for beginners and near co
 
   assert.match(prompt, /intermediate\/advanced/i);
   assert.match(prompt, /never within 8 weeks of competition/i);
+});
+
+test("percentage prompt bridges missing Program Maxes through Week 1 RPE estimates", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "BJJ",
+    daysPerWeek: 3,
+    experience: "intermediate",
+    liftIntensityMethod: "percentage",
+    percentageReferenceMethod: "multi_rm",
+  });
+
+  assert.match(prompt, /Missing Program Max/i);
+  assert.match(prompt, /Week 1/i);
+  assert.match(prompt, /strengthAssessment.*rpe_based_1rm/i);
+  assert.match(prompt, /RPE 7-9.*3-10 reps/i);
+  assert.match(prompt, /90% of estimated 1RM/i);
+  assert.match(prompt, /strengthAssessmentSummary/i);
 });
 
 test("training prompt includes session spacing advisory for same-day or back-to-back sessions", () => {

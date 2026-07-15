@@ -48,11 +48,12 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Percentage-based working sets must show both percent1RM and relativeIntensity for rep targets from 1-10 using the standard rep-max table.
 - If reps fall outside 1-10, keep percent1RM and omit relativeIntensity instead of inventing one.
 - Accessories, most rows, RDL-style secondary work, isolation lifts, and stability drills stay on RPE, RIR, feel, time, or quality-based notes even if the athlete selected percentage loading.`,
-  // ARCHIVED: rpe_based_1rm (RPE-based 1RM estimation) — do not restore without updating the prompt instructions.
   rm_attempts: `# Strength-reference rules
-- Percentage-based plans must respect percentageReferenceMethod. Only multi_rm and true_1rm are active; rpe_based_1rm is archived — never prescribe it.
-- Missing Program Max: if a required primary lift has no Program Max in the user input, do not block the program or dedicate any session to establishing one. Prescribe RPE-based loading for that lift only (no percentagePrescription). Use RPE 7–8 at 3–6 reps so the app can estimate a Program Max from the logged data. Start normal training immediately.
-- Known Program Max: if a Program Max is available for a primary lift, use percentage-based loading from the very first week with no preamble or assessment session.
+- Percentage-based plans must respect percentageReferenceMethod for deliberate max tests. multi_rm and true_1rm are scheduled assessments; rpe_based_1rm is used only as the temporary missing-Program-Max bridge.
+- Missing Program Max: if a required primary lift has no Program Max in the user input or strengthAssessmentSummary, do not block the program and do not invent percentage loading. In Week 1, prescribe normal RPE-based loading for that lift only (no percentagePrescription) and include strengthAssessment.method "rpe_based_1rm" so the app can collect load, reps, and RPE from the logged set.
+- Missing-max RPE estimate sets should use RPE 7–9 and 3–10 reps, with 3–5 reps preferred for main strength lifts. The app estimates 1RM by adding reps in reserve from RPE, then sets Program Max to 90% of estimated 1RM.
+- Once strengthAssessmentSummary contains a Program Max/trainingMaxKg for that lift, treat the max as known and switch that lift to percentage-based loading from the next generated exposure.
+- Known Program Max: if a Program Max is available for a primary lift, use percentage-based loading from the first generated exposure with no preamble or assessment session.
 - Only main primary lifts (back squat, front squat, bench press, deadlift, overhead press, and similar) need a Program Max. Accessories, isolation exercises, plyos, throws, and conditioning never require one.
 - multi_rm: prescribe a hard top set of 2–5 reps @RPE 9–10. Schedule every 4–6 weeks in off-season or early/mid camp. Block in the final 5 weeks before competition.
 - true_1rm: rare; only for intermediate/advanced athletes confirmed to be in an off-season or general strength phase; never within 8 weeks of competition; max one true 1RM test per week across all lifts.

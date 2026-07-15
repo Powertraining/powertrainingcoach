@@ -50,16 +50,16 @@ export const DESIRED_TRAINING_OPTIONS = Object.freeze([
 
 export const HYBRID_SESSION_STRUCTURE_OPTIONS = Object.freeze([
   {
-    label: "Separate sessions (Recommended)",
+    label: "Separate Sessions — Recommended",
     value: "separate_sessions",
     description:
-      "Keep power and endurance on different training days for better quality and recovery.",
+      "Power and endurance are trained in different sessions or on different days when possible. This is the recommended option because it helps preserve explosive quality, reduces interference, and makes each session more focused.",
   },
   {
-    label: "Same session",
+    label: "Same Session",
     value: "same_session",
     description:
-      "Train both in one session, with power and strength before endurance work.",
+      "Power and endurance are included in the same workout. This is useful when you have limited training days, but the session will be structured carefully: power comes first while you are fresh, and conditioning comes later.",
   },
 ]);
 
