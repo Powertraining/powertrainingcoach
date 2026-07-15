@@ -57,6 +57,11 @@ export default function InputFormView({
             ...formState,
             experience: getNullableInitialValue(initialValues, formState, "experience"),
             desiredTraining: getNullableInitialValue(initialValues, formState, "desiredTraining"),
+            hybridSessionStructure: getNullableInitialValue(
+                initialValues,
+                formState,
+                "hybridSessionStructure"
+            ),
             preferredEnduranceModalities: hasInitialValue(
                 initialValues,
                 "preferredEnduranceModalities"
@@ -102,14 +107,24 @@ export default function InputFormView({
             trainingCapabilities: {
                 ...formState.trainingCapabilities,
                 compoundLifts: initialValues?.trainingCapabilities?.compoundLifts ?? null,
-                singleLegLifts: initialValues?.trainingCapabilities?.singleLegLifts ?? null,
+                singleLegLifts:
+                    initialValues?.trainingCapabilities?.singleLegLifts ??
+                    formState.trainingCapabilities.singleLegLifts,
                 pullingWork: initialValues?.trainingCapabilities?.pullingWork ?? null,
                 olympicLiftVariations: initialValues?.trainingCapabilities?.olympicLiftVariations ?? null,
                 plyometrics: initialValues?.trainingCapabilities?.plyometrics ?? null,
-                ballisticTraining: initialValues?.trainingCapabilities?.ballisticTraining ?? null,
-                runningSprinting: initialValues?.trainingCapabilities?.runningSprinting ?? null,
-                bikeRowerAssaultBike: initialValues?.trainingCapabilities?.bikeRowerAssaultBike ?? null,
-                circuitTraining: initialValues?.trainingCapabilities?.circuitTraining ?? null,
+                ballisticTraining:
+                    initialValues?.trainingCapabilities?.ballisticTraining ??
+                    formState.trainingCapabilities.ballisticTraining,
+                runningSprinting:
+                    initialValues?.trainingCapabilities?.runningSprinting ??
+                    formState.trainingCapabilities.runningSprinting,
+                bikeRowerAssaultBike:
+                    initialValues?.trainingCapabilities?.bikeRowerAssaultBike ??
+                    formState.trainingCapabilities.bikeRowerAssaultBike,
+                circuitTraining:
+                    initialValues?.trainingCapabilities?.circuitTraining ??
+                    formState.trainingCapabilities.circuitTraining,
                 heavyBag: initialValues?.trainingCapabilities?.heavyBag ?? null,
             },
         };
@@ -128,6 +143,10 @@ export default function InputFormView({
     );
     const isDesiredTrainingStep = activeStepKey === "desiredTraining";
     const desiredTrainingStepSelected = Boolean(trainingPreferences.desiredTraining);
+    const isHybridSessionStructureStep = activeStepKey === "hybridSessionStructure";
+    const hybridSessionStructureStepSelected = Boolean(
+        trainingPreferences.hybridSessionStructure
+    );
     const isTrainingPhaseStep = activeStepKey === "trainingPhase";
     const trainingPhaseStepSelected = Boolean(trainingPreferences.trainingPhase);
     const isEventDescriptionStep = activeStepKey === "eventDescription";
@@ -155,6 +174,7 @@ export default function InputFormView({
     const requiresSelection =
         Boolean(activeConfidenceKey) ||
         isDesiredTrainingStep ||
+        isHybridSessionStructureStep ||
         isTrainingPhaseStep ||
         isEventDescriptionStep ||
         isLiftIntensityMethodStep ||
@@ -163,6 +183,7 @@ export default function InputFormView({
     const canContinue =
         activeConfidenceKey ? confidenceStepSelected :
             isDesiredTrainingStep ? desiredTrainingStepSelected :
+                isHybridSessionStructureStep ? hybridSessionStructureStepSelected :
                 isTrainingPhaseStep ? trainingPhaseStepSelected :
                     isEventDescriptionStep ? eventDescriptionStepSelected :
                         isLiftIntensityMethodStep ? liftIntensityMethodStepSelected :
@@ -228,7 +249,18 @@ export default function InputFormView({
             return;
         }
 
-        if (isDesiredTrainingStep && onDesiredTrainingContinue) {
+        if (
+            isDesiredTrainingStep &&
+            trainingPreferences.desiredTraining === "strength_power_endurance"
+        ) {
+            updateActiveStep((currentStep) => currentStep + 1);
+            return;
+        }
+
+        if (
+            (isDesiredTrainingStep || isHybridSessionStructureStep) &&
+            onDesiredTrainingContinue
+        ) {
             const nextStep = activeStep + 1;
             onActiveStepChange?.(nextStep);
             onDesiredTrainingContinue(nextStep);
@@ -247,7 +279,10 @@ export default function InputFormView({
             return;
         }
 
-        if (activeStep === 2 && onBackToFrequency) {
+        const firstStepAfterFrequency =
+            trainingPreferences.desiredTraining === "strength_power_endurance" ? 3 : 2;
+
+        if (activeStep === firstStepAfterFrequency && onBackToFrequency) {
             onBackToFrequency(activeStep);
             return;
         }

@@ -36,6 +36,10 @@ const OverviewScreen = observer(function OverviewScreen() {
   const lastRouteSelectedDayRef = useRef("");
   const suppressAutoSelectRef = useRef(false);
 
+  useEffect(() => {
+    model.restoreRemovedManualSessionMerges?.();
+  }, [model, model.trainingPlan]);
+
   function getParamValue(value) {
     return Array.isArray(value) ? value[0] : value;
   }
@@ -237,10 +241,12 @@ const OverviewScreen = observer(function OverviewScreen() {
   function handleSelectDay(weekNumber, dayNumber) {
     if (!plan) return;
 
-    const week = plan.weeks.find((w) => w.week === weekNumber);
+    const weeks = Array.isArray(plan.weeks) ? plan.weeks : [];
+    const week = weeks.find((w) => w.week === weekNumber);
     if (!week) return;
 
-    const day = week.days.find((d) => d.day === dayNumber);
+    const days = Array.isArray(week.days) ? week.days : [];
+    const day = days.find((d) => d.day === dayNumber);
     if (!day) return;
 
     suppressAutoSelectRef.current = false;
@@ -344,21 +350,22 @@ const OverviewScreen = observer(function OverviewScreen() {
     );
   }
 
-  async function handleMissedDay() {
-    if (!selectedDay || updatingPlan) {
+  async function handleMoveDay(targetDate) {
+    if (!selectedDay || !(targetDate instanceof Date) || updatingPlan) {
       return;
     }
 
     setUpdatingPlan(true);
 
     try {
-      await model.reportMissedSession?.({
+      await model.moveTrainingSession?.({
         weekNumber: selectedDay.week,
         dayNumber: selectedDay.day,
+        targetDate,
+        targetWeekday: getWeekdayNameFromIndex(targetDate.getDay()),
       });
-      setSelectedDayPointer(null);
     } catch (error) {
-      console.error("Could not update missed session logic:", error);
+      console.error("Could not move session:", error);
     } finally {
       setUpdatingPlan(false);
     }
@@ -458,7 +465,7 @@ const OverviewScreen = observer(function OverviewScreen() {
         onClearSelectedDay={handleClearSelectedDay}
         onReplaceExercise={handleReplaceExercise}
         onFinishDay={handleFinishDay}
-        onMissedDay={handleMissedDay}
+        onMoveDay={handleMoveDay}
         getActiveSessionProgress={getActiveSessionProgress}
         onActiveSessionProgressChange={handleActiveSessionProgressChange}
         onActiveSessionProgressClear={handleActiveSessionProgressClear}

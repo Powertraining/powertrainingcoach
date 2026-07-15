@@ -3,9 +3,102 @@ import assert from "node:assert/strict";
 
 import {
   applyMissedSessionAdjustment,
+  applyTrainingSessionMove,
   getClosestActiveTrainingDay,
   getCurrentTrainingDay,
+  normalizeTrainingPlan,
 } from "../src/services/utils/trainingPlan.js";
+
+test("a session can be moved to an exact free day earlier or later in its week", () => {
+  const laterMove = applyTrainingSessionMove(createPlan(2, 1), {
+    weekNumber: 1,
+    dayNumber: 1,
+    targetWeekday: "Tuesday",
+  });
+  const movedLaterDay = laterMove.plan.weeks[0].days[0];
+
+  assert.equal(laterMove.action, "move_session");
+  assert.equal(movedLaterDay.preferredWeekday, "Tuesday");
+  assert.equal(movedLaterDay.status, "rescheduled");
+  assert.equal(movedLaterDay.rescueMode, "manual_move");
+
+  const earlierMove = applyTrainingSessionMove(laterMove.plan, {
+    weekNumber: 1,
+    dayNumber: 2,
+    targetWeekday: "Monday",
+  });
+
+  assert.equal(earlierMove.action, "move_session");
+  assert.equal(earlierMove.plan.weeks[0].days[1].preferredWeekday, "Monday");
+});
+
+test("an exact session move cannot overwrite another scheduled session", () => {
+  const result = applyTrainingSessionMove(createPlan(3, 1), {
+    weekNumber: 1,
+    dayNumber: 1,
+    targetWeekday: "Wednesday",
+  });
+
+  assert.equal(result.action, "target_occupied");
+  assert.equal(result.plan.weeks[0].days[0].preferredWeekday, "Monday");
+});
+
+test("an exact session move stays in its training week and cannot move into the past", () => {
+  const plan = {
+    ...createPlan(2, 2),
+    createdAt: "2026-07-15T10:00:00",
+  };
+  const pastResult = applyTrainingSessionMove(plan, {
+    weekNumber: 1,
+    dayNumber: 1,
+    targetDate: new Date("2026-07-16T10:00:00"),
+    today: new Date("2026-07-17T10:00:00"),
+  });
+  const outsideWeekResult = applyTrainingSessionMove(plan, {
+    weekNumber: 1,
+    dayNumber: 1,
+    targetDate: new Date("2026-07-22T10:00:00"),
+    today: new Date("2026-07-15T10:00:00"),
+  });
+
+  assert.equal(pastResult.action, "target_in_past");
+  assert.equal(outsideWeekResult.action, "target_outside_week");
+});
+
+test("plans saved during the removed merge experiment restore the pre-merge week", () => {
+  const originalWeek = createPlan(2, 1).weeks[0];
+  const persistedMergedPlan = {
+    weeks: [
+      {
+        week: 1,
+        adjustmentState: {
+          lastAction: "manual_merge",
+          originalWeekSnapshot: originalWeek,
+        },
+        days: [
+          { ...originalWeek.days[0], status: "skipped", exercises: [] },
+          {
+            ...originalWeek.days[1],
+            rescueMode: "manual_merge",
+            exercises: [
+              ...originalWeek.days[1].exercises,
+              ...originalWeek.days[0].exercises,
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const restoredPlan = normalizeTrainingPlan(persistedMergedPlan);
+
+  assert.equal(restoredPlan.weeks[0].days[0].status, "pending");
+  assert.equal(
+    restoredPlan.weeks[0].days[0].exercises.length,
+    originalWeek.days[0].exercises.length
+  );
+  assert.equal(restoredPlan.weeks[0].days[1].rescueMode, "");
+});
 
 function createExercise(name, notes = "") {
   return {

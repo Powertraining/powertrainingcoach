@@ -30,11 +30,14 @@ import LoadingView from "../../src/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
+import SessionMoveCalendar from "../../src/components/planComponents/SessionMoveCalendar.jsx";
 import BlackGradient from "../../src/components/colorComponents/BlackGradient.jsx";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
+import { getWeekdayNameFromIndex } from "../../src/constants/weekdays.js";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
+import { getPlanWeekStartDate } from "../../src/services/utils/programOverview.js";
 import { getParamValue } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
@@ -112,10 +115,15 @@ const HomeScreen = observer(function HomeScreen() {
   const [pushingBackSession, setPushingBackSession] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [pushBackTarget, setPushBackTarget] = useState(null);
+  const [selectedMoveDate, setSelectedMoveDate] = useState(null);
   const [questionnaireNavigatorVisible, setQuestionnaireNavigatorVisible] =
     useState(false);
   const [error, setError] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
+
+  useEffect(() => {
+    model.restoreRemovedManualSessionMerges?.();
+  }, [model, model.trainingPlan]);
 
   function getSafeResumeStep() {
     const resume = getParamValue(params.resume);
@@ -210,6 +218,20 @@ const HomeScreen = observer(function HomeScreen() {
       model.setPlanGenerationTabBarHidden?.(false);
     };
   }, [loading, model]);
+
+  useAndroidBackHandler(() => {
+    if (pushBackConfirmVisible) {
+      closePushBackConfirm();
+      return;
+    }
+
+    if (step === STEPS.Q_SPORT || step === STEPS.Q_FREQ) {
+      goBack();
+      return;
+    }
+
+    return false;
+  }, [pushBackConfirmVisible, step, inputActiveStep]);
 
   if (!model.ready) {
     return (
@@ -308,20 +330,6 @@ const HomeScreen = observer(function HomeScreen() {
 
     setQuestionnaireStep(item.step);
   }
-
-  useAndroidBackHandler(() => {
-    if (pushBackConfirmVisible) {
-      closePushBackConfirm();
-      return;
-    }
-
-    if (step === STEPS.Q_SPORT || step === STEPS.Q_FREQ) {
-      goBack();
-      return;
-    }
-
-    return false;
-  }, [pushBackConfirmVisible, step, inputActiveStep]);
 
   function buildQuestionnairePayload(input, pendingPlanGeneration) {
     const sessionsPerWeek =
@@ -512,29 +520,31 @@ const HomeScreen = observer(function HomeScreen() {
     router.push("/(tabs)/profile-injuries");
   }
 
-  async function pushBackCurrentSession(targetSession = null) {
+  async function moveCurrentSession(targetSession = null, targetDate = null) {
     const currentSession = targetSession || getCurrentSession();
 
-    if (!currentSession || pushingBackSession) {
+    if (!currentSession || !targetDate || pushingBackSession) {
       return;
     }
 
     setPushingBackSession(true);
 
     try {
-      await model.reportMissedSession?.({
+      await model.moveTrainingSession?.({
         weekNumber: currentSession.week,
         dayNumber: currentSession.day,
+        targetDate,
+        targetWeekday: getWeekdayNameFromIndex(targetDate.getDay()),
       });
     } catch (error) {
-      console.error("Could not update missed session logic:", error);
-      model.showError?.(error, "Could not push this session back. Please try again.");
+      console.error("Could not move session:", error);
+      model.showError?.(error, "Could not move this session. Please try again.");
     } finally {
       setPushingBackSession(false);
     }
   }
 
-  function openPushBackConfirm(weekNumber, dayNumber) {
+  function openPushBackConfirm(weekNumber, dayNumber, sourceDate) {
     if (pushingBackSession) {
       return;
     }
@@ -547,9 +557,14 @@ const HomeScreen = observer(function HomeScreen() {
         ? {
             week: parsedWeekNumber,
             day: parsedDayNumber,
+            sourceDate:
+              sourceDate instanceof Date && !Number.isNaN(sourceDate.getTime())
+                ? new Date(sourceDate)
+                : new Date(),
           }
         : null
     );
+    setSelectedMoveDate(null);
     setPushBackConfirmVisible(true);
   }
 
@@ -560,14 +575,17 @@ const HomeScreen = observer(function HomeScreen() {
 
     setPushBackConfirmVisible(false);
     setPushBackTarget(null);
+    setSelectedMoveDate(null);
   }
 
   async function confirmPushBackCurrentSession() {
     const targetSession = pushBackTarget;
+    const targetDate = selectedMoveDate;
 
     setPushBackConfirmVisible(false);
     setPushBackTarget(null);
-    await pushBackCurrentSession(targetSession);
+    setSelectedMoveDate(null);
+    await moveCurrentSession(targetSession, targetDate);
   }
 
   if (loading) {
@@ -612,7 +630,7 @@ const HomeScreen = observer(function HomeScreen() {
         onResetUserProgress={resetUserProgressForTesting}
         onAdjustPlan={openPlanAdjustments}
         onOpenWellness={openReportInjury}
-        onMoveSessionLater={openPushBackConfirm}
+        onMoveSession={openPushBackConfirm}
       />
     ),
 
@@ -705,10 +723,34 @@ const HomeScreen = observer(function HomeScreen() {
       <WhiteBottomMenu
         visible={pushBackConfirmVisible}
         onDismiss={closePushBackConfirm}
-        title="Move session forward?"
-        description="This moves the session forward and updates the plan around the missed slot."
-        buttonText={pushingBackSession ? "Updating..." : "Move 2 days forward"}
-        buttonDisabled={pushingBackSession}
+        title="Reschedule session"
+        description="Choose an exact available date from this training week."
+        content={
+          <SessionMoveCalendar
+            sourceDate={pushBackTarget?.sourceDate}
+            weekStartDate={getPlanWeekStartDate(
+              model.trainingPlan,
+              pushBackTarget?.week
+            )}
+            selectedDate={selectedMoveDate}
+            scheduledDays={
+              model.trainingPlan?.weeks
+                ?.find((week) => week.week === pushBackTarget?.week)
+                ?.days?.filter((day) => day.status !== "skipped") || []
+            }
+            onSelectDate={setSelectedMoveDate}
+          />
+        }
+        buttonText={
+          pushingBackSession
+            ? "Updating..."
+            : selectedMoveDate && pushBackTarget?.sourceDate
+              ? selectedMoveDate > pushBackTarget.sourceDate
+                ? "Reschedule later"
+                : "Move earlier"
+              : "Select a day"
+        }
+        buttonDisabled={pushingBackSession || !selectedMoveDate}
         onButtonPress={confirmPushBackCurrentSession}
         secondaryButtonText="Cancel"
         secondaryButtonDisabled={pushingBackSession}

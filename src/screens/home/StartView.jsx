@@ -523,7 +523,7 @@ function HomePlanSchedule({
     completedDays,
     activeSessionProgressByKey,
     completedSessionProgressByKey,
-    onMoveSessionLater,
+    onMoveSession,
     onOpenOverview,
     onStartSession,
 }) {
@@ -711,10 +711,11 @@ function HomePlanSchedule({
         selectedHeaderDay &&
         selectedScheduleSlot?.weekNumber &&
         !selectedDayIsPushedBack;
-    const canMoveSelectedSessionForward =
+    const canMoveSelectedSession =
         canUseSelectedSession &&
         !selectedDayIsComplete &&
-        Boolean(onMoveSessionLater);
+        selectedHeaderDate >= today &&
+        Boolean(onMoveSession);
     const primarySessionActionLabel =
         selectedDayIsComplete
             ? "Open session"
@@ -744,12 +745,16 @@ function HomePlanSchedule({
         onStartSession?.(selectedScheduleSlot.weekNumber, selectedHeaderDay.day);
     }
 
-    function moveSelectedSessionForward() {
+    function openMoveSessionCalendar() {
         if (!selectedHeaderDay || !selectedScheduleSlot?.weekNumber) {
             return;
         }
 
-        onMoveSessionLater?.(selectedScheduleSlot.weekNumber, selectedHeaderDay.day);
+        onMoveSession?.(
+            selectedScheduleSlot.weekNumber,
+            selectedHeaderDay.day,
+            selectedHeaderDate
+        );
     }
 
     return (
@@ -954,10 +959,11 @@ function HomePlanSchedule({
                     <View style={styles.sessionMoveRow}>
                         {canUseSelectedSession ? (
                             <>
-                                {canMoveSelectedSessionForward ? (
+                                {canMoveSelectedSession ? (
                                     <TouchableOpacity
                                         activeOpacity={0.78}
-                                        onPress={moveSelectedSessionForward}
+                                        accessibilityLabel="Reschedule session"
+                                        onPress={openMoveSessionCalendar}
                                         style={[
                                             styles.moveSessionButton,
                                             styles.moveSessionButtonSecondary,
@@ -970,7 +976,7 @@ function HomePlanSchedule({
                                             minimumFontScale={0.72}
                                             style={styles.moveSessionButtonText}
                                         >
-                                            Push back
+                                            Reschedule
                                         </IBMPlexText>
                                     </TouchableOpacity>
                                 ) : null}
@@ -1037,7 +1043,7 @@ export default function StartView({
     onOpenOverview,
     onAdjustPlan,
     onOpenWellness,
-    onMoveSessionLater,
+    onMoveSession,
     onNavigateQuestionnaire,
     onResetUserProgress,
 }) {
@@ -1090,7 +1096,7 @@ export default function StartView({
                                     completedDays={completedDays}
                                     activeSessionProgressByKey={activeSessionProgressByKey}
                                     completedSessionProgressByKey={completedSessionProgressByKey}
-                                    onMoveSessionLater={onMoveSessionLater}
+                                    onMoveSession={onMoveSession}
                                     onOpenOverview={onOpenOverview}
                                     onStartSession={onStartSession}
                                 />

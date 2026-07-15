@@ -24,6 +24,24 @@ function shouldAskProgressQuestion(prompt = {}) {
   return (Number.parseInt(prompt.weekNumber, 10) || 0) >= 2;
 }
 
+function getReviewPeriodLabel(prompt = {}) {
+  if (prompt.type !== "end_of_block" || !Array.isArray(prompt.weeksInScope)) {
+    return "";
+  }
+
+  const weeks = prompt.weeksInScope
+    .map((week) => Number.parseInt(week, 10))
+    .filter((week) => Number.isFinite(week));
+
+  if (weeks.length === 0) {
+    return "";
+  }
+
+  return weeks.length === 1
+    ? `Week ${weeks[0]}`
+    : `Weeks ${Math.min(...weeks)}-${Math.max(...weeks)}`;
+}
+
 function ChoiceGroup({ label, value, options, onChange }) {
   return (
     <View style={styles.group}>
@@ -86,12 +104,23 @@ export default function TrainingCheckInCard({
   }
 
   const showProgressQuestion = shouldAskProgressQuestion(prompt);
+  const isBlockReview = prompt.type === "end_of_block";
+  const reviewPeriodLabel = getReviewPeriodLabel(prompt);
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <IBMPlexText style={styles.eyebrow}>{prompt.type === "end_of_block" ? "Block Review" : "Weekly Review"}</IBMPlexText>
+        <IBMPlexText style={styles.eyebrow}>
+          {isBlockReview ? "Program Review" : "Weekly Review"}
+        </IBMPlexText>
         <IBMPlexText style={styles.title}>{prompt.title}</IBMPlexText>
+        {reviewPeriodLabel ? (
+          <View style={styles.reviewPeriodBadge}>
+            <IBMPlexText style={styles.reviewPeriodText}>
+              {reviewPeriodLabel} complete
+            </IBMPlexText>
+          </View>
+        ) : null}
         <IBMPlexText style={styles.description}>{prompt.summary}</IBMPlexText>
       </View>
 
@@ -210,6 +239,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: "#475569",
+  },
+  reviewPeriodBadge: {
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: "#dbeafe",
+    marginVertical: 4,
+  },
+  reviewPeriodText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#1d4ed8",
   },
   detectedBox: {
     padding: 12,

@@ -78,7 +78,7 @@ export const PERCENTAGE_REFERENCE_METHOD_OPTIONS = Object.freeze([
     label: "3. RPE-based 1RM estimation",
     value: "rpe_based_1rm",
     description:
-      "Default option. Estimate 1RM from a clean 1-3 rep top set by adding reps in reserve, then using Epley's formula.",
+      "Default option. Estimate 1RM from a clean 1-3 rep top set by adding reps in reserve (We use Epley's formula).",
   },
 ]);
 

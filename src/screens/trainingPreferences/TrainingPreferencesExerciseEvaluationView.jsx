@@ -1,8 +1,15 @@
-import { View, StyleSheet } from "react-native";
+import { Image, View, StyleSheet } from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+
+const defaultEvaluationIcon = require("../../assets/icons/sports/running.png");
+const conditioningEvaluationIcon = require("../../assets/icons/sports/assult Bike.png");
+
 export default function TrainingPreferencesExerciseEvaluationView({
   category = "Lifting confidence",
 }) {
+  const evaluationIcon =
+    category === "Conditioning" ? conditioningEvaluationIcon : defaultEvaluationIcon;
+
   return (
     <View style={styles.container}>
       <View style={styles.titleWrap}>
@@ -11,6 +18,11 @@ export default function TrainingPreferencesExerciseEvaluationView({
       </View>
 
       <View style={styles.descriptionWrap}>
+        <Image
+          source={evaluationIcon}
+          style={styles.evaluationIcon}
+          resizeMode="contain"
+        />
         <IBMPlexText defaultWhite style={styles.descriptionText}>
           Answer how confidently and safely you can perform the following exercises
         </IBMPlexText>
@@ -48,6 +60,13 @@ const styles = StyleSheet.create({
     width: "75%",
     minHeight: 120,
     justifyContent: "center",
+    alignItems: "center",
+    gap: 18,
+  },
+  evaluationIcon: {
+    width: 74,
+    height: 74,
+    tintColor: "#585858",
   },
   descriptionText: {
     color: "#9A9A9A",

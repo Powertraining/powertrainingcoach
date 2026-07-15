@@ -50,9 +50,9 @@ test("strength assessment entries compute estimated 1RM for RPE-based and multi-
   });
 
   assert.equal(rpeBasedEntry.estimatedOneRepMaxKg, 175);
-  assert.equal(rpeBasedEntry.trainingMaxKg, 170.6);
+  assert.equal(rpeBasedEntry.trainingMaxKg, 157.5);
   assert.equal(multiRmEntry.estimatedOneRepMaxKg, 140);
-  assert.equal(multiRmEntry.trainingMaxKg, 136.5);
+  assert.equal(multiRmEntry.trainingMaxKg, 126);
 });
 
 test("strength assessment state summarizes the latest result per lift", () => {
@@ -103,8 +103,25 @@ test("strength assessment state summarizes the latest result per lift", () => {
 
   assert.equal(summary.latestByLift.length, 1);
   assert.equal(summary.latestByLift[0].method, "rpe_based_1rm");
-  assert.equal(summary.latestByLift[0].trainingMaxKg, 146.7);
+  assert.equal(summary.latestByLift[0].trainingMaxKg, 135.5);
   assert.equal(summary.recentAssessments.length, 2);
+});
+
+test("RPE-based missing-max estimates accept Week 1 bridge sets", () => {
+  const bridgeEntry = createStrengthAssessmentEntry({
+    metadata: {
+      method: "rpe_based_1rm",
+      liftName: "Back Squat",
+    },
+    result: {
+      loadKg: 100,
+      reps: 10,
+      rpe: 7,
+    },
+  });
+
+  assert.equal(bridgeEntry.estimatedOneRepMaxKg, 143.3);
+  assert.equal(bridgeEntry.trainingMaxKg, 129);
 });
 
 test("generated training plans preserve strength assessment metadata on exercises", () => {

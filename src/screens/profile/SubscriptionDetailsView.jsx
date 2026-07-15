@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,7 +14,8 @@ import BlackGradient from "../../components/colorComponents/BlackGradient.jsx";
 import FadeInFromBottomView from "../../components/navigation/FadeInFromBottomView.jsx";
 import WhiteBottomMenu from "../../components/profileComponents/WhiteBottomMenu.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
-const ANALYSIS_SLOTS = ["1", "2", "3", "4"];
+const ANALYSIS_SLOTS = ["1", "2"];
+const MONTHLY_VIDEO_ANALYSIS_LIMIT = ANALYSIS_SLOTS.length;
 const GOLD = "#C9B259";
 
 function AnalysisVideoPreview({ uri }) {
@@ -72,11 +74,16 @@ export default function SubscriptionDetailsView({
   onCancelSubscription,
   onPressAnalysisSlot,
   analysisPostsBySlot = {},
-  analysesLeftThisMonth = 4,
+  analysesLeftThisMonth = MONTHLY_VIDEO_ANALYSIS_LIMIT,
   onShowAllAnalyses,
 }) {
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const [cancelConfirmVisible, setCancelConfirmVisible] = useState(false);
+  const analysisSlotWidth = Math.min(
+    180,
+    Math.max(0, (windowWidth - 40 - 12) / 2)
+  );
 
   function openCancelConfirm() {
     if (isSubmitting) {
@@ -130,7 +137,7 @@ export default function SubscriptionDetailsView({
           <View style={styles.sectionHeader}>
             <IBMPlexText style={styles.sectionTitle}>Analyses</IBMPlexText>
             <IBMPlexText style={styles.analysisCounterText}>
-              {`${analysesLeftThisMonth}/4 analyses left this month`}
+              {`${analysesLeftThisMonth}/${MONTHLY_VIDEO_ANALYSIS_LIMIT} video analyses left this month`}
             </IBMPlexText>
             <View style={styles.sectionDivider} />
           </View>
@@ -143,6 +150,7 @@ export default function SubscriptionDetailsView({
                 disabled={isSubmitting}
                 style={[
                   styles.analysisButton,
+                  { width: analysisSlotWidth },
                   analysisPostsBySlot?.[slot] ? styles.analysisButtonFilled : null,
                   isSubmitting ? styles.analysisButtonDisabled : null,
                 ]}
@@ -288,7 +296,8 @@ const styles = StyleSheet.create({
   },
   analysisRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
+    justifyContent: "center",
   },
   showAllButton: {
     alignSelf: "center",
@@ -304,12 +313,11 @@ const styles = StyleSheet.create({
   },
   analysisButton: {
     alignItems: "center",
+    aspectRatio: 9 / 16,
     backgroundColor: "#141414",
     borderColor: "#1E1E1E",
     borderRadius: 24,
     borderWidth: 2,
-    flex: 1,
-    height: 100,
     justifyContent: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,

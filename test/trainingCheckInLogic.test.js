@@ -160,6 +160,55 @@ test("end-of-block check-in takes priority every 4 weeks", () => {
   assert.deepEqual(pendingCheckIn.weeksInScope, [1, 2, 3, 4]);
 });
 
+test("4-week check-in exposes block review copy and scope for the frontend", () => {
+  const pendingCheckIn = getPendingTrainingCheckIn({
+    plan: createPlan(4),
+    completedDays: [
+      "1-1", "1-2",
+      "2-1", "2-2",
+      "3-1", "3-2",
+      "4-1", "4-2",
+    ],
+    questionnaire: { experience: "beginner" },
+    trainingCheckInState: createDefaultTrainingCheckInState(),
+  });
+
+  assert.equal(pendingCheckIn.type, "end_of_block");
+  assert.equal(pendingCheckIn.title, "4-week check-in");
+  assert.equal(
+    pendingCheckIn.summary,
+    "Review the last 4 weeks, then choose how the app should adjust the next part of your program."
+  );
+  assert.equal(pendingCheckIn.blockSize, 4);
+  assert.deepEqual(pendingCheckIn.weeksInScope, [1, 2, 3, 4]);
+});
+
+test("completed end-of-block check-in replaces the weekly check-in at the block boundary", () => {
+  const completedDays = [
+    "1-1", "1-2",
+    "2-1", "2-2",
+    "3-1", "3-2",
+    "4-1", "4-2",
+  ];
+  const pendingCheckIn = getPendingTrainingCheckIn({
+    plan: createPlan(5),
+    completedDays,
+    questionnaire: { experience: "beginner" },
+    trainingCheckInState: {
+      history: [
+        {
+          type: "end_of_block",
+          weekNumber: 4,
+          title: "4-week check-in",
+          createdAt: "2026-07-14T10:00:00.000Z",
+        },
+      ],
+    },
+  });
+
+  assert.equal(pendingCheckIn, null);
+});
+
 test("fatigue-heavy answers recommend a deload before a scheme change", () => {
   const prompt = {
     type: "weekly",

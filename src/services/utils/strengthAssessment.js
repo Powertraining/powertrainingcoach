@@ -13,7 +13,7 @@ const LEGACY_STRENGTH_ASSESSMENT_METHODS = Object.freeze({
 
 const DEFAULT_STRENGTH_ASSESSMENT_METHOD =
   STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM;
-const DEFAULT_TRAINING_MAX_BUFFER = 0.975;
+const DEFAULT_TRAINING_MAX_BUFFER = 0.9;
 const RECENT_ASSESSMENT_LIMIT = 8;
 const CLOSE_GRIP_BENCH_PRESS_REFERENCE_FACTOR = 0.95;
 const BENCH_PRESS_LIFT_KEYS = Object.freeze([
@@ -115,7 +115,7 @@ function buildDefaultPrompt(method, liftName) {
       return `Log the load and exact reps for the top 2-5RM set on ${resolvedLiftName} so the app can estimate your 1RM with Epley.`;
     case STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM:
     default:
-      return `Log the load, reps, and RPE for the top 1-3 rep set on ${resolvedLiftName} so the app can estimate your 1RM from reps in reserve.`;
+      return `Log the load, reps, and RPE for the top 3-10 rep set on ${resolvedLiftName} so the app can estimate your 1RM from reps in reserve.`;
   }
 }
 
@@ -311,13 +311,13 @@ export function getStrengthAssessmentRequirements(method) {
         "Load used (kg)",
     repsLabel:
       normalizedMethod === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM ?
-        "Top-set reps (1-3)" :
+        "Top-set reps (3-10)" :
         "Reps completed",
     repsPlaceholder:
       normalizedMethod === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM ?
-        "1-3" :
+        "3-10" :
         "2-5",
-    rpePlaceholder: "8-9",
+    rpePlaceholder: "7-9",
     rpeLabel: "RPE",
   };
 }
@@ -461,7 +461,7 @@ export function createStrengthAssessmentEntry({
 
   if (
     normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM &&
-    (!reps || reps > 3)
+    (!reps || reps < 3 || reps > 10)
   ) {
     return null;
   }
@@ -475,7 +475,7 @@ export function createStrengthAssessmentEntry({
 
   if (
     normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM &&
-    (rpe < 8 || rpe > 9)
+    (rpe < 7 || rpe > 9)
   ) {
     return null;
   }

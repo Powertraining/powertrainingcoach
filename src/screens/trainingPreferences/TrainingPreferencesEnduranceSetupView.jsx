@@ -27,6 +27,7 @@ import {
   SPRINTING_TARGET_OPTIONS,
 } from "../../constants/trainingPreferences.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import QuestionnaireChatMessage from "../../components/questionnaireComponents/QuestionnaireChatMessage.jsx";
 const ENDURANCE_FORMAT_DETAILS = Object.freeze({
   low_intensity_aerobic:
     "Sustained low-intensity work used to develop aerobic capacity, improve efficiency, and support recovery between harder sessions.\nBest for: Base phases, beginners, recovery support, and athletes with high sport-training load.",
@@ -781,6 +782,7 @@ export default function TrainingPreferencesEnduranceSetupView({
   const [circuitMessages, setCircuitMessages] = useState(() =>
     values?.circuitTrainingGoalInput ? [values.circuitTrainingGoalInput] : []
   );
+  const circuitChatScrollRef = useRef(null);
   const circuitInfoProgress = useRef(new Animated.Value(0)).current;
   const selectedCircuitFocusValues = [
     values?.circuitTrainingPrimaryPriority,
@@ -941,6 +943,20 @@ export default function TrainingPreferencesEnduranceSetupView({
     };
   }, [mode]);
 
+  useEffect(() => {
+    if (mode !== "circuitGoal") {
+      return undefined;
+    }
+
+    const scrollTimeout = setTimeout(() => {
+      circuitChatScrollRef.current?.scrollToEnd({
+        animated: circuitMessages.length > 0,
+      });
+    }, 0);
+
+    return () => clearTimeout(scrollTimeout);
+  }, [circuitMessages.length, keyboardHeight, mode]);
+
   if (mode === "days") {
     return (
       <View style={[styles.daysSection, { minHeight: screenHeight }]}>
@@ -1001,6 +1017,7 @@ export default function TrainingPreferencesEnduranceSetupView({
         <View style={[styles.chatContentSlot, { bottom: contentBottomOffset }]}>
           <View style={styles.chatFeed}>
             <ScrollView
+              ref={circuitChatScrollRef}
               style={styles.chatScroll}
               contentContainerStyle={styles.messages}
               keyboardShouldPersistTaps="handled"
@@ -1011,7 +1028,12 @@ export default function TrainingPreferencesEnduranceSetupView({
               </View>
 
               {CIRCUIT_BOT_MESSAGES.map((message, index) => (
-                <View key={`circuit-bot-message-${index}`} style={styles.messageRow}>
+                <QuestionnaireChatMessage
+                  key={`circuit-bot-message-${index}`}
+                  delay={120 + index * 180}
+                  direction="received"
+                  style={styles.messageRow}
+                >
                   {index === CIRCUIT_BOT_MESSAGES.length - 1 ? (
                     <View style={styles.botIcon}>
                       <Image source={NURSE_ICON} style={styles.botIconImage} resizeMode="contain" />
@@ -1024,7 +1046,7 @@ export default function TrainingPreferencesEnduranceSetupView({
                       {message}
                     </IBMPlexText>
                   </View>
-                </View>
+                </QuestionnaireChatMessage>
               ))}
 
               <View style={styles.exampleBubbleWrap}>
@@ -1045,13 +1067,20 @@ export default function TrainingPreferencesEnduranceSetupView({
               {circuitMessages.length ? (
                 <View style={styles.userMessages}>
                   {circuitMessages.map((message, index) => (
-                    <View key={`user-circuit-message-${index}`} style={styles.userMessageRow}>
+                    <QuestionnaireChatMessage
+                      key={`user-circuit-message-${index}`}
+                      delay={
+                        index === 0 && values?.circuitTrainingGoalInput ? 620 : 0
+                      }
+                      direction="sent"
+                      style={styles.userMessageRow}
+                    >
                       <View style={styles.userMessageBubble}>
                         <IBMPlexText defaultWhite style={styles.userMessageText} textColor="#ffffff">
                           {message}
                         </IBMPlexText>
                       </View>
-                    </View>
+                    </QuestionnaireChatMessage>
                   ))}
                 </View>
               ) : (

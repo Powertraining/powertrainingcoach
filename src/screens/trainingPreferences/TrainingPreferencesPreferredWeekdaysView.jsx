@@ -24,10 +24,14 @@ const ENTRANCE_DURATION = 240;
 const ENTRANCE_ROW_STAGGER = 42;
 const CHIP_STATE_DURATION = 140;
 const DAY_TYPE_OPTIONS = Object.freeze([
-  TRAINING_DAY_TYPE_META.force,
   TRAINING_DAY_TYPE_META.power,
   Object.freeze({ ...TRAINING_DAY_TYPE_META.fatigue, label: "Endurance" }),
 ]);
+const DAY_TYPE_MENU_WIDTH = 176;
+const DAY_TYPE_MENU_ROW_HEIGHT = 38;
+const DAY_TYPE_MENU_GAP = 5;
+const DAY_TYPE_MENU_ARROW_SIZE = 8;
+const WEEKDAY_ROW_GAP = 4;
 
 function FadeInView({ children, delay = 0, travel = 12, style }) {
   const entranceProgress = useRef(new Animated.Value(0)).current;
@@ -210,28 +214,122 @@ function WeekdayOptionButton({
   );
 }
 
+function DayTypeAssignmentMenu({
+  anchorLeft,
+  assignedEnduranceCount,
+  assignedPowerCount,
+  enduranceTarget,
+  includesEndurance,
+  isOpeningUp,
+  isDayTypeUnavailable,
+  onAssign,
+  powerTarget,
+  rowIndex,
+}) {
+  const entranceProgress = useRef(new Animated.Value(0)).current;
+  const visibleOptions = DAY_TYPE_OPTIONS.filter(
+    (typeOption) => typeOption.value !== "fatigue" || includesEndurance
+  );
+
+  useEffect(() => {
+    entranceProgress.setValue(0);
+    Animated.timing(entranceProgress, {
+      toValue: 1,
+      duration: 150,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [entranceProgress, isOpeningUp, rowIndex]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.dayTypeMenu,
+        isOpeningUp ? styles.dayTypeMenuUp : styles.dayTypeMenuDown,
+        { left: anchorLeft.menu },
+        {
+          opacity: entranceProgress,
+          transform: [
+            {
+              translateY: entranceProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [isOpeningUp ? 8 : -8, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <View
+        pointerEvents="none"
+        style={[
+          styles.dayTypeMenuArrow,
+          isOpeningUp ? styles.dayTypeMenuArrowDown : styles.dayTypeMenuArrowUp,
+          { left: anchorLeft.arrow - DAY_TYPE_MENU_ARROW_SIZE },
+          isOpeningUp
+            ? styles.dayTypeMenuArrowDownColor
+            : styles.dayTypeMenuArrowUpColor,
+        ]}
+      />
+      <View style={styles.dayTypeOptions}>
+        {visibleOptions.map((typeOption) => {
+          const isUnavailable = isDayTypeUnavailable(typeOption.value, rowIndex);
+
+          return (
+            <Pressable
+              key={typeOption.value}
+              disabled={isUnavailable}
+              onPress={() => onAssign(typeOption.value)}
+              style={({ pressed }) => [
+                styles.dayTypeOption,
+                isUnavailable ? styles.dayTypeOptionUnavailable : null,
+                pressed ? styles.dayTypeOptionPressed : null,
+              ]}
+            >
+              <View
+                style={[
+                  styles.dayTypeDot,
+                  { backgroundColor: typeOption.color },
+                ]}
+              />
+              <IBMPlexText style={styles.dayTypeOptionText}>
+                {typeOption.label} ({typeOption.value === "fatigue"
+                  ? assignedEnduranceCount
+                  : assignedPowerCount}/{typeOption.value === "fatigue"
+                  ? enduranceTarget
+                  : powerTarget})
+              </IBMPlexText>
+            </Pressable>
+          );
+        })}
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function TrainingPreferencesPreferredWeekdaysView({
   daysPerWeek,
-  preferredWeekdays,
-  preferredDayTypes,
+  preferredWeekdays = [],
+  preferredDayTypes = [],
   desiredTraining,
   enduranceSessionsPerWeek,
   onAssignmentChange,
 }) {
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const [pendingAssignment, setPendingAssignment] = useState(null);
+  const preferenceBoxWidth = screenWidth * 0.9;
   const includesEndurance =
     desiredTraining === "endurance" ||
     desiredTraining === "strength_power_endurance";
   const enduranceTarget = includesEndurance
     ? Math.min(daysPerWeek, Math.max(1, Number(enduranceSessionsPerWeek) || 1))
     : 0;
-  const strengthPowerTarget = daysPerWeek - enduranceTarget;
+  const powerTarget = daysPerWeek - enduranceTarget;
   const assignedEnduranceCount = preferredDayTypes.filter(
     (type) => type === "fatigue"
   ).length;
-  const assignedStrengthPowerCount = preferredDayTypes.filter(
-    (type) => type === "force" || type === "power"
+  const assignedPowerCount = preferredDayTypes.filter(
+    (type) => type === "power"
   ).length;
 
   function isDayTypeUnavailable(type, rowIndex) {
@@ -242,9 +340,7 @@ export default function TrainingPreferencesPreferredWeekdaysView({
         (currentType !== "fatigue" && assignedEnduranceCount >= enduranceTarget);
     }
 
-    return currentType !== "force" &&
-      currentType !== "power" &&
-      assignedStrengthPowerCount >= strengthPowerTarget;
+    return currentType !== "power" && assignedPowerCount >= powerTarget;
   }
 
   function handleWeekdayPress(index, weekday, isSelected) {
@@ -270,6 +366,24 @@ export default function TrainingPreferencesPreferredWeekdaysView({
     setPendingAssignment(null);
   }
 
+  function getMenuAnchorLeft(weekday) {
+    const weekdayIndex = WEEKDAY_INDEX_BY_VALUE[weekday] ?? 0;
+    const totalGapWidth = WEEKDAY_ROW_GAP * (WEEKDAY_CHIP_OPTIONS.length - 1);
+    const chipWidth =
+      (preferenceBoxWidth - totalGapWidth) / WEEKDAY_CHIP_OPTIONS.length;
+    const anchorCenter =
+      weekdayIndex * (chipWidth + WEEKDAY_ROW_GAP) + chipWidth / 2;
+    const menuLeft = Math.max(
+      0,
+      Math.min(anchorCenter - DAY_TYPE_MENU_WIDTH / 2, preferenceBoxWidth - DAY_TYPE_MENU_WIDTH)
+    );
+
+    return {
+      arrow: anchorCenter - menuLeft,
+      menu: menuLeft,
+    };
+  }
+
   return (
     <ScrollView
       style={[styles.section, { maxHeight: screenHeight }]}
@@ -291,16 +405,6 @@ export default function TrainingPreferencesPreferredWeekdaysView({
           </IBMPlexText>
         </FadeInView>
 
-        <View style={styles.assignmentSummary}>
-          <IBMPlexText style={styles.assignmentSummaryText}>
-            Strength / Power {assignedStrengthPowerCount}/{strengthPowerTarget}
-          </IBMPlexText>
-          {includesEndurance ? (
-            <IBMPlexText style={styles.assignmentSummaryText}>
-              Endurance {assignedEnduranceCount}/{enduranceTarget}
-            </IBMPlexText>
-          ) : null}
-        </View>
 
         <View style={styles.preferenceBox}>
           <View style={styles.preferenceGrid}>
@@ -308,11 +412,16 @@ export default function TrainingPreferencesPreferredWeekdaysView({
               const selectedType = preferredDayTypes[index] || "";
               const selectedTypeMeta = TRAINING_DAY_TYPE_META[selectedType];
               const isAssignmentMenuOpen = pendingAssignment?.index === index;
+              const isMenuOpeningUp =
+                daysPerWeek > 2 && index >= Math.ceil(daysPerWeek / 2);
 
               return (
                 <FadeInView
                   key={`preferred-weekday-${index + 1}`}
-                  style={styles.preferenceItem}
+                  style={[
+                    styles.preferenceItem,
+                    isAssignmentMenuOpen ? styles.preferenceItemMenuOpen : null,
+                  ]}
                   delay={82 + index * ENTRANCE_ROW_STAGGER}
                   travel={14}
                 >
@@ -347,43 +456,18 @@ export default function TrainingPreferencesPreferredWeekdaysView({
                     })}
                   </View>
                   {isAssignmentMenuOpen ? (
-                    <View style={styles.dayTypeMenu}>
-                      <IBMPlexText style={styles.dayTypeMenuTitle}>
-                        What type of session is this?
-                      </IBMPlexText>
-                      <View style={styles.dayTypeOptions}>
-                        {DAY_TYPE_OPTIONS.map((typeOption) => {
-                          const isUnavailable = isDayTypeUnavailable(
-                            typeOption.value,
-                            index
-                          );
-
-                          return (
-                            <Pressable
-                              key={typeOption.value}
-                              disabled={isUnavailable}
-                              onPress={() => assignDayType(typeOption.value)}
-                              style={({ pressed }) => [
-                                styles.dayTypeOption,
-                                { borderColor: typeOption.color },
-                                isUnavailable ? styles.dayTypeOptionUnavailable : null,
-                                pressed ? styles.dayTypeOptionPressed : null,
-                              ]}
-                            >
-                              <View
-                                style={[
-                                  styles.dayTypeDot,
-                                  { backgroundColor: typeOption.color },
-                                ]}
-                              />
-                              <IBMPlexText style={styles.dayTypeOptionText}>
-                                {typeOption.label}
-                              </IBMPlexText>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    </View>
+                    <DayTypeAssignmentMenu
+                      anchorLeft={getMenuAnchorLeft(pendingAssignment.weekday)}
+                      assignedEnduranceCount={assignedEnduranceCount}
+                      assignedPowerCount={assignedPowerCount}
+                      enduranceTarget={enduranceTarget}
+                      includesEndurance={includesEndurance}
+                      isDayTypeUnavailable={isDayTypeUnavailable}
+                      isOpeningUp={isMenuOpeningUp}
+                      onAssign={assignDayType}
+                      powerTarget={powerTarget}
+                      rowIndex={index}
+                    />
                   ) : null}
                 </FadeInView>
               );
@@ -415,45 +499,69 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  assignmentSummary: {
-    alignSelf: "center",
-    flexDirection: "row",
-    gap: 18,
-    marginBottom: 14,
-  },
-  assignmentSummaryText: {
-    color: "#C9B259",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+
   dayTypeMenu: {
-    backgroundColor: "#202020",
-    borderColor: "#3b3b3b",
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 10,
-    marginTop: 8,
-    padding: 12,
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderRadius: 9,
+    borderWidth: 0,
+    elevation: 12,
+    padding: 0,
+    position: "absolute",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.34,
+    shadowRadius: 8,
+    width: DAY_TYPE_MENU_WIDTH,
+    zIndex: 30,
   },
-  dayTypeMenuTitle: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
-    textAlign: "center",
+  dayTypeMenuDown: {
+    top: 74,
+  },
+  dayTypeMenuUp: {
+    bottom: 58,
+  },
+  dayTypeMenuArrow: {
+    height: 0,
+    position: "absolute",
+    width: 0,
+    zIndex: 2,
+  },
+  dayTypeMenuArrowUp: {
+    borderBottomWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderLeftColor: "transparent",
+    borderLeftWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderRightColor: "transparent",
+    borderRightWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    top: -DAY_TYPE_MENU_ARROW_SIZE,
+  },
+  dayTypeMenuArrowUpColor: {
+    borderBottomColor: "#2B2B2B",
+  },
+  dayTypeMenuArrowDown: {
+    borderLeftColor: "transparent",
+    borderLeftWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderRightColor: "transparent",
+    borderRightWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    borderTopWidth: DAY_TYPE_MENU_ARROW_SIZE,
+    bottom: -DAY_TYPE_MENU_ARROW_SIZE,
+  },
+  dayTypeMenuArrowDownColor: {
+    borderTopColor: "#2B2B2B",
   },
   dayTypeOptions: {
-    flexDirection: "row",
-    gap: 8,
+    gap: DAY_TYPE_MENU_GAP,
   },
   dayTypeOption: {
     alignItems: "center",
-    borderRadius: 9,
-    borderWidth: 1,
-    flex: 1,
-    gap: 5,
-    justifyContent: "center",
-    minHeight: 58,
-    paddingHorizontal: 5,
+    backgroundColor: "#2B2B2B",
+    borderRadius: 7,
+    borderWidth: 0,
+    flexDirection: "row",
+    gap: 7,
+    justifyContent: "flex-start",
+    minHeight: DAY_TYPE_MENU_ROW_HEIGHT,
+    paddingHorizontal: 10,
   },
   dayTypeOptionUnavailable: {
     opacity: 0.25,
@@ -469,8 +577,8 @@ const styles = StyleSheet.create({
   },
   dayTypeOptionText: {
     color: "#ffffff",
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "800",
     textAlign: "center",
   },
   preferenceBox: {
@@ -489,6 +597,11 @@ const styles = StyleSheet.create({
   },
   preferenceItem: {
     gap: 6,
+    position: "relative",
+  },
+  preferenceItemMenuOpen: {
+    elevation: 20,
+    zIndex: 20,
   },
   preferenceLabel: {
     color: "#C9B259",

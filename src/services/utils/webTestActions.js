@@ -1,46 +1,93 @@
 import { useEffect } from "react";
-import { Platform } from "react-native";
 
-export function isPagesPhonePreview() {
-  return (
-    Platform.OS === "web" &&
-    typeof window !== "undefined" &&
-    Boolean(window.__PAGES_PHONE_PREVIEW__)
-  );
+function getBrowserWindow() {
+    return typeof window === "undefined" ? null : window;
 }
 
-export function useWebTestActions(sourceId, title, actions = [], enabled = true) {
-  useEffect(() => {
-    if (!isPagesPhonePreview()) {
-      return undefined;
+function getSearchParam(name) {
+    const browserWindow = getBrowserWindow();
+
+    if (!browserWindow?.location?.search) {
+        return "";
     }
 
-    const normalizedActions = enabled
-      ? actions.filter(
-          (action) => action?.label && typeof action.onPress === "function"
-        )
-      : [];
+    return new URLSearchParams(browserWindow.location.search).get(name) || "";
+}
 
-    window.dispatchEvent(
-      new CustomEvent("pages-preview-test-actions", {
-        detail: {
-          sourceId,
-          title,
-          actions: normalizedActions,
-        },
-      })
+export function isPagesPhonePreview() {
+    const browserWindow = getBrowserWindow();
+
+    if (!browserWindow) {
+        return false;
+    }
+
+    const previewMode = getSearchParam("preview") || getSearchParam("viewport");
+    const phonePreview = getSearchParam("phonePreview");
+
+    return (
+        Boolean(browserWindow.__PAGES_PHONE_PREVIEW__) ||
+        previewMode === "phone" ||
+        phonePreview === "true"
     );
+}
 
-    return () => {
-      window.dispatchEvent(
-        new CustomEvent("pages-preview-test-actions", {
-          detail: {
-            sourceId,
-            title,
-            actions: [],
-          },
-        })
-      );
-    };
-  }, [sourceId, title, actions, enabled]);
+export function useWebTestActions(screenId, title, actions = [], enabled = true) {
+    useEffect(() => {
+        const browserWindow = getBrowserWindow();
+
+        if (!browserWindow || !screenId) {
+            return undefined;
+        }
+
+        const normalizedActions = enabled
+            ? actions
+                .filter((action) => action?.label && typeof action.onPress === "function")
+                .map((action) => ({
+                    label: action.label,
+                    onPress: action.onPress,
+                }))
+            : [];
+
+        browserWindow.__POWERTRAINING_WEB_TEST_ACTIONS__ = {
+            ...(browserWindow.__POWERTRAINING_WEB_TEST_ACTIONS__ || {}),
+            [screenId]: {
+                title,
+                actions: normalizedActions,
+            },
+        };
+
+        browserWindow.dispatchEvent?.(
+            new CustomEvent("powertraining:web-test-actions", {
+                detail: {
+                    screenId,
+                    title,
+                    actions: normalizedActions,
+                },
+            })
+        );
+
+        if (isPagesPhonePreview()) {
+            browserWindow.dispatchEvent?.(
+                new CustomEvent("pages-preview-test-actions", {
+                    detail: { sourceId: screenId, title, actions: normalizedActions },
+                })
+            );
+        }
+
+        return () => {
+            const registry = browserWindow.__POWERTRAINING_WEB_TEST_ACTIONS__;
+
+            if (registry?.[screenId]?.actions === normalizedActions) {
+                delete registry[screenId];
+            }
+
+            if (isPagesPhonePreview()) {
+                browserWindow.dispatchEvent?.(
+                    new CustomEvent("pages-preview-test-actions", {
+                        detail: { sourceId: screenId, title, actions: [] },
+                    })
+                );
+            }
+        };
+    }, [screenId, title, actions, enabled]);
 }

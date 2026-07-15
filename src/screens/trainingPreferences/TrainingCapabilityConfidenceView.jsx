@@ -5,11 +5,95 @@ import {
 } from "react-native";
 import PressedShadowButton from "../../components/questionnaireComponents/PressedShadowButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
-const CONFIDENCE_OPTIONS = [
+const DEFAULT_CONFIDENCE_OPTIONS = [
   { label: "I'm not", value: "no" },
   { label: "Fairly", value: "somewhat" },
   { label: "Very", value: "yes" },
 ];
+const COMPOUND_LIFT_CONFIDENCE_OPTIONS = [
+  {
+    label: "Not yet",
+    value: "no",
+    description:
+      "I'm still learning proper technique for major lifts and may need simpler variations or extra guidance.",
+  },
+  {
+    label: "Fairly",
+    value: "somewhat",
+    description:
+      "I can perform most compound lifts with decent technique, but still prefer moderate loading and conservative progressions.",
+  },
+  {
+    label: "Very",
+    value: "yes",
+    description:
+      "I'm confident with heavy compound lifts, know my working weights, and can maintain good form under fatigue.",
+  },
+];
+const PULLING_WORK_CONFIDENCE_OPTIONS = [
+  {
+    label: "Not yet",
+    value: "no",
+    description:
+      "I can't perform strict pull-ups/chin-ups yet, or only manage 1-2 reps.",
+  },
+  {
+    label: "Fairly",
+    value: "somewhat",
+    description:
+      "I can perform a few clean reps with control, but volume is limited.",
+  },
+  {
+    label: "Very",
+    value: "yes",
+    description:
+      "I can perform multiple strict reps with good control and may be ready for added load or higher volume.",
+  },
+];
+const OLYMPIC_LIFT_CONFIDENCE_OPTIONS = [
+  {
+    label: "Not yet",
+    value: "no",
+    description:
+      "I haven't learned Olympic-lift variations yet, or my technique is inconsistent.",
+  },
+  {
+    label: "Fairly",
+    value: "somewhat",
+    description:
+      "I can perform basic variations with decent technique, but still prefer a safe approach.",
+  },
+  {
+    label: "Very",
+    value: "yes",
+    description:
+      "I'm confident with explosive Olympic-lift variations and can maintain speed, timing, and good positions under load.",
+  },
+];
+const PLYOMETRICS_CONFIDENCE_OPTIONS = [
+  {
+    label: "Not yet",
+    value: "no",
+    description:
+      "I'm new to plyometrics or still learning how to jump, land, and change direction safely.",
+  },
+  {
+    label: "Fairly",
+    value: "somewhat",
+    description:
+      "I can perform basic jumps, hops, and bounds with decent control, but still need moderate volume and simple progressions.",
+  },
+  {
+    label: "Very",
+    value: "yes",
+    description:
+      "I'm confident with explosive plyometrics and can maintain good landing mechanics, stiffness, and control at higher speeds.",
+  },
+];
+const COMPOUND_LIFT_CAPABILITY_KEY = "compoundLifts";
+const PULLING_WORK_CAPABILITY_KEY = "pullingWork";
+const OLYMPIC_LIFT_CAPABILITY_KEY = "olympicLiftVariations";
+const PLYOMETRICS_CAPABILITY_KEY = "plyometrics";
 const OPTION_BUTTON_HEIGHT = 48;
 const OPTION_SHADOW_OFFSET = 6;
 
@@ -83,6 +167,7 @@ function ConfidenceOptionButton({ isSelected, label, onPress }) {
 }
 
 export default function TrainingCapabilityConfidenceView({
+  capabilityKey,
   item,
   value,
   onChange,
@@ -92,6 +177,19 @@ export default function TrainingCapabilityConfidenceView({
     item?.exerciseExamples ?? item?.description
   );
   const exerciseRows = getExerciseRows(exerciseExamples);
+  const describedConfidenceOptionsByCapability = {
+    [COMPOUND_LIFT_CAPABILITY_KEY]: COMPOUND_LIFT_CONFIDENCE_OPTIONS,
+    [PULLING_WORK_CAPABILITY_KEY]: PULLING_WORK_CONFIDENCE_OPTIONS,
+    [OLYMPIC_LIFT_CAPABILITY_KEY]: OLYMPIC_LIFT_CONFIDENCE_OPTIONS,
+    [PLYOMETRICS_CAPABILITY_KEY]: PLYOMETRICS_CONFIDENCE_OPTIONS,
+  };
+  const describedConfidenceOptions =
+    describedConfidenceOptionsByCapability[capabilityKey];
+  const confidenceOptions =
+    describedConfidenceOptions || DEFAULT_CONFIDENCE_OPTIONS;
+  const selectedConfidenceOption = confidenceOptions.find(
+    (option) => option.value === value
+  );
 
   return (
     <View style={styles.container}>
@@ -115,11 +213,21 @@ export default function TrainingCapabilityConfidenceView({
       </View>
 
       <View style={styles.options}>
+        {describedConfidenceOptions && selectedConfidenceOption ? (
+          <View style={styles.confidenceDescriptionBox}>
+            <IBMPlexText defaultWhite style={styles.confidenceDescriptionLabel}>
+              {selectedConfidenceOption.label}
+            </IBMPlexText>
+            <IBMPlexText defaultWhite style={styles.confidenceDescriptionText}>
+              {selectedConfidenceOption.description}
+            </IBMPlexText>
+          </View>
+        ) : null}
         <IBMPlexText defaultWhite style={styles.confidenceQuestion}>
           How confident are you?
         </IBMPlexText>
         <View style={styles.optionRow}>
-          {CONFIDENCE_OPTIONS.map((option) => {
+          {confidenceOptions.map((option) => {
             const isSelected = value === option.value;
 
             return (
@@ -212,6 +320,25 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: "center",
     marginBottom: 18,
+  },
+  confidenceDescriptionBox: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  confidenceDescriptionLabel: {
+    color: "#d1d5db",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 18,
+    textTransform: "uppercase",
+  },
+  confidenceDescriptionText: {
+    color: "#d1d5db",
+    fontSize: 12,
+    lineHeight: 15,
   },
   optionRow: {
     flexDirection: "row",

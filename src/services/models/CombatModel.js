@@ -60,9 +60,11 @@ import {
 } from "../utils/sportLoad.js";
 import {
   applyMissedSessionAdjustment,
+  applyTrainingSessionMove,
   countTrackableTrainingDays,
   getCurrentTrainingDay,
   getTrainingDayPreferredWeekday,
+  hasRemovedManualSessionMerges,
   replaceTrainingPlanDay,
   replaceTrainingPlanExercise,
   sanitizeTrainingPlanForQuestionnaire,
@@ -1659,6 +1661,47 @@ export const model = {
 
   getTrackableTrainingDayCount() {
     return countTrackableTrainingDays(this.trainingPlan);
+  },
+
+  restoreRemovedManualSessionMerges() {
+    if (!this.trainingPlan || !hasRemovedManualSessionMerges(this.trainingPlan)) {
+      return false;
+    }
+
+    this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+      this.trainingPlan,
+      this.questionnaire || {}
+    );
+    return true;
+  },
+
+  moveTrainingSession({ weekNumber, dayNumber, targetDate, targetWeekday } = {}) {
+    if (!this.trainingPlan) {
+      return null;
+    }
+
+    const result = applyTrainingSessionMove(this.trainingPlan, {
+      completedDays: this.completedDays,
+      weekNumber,
+      dayNumber,
+      targetDate,
+      targetWeekday,
+    });
+
+    if (result.action === "target_occupied") {
+      throw new Error("That day already has a training session.");
+    }
+
+    if (result.action !== "move_session") {
+      throw new Error("This session could not be moved to the selected day.");
+    }
+
+    this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+      result.plan,
+      this.questionnaire || {}
+    );
+
+    return { action: result.action, plan: this.trainingPlan };
   },
 
   async reportMissedSession({

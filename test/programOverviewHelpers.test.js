@@ -6,6 +6,14 @@ import {
   getCurrentTrainingWeek,
   normalizeTrainingPlan,
 } from "../src/services/utils/trainingPlan.js";
+import { getPlanWeekStartDate } from "../src/services/utils/programOverview.js";
+
+test("plan week dates advance in exact seven-day windows", () => {
+  const plan = { createdAt: "2026-07-15T14:30:00" };
+
+  assert.equal(getPlanWeekStartDate(plan, 1)?.toDateString(), "Wed Jul 15 2026");
+  assert.equal(getPlanWeekStartDate(plan, 2)?.toDateString(), "Wed Jul 22 2026");
+});
 
 function createDay(dayNumber) {
   return {

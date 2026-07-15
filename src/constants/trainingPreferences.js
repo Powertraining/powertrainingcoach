@@ -48,6 +48,21 @@ export const DESIRED_TRAINING_OPTIONS = Object.freeze([
   { label: "Endurance only", value: "endurance" },
 ]);
 
+export const HYBRID_SESSION_STRUCTURE_OPTIONS = Object.freeze([
+  {
+    label: "Separate Sessions — Recommended",
+    value: "separate_sessions",
+    description:
+      "Power and endurance are trained in different sessions or on different days when possible. This is the recommended option because it helps preserve explosive quality, reduces interference, and makes each session more focused.",
+  },
+  {
+    label: "Same Session",
+    value: "same_session",
+    description:
+      "Power and endurance are included in the same workout. This is useful when you have limited training days, but the session will be structured carefully: power comes first while you are fresh, and conditioning comes later.",
+  },
+]);
+
 export const ENDURANCE_MODALITY_OPTIONS = Object.freeze([
   {
     label: "Rowing Ergometer",
@@ -242,6 +257,7 @@ export const SPRINTING_TARGET_OPTIONS = Object.freeze([
   { label: "Repeat bursts", value: "repeat_bursts" },
   { label: "Hard conditioning", value: "hard_conditioning" },
 ]);
+const MAX_PREFERRED_ENDURANCE_MODALITIES = 3;
 
 export const CAPABILITY_RATING_OPTIONS = Object.freeze([
   { label: "Yes", value: "yes" },
@@ -343,6 +359,7 @@ const SESSION_DURATION_MINUTES = Object.freeze({
 export const TRAINING_PREFERENCES_DEFAULTS = Object.freeze({
   experience: "beginner",
   desiredTraining: "strength_power_endurance",
+  hybridSessionStructure: "separate_sessions",
   trainingCapabilities: Object.freeze({}),
   preferredEnduranceModalities: Object.freeze([]),
   enduranceSessionsPerWeek: 1,
@@ -554,11 +571,27 @@ function getNestedEnduranceSettings(source = {}) {
       : {};
 }
 
+function normalizeHybridSessionStructure(source = {}, desiredTraining) {
+  if (desiredTraining !== "strength_power_endurance") {
+    return "";
+  }
+
+  const nestedSettings = getNestedEnduranceSettings(source);
+  const value =
+    source.hybridSessionStructure ??
+    source.endurancePowerSessionStructure ??
+    nestedSettings.sessionStructure;
+
+  return isAllowedValue(value, HYBRID_SESSION_STRUCTURE_OPTIONS)
+    ? value
+    : TRAINING_PREFERENCES_DEFAULTS.hybridSessionStructure;
+}
+
 function normalizeEnduranceTrainingSettings(source = {}, desiredTraining, daysPerWeek = 5) {
   const nestedSettings = getNestedEnduranceSettings(source);
-  const preferredEnduranceModalities = normalizeEnduranceModalities(source).filter(
-    (modality) => modality !== "heavy_bag" || allowsHeavyBag(source)
-  );
+  const preferredEnduranceModalities = normalizeEnduranceModalities(source)
+    .filter((modality) => modality !== "heavy_bag" || allowsHeavyBag(source))
+    .slice(0, MAX_PREFERRED_ENDURANCE_MODALITIES);
   const circuitSettings =
     nestedSettings.circuitTraining && typeof nestedSettings.circuitTraining === "object"
       ? nestedSettings.circuitTraining
@@ -589,6 +622,7 @@ function normalizeEnduranceTrainingSettings(source = {}, desiredTraining, daysPe
 
   return {
     include: includeEndurance,
+    sessionStructure: normalizeHybridSessionStructure(source, desiredTraining),
     modalities: preferredEnduranceModalities,
     sessionsPerWeek: normalizeEnduranceSessionCount(
       source.enduranceSessionsPerWeek ??
@@ -850,6 +884,7 @@ export function getTrainingPreferencesFormState(source = {}) {
       ? safeSource.experience
       : TRAINING_PREFERENCES_DEFAULTS.experience,
     desiredTraining,
+    hybridSessionStructure: enduranceTraining.sessionStructure,
     trainingCapabilities: normalizeTrainingCapabilities(safeSource),
     preferredEnduranceModalities: enduranceTraining.modalities,
     enduranceSessionsPerWeek: enduranceTraining.sessionsPerWeek,
@@ -906,6 +941,7 @@ export function normalizeTrainingPreferences(source = {}) {
         : "",
     goal: getLegacyGoalFromDesiredTraining(desiredTraining),
     desiredTraining,
+    hybridSessionStructure: enduranceTraining.sessionStructure,
     experience: isAllowedValue(
       safeSource.experience,
       STRENGTH_CONDITIONING_EXPERIENCE_OPTIONS
@@ -967,6 +1003,8 @@ export function areTrainingPreferencesEqual(left, right) {
 
   return (
     normalizedLeft.desiredTraining === normalizedRight.desiredTraining &&
+    normalizedLeft.hybridSessionStructure ===
+      normalizedRight.hybridSessionStructure &&
     normalizedLeft.experience === normalizedRight.experience &&
     getTrainingCapabilityKeys().every(
       (key) =>
