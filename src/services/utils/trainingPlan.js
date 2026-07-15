@@ -1978,6 +1978,50 @@ export function parseGeneratedTrainingPlan(plan = {}) {
   return normalizedPlan;
 }
 
+function weekContainsRemovedManualMerge(week = {}) {
+  const adjustmentState =
+    week?.adjustmentState && typeof week.adjustmentState === "object"
+      ? week.adjustmentState
+      : {};
+
+  return (
+    adjustmentState.lastAction === "manual_merge" ||
+    (Array.isArray(week?.days) &&
+      week.days.some((day) => day?.rescueMode === "manual_merge"))
+  );
+}
+
+export function hasRemovedManualSessionMerges(plan = {}) {
+  return (
+    Array.isArray(plan?.weeks) &&
+    plan.weeks.some((week) => weekContainsRemovedManualMerge(week))
+  );
+}
+
+function restoreRemovedManualMergeWeek(week = {}) {
+  const adjustmentState =
+    week?.adjustmentState && typeof week.adjustmentState === "object"
+      ? week.adjustmentState
+      : {};
+  const snapshot = adjustmentState.originalWeekSnapshot;
+
+  if (
+    !weekContainsRemovedManualMerge(week) ||
+    !snapshot ||
+    typeof snapshot !== "object" ||
+    !Array.isArray(snapshot.days) ||
+    snapshot.days.length === 0
+  ) {
+    return week;
+  }
+
+  return {
+    ...snapshot,
+    week: week.week,
+    adjustmentState: snapshot.adjustmentState,
+  };
+}
+
 export function normalizeTrainingPlan(plan = {}) {
   const safePlan = plan && typeof plan === "object" ? plan : {};
 
@@ -1986,17 +2030,23 @@ export function normalizeTrainingPlan(plan = {}) {
     summary: normalizeString(safePlan.summary),
     phaseOverview: resolveTrainingPlanPhaseOverview(safePlan),
     weeks: Array.isArray(safePlan.weeks)
-      ? safePlan.weeks.map((week, weekIndex) => ({
-          ...week,
-          week:
-            Number.isFinite(week?.week) && week.week > 0
-              ? week.week
-              : weekIndex + 1,
-          adjustmentState: getWeekAdjustmentState(week),
-          days: Array.isArray(week?.days)
-            ? week.days.map((day, dayIndex) => normalizeTrainingDay(day, dayIndex))
-            : [],
-        }))
+      ? safePlan.weeks.map((week, weekIndex) => {
+          const restoredWeek = restoreRemovedManualMergeWeek(week);
+
+          return {
+            ...restoredWeek,
+            week:
+              Number.isFinite(restoredWeek?.week) && restoredWeek.week > 0
+                ? restoredWeek.week
+                : weekIndex + 1,
+            adjustmentState: getWeekAdjustmentState(restoredWeek),
+            days: Array.isArray(restoredWeek?.days)
+              ? restoredWeek.days.map((day, dayIndex) =>
+                  normalizeTrainingDay(day, dayIndex)
+                )
+              : [],
+          };
+        })
       : [],
   };
 }
@@ -2332,6 +2382,108 @@ export function replaceTrainingPlanDay(
         ),
       };
     }),
+  };
+}
+
+export function applyTrainingSessionMove(plan = {}, options = {}) {
+  const normalizedPlan = normalizeTrainingPlan(plan);
+  const completedDaySet = getCompletedDaySet(options.completedDays);
+  const weekNumber = parsePositiveInteger(options.weekNumber);
+  const dayNumber = parsePositiveInteger(options.dayNumber);
+  const requestedTargetDate = options.targetDate
+    ? startOfLocalDay(options.targetDate)
+    : null;
+  const targetWeekday = requestedTargetDate
+    ? getWeekdayNameFromIndex(requestedTargetDate.getDay())
+    : getNormalizedWeekday(options.targetWeekday);
+
+  if (!weekNumber || !dayNumber || !targetWeekday) {
+    return { plan: normalizedPlan, action: "invalid_target" };
+  }
+
+  if (requestedTargetDate) {
+    const today = startOfLocalDay(options.today || new Date());
+    const planStartDate = startOfLocalDay(plan?.createdAt || plan?.generatedAt);
+
+    if (today && requestedTargetDate < today) {
+      return { plan: normalizedPlan, action: "target_in_past" };
+    }
+
+    if (planStartDate) {
+      const weekStartDate = new Date(planStartDate);
+      weekStartDate.setDate(weekStartDate.getDate() + (weekNumber - 1) * 7);
+      const weekEndDate = new Date(weekStartDate);
+      weekEndDate.setDate(weekEndDate.getDate() + 6);
+
+      if (
+        requestedTargetDate < weekStartDate ||
+        requestedTargetDate > weekEndDate
+      ) {
+        return { plan: normalizedPlan, action: "target_outside_week" };
+      }
+    }
+  }
+
+  const targetWeek = normalizedPlan.weeks.find((week) => week.week === weekNumber);
+  const sourceDay = targetWeek?.days?.find((day) => day.day === dayNumber);
+
+  if (
+    !targetWeek ||
+    !sourceDay ||
+    isDayResolved(sourceDay, weekNumber, completedDaySet)
+  ) {
+    return { plan: normalizedPlan, action: "session_unavailable" };
+  }
+
+  const sourceWeekday = resolvePreferredWeekday(sourceDay);
+
+  if (sourceWeekday === targetWeekday) {
+    return { plan: normalizedPlan, action: "unchanged" };
+  }
+
+  const targetIsOccupied = targetWeek.days.some(
+    (day) =>
+      day.day !== dayNumber &&
+      !isDaySkipped(day) &&
+      resolvePreferredWeekday(day) === targetWeekday
+  );
+
+  if (targetIsOccupied) {
+    return { plan: normalizedPlan, action: "target_occupied" };
+  }
+
+  const movedDay = normalizeTrainingDay({
+    ...sourceDay,
+    preferredWeekday: targetWeekday,
+    status: TRAINING_DAY_STATUSES.rescheduled,
+    rescueMode: "manual_move",
+    adjustmentReason: "schedule_change",
+    adjustmentSummary: sourceWeekday
+      ? `Session moved from ${sourceWeekday} to ${targetWeekday}.`
+      : `Session moved to ${targetWeekday}.`,
+    originalPreferredWeekday:
+      normalizeString(sourceDay.originalPreferredWeekday) || sourceWeekday,
+  });
+
+  return {
+    action: "move_session",
+    plan: {
+      ...normalizedPlan,
+      weeks: normalizedPlan.weeks.map((week) =>
+        week.week === weekNumber
+          ? {
+              ...week,
+              adjustmentState: {
+                ...(week.adjustmentState || {}),
+                lastAction: "manual_move",
+              },
+              days: week.days.map((day) =>
+                day.day === dayNumber ? movedDay : day
+              ),
+            }
+          : week
+      ),
+    },
   };
 }
 

@@ -37,9 +37,14 @@ export default function WhiteBottomMenu({
   secondaryButtonTextStyle,
   bottomPadding = 18,
   avoidKeyboard = false,
+  transitionKey,
+  transitionDirection = 1,
 }) {
   const insets = useSafeAreaInsets();
   const defaultSheetTranslateY = useRef(new Animated.Value(0)).current;
+  const bodyTranslateX = useRef(new Animated.Value(0)).current;
+  const bodyOpacity = useRef(new Animated.Value(1)).current;
+  const previousTransitionKeyRef = useRef(transitionKey);
   const resolvedContent = content || children;
 
   useEffect(
@@ -51,6 +56,44 @@ export default function WhiteBottomMenu({
     },
     [defaultSheetTranslateY, visible]
   );
+
+  useEffect(() => {
+    if (
+      !visible ||
+      transitionKey == null ||
+      previousTransitionKeyRef.current === transitionKey
+    ) {
+      previousTransitionKeyRef.current = transitionKey;
+      return;
+    }
+
+    previousTransitionKeyRef.current = transitionKey;
+    bodyTranslateX.stopAnimation();
+    bodyOpacity.stopAnimation();
+    bodyTranslateX.setValue((transitionDirection < 0 ? -1 : 1) * 72);
+    bodyOpacity.setValue(0.72);
+
+    Animated.parallel([
+      Animated.timing(bodyTranslateX, {
+        toValue: 0,
+        duration: 230,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(bodyOpacity, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [
+    bodyOpacity,
+    bodyTranslateX,
+    transitionDirection,
+    transitionKey,
+    visible,
+  ]);
 
   const defaultPanResponder = useMemo(
     function defaultPanResponderACB() {
@@ -133,48 +176,58 @@ export default function WhiteBottomMenu({
               <View style={styles.handle} />
             </View>
 
-            {title ? (
-              <IBMPlexText style={styles.title}>{title}</IBMPlexText>
-            ) : null}
-            {description ? (
-              <IBMPlexText style={styles.description}>{description}</IBMPlexText>
-            ) : null}
+            <Animated.View
+              style={[
+                styles.body,
+                {
+                  opacity: bodyOpacity,
+                  transform: [{ translateX: bodyTranslateX }],
+                },
+              ]}
+            >
+              {title ? (
+                <IBMPlexText style={styles.title}>{title}</IBMPlexText>
+              ) : null}
+              {description ? (
+                <IBMPlexText style={styles.description}>{description}</IBMPlexText>
+              ) : null}
 
-            {resolvedContent ? (
-              <View style={[styles.content, contentStyle]}>{resolvedContent}</View>
-            ) : null}
+              {resolvedContent ? (
+                <View style={[styles.content, contentStyle]}>{resolvedContent}</View>
+              ) : null}
 
-            {buttonText ? (
-              <Pressable
-                onPress={onButtonPress}
-                disabled={buttonDisabled}
-                style={[
-                  styles.button,
-                  buttonDisabled ? styles.buttonDisabled : null,
-                  buttonStyle,
-                ]}
-              >
-                <IBMPlexText style={[styles.buttonText, buttonTextStyle]}>
-                  {buttonText}
-                </IBMPlexText>
-              </Pressable>
-            ) : null}
+              {buttonText ? (
+                <Pressable
+                  onPress={onButtonPress}
+                  disabled={buttonDisabled}
+                  style={[
+                    styles.button,
+                    buttonDisabled ? styles.buttonDisabled : null,
+                    buttonStyle,
+                  ]}
+                >
+                  <IBMPlexText style={[styles.buttonText, buttonTextStyle]}>
+                    {buttonText}
+                  </IBMPlexText>
+                </Pressable>
+              ) : null}
 
-            {secondaryButtonText ? (
-              <Pressable
-                onPress={onSecondaryButtonPress}
-                disabled={secondaryButtonDisabled}
-                style={[
-                  styles.secondaryButton,
-                  secondaryButtonDisabled ? styles.buttonDisabled : null,
-                  secondaryButtonStyle,
-                ]}
-              >
-                <IBMPlexText style={[styles.secondaryButtonText, secondaryButtonTextStyle]}>
-                  {secondaryButtonText}
-                </IBMPlexText>
-              </Pressable>
-            ) : null}
+              {secondaryButtonText ? (
+                <Pressable
+                  onPress={onSecondaryButtonPress}
+                  disabled={secondaryButtonDisabled}
+                  style={[
+                    styles.secondaryButton,
+                    secondaryButtonDisabled ? styles.buttonDisabled : null,
+                    secondaryButtonStyle,
+                  ]}
+                >
+                  <IBMPlexText style={[styles.secondaryButtonText, secondaryButtonTextStyle]}>
+                    {secondaryButtonText}
+                  </IBMPlexText>
+                </Pressable>
+              ) : null}
+            </Animated.View>
           </Sheet>
         </KeyboardAvoidingView>
       </View>
@@ -228,6 +281,10 @@ sheet: {
     marginTop: -12,
     minHeight: 54,
     paddingTop: 12,
+  },
+  body: {
+    alignSelf: "stretch",
+    gap: 14,
   },
   title: {
     color: "#141414",

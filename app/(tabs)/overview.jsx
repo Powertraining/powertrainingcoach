@@ -36,6 +36,10 @@ const OverviewScreen = observer(function OverviewScreen() {
   const lastRouteSelectedDayRef = useRef("");
   const suppressAutoSelectRef = useRef(false);
 
+  useEffect(() => {
+    model.restoreRemovedManualSessionMerges?.();
+  }, [model, model.trainingPlan]);
+
   function getParamValue(value) {
     return Array.isArray(value) ? value[0] : value;
   }
@@ -346,7 +350,28 @@ const OverviewScreen = observer(function OverviewScreen() {
     );
   }
 
-  async function handleMissedDay() {
+  async function handleMoveDay(targetDate) {
+    if (!selectedDay || !(targetDate instanceof Date) || updatingPlan) {
+      return;
+    }
+
+    setUpdatingPlan(true);
+
+    try {
+      await model.moveTrainingSession?.({
+        weekNumber: selectedDay.week,
+        dayNumber: selectedDay.day,
+        targetDate,
+        targetWeekday: getWeekdayNameFromIndex(targetDate.getDay()),
+      });
+    } catch (error) {
+      console.error("Could not move session:", error);
+    } finally {
+      setUpdatingPlan(false);
+    }
+  }
+
+  async function handleDelayDay() {
     if (!selectedDay || updatingPlan) {
       return;
     }
@@ -360,7 +385,7 @@ const OverviewScreen = observer(function OverviewScreen() {
       });
       setSelectedDayPointer(null);
     } catch (error) {
-      console.error("Could not update missed session logic:", error);
+      console.error("Could not delay session:", error);
     } finally {
       setUpdatingPlan(false);
     }
@@ -460,7 +485,8 @@ const OverviewScreen = observer(function OverviewScreen() {
         onClearSelectedDay={handleClearSelectedDay}
         onReplaceExercise={handleReplaceExercise}
         onFinishDay={handleFinishDay}
-        onMissedDay={handleMissedDay}
+        onMoveDay={handleMoveDay}
+        onDelayDay={handleDelayDay}
         getActiveSessionProgress={getActiveSessionProgress}
         onActiveSessionProgressChange={handleActiveSessionProgressChange}
         onActiveSessionProgressClear={handleActiveSessionProgressClear}

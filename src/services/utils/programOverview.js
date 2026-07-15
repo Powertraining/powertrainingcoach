@@ -9,6 +9,18 @@ export function getProgramOverviewToday(value = new Date()) {
   return startOfLocalDay(value) || startOfLocalDay();
 }
 
+export function getPlanWeekStartDate(plan = {}, weekNumber = 1) {
+  const planStartDate = startOfLocalDay(plan?.createdAt || plan?.generatedAt);
+  const parsedWeekNumber = Number.parseInt(weekNumber, 10);
+
+  if (!planStartDate || !Number.isFinite(parsedWeekNumber) || parsedWeekNumber < 1) {
+    return null;
+  }
+
+  planStartDate.setDate(planStartDate.getDate() + (parsedWeekNumber - 1) * 7);
+  return planStartDate;
+}
+
 export function formatCurrentDateLabel(date) {
   return new Intl.DateTimeFormat("en-US", {
     month: "long",

@@ -30,11 +30,15 @@ import LoadingView from "../../src/screens/LoadingView.jsx";
 import ErrorView from "../../src/screens/ErrorView.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
+import SessionMoveCalendar from "../../src/components/planComponents/SessionMoveCalendar.jsx";
+import SessionMoveMethodPicker from "../../src/components/planComponents/SessionMoveMethodPicker.jsx";
 import BlackGradient from "../../src/components/colorComponents/BlackGradient.jsx";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
+import { getWeekdayNameFromIndex } from "../../src/constants/weekdays.js";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
+import { getPlanWeekStartDate } from "../../src/services/utils/programOverview.js";
 import { getParamValue } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
@@ -112,10 +116,16 @@ const HomeScreen = observer(function HomeScreen() {
   const [pushingBackSession, setPushingBackSession] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
   const [pushBackTarget, setPushBackTarget] = useState(null);
+  const [selectedMoveDate, setSelectedMoveDate] = useState(null);
+  const [moveSessionSheetStep, setMoveSessionSheetStep] = useState("options");
   const [questionnaireNavigatorVisible, setQuestionnaireNavigatorVisible] =
     useState(false);
   const [error, setError] = useState(null);
   const subscriptionRefreshAttemptedRef = useRef("");
+
+  useEffect(() => {
+    model.restoreRemovedManualSessionMerges?.();
+  }, [model, model.trainingPlan]);
 
   function getSafeResumeStep() {
     const resume = getParamValue(params.resume);
@@ -213,7 +223,12 @@ const HomeScreen = observer(function HomeScreen() {
 
   useAndroidBackHandler(() => {
     if (pushBackConfirmVisible) {
-      closePushBackConfirm();
+      if (moveSessionSheetStep !== "options") {
+        setSelectedMoveDate(null);
+        setMoveSessionSheetStep("options");
+      } else {
+        closePushBackConfirm();
+      }
       return;
     }
 
@@ -223,7 +238,7 @@ const HomeScreen = observer(function HomeScreen() {
     }
 
     return false;
-  }, [pushBackConfirmVisible, step, inputActiveStep]);
+  }, [pushBackConfirmVisible, moveSessionSheetStep, step, inputActiveStep]);
 
   if (!model.ready) {
     return (
@@ -512,7 +527,31 @@ const HomeScreen = observer(function HomeScreen() {
     router.push("/(tabs)/profile-injuries");
   }
 
-  async function pushBackCurrentSession(targetSession = null) {
+  async function moveCurrentSession(targetSession = null, targetDate = null) {
+    const currentSession = targetSession || getCurrentSession();
+
+    if (!currentSession || !targetDate || pushingBackSession) {
+      return;
+    }
+
+    setPushingBackSession(true);
+
+    try {
+      await model.moveTrainingSession?.({
+        weekNumber: currentSession.week,
+        dayNumber: currentSession.day,
+        targetDate,
+        targetWeekday: getWeekdayNameFromIndex(targetDate.getDay()),
+      });
+    } catch (error) {
+      console.error("Could not move session:", error);
+      model.showError?.(error, "Could not move this session. Please try again.");
+    } finally {
+      setPushingBackSession(false);
+    }
+  }
+
+  async function delayCurrentSession(targetSession = null) {
     const currentSession = targetSession || getCurrentSession();
 
     if (!currentSession || pushingBackSession) {
@@ -527,14 +566,14 @@ const HomeScreen = observer(function HomeScreen() {
         dayNumber: currentSession.day,
       });
     } catch (error) {
-      console.error("Could not update missed session logic:", error);
-      model.showError?.(error, "Could not push this session back. Please try again.");
+      console.error("Could not delay session:", error);
+      model.showError?.(error, "Could not delay this session. Please try again.");
     } finally {
       setPushingBackSession(false);
     }
   }
 
-  function openPushBackConfirm(weekNumber, dayNumber) {
+  function openPushBackConfirm(weekNumber, dayNumber, sourceDate) {
     if (pushingBackSession) {
       return;
     }
@@ -547,9 +586,15 @@ const HomeScreen = observer(function HomeScreen() {
         ? {
             week: parsedWeekNumber,
             day: parsedDayNumber,
+            sourceDate:
+              sourceDate instanceof Date && !Number.isNaN(sourceDate.getTime())
+                ? new Date(sourceDate)
+                : new Date(),
           }
         : null
     );
+    setSelectedMoveDate(null);
+    setMoveSessionSheetStep("options");
     setPushBackConfirmVisible(true);
   }
 
@@ -560,14 +605,28 @@ const HomeScreen = observer(function HomeScreen() {
 
     setPushBackConfirmVisible(false);
     setPushBackTarget(null);
+    setSelectedMoveDate(null);
+    setMoveSessionSheetStep("options");
   }
 
   async function confirmPushBackCurrentSession() {
     const targetSession = pushBackTarget;
+    const targetDate = selectedMoveDate;
 
     setPushBackConfirmVisible(false);
     setPushBackTarget(null);
-    await pushBackCurrentSession(targetSession);
+    setSelectedMoveDate(null);
+    await moveCurrentSession(targetSession, targetDate);
+  }
+
+  async function confirmDelayCurrentSession() {
+    const targetSession = pushBackTarget;
+
+    setPushBackConfirmVisible(false);
+    setPushBackTarget(null);
+    setSelectedMoveDate(null);
+    setMoveSessionSheetStep("options");
+    await delayCurrentSession(targetSession);
   }
 
   if (loading) {
@@ -612,7 +671,7 @@ const HomeScreen = observer(function HomeScreen() {
         onResetUserProgress={resetUserProgressForTesting}
         onAdjustPlan={openPlanAdjustments}
         onOpenWellness={openReportInjury}
-        onMoveSessionLater={openPushBackConfirm}
+        onMoveSession={openPushBackConfirm}
       />
     ),
 
@@ -705,14 +764,83 @@ const HomeScreen = observer(function HomeScreen() {
       <WhiteBottomMenu
         visible={pushBackConfirmVisible}
         onDismiss={closePushBackConfirm}
-        title="Move session forward?"
-        description="This moves the session forward and updates the plan around the missed slot."
-        buttonText={pushingBackSession ? "Updating..." : "Move 2 days forward"}
-        buttonDisabled={pushingBackSession}
-        onButtonPress={confirmPushBackCurrentSession}
-        secondaryButtonText="Cancel"
+        transitionKey={moveSessionSheetStep}
+        transitionDirection={moveSessionSheetStep === "options" ? -1 : 1}
+        title={
+          moveSessionSheetStep === "calendar"
+            ? "Change date"
+            : moveSessionSheetStep === "delayConfirm"
+              ? "Delay session?"
+              : "Move session?"
+        }
+        description={
+          moveSessionSheetStep === "calendar"
+            ? "Choose an exact available date from this training week."
+            : moveSessionSheetStep === "delayConfirm"
+              ? "This moves the session to the next viable training slot and updates the plan around the new date."
+            : "Choose how you want to adjust this session."
+        }
+        content={
+          moveSessionSheetStep === "calendar" ? (
+            <SessionMoveCalendar
+              sourceDate={pushBackTarget?.sourceDate}
+              weekStartDate={getPlanWeekStartDate(
+                model.trainingPlan,
+                pushBackTarget?.week
+              )}
+              selectedDate={selectedMoveDate}
+              scheduledDays={
+                model.trainingPlan?.weeks
+                  ?.find((week) => week.week === pushBackTarget?.week)
+                  ?.days?.filter((day) => day.status !== "skipped") || []
+              }
+              onSelectDate={setSelectedMoveDate}
+            />
+          ) : moveSessionSheetStep === "options" ? (
+            <SessionMoveMethodPicker
+              disabled={pushingBackSession}
+              onChangeDate={() => setMoveSessionSheetStep("calendar")}
+              onDelaySession={() => setMoveSessionSheetStep("delayConfirm")}
+            />
+          ) : null
+        }
+        buttonText={
+          moveSessionSheetStep === "delayConfirm"
+            ? pushingBackSession
+              ? "Updating..."
+              : "Confirm delay"
+            : moveSessionSheetStep === "calendar"
+              ? pushingBackSession
+            ? "Updating..."
+            : selectedMoveDate && pushBackTarget?.sourceDate
+              ? selectedMoveDate > pushBackTarget.sourceDate
+                ? "Delay session"
+                : "Move earlier"
+              : "Select a day"
+              : undefined
+        }
+        buttonDisabled={
+          pushingBackSession ||
+          (moveSessionSheetStep === "calendar" && !selectedMoveDate) ||
+          moveSessionSheetStep === "options"
+        }
+        onButtonPress={
+          moveSessionSheetStep === "delayConfirm"
+            ? confirmDelayCurrentSession
+            : confirmPushBackCurrentSession
+        }
+        secondaryButtonText={
+          moveSessionSheetStep === "options" ? "Cancel" : "Go back"
+        }
         secondaryButtonDisabled={pushingBackSession}
-        onSecondaryButtonPress={closePushBackConfirm}
+        onSecondaryButtonPress={
+          moveSessionSheetStep !== "options"
+            ? () => {
+                setSelectedMoveDate(null);
+                setMoveSessionSheetStep("options");
+              }
+            : closePushBackConfirm
+        }
       />
       <Modal
         visible={questionnaireNavigatorVisible}
