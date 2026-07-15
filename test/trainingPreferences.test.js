@@ -7,6 +7,31 @@ import {
   normalizeTrainingPreferences,
 } from "../src/constants/trainingPreferences.js";
 
+test("hybrid plans default to separate power and endurance sessions", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "strength_power_endurance",
+  });
+
+  assert.equal(normalizedPreferences.hybridSessionStructure, "separate_sessions");
+  assert.equal(
+    normalizedPreferences.enduranceTraining.sessionStructure,
+    "separate_sessions"
+  );
+});
+
+test("hybrid plans preserve an explicit same-session preference", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "strength_power_endurance",
+    hybridSessionStructure: "same_session",
+  });
+
+  assert.equal(normalizedPreferences.hybridSessionStructure, "same_session");
+  assert.equal(
+    normalizedPreferences.enduranceTraining.sessionStructure,
+    "same_session"
+  );
+});
+
 test("endurance modality options include the configured methods and tools", () => {
   const modalityValues = ENDURANCE_MODALITY_OPTIONS.map((option) => option.value);
 
@@ -54,6 +79,24 @@ test("normalizeTrainingPreferences preserves preferred endurance modalities", ()
     "versaclimber",
     "sport_specific",
     "heavy_bag",
+  ]);
+});
+
+test("normalizeTrainingPreferences limits preferred endurance modalities to three", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "strength_power_endurance",
+    preferredEnduranceModalities: [
+      "rowing_ergometer",
+      "assault_bike",
+      "running",
+      "sprinting",
+    ],
+  });
+
+  assert.deepEqual(normalizedPreferences.preferredEnduranceModalities, [
+    "rowing_ergometer",
+    "assault_bike",
+    "running",
   ]);
 });
 
@@ -124,13 +167,33 @@ test("striking questionnaires retain heavy bag choices", () => {
   assert.equal(normalizedPreferences.trainingCapabilities.heavyBag, "yes");
 });
 
-test("single-leg lift capability defaults to fairly experienced", () => {
+test("removed capability questions default to fairly experienced", () => {
   const formState = getTrainingPreferencesFormState({});
   const normalizedPreferences = normalizeTrainingPreferences({});
 
   assert.equal(formState.trainingCapabilities.singleLegLifts, "somewhat");
+  assert.equal(formState.trainingCapabilities.ballisticTraining, "somewhat");
+  assert.equal(formState.trainingCapabilities.runningSprinting, "somewhat");
+  assert.equal(formState.trainingCapabilities.bikeRowerAssaultBike, "somewhat");
+  assert.equal(formState.trainingCapabilities.circuitTraining, "somewhat");
   assert.equal(
     normalizedPreferences.trainingCapabilities.singleLegLifts,
+    "somewhat"
+  );
+  assert.equal(
+    normalizedPreferences.trainingCapabilities.ballisticTraining,
+    "somewhat"
+  );
+  assert.equal(
+    normalizedPreferences.trainingCapabilities.runningSprinting,
+    "somewhat"
+  );
+  assert.equal(
+    normalizedPreferences.trainingCapabilities.bikeRowerAssaultBike,
+    "somewhat"
+  );
+  assert.equal(
+    normalizedPreferences.trainingCapabilities.circuitTraining,
     "somewhat"
   );
 });

@@ -251,7 +251,12 @@ function hasCheckInForWeek(state = {}, type, weekNumber) {
   const normalizedState = normalizeTrainingCheckInState(state);
 
   return normalizedState.history.some(
-    (entry) => entry.type === type && entry.weekNumber === weekNumber
+    (entry) =>
+      entry.weekNumber === weekNumber &&
+      (
+        entry.type === type ||
+        (type === CHECK_IN_TYPES.weekly && entry.type === CHECK_IN_TYPES.end_of_block)
+      )
   );
 }
 
@@ -291,8 +296,8 @@ export function getPendingTrainingCheckIn({
     return {
       type: CHECK_IN_TYPES.end_of_block,
       weekNumber: latestCompletedWeek,
-      title: "End-of-block check-in",
-      summary: `Wrap up the last ${blockSize} weeks before the app recommends whether to keep pushing, deload, or change the structure.`,
+      title: `${blockSize}-week check-in`,
+      summary: `Review the last ${blockSize} weeks, then choose how the app should adjust the next part of your program.`,
       weeksInScope: buildWeeksInScope(
         latestCompletedWeek,
         CHECK_IN_TYPES.end_of_block,

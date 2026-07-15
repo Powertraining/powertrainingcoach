@@ -28,6 +28,7 @@ const ENDURANCE_METHOD_ICONS = Object.freeze({
   swimming: "swim",
   versaclimber: "stairs-up",
 });
+const MAX_SELECTED_ENDURANCE_METHODS = 3;
 const GOLD_RAY_ANGLES = Object.freeze([0, 45, 90, 135, 180, 225, 270, 315]);
 
 function EnduranceMethodOption({
@@ -159,7 +160,9 @@ export default function TrainingPreferencesEnduranceMethodsView({
   const [activeInfoValue, setActiveInfoValue] = useState(null);
   const didLongPressRef = useRef(false);
   const infoCardProgress = useRef(new Animated.Value(0)).current;
-  const selectedValues = Array.isArray(value) ? value : [];
+  const selectedValues = Array.isArray(value)
+    ? value.slice(0, MAX_SELECTED_ENDURANCE_METHODS)
+    : [];
   const activeInfoOption = ENDURANCE_MODALITY_OPTIONS.find(
     (option) => option.value === activeInfoValue
   );
@@ -193,6 +196,8 @@ export default function TrainingPreferencesEnduranceMethodsView({
   function toggleMethod(methodValue) {
     const nextValues = selectedValues.includes(methodValue)
       ? selectedValues.filter((entry) => entry !== methodValue)
+      : selectedValues.length >= MAX_SELECTED_ENDURANCE_METHODS
+        ? selectedValues
       : [...selectedValues, methodValue];
 
     onChange?.(nextValues);
@@ -207,7 +212,10 @@ export default function TrainingPreferencesEnduranceMethodsView({
       return;
     }
 
-    if (!selectedValues.includes(activeInfoOption.value)) {
+    if (
+      !selectedValues.includes(activeInfoOption.value) &&
+      selectedValues.length < MAX_SELECTED_ENDURANCE_METHODS
+    ) {
       onChange?.([...selectedValues, activeInfoOption.value]);
     }
 
@@ -224,8 +232,7 @@ export default function TrainingPreferencesEnduranceMethodsView({
       >
         <IBMPlexText titleBlock height={118}>Endurance Methods</IBMPlexText>
         <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
-          Optional. Pick the tools you prefer, or leave this open so the coach can
-          choose around your week.
+          Choose your top 3 preferred methods.{"\n"}We'll prioritize these when building your conditioning plan.
         </IBMPlexText>
         <View style={styles.infoHint}>
           <MaterialCommunityIcons

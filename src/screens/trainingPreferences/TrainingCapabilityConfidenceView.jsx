@@ -50,8 +50,50 @@ const PULLING_WORK_CONFIDENCE_OPTIONS = [
       "I can perform multiple strict reps with good control and may be ready for added load or higher volume.",
   },
 ];
+const OLYMPIC_LIFT_CONFIDENCE_OPTIONS = [
+  {
+    label: "Not yet",
+    value: "no",
+    description:
+      "I haven't learned Olympic-lift variations yet, or my technique is inconsistent.",
+  },
+  {
+    label: "Fairly",
+    value: "somewhat",
+    description:
+      "I can perform basic variations with decent technique, but still prefer a safe approach.",
+  },
+  {
+    label: "Very",
+    value: "yes",
+    description:
+      "I'm confident with explosive Olympic-lift variations and can maintain speed, timing, and good positions under load.",
+  },
+];
+const PLYOMETRICS_CONFIDENCE_OPTIONS = [
+  {
+    label: "Not yet",
+    value: "no",
+    description:
+      "I'm new to plyometrics or still learning how to jump, land, and change direction safely.",
+  },
+  {
+    label: "Fairly",
+    value: "somewhat",
+    description:
+      "I can perform basic jumps, hops, and bounds with decent control, but still need moderate volume and simple progressions.",
+  },
+  {
+    label: "Very",
+    value: "yes",
+    description:
+      "I'm confident with explosive plyometrics and can maintain good landing mechanics, stiffness, and control at higher speeds.",
+  },
+];
 const COMPOUND_LIFT_CAPABILITY_KEY = "compoundLifts";
 const PULLING_WORK_CAPABILITY_KEY = "pullingWork";
+const OLYMPIC_LIFT_CAPABILITY_KEY = "olympicLiftVariations";
+const PLYOMETRICS_CAPABILITY_KEY = "plyometrics";
 const OPTION_BUTTON_HEIGHT = 48;
 const OPTION_SHADOW_OFFSET = 6;
 
@@ -138,6 +180,8 @@ export default function TrainingCapabilityConfidenceView({
   const describedConfidenceOptionsByCapability = {
     [COMPOUND_LIFT_CAPABILITY_KEY]: COMPOUND_LIFT_CONFIDENCE_OPTIONS,
     [PULLING_WORK_CAPABILITY_KEY]: PULLING_WORK_CONFIDENCE_OPTIONS,
+    [OLYMPIC_LIFT_CAPABILITY_KEY]: OLYMPIC_LIFT_CONFIDENCE_OPTIONS,
+    [PLYOMETRICS_CAPABILITY_KEY]: PLYOMETRICS_CONFIDENCE_OPTIONS,
   };
   const describedConfidenceOptions =
     describedConfidenceOptionsByCapability[capabilityKey];

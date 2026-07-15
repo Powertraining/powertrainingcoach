@@ -115,8 +115,11 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Start every athlete at the lowest impact tier allowed by experience, movement competency, recovery status, and program phase.
 - Progress impact one tier at a time: low, then medium, then high. Regress if landing quality, recovery, or pain says to.
 - Early phases favor lower-impact general plyos and medicine-ball work; later phases can move toward more reactive and sport-specific power if the athlete is ready.
-- Loaded jumps should usually use roughly 30-60% of body mass as external load and stay crisp rather than grindy.
-- Rep ranges should match the drill: pogos and extensive stiffness work can go higher, most jumps for height or distance sit around 3-6, and depth or loaded jumps usually stay around 3-5.`,
+- For back-squat jumps, trap-bar jumps, and similar loaded jumps, prescribe the total external load (bar plus plates) at roughly 30-60% of body mass for most fighters.
+- Account for the empty implement: hex bars commonly weigh 20-25 kg and standard barbells about 20 kg. If the empty bar already exceeds the target load for a smaller athlete, prescribe a lighter bar or dumbbells and explicitly say so in the exercise notes.
+- Keep every loaded jump crisp and full-effort. Do not solve poor output by loading heavier; excess load reduces flight time and degrades mechanics.
+- When jump-height data from a contact mat/app or bar-velocity data from a linear position transducer (LPT) is available, use it to auto-regulate load and stop the set when output or mechanics drop. Without technology, use the athlete's feel and visible jump quality.
+- Rep ranges should match the drill: extensive stiffness work such as pogos or ankle jumps can use 10-20 reps, low-hurdle hops or low box jumps 5-10, jumps for height or distance 3-6, and depth/shock jumps or loaded jumps 3-5. Very rarely prescribe fewer than 3 reps for a jump.`,
   bilateral: `# Bilateral plyometric impact guide
 - Treat CMJs, squat jumps, pogos, box jumps, and simple line hops as low impact.
 - Broad jumps, tuck jumps, split-squat jumps, low-box drop jumps, and similar rebound drills are medium impact.
@@ -168,6 +171,9 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   - "strength_power": prioritize strength, power, speed, and explosive qualities with only enough conditioning to support the work.
   - "endurance": prioritize conditioning and endurance while keeping strength/power work minimal and supportive.
   - "strength_power_endurance": combine strength/power and endurance in a balanced, recoverable way.
+- For "strength_power_endurance", follow "hybridSessionStructure" (also mirrored at "enduranceTraining.sessionStructure"):
+  - "separate_sessions": place dedicated endurance and strength/power on different training days. Do not append conditioning to a strength/power session. This is the default when the preference is missing.
+  - "same_session": combine them only on the requested endurance exposures, keeping power first, then main strength, then endurance. Size the session to the athlete's duration limit and recovery capacity.
 - Use "trainingCapabilities" to choose safe exercise categories. "yes" means the athlete can perform that category confidently, "somewhat" means use simpler progressions and coaching notes, and "no" means avoid that category or replace it with safer alternatives.
 - If Olympic-lift variations, plyometrics, ballistic training, sprinting, or heavy bag work are marked "no", do not prescribe that category directly.
 - Use "eventPreparation" as context for competitions or important dates the athlete is preparing for. If it includes dates or timelines, align the training arc pragmatically without inventing extra event details.

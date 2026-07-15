@@ -23,6 +23,9 @@ test("training prompt embeds the key striking and percentage instruction rules",
   assert.match(prompt, /weighted rows/i);
   assert.match(prompt, /medicine-ball throws and plyometrics/i);
   assert.match(prompt, /3 x 5\+5/i);
+  assert.match(prompt, /bar plus plates.*30-60% of body mass/i);
+  assert.match(prompt, /empty bar already exceeds the target load/i);
+  assert.match(prompt, /loaded jumps 3-5/i);
   assert.match(prompt, /skip conventional deadlift-style main lifts/i);
   assert.match(
     prompt,
@@ -319,6 +322,35 @@ test("training prompt for endurance plan forbids conditioning before power and s
 
   assert.match(prompt, /power first.*main strength|power.*before.*strength/i);
   assert.match(prompt, /conditioning/i);
+});
+
+test("hybrid prompt honors separate power and endurance sessions", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    desiredTraining: "strength_power_endurance",
+    hybridSessionStructure: "separate_sessions",
+    enduranceTraining: {
+      include: true,
+      sessionStructure: "separate_sessions",
+    },
+  });
+
+  assert.match(prompt, /separate_sessions/i);
+  assert.match(prompt, /different training days/i);
+  assert.match(prompt, /Do not append conditioning to a strength\/power session/i);
+});
+
+test("hybrid prompt orders combined sessions with power before endurance", () => {
+  const prompt = buildTrainingPrompt({
+    primaryCombatSport: "MMA",
+    daysPerWeek: 3,
+    desiredTraining: "strength_power_endurance",
+    hybridSessionStructure: "same_session",
+  });
+
+  assert.match(prompt, /same_session/i);
+  assert.match(prompt, /power first, then main strength, then endurance/i);
 });
 
 test("training prompt includes pull-up and chin-up prescription rules", () => {

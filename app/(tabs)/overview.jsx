@@ -237,10 +237,12 @@ const OverviewScreen = observer(function OverviewScreen() {
   function handleSelectDay(weekNumber, dayNumber) {
     if (!plan) return;
 
-    const week = plan.weeks.find((w) => w.week === weekNumber);
+    const weeks = Array.isArray(plan.weeks) ? plan.weeks : [];
+    const week = weeks.find((w) => w.week === weekNumber);
     if (!week) return;
 
-    const day = week.days.find((d) => d.day === dayNumber);
+    const days = Array.isArray(week.days) ? week.days : [];
+    const day = days.find((d) => d.day === dayNumber);
     if (!day) return;
 
     suppressAutoSelectRef.current = false;

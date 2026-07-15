@@ -16,12 +16,13 @@ import {
   useWindowDimensions,
 } from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import QuestionnaireChatMessage from "../../components/questionnaireComponents/QuestionnaireChatMessage.jsx";
 
 const NURSE_ICON = require("../../assets/icons/nurse.png");
 const ARROW_TEXT_ICON = require("../../assets/icons/arrowText.png");
 const BOT_MESSAGES = Object.freeze([
-  "Any injuries or limitations I should account for?",
-  "Include sore joints, weak kicks, rehab work, or movements you want to avoid.",
+  "Any pain, injuries, or movement limits?",
+  "Add anything that should affect exercise selection, loading, or impact level. Include painful joints, recent injuries, clinician restrictions, or movements you want to avoid.",
 ]);
 const CLOSED_KEYBOARD_BOTTOM_OFFSET = 18;
 
@@ -67,7 +68,7 @@ function TrainingPreferencesInjuriesView({
 
   useEffect(() => {
     const scrollTimeout = setTimeout(() => {
-      chatScrollRef.current?.scrollToEnd({ animated: false });
+      chatScrollRef.current?.scrollToEnd({ animated: userMessages.length > 0 });
     }, 0);
 
     return () => clearTimeout(scrollTimeout);
@@ -141,7 +142,12 @@ function TrainingPreferencesInjuriesView({
             </View>
 
             {BOT_MESSAGES.map((message, index) => (
-              <View key={`injury-bot-message-${index}`} style={styles.messageRow}>
+              <QuestionnaireChatMessage
+                key={`injury-bot-message-${index}`}
+                delay={120 + index * 180}
+                direction="received"
+                style={styles.messageRow}
+              >
                 {index === BOT_MESSAGES.length - 1 ? (
                   <View style={styles.botIcon}>
                     <Image
@@ -162,13 +168,18 @@ function TrainingPreferencesInjuriesView({
                     {message}
                   </IBMPlexText>
                 </View>
-              </View>
+              </QuestionnaireChatMessage>
             ))}
 
             {userMessages.length ? (
               <View style={styles.userMessages}>
                 {userMessages.map((message, index) => (
-                  <View key={`user-injury-message-${index}`} style={styles.userMessageRow}>
+                  <QuestionnaireChatMessage
+                    key={`user-injury-message-${index}`}
+                    delay={index === 0 && value ? 420 : 0}
+                    direction="sent"
+                    style={styles.userMessageRow}
+                  >
                     <View
                       style={[
                         styles.userMessageBubble,
@@ -178,7 +189,7 @@ function TrainingPreferencesInjuriesView({
                         {message}
                       </IBMPlexText>
                     </View>
-                  </View>
+                  </QuestionnaireChatMessage>
                 ))}
               </View>
             ) : (

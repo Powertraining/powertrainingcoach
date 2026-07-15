@@ -211,6 +211,20 @@ const HomeScreen = observer(function HomeScreen() {
     };
   }, [loading, model]);
 
+  useAndroidBackHandler(() => {
+    if (pushBackConfirmVisible) {
+      closePushBackConfirm();
+      return;
+    }
+
+    if (step === STEPS.Q_SPORT || step === STEPS.Q_FREQ) {
+      goBack();
+      return;
+    }
+
+    return false;
+  }, [pushBackConfirmVisible, step, inputActiveStep]);
+
   if (!model.ready) {
     return (
       <View style={styles.container}>
@@ -308,20 +322,6 @@ const HomeScreen = observer(function HomeScreen() {
 
     setQuestionnaireStep(item.step);
   }
-
-  useAndroidBackHandler(() => {
-    if (pushBackConfirmVisible) {
-      closePushBackConfirm();
-      return;
-    }
-
-    if (step === STEPS.Q_SPORT || step === STEPS.Q_FREQ) {
-      goBack();
-      return;
-    }
-
-    return false;
-  }, [pushBackConfirmVisible, step, inputActiveStep]);
 
   function buildQuestionnairePayload(input, pendingPlanGeneration) {
     const sessionsPerWeek =

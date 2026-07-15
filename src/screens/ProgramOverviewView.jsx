@@ -2087,7 +2087,7 @@ export default function ProgramOverviewView({
           ) : null}
 
           <View style={styles.programDetailsFooter}>
-            {onTestSession && !isPhonePreview ? (
+            {__DEV__ && onTestSession ? (
               <TouchableOpacity
                 style={styles.testSessionButton}
                 onPress={onTestSession}
@@ -2097,7 +2097,7 @@ export default function ProgramOverviewView({
                 </IBMPlexText>
               </TouchableOpacity>
             ) : null}
-            {!isPhonePreview
+            {__DEV__
               ? LAUNCH_GATE_CHECK_IN_TESTS.map((testPrompt) => (
                   <TouchableOpacity
                     key={testPrompt.key}

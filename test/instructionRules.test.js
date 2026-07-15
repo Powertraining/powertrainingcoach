@@ -123,6 +123,16 @@ test("general rules include safety guidance for pain, acute injury, and weight c
   assert.match(guidelines, /weight cutting/i);
 });
 
+test("loaded-jump rules account for total load, implement weight, and output quality", () => {
+  const guidelines = getGuidelinesText({ userInput: {}, purpose: "plan" });
+
+  assert.match(guidelines, /bar plus plates.*30-60% of body mass/i);
+  assert.match(guidelines, /hex bars commonly weigh 20-25 kg/i);
+  assert.match(guidelines, /lighter bar or dumbbells/i);
+  assert.match(guidelines, /contact mat\/app.*linear position transducer \(LPT\)/i);
+  assert.match(guidelines, /loaded jumps 3-5/i);
+});
+
 test("heavy bag endurance rules appear only when endurance is requested for striking sports", () => {
   const strikingGuidelines = getGuidelinesText({
     userInput: {

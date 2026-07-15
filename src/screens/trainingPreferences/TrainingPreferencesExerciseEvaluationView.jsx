@@ -1,11 +1,15 @@
 import { Image, View, StyleSheet } from "react-native";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
-const evaluationIcon = require("../../assets/icons/sports/running.png");
+const defaultEvaluationIcon = require("../../assets/icons/sports/running.png");
+const conditioningEvaluationIcon = require("../../assets/icons/sports/assult Bike.png");
 
 export default function TrainingPreferencesExerciseEvaluationView({
   category = "Lifting confidence",
 }) {
+  const evaluationIcon =
+    category === "Conditioning" ? conditioningEvaluationIcon : defaultEvaluationIcon;
+
   return (
     <View style={styles.container}>
       <View style={styles.titleWrap}>

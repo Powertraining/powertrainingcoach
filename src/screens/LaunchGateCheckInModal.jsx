@@ -33,8 +33,6 @@ const QUESTION_ENTRANCE_DELAY_MS = 230;
 const ANSWERS_ENTRANCE_DELAY_MS = 420;
 const STACKED_CHOICE_GAP = 8;
 const STACKED_CHOICE_HEIGHT = Math.round(CHOICE_BASE_HEIGHT * 0.8);
-const STACKED_CHOICE_SELECTED_HEIGHT = STACKED_CHOICE_HEIGHT * 2;
-const STACKED_CHOICE_REDUCED_HEIGHT = Math.round(STACKED_CHOICE_HEIGHT * 0.5);
 
 function getVisibleChoiceOptions(question = {}) {
   return (question.options || []).filter((option) => option?.value !== "not_sure");
@@ -72,25 +70,32 @@ const SUBJECTIVE_CHECK_IN_QUESTIONS = Object.freeze([
   },
 ]);
 
+const FOUR_WEEK_CHECK_IN_QUESTIONS = Object.freeze(
+  SUBJECTIVE_CHECK_IN_QUESTIONS.map((question) => Object.freeze({
+    ...question,
+    layout: "stacked",
+  })),
+);
+
 const LAUNCH_GATE_PROMPTS = Object.freeze({
   weekly: {
     title: "Weekly check-in",
     questions: SUBJECTIVE_CHECK_IN_QUESTIONS,
   },
   week4: {
-    title: "End-of-block check-in",
-    questions: SUBJECTIVE_CHECK_IN_QUESTIONS,
+    title: "4-week check-in",
+    questions: FOUR_WEEK_CHECK_IN_QUESTIONS,
   },
   week8: {
-    title: "End-of-block check-in",
+    title: "8-week check-in",
     questions: SUBJECTIVE_CHECK_IN_QUESTIONS,
   },
 });
 
 export const LAUNCH_GATE_CHECK_IN_TESTS = Object.freeze([
   { key: "weekly", label: "Test weekly check-in" },
-  { key: "week4", label: "Test end-of-block check-in" },
-  { key: "week8", label: "Test end-of-block check-in" },
+  { key: "week4", label: "Test 4-week check-in" },
+  { key: "week8", label: "Test 8-week check-in" },
 ]);
 
 function createDefaultAnswers(prompt = {}) {
@@ -123,11 +128,7 @@ function getChoiceBaseHeight(optionIndex = 0, question = {}) {
 }
 
 function shouldUseBadTextOffset(optionIndex = 0, question = {}) {
-  if (shouldUseStackedChoiceLayout(question)) {
-    return false;
-  }
-
-  if (question.initialChoiceHeight) {
+  if (shouldUseStackedChoiceLayout(question) || question.initialChoiceHeight) {
     return false;
   }
 
@@ -135,11 +136,7 @@ function shouldUseBadTextOffset(optionIndex = 0, question = {}) {
 }
 
 function getSelectedChoiceTextTopOffset(optionIndex = 0, question = {}) {
-  if (shouldUseStackedChoiceLayout(question)) {
-    return null;
-  }
-
-  if (shouldUseBadTextOffset(optionIndex, question)) {
+  if (shouldUseStackedChoiceLayout(question) || shouldUseBadTextOffset(optionIndex, question)) {
     return null;
   }
 
@@ -213,19 +210,27 @@ function LaunchGateQuestionForm({
               const selectedTextTopOffset = selected ?
                 getSelectedChoiceTextTopOffset(optionIndex, question) :
                 null;
-              const animatedHeight = selectedChoiceValue && animationProgress ?
+              const animatedHeight = !isStackedChoice && selectedChoiceValue && animationProgress ?
                 animationProgress.interpolate({
                   inputRange: [0, 1],
                   outputRange: [
                     baseHeight,
-                    isStackedChoice ?
-                      selected ?
-                        STACKED_CHOICE_SELECTED_HEIGHT :
-                        STACKED_CHOICE_REDUCED_HEIGHT :
-                      selected ? CHOICE_SELECTED_HEIGHT : CHOICE_BASE_HEIGHT,
+                    selected ? CHOICE_SELECTED_HEIGHT : CHOICE_BASE_HEIGHT,
                   ],
                 }) :
                 baseHeight;
+              const stackedSelectionStyle = isStackedChoice && selectedChoiceValue && animationProgress ? {
+                opacity: animationProgress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1, selected ? 1 : 0.42],
+                }),
+                transform: [{
+                  scaleX: animationProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, selected ? 1.015 : 0.97],
+                  }),
+                }],
+              } : null;
 
               return (
                 <Pressable
@@ -248,6 +253,7 @@ function LaunchGateQuestionForm({
                       selected ? styles.choiceSelected : null,
                       selectedTextTopOffset ? { paddingTop: selectedTextTopOffset } : null,
                       { height: animatedHeight },
+                      stackedSelectionStyle,
                     ]}
                   >
                     <IBMPlexText
@@ -937,7 +943,6 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
     flexDirection: "column",
     gap: STACKED_CHOICE_GAP,
-    height: STACKED_CHOICE_HEIGHT * 3 + STACKED_CHOICE_GAP * 2,
   },
   choicePressable: {
     alignItems: "center",
@@ -948,7 +953,6 @@ const styles = StyleSheet.create({
     width: "30%",
   },
   choicePressableStacked: {
-    position: "relative",
     width: "100%",
   },
   choice: {
@@ -968,11 +972,6 @@ const styles = StyleSheet.create({
   choiceSelected: {
     backgroundColor: "#141414",
   },
-  choiceStackedSelected: {
-    backgroundColor: "#141414",
-    borderColor: "#141414",
-    borderStyle: "dashed",
-  },
   choiceWithBadTextOffset: {
     justifyContent: "flex-start",
     paddingTop: 34,
@@ -988,9 +987,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   choiceTextSelected: {
-    color: "#ffffff",
-  },
-  choiceStackedTextSelected: {
     color: "#ffffff",
   },
   textInput: {

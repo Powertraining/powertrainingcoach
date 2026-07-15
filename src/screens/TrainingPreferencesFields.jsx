@@ -20,6 +20,7 @@ import TrainingPreferencesExperienceView from "./trainingPreferences/TrainingPre
 import TrainingPreferencesExerciseEvaluationView from "./trainingPreferences/TrainingPreferencesExerciseEvaluationView.jsx";
 import TrainingCapabilityConfidenceView from "./trainingPreferences/TrainingCapabilityConfidenceView.jsx";
 import TrainingPreferencesDesiredTrainingView from "./trainingPreferences/TrainingPreferencesDesiredTrainingView.jsx";
+import TrainingPreferencesHybridSessionStructureView from "./trainingPreferences/TrainingPreferencesHybridSessionStructureView.jsx";
 import TrainingPreferencesEnduranceMethodsView from "./trainingPreferences/TrainingPreferencesEnduranceMethodsView.jsx";
 import TrainingPreferencesEnduranceSetupView from "./trainingPreferences/TrainingPreferencesEnduranceSetupView.jsx";
 import TrainingPreferencesSessionDurationView from "./trainingPreferences/TrainingPreferencesSessionDurationView.jsx";
@@ -33,15 +34,15 @@ import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenc
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 21;
+const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 17;
 const APP_LOGIC_SECTION_COUNT = 4;
 export const DESIRED_TRAINING_STEP_INDEX = 1;
-export const TRAINING_PHASE_STEP_INDEX = 16;
-export const EVENT_DESCRIPTION_STEP_INDEX = 17;
-export const INJURIES_STEP_INDEX = 19;
-export const LIFT_INTENSITY_METHOD_STEP_INDEX = 21;
-export const PERCENTAGE_REFERENCE_METHOD_STEP_INDEX = 22;
-export const DELOAD_STRATEGY_STEP_INDEX = 23;
+export const TRAINING_PHASE_STEP_INDEX = 12;
+export const EVENT_DESCRIPTION_STEP_INDEX = 13;
+export const INJURIES_STEP_INDEX = 15;
+export const LIFT_INTENSITY_METHOD_STEP_INDEX = 17;
+export const PERCENTAGE_REFERENCE_METHOD_STEP_INDEX = 18;
+export const DELOAD_STRATEGY_STEP_INDEX = 19;
 
 function shouldShowEnduranceMethods(values = {}) {
   return (
@@ -109,53 +110,11 @@ const CAPABILITY_CONFIDENCE_GROUPS = [
           "landing drills": require("../assets/icons/sports/landingDrills.png"),
         },
       },
-      {
-        key: "ballisticTraining",
-        item: TRAINING_CAPABILITY_GROUPS[1].items[2],
-        exerciseImages: {
-          "medicine-ball throws": require("../assets/icons/sports/medicineBallThrow.png"),
-          "jump squats": require("../assets/icons/sports/jumpSquat.png"),
-          "landmine punches": require("../assets/icons/sports/landminePunches.png"),
-        },
-      },
     ],
   },
   {
     category: TRAINING_CAPABILITY_GROUPS[2].title,
     pages: [
-      {
-        key: "runningSprinting",
-        item: {
-          ...TRAINING_CAPABILITY_GROUPS[2].items[0],
-          label: "Conditioning",
-          description: "Running",
-        },
-        exerciseImages: {
-          running: require("../assets/icons/sports/running.png"),
-        },
-      },
-      {
-        key: "bikeRowerAssaultBike",
-        item: {
-          ...TRAINING_CAPABILITY_GROUPS[2].items[1],
-          description: "Bike, rower, assault bike",
-        },
-        exerciseImages: {
-          bike: require("../assets/icons/sports/bike.png"),
-          rower: require("../assets/icons/sports/rower.png"),
-          "assault bike": require("../assets/icons/sports/assult Bike.png"),
-        },
-      },
-      {
-        key: "circuitTraining",
-        item: {
-          ...TRAINING_CAPABILITY_GROUPS[2].items[2],
-          description: "Circuit training",
-        },
-        exerciseImages: {
-          "circuit training": require("../assets/icons/sports/curcuitTraining.png"),
-        },
-      },
       {
         key: "heavyBag",
         item: {
@@ -174,37 +133,48 @@ function getCapabilityConfidenceGroupsForDesiredTraining(
   desiredTraining,
   primaryCombatSport
 ) {
+  function removeEmptyGroups(groups) {
+    return groups.filter((group) => group.pages.length > 0);
+  }
+
   switch (desiredTraining) {
     case "strength_power":
-      return CAPABILITY_CONFIDENCE_GROUPS.filter((group) =>
-        group.category === TRAINING_CAPABILITY_GROUPS[0].title ||
-        group.category === TRAINING_CAPABILITY_GROUPS[1].title
+      return removeEmptyGroups(
+        CAPABILITY_CONFIDENCE_GROUPS.filter((group) =>
+          group.category === TRAINING_CAPABILITY_GROUPS[0].title ||
+          group.category === TRAINING_CAPABILITY_GROUPS[1].title
+        )
       );
     case "endurance":
-      return CAPABILITY_CONFIDENCE_GROUPS.filter(
-        (group) => group.category === TRAINING_CAPABILITY_GROUPS[2].title
-      ).map((group) => ({
-        ...group,
-        pages: group.pages.filter(
-          (page) =>
-            page.key !== "heavyBag" || isStrikingCombatSport(primaryCombatSport)
-        ),
-      }));
+      return removeEmptyGroups(
+        CAPABILITY_CONFIDENCE_GROUPS.filter(
+          (group) => group.category === TRAINING_CAPABILITY_GROUPS[2].title
+        ).map((group) => ({
+          ...group,
+          pages: group.pages.filter(
+            (page) =>
+              page.key !== "heavyBag" || isStrikingCombatSport(primaryCombatSport)
+          ),
+        }))
+      );
     case "strength_power_endurance":
     default:
-      return CAPABILITY_CONFIDENCE_GROUPS.map((group) => ({
-        ...group,
-        pages: group.pages.filter(
-          (page) =>
-            page.key !== "heavyBag" || isStrikingCombatSport(primaryCombatSport)
-        ),
-      }));
+      return removeEmptyGroups(
+        CAPABILITY_CONFIDENCE_GROUPS.map((group) => ({
+          ...group,
+          pages: group.pages.filter(
+            (page) =>
+              page.key !== "heavyBag" || isStrikingCombatSport(primaryCombatSport)
+          ),
+        }))
+      );
   }
 }
 
 const NULLABLE_FORM_KEYS = Object.freeze([
   "experience",
   "desiredTraining",
+  "hybridSessionStructure",
   "enduranceSessionsPerWeek",
   "preferredEnduranceFormat",
   "circuitTrainingPrimaryPriority",
@@ -269,11 +239,7 @@ export const CONFIDENCE_STEP_KEYS = Object.freeze({
   4: "pullingWork",
   6: "olympicLiftVariations",
   7: "plyometrics",
-  8: "ballisticTraining",
-  10: "runningSprinting",
-  11: "bikeRowerAssaultBike",
-  12: "circuitTraining",
-  13: "heavyBag",
+  9: "heavyBag",
 });
 
 export function getTrainingPreferencesStepKeys(values = {}) {
@@ -297,6 +263,10 @@ export function getTrainingPreferencesStepKeys(values = {}) {
       : [],
   };
   const keys = ["experience", "desiredTraining"];
+
+  if (resolvedValues.desiredTraining === "strength_power_endurance") {
+    keys.push("hybridSessionStructure");
+  }
 
   getCapabilityConfidenceGroupsForDesiredTraining(
     resolvedValues.desiredTraining,
@@ -365,6 +335,7 @@ export function getTrainingPreferencesStepLabel(stepKey = "") {
   const labels = {
     experience: "Training experience",
     desiredTraining: "Training goal",
+    hybridSessionStructure: "Hybrid session schedule",
     compoundLifts: "Compound lifts",
     singleLegLifts: "Single-leg lifts",
     pullingWork: "Pulling work",
@@ -547,6 +518,10 @@ export default function TrainingPreferencesFields({
         onChange={(sectionValue) =>
           updateFields({
             desiredTraining: sectionValue,
+            hybridSessionStructure:
+              sectionValue === "strength_power_endurance"
+                ? resolvedValues.hybridSessionStructure
+                : "",
             preferredEnduranceModalities:
               sectionValue !== "endurance" &&
               sectionValue !== "strength_power_endurance"
@@ -591,6 +566,18 @@ export default function TrainingPreferencesFields({
         }
       />
     ),
+    ...(resolvedValues.desiredTraining === "strength_power_endurance"
+      ? [
+          () => (
+            <TrainingPreferencesHybridSessionStructureView
+              value={resolvedValues.hybridSessionStructure}
+              onChange={(sectionValue) =>
+                updateField("hybridSessionStructure", sectionValue)
+              }
+            />
+          ),
+        ]
+      : []),
     ...getCapabilityConfidenceGroupsForDesiredTraining(
       resolvedValues.desiredTraining,
       resolvedValues.primaryCombatSport
