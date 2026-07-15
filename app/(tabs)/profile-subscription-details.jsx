@@ -96,7 +96,7 @@ const ProfileSubscriptionDetailsScreen = observer(function ProfileSubscriptionDe
       return postsBySlot;
     }, {});
   }, [currentMonthAnalysisPosts]);
-  const analysesLeftThisMonth = Math.max(0, 4 - currentMonthAnalysisPosts.length);
+  const analysesLeftThisMonth = Math.max(0, 2 - currentMonthAnalysisPosts.length);
 
   useFocusEffect(
     useCallback(() => {
