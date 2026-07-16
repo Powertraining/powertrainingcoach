@@ -27,6 +27,11 @@ import {
   normalizeExercise,
 } from "../services/utils/trainingPlan.js";
 import {
+  buildExerciseSessionSteps,
+  getExerciseDisplayName,
+  getExerciseOrderLabel,
+} from "../services/utils/exerciseSupersets.js";
+import {
   getStrengthAssessmentLiftKey,
   getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentRequirements,
@@ -66,10 +71,6 @@ const EXERCISE_SECTION_LABELS = Object.freeze({
   core: "Core",
   accessory: "Accessory",
 });
-
-function getExerciseDisplayName(exercise = {}) {
-  return String(exercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
-}
 
 function includesAnyKeyword(text = "", keywords = []) {
   return keywords.some((keyword) => text.includes(keyword));
@@ -808,14 +809,21 @@ function getSavedTrackingDrafts(value, fallbackDrafts) {
 }
 
 function buildSessionSteps(exercises = []) {
-  return (Array.isArray(exercises) ? exercises : []).flatMap((exercise, exerciseIndex) =>
-    Array.from({ length: parsePrescribedSetCount(exercise) }).map((_, setIndex) => ({
-      exercise,
-      exerciseIndex,
-      setIndex,
-      setCount: parsePrescribedSetCount(exercise),
-      section: getExplicitExerciseSection(exercise),
-    }))
+  return buildExerciseSessionSteps(exercises).map((step) => ({
+    ...step,
+    setCount: parsePrescribedSetCount(step.exercise),
+    section: getExplicitExerciseSection(step.exercise),
+  }));
+}
+
+function shouldShowSectionIntro(currentStep, nextStep) {
+  if (!currentStep || !nextStep || nextStep.section === currentStep.section) {
+    return false;
+  }
+
+  return !(
+    currentStep.supersetKey &&
+    currentStep.supersetKey === nextStep.supersetKey
   );
 }
 
@@ -1644,7 +1652,10 @@ export default function ActiveSessionView({
     : showSectionIntro
       ? activeSectionLabel
       : activeExercise
-        ? getExerciseDisplayName(activeExercise)
+        ? `${getExerciseOrderLabel(
+            activeExercise,
+            activeStep?.exerciseIndex || 0
+          )}  ${getExerciseDisplayName(activeExercise)}`
         : "";
   const headerProgressText = isSessionCompleteIntro
     ? `${safeTotalExerciseCount} of ${safeTotalExerciseCount}`
@@ -1853,18 +1864,26 @@ export default function ActiveSessionView({
       const nextStep = sessionSteps[resolvedActiveStepIndex + 1];
       const isMovingToNextExercise =
         nextStep?.exerciseIndex !== activeStep.exerciseIndex;
+      const completedExerciseCount = normalizedExercises.filter(
+        (exercise, exerciseIndex) =>
+          isExerciseFullyCompleted(
+            nextCompletedStepKeys,
+            exerciseIndex,
+            exercise
+          )
+      ).length;
 
       if (isMovingToNextExercise) {
         setPreviousDisplayedCompletedExerciseCount(displayedCompletedExerciseCount);
-        setDisplayedCompletedExerciseCount(nextStep.exerciseIndex);
+        setDisplayedCompletedExerciseCount(completedExerciseCount);
         scheduleSessionStep(resolvedActiveStepIndex + 1, {
-          showIntro: nextStep?.section !== activeStep.section,
+          showIntro: shouldShowSectionIntro(activeStep, nextStep),
         });
         return;
       }
 
       goToSessionStep(resolvedActiveStepIndex + 1, {
-        showIntro: nextStep?.section !== activeStep.section,
+        showIntro: shouldShowSectionIntro(activeStep, nextStep),
       });
       return;
     }
@@ -1875,7 +1894,7 @@ export default function ActiveSessionView({
   }
 
   function handlePreviousSet() {
-    if (!activeStep || activeStep.setIndex <= 0) {
+    if (!activeStep || resolvedActiveStepIndex <= 0) {
       return;
     }
 
@@ -1884,12 +1903,7 @@ export default function ActiveSessionView({
       advanceTimeoutRef.current = null;
     }
 
-    const previousSetIndex = activeStep.setIndex - 1;
-    const previousStepIndex = sessionSteps.findIndex(
-      (step) =>
-        step.exerciseIndex === activeStep.exerciseIndex &&
-        step.setIndex === previousSetIndex
-    );
+    const previousStepIndex = resolvedActiveStepIndex - 1;
     const previousStep = sessionSteps[previousStepIndex];
 
     if (!previousStep) {
@@ -2104,7 +2118,7 @@ export default function ActiveSessionView({
               onNext={handleCompleteCurrentSet}
               onPrevious={handlePreviousSet}
               onSkip={handleSkipExercise}
-              canGoPrevious={activeStep.setIndex > 0}
+              canGoPrevious={resolvedActiveStepIndex > 0}
               onDraftChange={updateTrackingDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
               compact={embedded}

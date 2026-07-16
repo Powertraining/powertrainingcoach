@@ -151,7 +151,7 @@ export default function InputFormView({
     const trainingPhaseStepSelected = Boolean(trainingPreferences.trainingPhase);
     const isEventDescriptionStep = activeStepKey === "eventDescription";
     const isInjuriesStep = activeStepKey === "injuries";
-    const isEnduranceCircuitGoalStep = activeStepKey === "enduranceCircuitGoal";
+    const isEnduranceCircuitFocusStep = activeStepKey === "enduranceCircuitFocus";
     const isEnduranceStyleStep = activeStepKey === "enduranceStyle";
     const enduranceStyleStepSelected = Boolean(trainingPreferences.preferredEnduranceFormat);
     const isEnduranceSprintingFocusStep = activeStepKey === "enduranceSprintingFocus";
@@ -311,19 +311,11 @@ export default function InputFormView({
         handleContinue();
     }
 
-    function handleEnduranceCircuitGoalSkip() {
-        updateTrainingPreferences((currentPreferences) => ({
-            ...currentPreferences,
-            circuitTrainingGoalInput: "",
-        }));
-        handleContinue();
-    }
-
     return (
         <QuestionnaireShell
             onClose={onClose}
             topBackgroundColor={
-                isInjuriesStep || isEnduranceCircuitGoalStep ? "#141414" : null
+                isInjuriesStep || isEnduranceCircuitFocusStep ? "#141414" : null
             }
         >
             {isEventDescriptionEditorOpen ? (
@@ -333,7 +325,7 @@ export default function InputFormView({
                 style={[
                     styles.center,
                     isEnduranceStyleStep ||
-                    isEnduranceCircuitGoalStep ||
+                    isEnduranceCircuitFocusStep ||
                     isLiftIntensityMethodStep ||
                     isPercentageReferenceMethodStep ||
                     isDeloadStrategyStep
@@ -371,8 +363,8 @@ export default function InputFormView({
                             onEventDescriptionSkip={handleEventDescriptionSkip}
                             onEventDescriptionEditorChange={setIsEventDescriptionEditorOpen}
                             onEnduranceMethodsInfoVisibilityChange={setIsEnduranceMethodsInfoOpen}
-                            onEnduranceCircuitGoalContinue={handleContinue}
-                            onEnduranceCircuitGoalSkip={handleEnduranceCircuitGoalSkip}
+                            onEnduranceCircuitFocusContinue={handleContinue}
+                            onEnduranceCircuitFocusBack={handleStepBack}
                             onInjuriesContinue={handleContinue}
                             onInjuriesSkip={handleInjuriesSkip}
                         />
@@ -380,7 +372,7 @@ export default function InputFormView({
                     </View>
                 </View>
             </View>
-            {!isEventDescriptionEditorOpen && !isEnduranceMethodsInfoOpen && !isInjuriesStep && !isEnduranceCircuitGoalStep ? (
+            {!isEventDescriptionEditorOpen && !isEnduranceMethodsInfoOpen && !isInjuriesStep && !isEnduranceCircuitFocusStep ? (
                 <QuestionnaireBottomActionButton
                     layout={requiresSelection ? "single" : "stacked"}
                     canContinue={canContinue}

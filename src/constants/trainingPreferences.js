@@ -4,6 +4,11 @@ import {
   normalizeAppLogicSettings,
 } from "./appLogicSettings.js";
 import { getNormalizedWeekday } from "./weekdays.js";
+import {
+  CIRCUIT_FOCUS_MODES,
+  isCircuitFocusMode,
+  normalizeCircuitRegionValues,
+} from "./circuitFocus.js";
 
 const STRIKING_COMBAT_SPORTS = new Set([
   "boxing",
@@ -367,6 +372,8 @@ export const TRAINING_PREFERENCES_DEFAULTS = Object.freeze({
   circuitTrainingGoalInput: "",
   circuitTrainingPrimaryPriority: "",
   circuitTrainingSecondaryPriorities: Object.freeze([]),
+  circuitTrainingFocusMode: "",
+  circuitTrainingRegions: Object.freeze([]),
   heavyBagEnduranceTarget: "",
   sprintingTarget: "",
   eventPreparation: "",
@@ -563,6 +570,90 @@ function normalizeCircuitPriorities(primaryPriority, secondaryPriorities, goalIn
   };
 }
 
+const LEGACY_CIRCUIT_PRIORITY_REGIONS = Object.freeze({
+  grip_endurance: ["grip_forearms"],
+  neck_endurance: ["neck", "upper_back"],
+  trunk_endurance: ["trunk", "hips"],
+  shoulder_endurance: ["shoulders", "arms"],
+  leg_endurance: ["legs"],
+});
+
+const CIRCUIT_REGION_LEGACY_PRIORITIES = Object.freeze({
+  grip_forearms: "grip_endurance",
+  arms: "shoulder_endurance",
+  shoulders: "shoulder_endurance",
+  neck: "neck_endurance",
+  upper_back: "neck_endurance",
+  trunk: "trunk_endurance",
+  hips: "trunk_endurance",
+  legs: "leg_endurance",
+});
+
+function normalizeCircuitFocusSettings(source = {}, circuitSettings = {}, circuitPriorities) {
+  const explicitMode = source.circuitTrainingFocusMode ?? circuitSettings.focusMode;
+  const explicitRegions = normalizeCircuitRegionValues(
+    source.circuitTrainingRegions ?? circuitSettings.regions
+  );
+  const hasExplicitFocusData = isCircuitFocusMode(explicitMode) || explicitRegions.length > 0;
+  const legacyPriorityValues = [
+    circuitPriorities.primaryPriority,
+    ...circuitPriorities.secondaryPriorities,
+  ].filter(Boolean);
+  const legacyRegions = normalizeCircuitRegionValues(
+    legacyPriorityValues.flatMap(
+      (priority) => LEGACY_CIRCUIT_PRIORITY_REGIONS[priority] || []
+    )
+  );
+  const focusMode = isCircuitFocusMode(explicitMode)
+    ? explicitMode
+    : explicitRegions.length > 0 || legacyRegions.length > 0
+      ? CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS
+      : circuitPriorities.primaryPriority === "whole_body_work_capacity"
+        ? CIRCUIT_FOCUS_MODES.WHOLE_BODY
+        : "";
+  const regions = focusMode === CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS
+    ? (explicitRegions.length > 0 ? explicitRegions : legacyRegions)
+    : [];
+
+  if (focusMode === CIRCUIT_FOCUS_MODES.WHOLE_BODY) {
+    return {
+      focusMode,
+      regions: [],
+      primaryPriority: "whole_body_work_capacity",
+      secondaryPriorities: [],
+    };
+  }
+
+  if (focusMode === CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS && regions.length > 0) {
+    if (!hasExplicitFocusData) {
+      return {
+        focusMode,
+        regions,
+        primaryPriority: circuitPriorities.primaryPriority,
+        secondaryPriorities: circuitPriorities.secondaryPriorities,
+      };
+    }
+
+    const legacyPriorities = Array.from(
+      new Set(regions.map((region) => CIRCUIT_REGION_LEGACY_PRIORITIES[region]))
+    ).filter(Boolean);
+
+    return {
+      focusMode,
+      regions,
+      primaryPriority: legacyPriorities[0] || "local_muscular_endurance",
+      secondaryPriorities: legacyPriorities.slice(1),
+    };
+  }
+
+  return {
+    focusMode,
+    regions,
+    primaryPriority: circuitPriorities.primaryPriority,
+    secondaryPriorities: circuitPriorities.secondaryPriorities,
+  };
+}
+
 function getNestedEnduranceSettings(source = {}) {
   return source.enduranceTraining && typeof source.enduranceTraining === "object"
     ? source.enduranceTraining
@@ -615,6 +706,11 @@ function normalizeEnduranceTrainingSettings(source = {}, desiredTraining, daysPe
     source.circuitTrainingSecondaryPriorities ?? circuitSettings.secondaryPriorities,
     circuitTrainingGoalInput
   );
+  const circuitFocus = normalizeCircuitFocusSettings(
+    source,
+    circuitSettings,
+    circuitPriorities
+  );
   const includeEndurance =
     desiredTraining === "endurance" ||
     desiredTraining === "strength_power_endurance" ||
@@ -641,8 +737,16 @@ function normalizeEnduranceTrainingSettings(source = {}, desiredTraining, daysPe
       ) || TRAINING_PREFERENCES_DEFAULTS.preferredEnduranceFormat,
     circuitTraining: {
       goalInput: circuitTrainingGoalInput,
-      primaryPriority: circuitPriorities.primaryPriority,
-      secondaryPriorities: circuitPriorities.secondaryPriorities,
+      primaryPriority: circuitFocus.primaryPriority,
+      secondaryPriorities: circuitFocus.secondaryPriorities,
+      focusMode: circuitFocus.focusMode,
+      regions: circuitFocus.regions,
+      regionalWorkShare: circuitFocus.focusMode === CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS
+        ? "50-70%"
+        : "",
+      wholeBodyWorkShare: circuitFocus.focusMode === CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS
+        ? "30-50%"
+        : "100%",
     },
     heavyBag: {
       target:
@@ -893,6 +997,8 @@ export function getTrainingPreferencesFormState(source = {}) {
     circuitTrainingPrimaryPriority: enduranceTraining.circuitTraining.primaryPriority,
     circuitTrainingSecondaryPriorities:
       enduranceTraining.circuitTraining.secondaryPriorities,
+    circuitTrainingFocusMode: enduranceTraining.circuitTraining.focusMode,
+    circuitTrainingRegions: enduranceTraining.circuitTraining.regions,
     heavyBagEnduranceTarget: enduranceTraining.heavyBag.target,
     sprintingTarget: enduranceTraining.sprinting.target,
     eventPreparation,
@@ -956,6 +1062,8 @@ export function normalizeTrainingPreferences(source = {}) {
     circuitTrainingPrimaryPriority: enduranceTraining.circuitTraining.primaryPriority,
     circuitTrainingSecondaryPriorities:
       enduranceTraining.circuitTraining.secondaryPriorities,
+    circuitTrainingFocusMode: enduranceTraining.circuitTraining.focusMode,
+    circuitTrainingRegions: enduranceTraining.circuitTraining.regions,
     heavyBagEnduranceTarget: enduranceTraining.heavyBag.target,
     sprintingTarget: enduranceTraining.sprinting.target,
     enduranceTraining,
@@ -1029,6 +1137,13 @@ export function areTrainingPreferencesEqual(left, right) {
     normalizedLeft.circuitTrainingSecondaryPriorities.every(
       (value, index) =>
         value === normalizedRight.circuitTrainingSecondaryPriorities[index]
+    ) &&
+    normalizedLeft.circuitTrainingFocusMode ===
+      normalizedRight.circuitTrainingFocusMode &&
+    normalizedLeft.circuitTrainingRegions.length ===
+      normalizedRight.circuitTrainingRegions.length &&
+    normalizedLeft.circuitTrainingRegions.every(
+      (value, index) => value === normalizedRight.circuitTrainingRegions[index]
     ) &&
     normalizedLeft.heavyBagEnduranceTarget ===
       normalizedRight.heavyBagEnduranceTarget &&

@@ -17,15 +17,20 @@ import {
   PanResponder,
   useWindowDimensions,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
+import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import {
   CIRCUIT_GOAL_EXAMPLES,
-  CIRCUIT_PRIORITY_OPTIONS,
   ENDURANCE_FORMAT_OPTIONS,
   HEAVY_BAG_ENDURANCE_TARGET_OPTIONS,
   SPRINTING_TARGET_OPTIONS,
 } from "../../constants/trainingPreferences.js";
+import {
+  CIRCUIT_FOCUS_MODES,
+  CIRCUIT_FOCUS_MODE_OPTIONS,
+  getCircuitRegionOptions,
+} from "../../constants/circuitFocus.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 import QuestionnaireChatMessage from "../../components/questionnaireComponents/QuestionnaireChatMessage.jsx";
 const ENDURANCE_FORMAT_DETAILS = Object.freeze({
@@ -102,6 +107,38 @@ const CIRCUIT_FOCUS_ICONS = Object.freeze({
   shoulder_endurance: "weight-lifter",
   leg_endurance: "shoe-print",
 });
+const CIRCUIT_REGION_ICONS = Object.freeze({
+  grip_forearms: "hand-back-left",
+  arms: "arm-flex",
+  shoulders: "weight-lifter",
+  neck: "head",
+  upper_back: "human-handsup",
+  trunk: "human-handsdown",
+  hips: "run",
+  legs: "shoe-print",
+});
+const CIRCUIT_MODE_META = Object.freeze({
+  [CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS]: Object.freeze({
+    accent: "#F3D04F",
+    accentMuted: "rgba(243, 208, 79, 0.14)",
+    icon: "locate",
+  }),
+  [CIRCUIT_FOCUS_MODES.WHOLE_BODY]: Object.freeze({
+    accent: "#0A84FF",
+    accentMuted: "rgba(10, 132, 255, 0.14)",
+    icon: "body",
+  }),
+});
+const CIRCUIT_REGION_OPTION_WIDTH = 127.4;
+const CIRCUIT_REGION_OPTION_HEIGHT = 138.2;
+const CIRCUIT_REGION_FACE_HEIGHT = 125;
+const CIRCUIT_REGION_SELECTED_TRAVEL = 10.8;
+const CIRCUIT_REGION_SHADOW_SCALE =
+  (CIRCUIT_REGION_OPTION_HEIGHT - CIRCUIT_REGION_SELECTED_TRAVEL) /
+  CIRCUIT_REGION_OPTION_HEIGHT;
+const CIRCUIT_REGION_GRID_GAP = 15;
+const CIRCUIT_REGION_GRID_WIDTH =
+  CIRCUIT_REGION_OPTION_WIDTH * 2 + CIRCUIT_REGION_GRID_GAP;
 const SPRINTING_TARGET_ICONS = Object.freeze({
   speed_explosiveness: "run-fast",
   repeat_bursts: "repeat",
@@ -733,6 +770,148 @@ function CompactFocusGrid({
   );
 }
 
+function CircuitFocusModeCard({ option, selected, onPress }) {
+  const meta = CIRCUIT_MODE_META[option.value] || CIRCUIT_MODE_META[
+    CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS
+  ];
+
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.circuitModeCard,
+        selected ? styles.circuitModeCardSelected : null,
+        selected ? { borderColor: meta.accent } : null,
+        pressed ? styles.optionPressed : null,
+      ]}
+    >
+      <View style={styles.circuitModeCardHeader}>
+        <View
+          style={[
+            styles.circuitModeIcon,
+            { backgroundColor: meta.accentMuted },
+          ]}
+        >
+          <Ionicons name={meta.icon} size={27} color={meta.accent} />
+        </View>
+        <View style={styles.circuitModeCopy}>
+          <IBMPlexText defaultWhite style={styles.circuitModeTitle}>
+            {option.label}
+          </IBMPlexText>
+          <IBMPlexText style={styles.circuitModeDescription}>
+            {option.description}
+          </IBMPlexText>
+        </View>
+        <View style={[styles.circuitModeRadio, selected ? { borderColor: meta.accent } : null]}>
+          {selected ? (
+            <View style={[styles.circuitModeRadioFill, { backgroundColor: meta.accent }]} />
+          ) : null}
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function CircuitRegionChip({ option, selected, onPress }) {
+  const selectionProgress = useRef(new Animated.Value(selected ? 1 : 0)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    selectionProgress.stopAnimation();
+    Animated.spring(selectionProgress, {
+      toValue: selected ? 1 : 0,
+      damping: 20,
+      stiffness: 340,
+      mass: 0.62,
+      useNativeDriver: true,
+    }).start();
+  }, [selected, selectionProgress]);
+
+  function handlePressIn() {
+    pressScale.stopAnimation();
+    Animated.spring(pressScale, {
+      toValue: 0.982,
+      damping: 22,
+      stiffness: 520,
+      mass: 0.45,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  function handlePressOut() {
+    pressScale.stopAnimation();
+    Animated.spring(pressScale, {
+      toValue: 1,
+      damping: 16,
+      stiffness: 260,
+      mass: 0.75,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  const shadowContainerStyle = {
+    transform: [{
+      translateY: selectionProgress.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, CIRCUIT_REGION_SELECTED_TRAVEL / 2],
+      }),
+    }],
+  };
+  const shadowStyle = {
+    transform: [{
+      scaleY: selectionProgress.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, CIRCUIT_REGION_SHADOW_SCALE],
+      }),
+    }],
+  };
+  const optionStyle = {
+    transform: [
+      {
+        translateY: selectionProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, CIRCUIT_REGION_SELECTED_TRAVEL],
+        }),
+      },
+      { scale: pressScale },
+    ],
+  };
+
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected }}
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={styles.circuitRegionChip}
+    >
+      <Animated.View style={[styles.circuitRegionShadowContainer, shadowContainerStyle]}>
+        <Animated.View style={[styles.circuitRegionShadow, shadowStyle]} />
+      </Animated.View>
+      <Animated.View style={[styles.circuitRegionFace, optionStyle]}>
+        <View style={styles.circuitRegionIcon}>
+          <MaterialCommunityIcons
+            name={CIRCUIT_REGION_ICONS[option.value] || "target"}
+            size={34}
+            color="#FFFFFF"
+          />
+        </View>
+        <IBMPlexText numberOfLines={2} style={styles.circuitRegionChipText}>
+          {option.label}
+        </IBMPlexText>
+        {selected ? (
+          <View style={styles.circuitRegionCheck}>
+            <Ionicons name="checkmark" size={13} color="#111111" />
+          </View>
+        ) : null}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 function LargeOptionGrid({ options, value, onChange, icons = {} }) {
   return (
     <View style={styles.largeOptionGrid}>
@@ -772,24 +951,21 @@ export default function TrainingPreferencesEnduranceSetupView({
   values,
   onChange,
   onContinue,
+  onBack,
   onSkip,
-  onInfoVisibilityChange,
 }) {
   const { height: screenHeight } = useWindowDimensions();
   const [draftMessage, setDraftMessage] = useState("");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [activeCircuitInfoValue, setActiveCircuitInfoValue] = useState(null);
+  const [circuitFocusStage, setCircuitFocusStage] = useState("choice");
   const [circuitMessages, setCircuitMessages] = useState(() =>
     values?.circuitTrainingGoalInput ? [values.circuitTrainingGoalInput] : []
   );
   const circuitChatScrollRef = useRef(null);
-  const circuitInfoProgress = useRef(new Animated.Value(0)).current;
-  const selectedCircuitFocusValues = [
-    values?.circuitTrainingPrimaryPriority,
-    ...(Array.isArray(values?.circuitTrainingSecondaryPriorities)
-      ? values.circuitTrainingSecondaryPriorities
-      : []),
-  ].filter(Boolean);
+  const selectedCircuitRegions = Array.isArray(values?.circuitTrainingRegions)
+    ? values.circuitTrainingRegions
+    : [];
+  const circuitRegionOptions = getCircuitRegionOptions(values?.primaryCombatSport);
   const maxEnduranceDays = Math.max(
     MIN_ENDURANCE_DAYS,
     Math.min(
@@ -797,39 +973,6 @@ export default function TrainingPreferencesEnduranceSetupView({
       Number.parseInt(values?.daysPerWeek, 10) || MAX_ENDURANCE_DAYS
     )
   );
-  const activeCircuitInfoOption = CIRCUIT_PRIORITY_OPTIONS.find(
-    (option) => option.value === activeCircuitInfoValue
-  );
-  const activeCircuitInfoIconName =
-    activeCircuitInfoOption &&
-    (CIRCUIT_FOCUS_ICONS[activeCircuitInfoOption.value] || "target");
-  const isActiveCircuitInfoSelected =
-    activeCircuitInfoOption &&
-    selectedCircuitFocusValues.includes(activeCircuitInfoOption.value);
-
-  useEffect(() => {
-    const isVisible = mode === "circuitFocus" && Boolean(activeCircuitInfoOption);
-    onInfoVisibilityChange?.(isVisible);
-
-    return () => {
-      onInfoVisibilityChange?.(false);
-    };
-  }, [activeCircuitInfoOption, mode, onInfoVisibilityChange]);
-
-  useEffect(() => {
-    if (!activeCircuitInfoOption) {
-      circuitInfoProgress.setValue(0);
-      return;
-    }
-
-    Animated.timing(circuitInfoProgress, {
-      toValue: 1,
-      duration: 240,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [activeCircuitInfoOption, circuitInfoProgress]);
-
   function updateField(field, value) {
     onChange?.({
       ...values,
@@ -893,32 +1036,61 @@ export default function TrainingPreferencesEnduranceSetupView({
     onContinue?.();
   }
 
-  function closeCircuitInfo() {
-    setActiveCircuitInfoValue(null);
-  }
-
-  function updateCircuitFocusValues(nextValues) {
-    const selectedValues = Array.isArray(nextValues) ? nextValues : [];
+  function selectCircuitFocusMode(focusMode) {
+    const isWholeBody = focusMode === CIRCUIT_FOCUS_MODES.WHOLE_BODY;
 
     updateFields({
-      circuitTrainingPrimaryPriority: selectedValues[0] || null,
-      circuitTrainingSecondaryPriorities: selectedValues.slice(1),
+      circuitTrainingFocusMode: focusMode,
+      circuitTrainingRegions: isWholeBody ? [] : selectedCircuitRegions,
+      circuitTrainingGoalInput: "",
+      circuitTrainingPrimaryPriority: isWholeBody ? "whole_body_work_capacity" : "",
+      circuitTrainingSecondaryPriorities: [],
     });
   }
 
-  function selectActiveCircuitFocus() {
-    if (!activeCircuitInfoOption) {
+  function updateCircuitRegions(nextRegions) {
+    updateFields({
+      circuitTrainingFocusMode: CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS,
+      circuitTrainingRegions: nextRegions,
+      circuitTrainingGoalInput: "",
+      circuitTrainingPrimaryPriority: "",
+      circuitTrainingSecondaryPriorities: [],
+    });
+  }
+
+  function toggleCircuitRegion(region) {
+    updateCircuitRegions(
+      selectedCircuitRegions.includes(region)
+        ? selectedCircuitRegions.filter((value) => value !== region)
+        : [...selectedCircuitRegions, region]
+    );
+  }
+
+  function continueCircuitFocus() {
+    if (circuitFocusStage === "choice") {
+      if (values?.circuitTrainingFocusMode === CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS) {
+        setCircuitFocusStage("regions");
+        return;
+      }
+
+      if (values?.circuitTrainingFocusMode === CIRCUIT_FOCUS_MODES.WHOLE_BODY) {
+        onContinue?.();
+      }
       return;
     }
 
-    if (!selectedCircuitFocusValues.includes(activeCircuitInfoOption.value)) {
-      updateCircuitFocusValues([
-        ...selectedCircuitFocusValues,
-        activeCircuitInfoOption.value,
-      ]);
+    if (selectedCircuitRegions.length > 0) {
+      onContinue?.();
+    }
+  }
+
+  function goBackFromCircuitFocus() {
+    if (circuitFocusStage === "regions") {
+      setCircuitFocusStage("choice");
+      return;
     }
 
-    closeCircuitInfo();
+    onBack?.();
   }
 
   useEffect(() => {
@@ -1113,118 +1285,84 @@ export default function TrainingPreferencesEnduranceSetupView({
   }
 
   if (mode === "circuitFocus") {
+    const isRegionStage = circuitFocusStage === "regions";
+    const selectedFocusMode = values?.circuitTrainingFocusMode;
+    const canAdvance = isRegionStage
+      ? selectedCircuitRegions.length > 0
+      : Boolean(selectedFocusMode);
+    const actionText = !isRegionStage && selectedFocusMode !== CIRCUIT_FOCUS_MODES.WHOLE_BODY
+      ? "Continue"
+      : "Build my circuit";
+
     return (
       <View style={[styles.section, styles.circuitFocusSection, { minHeight: screenHeight }]}>
-        <View style={activeCircuitInfoOption ? styles.blurredContent : null}>
-          <IBMPlexText titleBlock height={130}>Circuit focus</IBMPlexText>
-          <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
-            Pick the main quality your circuit sessions should target.
-          </IBMPlexText>
-          <View style={styles.infoHint}>
-            <MaterialCommunityIcons
-              name="gesture-tap-hold"
-              size={15}
-              color="#9CA3AF"
-            />
-            <IBMPlexText style={styles.infoHintText}>
-              Tap to select. Hold any focus for details.
+        <ScrollView
+          contentContainerStyle={styles.circuitFocusScrollContent}
+          showsVerticalScrollIndicator={false}
+          style={styles.circuitFocusScroll}
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={goBackFromCircuitFocus}
+            style={styles.circuitBackButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="#9A9AA2" />
+          </TouchableOpacity>
+
+          <View style={styles.circuitFocusHeader}>
+            <IBMPlexText titleBlock height={108}>
+              {isRegionStage ? "Where do you fatigue?" : "What gives out first?"}
+            </IBMPlexText>
+            <IBMPlexText defaultWhite style={styles.circuitFocusHelper} center>
+              {isRegionStage
+                ? "Choose every area that fades first."
+                : "Choose what best matches how you fatigue during hard circuits."}
             </IBMPlexText>
           </View>
-        </View>
-        <View
-          style={[
-            styles.circuitFocusContent,
-            activeCircuitInfoOption ? styles.blurredContent : null,
-          ]}
-        >
-          <CompactFocusGrid
-            options={CIRCUIT_PRIORITY_OPTIONS}
-            value={selectedCircuitFocusValues}
-            shortLabels={CIRCUIT_FOCUS_SHORT_LABELS}
-            icons={CIRCUIT_FOCUS_ICONS}
-            multi
-            onLongPress={(option) => setActiveCircuitInfoValue(option.value)}
-            onChange={updateCircuitFocusValues}
-          />
-        </View>
-        {activeCircuitInfoOption ? (
-          <>
-            <Pressable
-              onPress={closeCircuitInfo}
-              style={[
-                styles.dimLayer,
-                { height: screenHeight * 2, top: -screenHeight / 2 },
-              ]}
-            />
-            <View
-              pointerEvents="box-none"
-              style={[styles.infoOverlay, { minHeight: screenHeight }]}
-            >
-              <View style={styles.infoCardRegion}>
-                <Animated.View
-                  style={[
-                    styles.infoCard,
-                    isActiveCircuitInfoSelected ? styles.infoCardSelected : null,
-                    {
-                      opacity: circuitInfoProgress,
-                      transform: [
-                        {
-                          translateY: circuitInfoProgress.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [34, -8],
-                          }),
-                        },
-                        {
-                          scale: circuitInfoProgress.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.96, 1],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name={activeCircuitInfoIconName}
-                    size={42}
-                    color="#ffffff"
-                    style={styles.infoCardIcon}
+
+          {isRegionStage ? (
+            <>
+              <View style={styles.circuitRegionGrid}>
+                {circuitRegionOptions.map((option) => (
+                  <CircuitRegionChip
+                    key={option.value}
+                    option={option}
+                    selected={selectedCircuitRegions.includes(option.value)}
+                    onPress={() => toggleCircuitRegion(option.value)}
                   />
-                  <IBMPlexText style={styles.infoTitle}>
-                    {activeCircuitInfoOption.label}
-                  </IBMPlexText>
-                </Animated.View>
+                ))}
               </View>
-              <View style={styles.infoBottomContent}>
-                <IBMPlexText style={styles.infoText}>
-                  {activeCircuitInfoOption.description}
+              <View style={styles.circuitReassuranceRow}>
+                <Ionicons name="information-circle" size={19} color="#0A84FF" />
+                <IBMPlexText style={styles.circuitReassuranceText}>
+                  These areas get extra work. The rest of your body still gets trained.
                 </IBMPlexText>
-                <View style={styles.infoActions}>
-                  <Pressable
-                    onPress={selectActiveCircuitFocus}
-                    style={({ pressed }) => [
-                      styles.infoSelectButton,
-                      pressed ? styles.infoActionPressed : null,
-                    ]}
-                  >
-                    <IBMPlexText style={styles.infoSelectButtonText}>
-                      {isActiveCircuitInfoSelected ? "Selected" : "Select"}
-                    </IBMPlexText>
-                  </Pressable>
-                  <Pressable
-                    onPress={closeCircuitInfo}
-                    style={({ pressed }) => [
-                      styles.infoCloseButton,
-                      pressed ? styles.infoActionPressed : null,
-                    ]}
-                  >
-                    <IBMPlexText style={styles.infoCloseButtonText}>Close</IBMPlexText>
-                  </Pressable>
-                </View>
               </View>
+            </>
+          ) : (
+            <View accessibilityRole="radiogroup" style={styles.circuitModeList}>
+              {CIRCUIT_FOCUS_MODE_OPTIONS.map((option) => (
+                <CircuitFocusModeCard
+                  key={option.value}
+                  option={option}
+                  selected={selectedFocusMode === option.value}
+                  onPress={() => selectCircuitFocusMode(option.value)}
+                />
+              ))}
             </View>
-          </>
-        ) : null}
+          )}
+
+        </ScrollView>
+        <QuestionnaireBottomActionButton
+          animateTextChanges
+          canContinue={canAdvance}
+          contentSized
+          hideBack
+          hideWhenDisabled
+          text={actionText}
+          onContinue={continueCircuitFocus}
+        />
       </View>
     );
   }
@@ -1322,7 +1460,180 @@ const styles = StyleSheet.create({
     paddingTop: 88,
   },
   circuitFocusSection: {
+    backgroundColor: "#000000",
+    paddingTop: 0,
     position: "relative",
+  },
+  circuitFocusScroll: {
+    flex: 1,
+  },
+  circuitFocusScrollContent: {
+    flexGrow: 1,
+    paddingBottom: 112,
+    paddingHorizontal: 24,
+    paddingTop: 36,
+  },
+  circuitBackButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
+  circuitFocusHeader: {
+    alignSelf: "stretch",
+    marginBottom: 34,
+    marginTop: 30,
+  },
+  circuitFocusHelper: {
+    alignSelf: "center",
+    color: "#9A9AA2",
+    fontSize: 15,
+    lineHeight: 20,
+    maxWidth: 330,
+    width: "90%",
+  },
+  circuitModeList: {
+    gap: 12,
+    marginTop: "auto",
+  },
+  circuitModeCard: {
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    minHeight: 104,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  circuitModeCardSelected: {
+    backgroundColor: "#171717",
+    borderWidth: 2,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+  },
+  circuitModeCardHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+  },
+  circuitModeIcon: {
+    alignItems: "center",
+    borderRadius: 12,
+    height: 52,
+    justifyContent: "center",
+    width: 52,
+  },
+  circuitModeCopy: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
+  },
+  circuitModeTitle: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 22,
+  },
+  circuitModeDescription: {
+    color: "#9A9AA2",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+  },
+  circuitModeRadio: {
+    alignItems: "center",
+    borderColor: "#56565F",
+    borderRadius: 12,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  circuitModeRadioFill: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
+  },
+  circuitRegionGrid: {
+    alignSelf: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: CIRCUIT_REGION_GRID_GAP,
+    width: CIRCUIT_REGION_GRID_WIDTH,
+  },
+  circuitRegionChip: {
+    height: CIRCUIT_REGION_OPTION_HEIGHT,
+    width: CIRCUIT_REGION_OPTION_WIDTH,
+  },
+  circuitRegionShadowContainer: {
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  circuitRegionShadow: {
+    backgroundColor: "#303030",
+    borderRadius: 30,
+    height: "100%",
+    width: "100%",
+  },
+  circuitRegionFace: {
+    alignItems: "center",
+    backgroundColor: "#0D0D0D",
+    borderRadius: 28.8,
+    height: CIRCUIT_REGION_FACE_HEIGHT,
+    justifyContent: "center",
+    left: 1.2,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    position: "absolute",
+    right: 1.2,
+    top: 1.2,
+  },
+  circuitRegionIcon: {
+    alignItems: "center",
+    height: 50,
+    justifyContent: "center",
+    marginBottom: 7,
+    width: 58,
+  },
+  circuitRegionChipText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 18,
+    minHeight: 36,
+    textAlign: "center",
+  },
+  circuitRegionCheck: {
+    alignItems: "center",
+    backgroundColor: "#F3D04F",
+    borderRadius: 9,
+    height: 18,
+    justifyContent: "center",
+    position: "absolute",
+    right: 12,
+    top: 12,
+    width: 18,
+  },
+  circuitReassuranceRow: {
+    alignItems: "center",
+    borderTopColor: "#252525",
+    borderTopWidth: 1,
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 22,
+    paddingHorizontal: 2,
+    paddingTop: 16,
+  },
+  circuitReassuranceText: {
+    color: "#9A9AA2",
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 17,
   },
   blurredContent: {
     opacity: 0.42,
@@ -1335,18 +1646,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     maxWidth: 340,
     paddingHorizontal: 24,
-  },
-  infoHint: {
-    alignItems: "center",
-    alignSelf: "center",
-    flexDirection: "row",
-    gap: 5,
-    marginBottom: 16,
-  },
-  infoHintText: {
-    color: "#9CA3AF",
-    fontSize: 12, fontWeight: "700",
-    lineHeight: 15,
   },
   heavyBagHelperText: {
     alignSelf: "center",

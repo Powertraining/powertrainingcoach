@@ -49,6 +49,7 @@ import {
 } from "../services/utils/programOverview.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
 import { getPrescribedSetCount } from "../services/utils/exerciseSets.js";
+import { buildExerciseSessionSteps } from "../services/utils/exerciseSupersets.js";
 import {
   getStrengthAssessmentLiftKey,
   getStrengthAssessmentReferenceOneRepMaxKg,
@@ -379,13 +380,7 @@ function parsePrescribedSetCount(exercise = {}) {
 }
 
 function buildSessionSteps(exercises = []) {
-  return (Array.isArray(exercises) ? exercises : []).flatMap((exercise, exerciseIndex) =>
-    Array.from({ length: parsePrescribedSetCount(exercise) }).map((_, setIndex) => ({
-      exercise,
-      exerciseIndex,
-      setIndex,
-    }))
-  );
+  return buildExerciseSessionSteps(exercises);
 }
 
 function buildCompletedStepKeysForExercises(exercises = []) {
@@ -817,6 +812,7 @@ export default function ProgramOverviewView({
   completedDays,
   pendingTrainingCheckIn,
   onSubmitTrainingCheckIn,
+  onReadinessInjuryReportChange,
   trainingCheckInSubmitting = false,
   questionnaire,
   selectedDay,
@@ -2238,6 +2234,12 @@ export default function ProgramOverviewView({
         }
       />
       <LaunchGateCheckInModal
+        initialInjuryReport={questionnaire?.injuriesInput}
+        onSubmit={(answers) => {
+          if (Object.prototype.hasOwnProperty.call(answers || {}, "injuryReport")) {
+            onReadinessInjuryReportChange?.(answers.injuryReport || "");
+          }
+        }}
         promptKey={launchGatePromptKey}
         visible={Boolean(launchGatePromptKey)}
         onClose={closeLaunchGatePrompt}

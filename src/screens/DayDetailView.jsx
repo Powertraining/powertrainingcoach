@@ -36,6 +36,11 @@ import {
     normalizeExercise,
 } from "../services/utils/trainingPlan.js";
 import {
+    getExerciseDisplayName,
+    getExerciseOrderLabel,
+    getExerciseSupersetKey,
+} from "../services/utils/exerciseSupersets.js";
+import {
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
     getStrengthAssessmentRequirements,
@@ -345,12 +350,6 @@ function buildReportedDraftsByExercise(trackingDrafts = {}) {
     });
 
     return resultsByExercise;
-}
-
-function getExerciseDisplayName(exercise = {}) {
-    const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
-
-    return String(safeExercise.name || "").replace(/^\s*\d+[a-z]?\.\s*/i, "");
 }
 
 function normalizePrescriptionWords(value = "") {
@@ -1360,6 +1359,28 @@ export default function DayDetailView({
                     >
                         <View style={styles.tabsContainer}>
                                         {normalizedExercises.map((ex, exerciseIndex) => {
+                                            const supersetKey = getExerciseSupersetKey(
+                                                ex,
+                                                exerciseIndex
+                                            );
+                                            const previousSupersetKey = exerciseIndex > 0
+                                                ? getExerciseSupersetKey(
+                                                    normalizedExercises[exerciseIndex - 1],
+                                                    exerciseIndex - 1
+                                                )
+                                                : "";
+                                            const nextSupersetKey = exerciseIndex < normalizedExercises.length - 1
+                                                ? getExerciseSupersetKey(
+                                                    normalizedExercises[exerciseIndex + 1],
+                                                    exerciseIndex + 1
+                                                )
+                                                : "";
+                                            const joinsPreviousSuperset = Boolean(
+                                                supersetKey && supersetKey === previousSupersetKey
+                                            );
+                                            const joinsNextSuperset = Boolean(
+                                                supersetKey && supersetKey === nextSupersetKey
+                                            );
                                             const exerciseCardMetrics = getCompactExerciseCardMetrics(
                                                 ex,
                                                 strengthReferenceOneRepMaxByLift
@@ -1396,6 +1417,12 @@ export default function DayDetailView({
                                                     style={[
                                                         styles.tabButton,
                                                         styles.verticalTabButton,
+                                                        joinsPreviousSuperset
+                                                            ? styles.supersetCardContinuation
+                                                            : null,
+                                                        joinsNextSuperset
+                                                            ? styles.supersetCardBeforeContinuation
+                                                            : null,
                                                         isHighlighted
                                                             ? styles.tabButtonActive
                                                             : styles.tabButtonInactive,
@@ -1418,7 +1445,7 @@ export default function DayDetailView({
                                                                         style={styles.tabButtonIndex}
                                                                         lines={1}
                                                                     >
-                                                                        {exerciseIndex + 1}
+                                                                        {getExerciseOrderLabel(ex, exerciseIndex)}
                                                                     </IBMPlexText>
                                                                 </View>
                                                                 <View style={styles.tabButtonTitleBlock}>
@@ -2352,6 +2379,16 @@ const styles = StyleSheet.create({
     verticalTabButton: {
         alignSelf: "stretch",
         width: "100%",
+    },
+    supersetCardBeforeContinuation: {
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+    supersetCardContinuation: {
+        borderTopColor: "#343434",
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        marginTop: -12,
     },
     tabButtonContent: {
         flex: 1,

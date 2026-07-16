@@ -261,7 +261,12 @@ export function MyProfileView(props) {
               description="Injuries and limitations"
               actionLabel="Report"
               accentColor={HOME_GREEN}
-              iconName="heart"
+              iconElement={
+                <View style={styles.injuryIconBadge}>
+                  <View style={styles.injuryIconHorizontal} />
+                  <View style={styles.injuryIconVertical} />
+                </View>
+              }
               onPress={props.onOpenInjuries}
               obscureContent={shouldObscurePlanActions}
             />
@@ -595,6 +600,27 @@ const styles = StyleSheet.create({
   navigationRow: {
     flexDirection: "row",
     gap: 10,
+  },
+  injuryIconBadge: {
+    alignItems: "center",
+    height: 30,
+    justifyContent: "center",
+    position: "relative",
+    width: 30,
+  },
+  injuryIconHorizontal: {
+    backgroundColor: HOME_GREEN,
+    borderRadius: 2,
+    height: 8,
+    position: "absolute",
+    width: 24,
+  },
+  injuryIconVertical: {
+    backgroundColor: HOME_GREEN,
+    borderRadius: 2,
+    height: 24,
+    position: "absolute",
+    width: 8,
   },
   pageHeader: {
     gap: 14,

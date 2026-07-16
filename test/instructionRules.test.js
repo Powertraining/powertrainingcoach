@@ -52,6 +52,9 @@ test("endurance guidelines are selected for endurance-oriented plans", () => {
   assert.match(guidelines, /bicycling/i);
   assert.match(guidelines, /Sport-specific endurance is the match-prep alternative/i);
   assert.match(guidelines, /Circuit training must solve the athlete's stated fatigue problem/i);
+  assert.match(guidelines, /50-70% of total circuit work/i);
+  assert.match(guidelines, /30-50% as full-body work/i);
+  assert.match(guidelines, /reduce density first/i);
   assert.match(guidelines, /Sprinting is anaerobic only/i);
   assert.match(guidelines, /Never stack hard endurance the day before important sparring/i);
   assert.match(guidelines, /Heavy bag endurance is for strikers/i);
