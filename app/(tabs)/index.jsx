@@ -516,6 +516,20 @@ const HomeScreen = observer(function HomeScreen() {
     });
   }
 
+  function openEventPreparation() {
+    router.push({
+      pathname: "/(tabs)/profile-event-preparation",
+      params: { returnTo: "/(tabs)" },
+    });
+  }
+
+  function openMyPosts() {
+    router.push({
+      pathname: "/(tabs)/profile-my-posts",
+      params: { returnTo: "/(tabs)" },
+    });
+  }
+
   function openReportInjury() {
     router.push("/(tabs)/profile-injuries");
   }
@@ -629,6 +643,8 @@ const HomeScreen = observer(function HomeScreen() {
         onOpenOverview={openOverviewDay}
         onResetUserProgress={resetUserProgressForTesting}
         onAdjustPlan={openPlanAdjustments}
+        onOpenEventPreparation={openEventPreparation}
+        onOpenMyPosts={openMyPosts}
         onOpenWellness={openReportInjury}
         onMoveSession={openPushBackConfirm}
       />

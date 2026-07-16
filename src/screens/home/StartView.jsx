@@ -351,7 +351,19 @@ function HomeMenuAction({
     title,
 }) {
     const isDisabled = disabled || !onPress;
-    const IconComponent = icon === "wellness" ? WellnessIcon : CalendarIcon;
+    const iconNames = {
+        adjust: "calendar",
+        calendar: "calendar",
+        posts: "chatbubble-ellipses",
+        registerEvent: "trophy",
+        wellness: "heart",
+    };
+    const IconComponent = icon === "wellness"
+        ? WellnessIcon
+        : icon === "calendar"
+            ? CalendarIcon
+            : null;
+    const resolvedIconColor = accentColor || HOME_BLUE;
 
     return (
         <TouchableOpacity
@@ -364,7 +376,15 @@ function HomeMenuAction({
             ]}
         >
             <View style={styles.homeMenuIcon}>
-                <IconComponent color={accentColor} size={26} />
+                {IconComponent ? (
+                    <IconComponent color={resolvedIconColor} size={26} />
+                ) : (
+                    <Ionicons
+                        color={resolvedIconColor}
+                        name={iconNames[icon] || "ellipse"}
+                        size={26}
+                    />
+                )}
             </View>
             <View style={styles.homeMenuCopy}>
                 <IBMPlexText
@@ -381,7 +401,7 @@ function HomeMenuAction({
                 </IBMPlexText>
                 <IBMPlexText
                     lines={1}
-                    style={[styles.homeMenuActionLabel, { color: accentColor }]}
+                    style={[styles.homeMenuActionLabel, { color: resolvedIconColor }]}
                 >
                     {actionLabel} &gt;
                 </IBMPlexText>
@@ -1042,6 +1062,8 @@ export default function StartView({
     onStartSession,
     onOpenOverview,
     onAdjustPlan,
+    onOpenEventPreparation,
+    onOpenMyPosts,
     onOpenWellness,
     onMoveSession,
     onNavigateQuestionnaire,
@@ -1125,6 +1147,25 @@ export default function StartView({
                                         icon="wellness"
                                         onPress={onOpenWellness}
                                         title="Log readiness"
+                                    />
+                                </View>
+                                <View style={styles.homeMenuRow}>
+                                    <HomeMenuAction
+                                        accentColor={HOME_YELLOW}
+                                        actionLabel="Register"
+                                        description="Competition date and event details."
+                                        disabled={!hasProgram}
+                                        icon="registerEvent"
+                                        onPress={onOpenEventPreparation}
+                                        title="Register Event"
+                                    />
+                                    <HomeMenuAction
+                                        accentColor={HOME_BLUE}
+                                        actionLabel="View"
+                                        description="Forum posts you created."
+                                        icon="posts"
+                                        onPress={onOpenMyPosts}
+                                        title="My posts"
                                     />
                                 </View>
                             </View>
@@ -1503,6 +1544,7 @@ const styles = StyleSheet.create({
         lineHeight: 29,
     },
     homeMenuSection: {
+        gap: 10,
         marginTop: 0,
     },
     homeMenuRow: {
