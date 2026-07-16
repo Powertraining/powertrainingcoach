@@ -51,8 +51,17 @@ function shouldShowEnduranceMethods(values = {}) {
   );
 }
 
-function hasOwnValue(source, key) {
-  return Object.prototype.hasOwnProperty.call(source ?? {}, key);
+function shouldShowCircuitFocusStep(values = {}) {
+  const isDevelopmentBuild =
+    typeof __DEV__ !== "undefined" && Boolean(__DEV__);
+
+  return (
+    isDevelopmentBuild ||
+    (
+      Array.isArray(values?.preferredEnduranceModalities) &&
+      values.preferredEnduranceModalities.includes("circuit_training")
+    )
+  );
 }
 
 export function getTrainingPreferencesSectionCount(values = {}) {
@@ -178,6 +187,7 @@ const NULLABLE_FORM_KEYS = Object.freeze([
   "enduranceSessionsPerWeek",
   "preferredEnduranceFormat",
   "circuitTrainingPrimaryPriority",
+  "circuitTrainingFocusMode",
   "sessionDuration",
   "equipment",
   "trainingPhase",
@@ -219,6 +229,14 @@ function preserveExplicitEmptyValues(normalizedValues, sourceValues = {}) {
   }
 
   if (
+    Object.prototype.hasOwnProperty.call(sourceValues ?? {}, "circuitTrainingRegions")
+  ) {
+    nextValues.circuitTrainingRegions = Array.isArray(sourceValues.circuitTrainingRegions)
+      ? sourceValues.circuitTrainingRegions
+      : [];
+  }
+
+  if (
     Object.prototype.hasOwnProperty.call(
       sourceValues ?? {},
       "circuitTrainingSecondaryPriorities"
@@ -247,21 +265,6 @@ export function getTrainingPreferencesStepKeys(values = {}) {
     getTrainingPreferencesFormState(values),
     values
   );
-  const enduranceSetupValues = {
-    ...resolvedValues,
-    circuitTrainingPrimaryPriority: hasOwnValue(
-      values,
-      "circuitTrainingPrimaryPriority"
-    )
-      ? values.circuitTrainingPrimaryPriority
-      : null,
-    circuitTrainingSecondaryPriorities: hasOwnValue(
-      values,
-      "circuitTrainingSecondaryPriorities"
-    )
-      ? values.circuitTrainingSecondaryPriorities
-      : [],
-  };
   const keys = ["experience", "desiredTraining"];
 
   if (resolvedValues.desiredTraining === "strength_power_endurance") {
@@ -280,13 +283,6 @@ export function getTrainingPreferencesStepKeys(values = {}) {
 
   if (shouldShowEnduranceMethods(resolvedValues)) {
     keys.push("enduranceMethods", "enduranceDays", "enduranceStyle");
-
-    if (
-      Array.isArray(resolvedValues.preferredEnduranceModalities) &&
-      resolvedValues.preferredEnduranceModalities.includes("circuit_training")
-    ) {
-      keys.push("enduranceCircuitGoal", "enduranceCircuitFocus");
-    }
 
     if (
       Array.isArray(resolvedValues.preferredEnduranceModalities) &&
@@ -320,6 +316,10 @@ export function getTrainingPreferencesStepKeys(values = {}) {
     "preferredWeekdays"
   );
 
+  if (shouldShowCircuitFocusStep(resolvedValues)) {
+    keys.push("enduranceCircuitFocus");
+  }
+
   return keys;
 }
 
@@ -349,7 +349,6 @@ export function getTrainingPreferencesStepLabel(stepKey = "") {
     enduranceMethods: "Endurance methods",
     enduranceDays: "Endurance days",
     enduranceStyle: "Endurance style",
-    enduranceCircuitGoal: "Circuit goal",
     enduranceCircuitFocus: "Circuit focus",
     enduranceHeavyBagFocus: "Heavy bag focus",
     enduranceSprintingFocus: "Sprinting focus",
@@ -415,8 +414,8 @@ export default function TrainingPreferencesFields({
   onEventDescriptionSkip,
   onEventDescriptionEditorChange,
   onEnduranceMethodsInfoVisibilityChange,
-  onEnduranceCircuitGoalContinue,
-  onEnduranceCircuitGoalSkip,
+  onEnduranceCircuitFocusContinue,
+  onEnduranceCircuitFocusBack,
   onInjuriesContinue,
   onInjuriesSkip,
 }) {
@@ -552,6 +551,16 @@ export default function TrainingPreferencesFields({
               sectionValue !== "strength_power_endurance"
                 ? []
                 : resolvedValues.circuitTrainingSecondaryPriorities,
+            circuitTrainingFocusMode:
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
+                ? ""
+                : resolvedValues.circuitTrainingFocusMode,
+            circuitTrainingRegions:
+              sectionValue !== "endurance" &&
+              sectionValue !== "strength_power_endurance"
+                ? []
+                : resolvedValues.circuitTrainingRegions,
             heavyBagEnduranceTarget:
               sectionValue !== "endurance" &&
               sectionValue !== "strength_power_endurance"
@@ -590,9 +599,27 @@ export default function TrainingPreferencesFields({
               allowHeavyBag={isStrikingCombatSport(
                 resolvedValues.primaryCombatSport
               )}
-              onChange={(sectionValue) =>
-                updateField("preferredEnduranceModalities", sectionValue)
-              }
+              onChange={(sectionValue) => {
+                const includesCircuit = sectionValue.includes("circuit_training");
+                updateFields({
+                  preferredEnduranceModalities: sectionValue,
+                  circuitTrainingGoalInput: includesCircuit
+                    ? resolvedValues.circuitTrainingGoalInput
+                    : "",
+                  circuitTrainingPrimaryPriority: includesCircuit
+                    ? resolvedValues.circuitTrainingPrimaryPriority
+                    : "",
+                  circuitTrainingSecondaryPriorities: includesCircuit
+                    ? resolvedValues.circuitTrainingSecondaryPriorities
+                    : [],
+                  circuitTrainingFocusMode: includesCircuit
+                    ? resolvedValues.circuitTrainingFocusMode
+                    : "",
+                  circuitTrainingRegions: includesCircuit
+                    ? resolvedValues.circuitTrainingRegions
+                    : [],
+                });
+              }}
               onInfoVisibilityChange={onEnduranceMethodsInfoVisibilityChange}
             />
           ),
@@ -610,28 +637,6 @@ export default function TrainingPreferencesFields({
               onChange={updateFields}
             />
           ),
-          ...(Array.isArray(resolvedValues.preferredEnduranceModalities) &&
-          resolvedValues.preferredEnduranceModalities.includes("circuit_training")
-            ? [
-                () => (
-                  <TrainingPreferencesEnduranceSetupView
-                    mode="circuitGoal"
-                    values={resolvedValues}
-                    onChange={updateFields}
-                    onContinue={onEnduranceCircuitGoalContinue}
-                    onSkip={onEnduranceCircuitGoalSkip}
-                  />
-                ),
-                () => (
-                  <TrainingPreferencesEnduranceSetupView
-                    mode="circuitFocus"
-                    values={resolvedValues}
-                    onChange={updateFields}
-                    onInfoVisibilityChange={onEnduranceMethodsInfoVisibilityChange}
-                  />
-                ),
-              ]
-            : []),
           ...(Array.isArray(resolvedValues.preferredEnduranceModalities) &&
           resolvedValues.preferredEnduranceModalities.includes("heavy_bag")
             ? [
@@ -755,6 +760,20 @@ export default function TrainingPreferencesFields({
         onAssignmentChange={updatePreferredWeekdayAssignment}
       />
     ),
+    ...(shouldShowCircuitFocusStep(resolvedValues)
+      ? [
+          () => (
+            <TrainingPreferencesEnduranceSetupView
+              mode="circuitFocus"
+              values={resolvedValues}
+              onChange={updateFields}
+              onContinue={onEnduranceCircuitFocusContinue}
+              onBack={onEnduranceCircuitFocusBack}
+              onInfoVisibilityChange={onEnduranceMethodsInfoVisibilityChange}
+            />
+          ),
+        ]
+      : []),
   ];
 
   const renderedSectionIndexes =

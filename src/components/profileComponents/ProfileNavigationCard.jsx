@@ -19,6 +19,7 @@ export default function ProfileNavigationCard({
   actionElement,
   accentColor = COLORS.blue,
   copyChildren,
+  iconElement,
   iconName,
   onPress,
   obscureContent = false,
@@ -49,7 +50,9 @@ export default function ProfileNavigationCard({
             wide ? styles.navigationCardContentWide : null,
           ]}
         >
-          {iconName ? (
+          {iconElement ? (
+            <View style={styles.navigationCardIcon}>{iconElement}</View>
+          ) : iconName ? (
             <View style={styles.navigationCardIcon}>
               <Ionicons color={accentColor} name={iconName} size={26} />
             </View>

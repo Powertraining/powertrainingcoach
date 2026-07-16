@@ -13,7 +13,6 @@ import { useEffect, useRef, useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import {
-  CIRCUIT_PRIORITY_OPTIONS,
   DESIRED_TRAINING_OPTIONS,
   ENDURANCE_FORMAT_OPTIONS,
   ENDURANCE_MODALITY_OPTIONS,
@@ -22,6 +21,11 @@ import {
   HEAVY_BAG_ENDURANCE_TARGET_OPTIONS,
   SPRINTING_TARGET_OPTIONS,
 } from "../constants/trainingPreferences.js";
+import {
+  CIRCUIT_FOCUS_MODES,
+  CIRCUIT_FOCUS_MODE_OPTIONS,
+  getCircuitRegionOptions,
+} from "../constants/circuitFocus.js";
 import {
   DELOAD_STRATEGY_OPTIONS,
   LIFT_INTENSITY_METHOD_OPTIONS,
@@ -105,19 +109,6 @@ const ENDURANCE_FORMAT_LABELS = Object.freeze({
   aerobic_intervals: "Aerobic intervals",
   high_intensity_intervals: "Hard intervals",
   sport_specific_conditioning: "Sport-specific",
-});
-
-const CIRCUIT_PRIORITY_LABELS = Object.freeze({
-  local_muscular_endurance: "Local endurance",
-  repeated_high_effort_capacity: "Repeat efforts",
-  whole_body_work_capacity: "Work capacity",
-  sport_specific_fatigue_resistance: "Sport fatigue",
-  aerobic_recovery_between_bursts: "Recovery",
-  grip_endurance: "Grip",
-  neck_endurance: "Neck",
-  trunk_endurance: "Trunk",
-  shoulder_endurance: "Shoulders",
-  leg_endurance: "Legs",
 });
 
 const HEAVY_BAG_TARGET_LABELS = Object.freeze({
@@ -799,6 +790,7 @@ function CompactChoiceGrid({
   iconMap,
   minWidth = 96,
   large = false,
+  allowDeselect = true,
 }) {
   const selectedValues = Array.isArray(value) ? value : [];
 
@@ -818,7 +810,9 @@ function CompactChoiceGrid({
                 return;
               }
 
-              onChange?.(isSelected ? null : option.value);
+              if (!isSelected || allowDeselect) {
+                onChange?.(isSelected ? null : option.value);
+              }
             }}
             style={({ pressed }) => [
               styles.compactChoice,
@@ -1491,6 +1485,9 @@ export default function ProfileTrainingPreferencesFields({
 }) {
   const safeValues = values && typeof values === "object" ? values : {};
   const resolvedValues = getTrainingPreferencesFormState(safeValues);
+  const circuitRegionOptions = getCircuitRegionOptions(
+    resolvedValues.primaryCombatSport
+  );
   const [activeWeekdayMenu, setActiveWeekdayMenu] = useState(null);
   const showPlanFields = sections !== "constraints";
   const showConstraintFields = sections !== "plan";
@@ -1546,6 +1543,12 @@ export default function ProfileTrainingPreferencesFields({
       circuitTrainingSecondaryPriorities: includesEndurance
         ? resolvedValues.circuitTrainingSecondaryPriorities
         : [],
+      circuitTrainingFocusMode: includesEndurance
+        ? resolvedValues.circuitTrainingFocusMode
+        : "",
+      circuitTrainingRegions: includesEndurance
+        ? resolvedValues.circuitTrainingRegions
+        : [],
       heavyBagEnduranceTarget: includesEndurance
         ? resolvedValues.heavyBagEnduranceTarget
         : "",
@@ -1566,6 +1569,12 @@ export default function ProfileTrainingPreferencesFields({
         : "",
       circuitTrainingSecondaryPriorities: selectedModalities.includes("circuit_training")
         ? resolvedValues.circuitTrainingSecondaryPriorities
+        : [],
+      circuitTrainingFocusMode: selectedModalities.includes("circuit_training")
+        ? resolvedValues.circuitTrainingFocusMode
+        : "",
+      circuitTrainingRegions: selectedModalities.includes("circuit_training")
+        ? resolvedValues.circuitTrainingRegions
         : [],
       heavyBagEnduranceTarget: selectedModalities.includes("heavy_bag")
         ? resolvedValues.heavyBagEnduranceTarget
@@ -1686,24 +1695,55 @@ export default function ProfileTrainingPreferencesFields({
                   <View style={styles.enduranceSubfield}>
                     <IBMPlexText style={styles.enduranceSubfieldLabel}>Circuit focus</IBMPlexText>
                     <CompactChoiceGrid
-                      options={CIRCUIT_PRIORITY_OPTIONS}
-                      value={[
-                        resolvedValues.circuitTrainingPrimaryPriority,
-                        ...resolvedValues.circuitTrainingSecondaryPriorities,
-                      ].filter(Boolean)}
-                      onChange={(selectedValues) =>
+                      options={CIRCUIT_FOCUS_MODE_OPTIONS}
+                      value={resolvedValues.circuitTrainingFocusMode}
+                      onChange={(focusMode) =>
                         updateFields({
-                          circuitTrainingGoalInput:
-                            selectedValues.length > 0
-                              ? resolvedValues.circuitTrainingGoalInput
+                          circuitTrainingFocusMode: focusMode,
+                          circuitTrainingRegions:
+                            focusMode === CIRCUIT_FOCUS_MODES.WHOLE_BODY
+                              ? []
+                              : resolvedValues.circuitTrainingRegions.length > 0
+                                ? resolvedValues.circuitTrainingRegions
+                                : [circuitRegionOptions[0].value],
+                          circuitTrainingGoalInput: "",
+                          circuitTrainingPrimaryPriority:
+                            focusMode === CIRCUIT_FOCUS_MODES.WHOLE_BODY
+                              ? "whole_body_work_capacity"
                               : "",
-                          circuitTrainingPrimaryPriority: selectedValues[0] || "",
-                          circuitTrainingSecondaryPriorities: selectedValues.slice(1),
+                          circuitTrainingSecondaryPriorities: [],
                         })
                       }
-                      labelMap={CIRCUIT_PRIORITY_LABELS}
-                      multi
+                      allowDeselect={false}
                     />
+                    {resolvedValues.circuitTrainingFocusMode ===
+                    CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS ? (
+                      <View style={styles.enduranceNestedField}>
+                        <IBMPlexText style={styles.enduranceNestedFieldLabel}>
+                          Areas that fade first
+                        </IBMPlexText>
+                        <CompactChoiceGrid
+                          options={circuitRegionOptions}
+                          value={resolvedValues.circuitTrainingRegions}
+                          onChange={(circuitTrainingRegions) =>
+                            circuitTrainingRegions.length > 0
+                              ? updateFields({
+                                  circuitTrainingFocusMode:
+                                    CIRCUIT_FOCUS_MODES.SPECIFIC_REGIONS,
+                                  circuitTrainingRegions,
+                                  circuitTrainingGoalInput: "",
+                                  circuitTrainingPrimaryPriority: "",
+                                  circuitTrainingSecondaryPriorities: [],
+                                })
+                              : null
+                          }
+                          multi
+                        />
+                        <IBMPlexText style={styles.enduranceNestedFieldHint}>
+                          These areas are emphasized; the rest of the body stays in the circuit.
+                        </IBMPlexText>
+                      </View>
+                    ) : null}
                   </View>
                 ) : null}
 
@@ -2048,6 +2088,25 @@ const styles = StyleSheet.create({
     fontSize: 10, fontWeight: "800",
     lineHeight: 13,
     textTransform: "uppercase",
+  },
+  enduranceNestedField: {
+    borderLeftColor: "#2B2B2E",
+    borderLeftWidth: 2,
+    gap: 8,
+    marginTop: 4,
+    paddingLeft: 12,
+  },
+  enduranceNestedFieldLabel: {
+    color: "#C9B259",
+    fontSize: 11,
+    fontWeight: "800",
+    lineHeight: 14,
+    textTransform: "uppercase",
+  },
+  enduranceNestedFieldHint: {
+    color: "#8E8E96",
+    fontSize: 11,
+    lineHeight: 16,
   },
   compactChoiceGrid: {
     flexDirection: "row",

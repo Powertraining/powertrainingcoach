@@ -1219,6 +1219,14 @@ export const model = {
       );
     }
 
+    if (Object.prototype.hasOwnProperty.call(answers, "injuryReport")) {
+      this.setQuestionnaire?.(
+        mergeTrainingPreferences(this.questionnaire, {
+          injuriesInput: recommendation.answers.injuryReport,
+        })
+      );
+    }
+
     const historyEntry = createTrainingCheckInHistoryEntry({
       prompt,
       answers: recommendation.answers,

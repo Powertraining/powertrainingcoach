@@ -152,12 +152,14 @@ function normalizeSubjectiveAnswers(source = {}) {
   const fatigue = normalizeString(safeSource.fatigue);
   const enjoyment = normalizeString(safeSource.enjoyment);
   const pain = normalizeString(safeSource.pain);
+  const injuryReport = normalizeString(safeSource.injuryReport);
 
   return {
     progress: SUBJECTIVE_PROGRESS_VALUES.has(progress) ? progress : "not_sure",
     fatigue: SUBJECTIVE_FATIGUE_VALUES.has(fatigue) ? fatigue : "normal",
     enjoyment: SUBJECTIVE_ENJOYMENT_VALUES.has(enjoyment) ? enjoyment : "ok",
     pain: SUBJECTIVE_PAIN_VALUES.has(pain) ? pain : "none",
+    injuryReport,
   };
 }
 

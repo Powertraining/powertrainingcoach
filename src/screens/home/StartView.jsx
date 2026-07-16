@@ -31,6 +31,7 @@ import {
     isSameCalendarDay,
 } from "../../services/utils/programOverview.js";
 import { getPrescribedSetCount } from "../../services/utils/exerciseSets.js";
+import { buildExerciseSessionSteps } from "../../services/utils/exerciseSupersets.js";
 import {
     isPagesPhonePreview,
     useWebTestActions,
@@ -282,8 +283,36 @@ function MoonRestIcon({ size = 30, color = "#7E7E7E" }) {
     return <Ionicons color={color} name="moon" size={size} />;
 }
 
-function WellnessIcon({ size = 30, color = HOME_GREEN }) {
-    return <Ionicons color={color} name="heart" size={size} />;
+function InjuryCrossIcon({ size = 30, color = HOME_GREEN }) {
+    const barThickness = Math.max(7, Math.round(size * 0.27));
+    const barLength = Math.max(22, Math.round(size * 0.8));
+
+    return (
+        <View style={[styles.injuryCrossIcon, { height: size, width: size }]}>
+            <View
+                style={[
+                    styles.injuryCrossHorizontal,
+                    {
+                        backgroundColor: color,
+                        borderRadius: Math.round(barThickness / 2),
+                        height: barThickness,
+                        width: barLength,
+                    },
+                ]}
+            />
+            <View
+                style={[
+                    styles.injuryCrossVertical,
+                    {
+                        backgroundColor: color,
+                        borderRadius: Math.round(barThickness / 2),
+                        height: barLength,
+                        width: barThickness,
+                    },
+                ]}
+            />
+        </View>
+    );
 }
 
 function CalendarIcon({ size = 30, color = HOME_YELLOW }) {
@@ -351,7 +380,19 @@ function HomeMenuAction({
     title,
 }) {
     const isDisabled = disabled || !onPress;
-    const IconComponent = icon === "wellness" ? WellnessIcon : CalendarIcon;
+    const iconNames = {
+        adjust: "calendar",
+        calendar: "calendar",
+        posts: "chatbubble-ellipses",
+        registerEvent: "trophy",
+        reportInjury: "add",
+    };
+    const IconComponent = icon === "reportInjury"
+        ? InjuryCrossIcon
+        : icon === "calendar"
+            ? CalendarIcon
+            : null;
+    const resolvedIconColor = accentColor || HOME_BLUE;
 
     return (
         <TouchableOpacity
@@ -364,7 +405,15 @@ function HomeMenuAction({
             ]}
         >
             <View style={styles.homeMenuIcon}>
-                <IconComponent color={accentColor} size={26} />
+                {IconComponent ? (
+                    <IconComponent color={resolvedIconColor} size={26} />
+                ) : (
+                    <Ionicons
+                        color={resolvedIconColor}
+                        name={iconNames[icon] || "ellipse"}
+                        size={26}
+                    />
+                )}
             </View>
             <View style={styles.homeMenuCopy}>
                 <IBMPlexText
@@ -381,7 +430,7 @@ function HomeMenuAction({
                 </IBMPlexText>
                 <IBMPlexText
                     lines={1}
-                    style={[styles.homeMenuActionLabel, { color: accentColor }]}
+                    style={[styles.homeMenuActionLabel, { color: resolvedIconColor }]}
                 >
                     {actionLabel} &gt;
                 </IBMPlexText>
@@ -408,12 +457,7 @@ function hasStartedSessionProgress(progress = {}) {
 }
 
 function buildSessionSteps(exercises = []) {
-    return (Array.isArray(exercises) ? exercises : []).flatMap((exercise, exerciseIndex) =>
-        Array.from({ length: getPrescribedSetCount(exercise) }).map((_, setIndex) => ({
-            exerciseIndex,
-            setIndex,
-        }))
-    );
+    return buildExerciseSessionSteps(exercises);
 }
 
 function getSessionProgressPercent(day = {}, progress = {}, isComplete = false) {
@@ -1042,6 +1086,8 @@ export default function StartView({
     onStartSession,
     onOpenOverview,
     onAdjustPlan,
+    onOpenEventPreparation,
+    onOpenMyPosts,
     onOpenWellness,
     onMoveSession,
     onNavigateQuestionnaire,
@@ -1119,12 +1165,31 @@ export default function StartView({
                                     />
                                     <HomeMenuAction
                                         accentColor={HOME_GREEN}
-                                        actionLabel="Log now"
-                                        description="Sleep, soreness, fatigue and motivation."
+                                        actionLabel="Report"
+                                        description="Injuries and limitations."
                                         disabled={!hasProgram}
-                                        icon="wellness"
+                                        icon="reportInjury"
                                         onPress={onOpenWellness}
-                                        title="Log readiness"
+                                        title="Report Injury"
+                                    />
+                                </View>
+                                <View style={styles.homeMenuRow}>
+                                    <HomeMenuAction
+                                        accentColor={HOME_YELLOW}
+                                        actionLabel="Register"
+                                        description="Competition date and event details."
+                                        disabled={!hasProgram}
+                                        icon="registerEvent"
+                                        onPress={onOpenEventPreparation}
+                                        title="Register Event"
+                                    />
+                                    <HomeMenuAction
+                                        accentColor={HOME_BLUE}
+                                        actionLabel="View"
+                                        description="Forum posts you created."
+                                        icon="posts"
+                                        onPress={onOpenMyPosts}
+                                        title="My posts"
                                     />
                                 </View>
                             </View>
@@ -1503,6 +1568,7 @@ const styles = StyleSheet.create({
         lineHeight: 29,
     },
     homeMenuSection: {
+        gap: 10,
         marginTop: 0,
     },
     homeMenuRow: {
@@ -1530,6 +1596,17 @@ const styles = StyleSheet.create({
         height: 30,
         justifyContent: "center",
         width: 30,
+    },
+    injuryCrossIcon: {
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+    injuryCrossHorizontal: {
+        position: "absolute",
+    },
+    injuryCrossVertical: {
+        position: "absolute",
     },
     homeMenuCopy: {
         flex: 1,

@@ -6,6 +6,7 @@ import { normalizePerformanceTarget } from "./trainingPerformance.js";
 import { normalizePercentagePrescription } from "./percentagePrescription.js";
 import { normalizeStrengthAssessmentConfig } from "./strengthAssessment.js";
 import { DAY_IN_MS, startOfLocalDay } from "./dateUtils.js";
+import { normalizeExerciseOrderLabel } from "./exerciseSupersets.js";
 
 const SESSION_REGION_DEFINITIONS = Object.freeze([
   {
@@ -965,6 +966,9 @@ export function normalizeExercise(exercise = {}) {
     sets: selectedOption.sets,
     reps: selectedOption.reps,
     notes: selectedOption.notes,
+    orderLabel: normalizeExerciseOrderLabel(
+      safeExercise.orderLabel || safeExercise.exerciseLabel
+    ) || undefined,
     endurancePrescription: normalizeEndurancePrescription(
       safeExercise.endurancePrescription
     ),
@@ -1793,6 +1797,7 @@ function normalizeGeneratedExercise(exercise = {}, exerciseIndex = 0) {
 
   return normalizeExercise({
     name: exercise.name,
+    orderLabel: exercise.orderLabel || exercise.exerciseLabel,
     sets: exercise.sets,
     reps: exercise.reps,
     notes: exercise.notes,

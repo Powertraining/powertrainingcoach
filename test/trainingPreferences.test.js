@@ -234,3 +234,42 @@ test("circuit training focus remains empty when the user clears it", () => {
     ""
   );
 });
+
+test("specific circuit regions are persisted with a whole-body remainder", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "endurance",
+    preferredEnduranceModalities: ["circuit_training"],
+    circuitTrainingFocusMode: "specific_regions",
+    circuitTrainingRegions: ["grip_forearms", "legs"],
+  });
+
+  assert.equal(normalizedPreferences.circuitTrainingFocusMode, "specific_regions");
+  assert.deepEqual(normalizedPreferences.circuitTrainingRegions, [
+    "grip_forearms",
+    "legs",
+  ]);
+  assert.equal(
+    normalizedPreferences.enduranceTraining.circuitTraining.regionalWorkShare,
+    "50-70%"
+  );
+  assert.equal(
+    normalizedPreferences.enduranceTraining.circuitTraining.wholeBodyWorkShare,
+    "30-50%"
+  );
+});
+
+test("whole-body circuit focus deletes stale region data", () => {
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "endurance",
+    preferredEnduranceModalities: ["circuit_training"],
+    circuitTrainingFocusMode: "whole_body",
+    circuitTrainingRegions: ["neck", "upper_back"],
+  });
+
+  assert.equal(normalizedPreferences.circuitTrainingFocusMode, "whole_body");
+  assert.deepEqual(normalizedPreferences.circuitTrainingRegions, []);
+  assert.deepEqual(
+    normalizedPreferences.enduranceTraining.circuitTraining.regions,
+    []
+  );
+});

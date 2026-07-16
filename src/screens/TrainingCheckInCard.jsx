@@ -2,7 +2,7 @@ import {
   useEffect,
   useMemo,
   useState } from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 
 import {
   buildTrainingCheckInRecommendation,
@@ -14,6 +14,7 @@ const DEFAULT_ANSWERS = Object.freeze({
   fatigue: "normal",
   enjoyment: "ok",
   pain: "none",
+  injuryReport: "",
 });
 
 function getVisibleOptions(options = []) {
@@ -83,8 +84,13 @@ export default function TrainingCheckInCard({
   const [answers, setAnswers] = useState(DEFAULT_ANSWERS);
 
   useEffect(() => {
-    setAnswers(DEFAULT_ANSWERS);
-  }, [prompt?.type, prompt?.weekNumber]);
+    setAnswers({
+      ...DEFAULT_ANSWERS,
+      injuryReport: typeof questionnaire?.injuriesInput === "string"
+        ? questionnaire.injuriesInput
+        : "",
+    });
+  }, [prompt?.type, prompt?.weekNumber, questionnaire?.injuriesInput]);
 
   const recommendation = useMemo(
     () =>
@@ -160,6 +166,21 @@ export default function TrainingCheckInCard({
         options={TRAINING_CHECK_IN_FIELD_OPTIONS.pain}
         onChange={(value) => setAnswers((current) => ({ ...current, pain: value }))}
       />
+
+      <View style={styles.group}>
+        <IBMPlexText style={styles.groupLabel}>Injury details</IBMPlexText>
+        <TextInput
+          multiline
+          onChangeText={(value) =>
+            setAnswers((current) => ({ ...current, injuryReport: value }))
+          }
+          placeholder="Add or update injuries and limitations"
+          placeholderTextColor="#94a3b8"
+          style={styles.injuryInput}
+          textAlignVertical="top"
+          value={answers.injuryReport}
+        />
+      </View>
 
       <View style={styles.recommendationBox}>
         <IBMPlexText style={styles.recommendationLabel}>Recommended next step</IBMPlexText>
@@ -302,6 +323,19 @@ const styles = StyleSheet.create({
   },
   choiceChipTextSelected: {
     color: "#ffffff",
+  },
+  injuryInput: {
+    minHeight: 96,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(15,23,42,0.14)",
+    backgroundColor: "#ffffff",
+    color: "#0f172a",
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 20,
   },
   recommendationBox: {
     padding: 12,

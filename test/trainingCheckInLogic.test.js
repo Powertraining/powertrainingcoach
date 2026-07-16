@@ -238,6 +238,34 @@ test("fatigue-heavy answers recommend a deload before a scheme change", () => {
   assert.equal(recommendation.recommendedAction.type, "deload");
 });
 
+test("check-in answers preserve injury report text", () => {
+  const prompt = {
+    type: "weekly",
+    weekNumber: 1,
+    title: "Weekly check-in",
+    summary: "",
+    weeksInScope: [1],
+  };
+  const recommendation = buildTrainingCheckInRecommendation({
+    prompt,
+    questionnaire: { loadingStrategy: "flat_loading" },
+    plan: createPlan(3),
+    completedDays: ["1-1", "1-2"],
+    answers: {
+      progress: "improving",
+      fatigue: "normal",
+      enjoyment: "ok",
+      pain: "mild",
+      injuryReport: "Left shoulder irritated on pressing.",
+    },
+  });
+
+  assert.equal(
+    recommendation.answers.injuryReport,
+    "Left shoulder irritated on pressing."
+  );
+});
+
 test("objective summary reports tracked strength and completion signals", () => {
   const objectiveSummary = buildTrainingCheckInObjectiveSummary({
     plan: createPlan(3),

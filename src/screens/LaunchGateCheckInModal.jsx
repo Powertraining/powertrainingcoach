@@ -68,6 +68,14 @@ const SUBJECTIVE_CHECK_IN_QUESTIONS = Object.freeze([
     type: "choice",
     options: TRAINING_CHECK_IN_FIELD_OPTIONS.pain,
   },
+  {
+    key: "injuryReport",
+    label: "Injury details",
+    type: "text",
+    optional: true,
+    emptyButtonLabel: "No injury",
+    placeholder: "Add or update injuries and limitations",
+  },
 ]);
 
 const FOUR_WEEK_CHECK_IN_QUESTIONS = Object.freeze(
@@ -98,11 +106,11 @@ export const LAUNCH_GATE_CHECK_IN_TESTS = Object.freeze([
   { key: "week8", label: "Test 8-week check-in" },
 ]);
 
-function createDefaultAnswers(prompt = {}) {
+function createDefaultAnswers(prompt = {}, initialValues = {}) {
   return (prompt.questions || []).reduce((answers, question) => {
     return {
       ...answers,
-      [question.key]: question.defaultValue ?? "",
+      [question.key]: initialValues[question.key] ?? question.defaultValue ?? "",
     };
   }, {});
 }
@@ -288,6 +296,8 @@ function LaunchGateQuestionForm({
 }
 
 export default function LaunchGateCheckInModal({
+  initialInjuryReport = "",
+  onSubmit,
   promptKey = "",
   visible = false,
   onClose,
@@ -346,7 +356,9 @@ export default function LaunchGateCheckInModal({
         clearTimeout(advanceTimeoutRef.current);
         advanceTimeoutRef.current = null;
       }
-      setAnswers(createDefaultAnswers(prompt));
+      setAnswers(createDefaultAnswers(prompt, {
+        injuryReport: initialInjuryReport,
+      }));
       setActiveQuestionIndex(-1);
       setBorderAnimationMode("draw");
       setSelectedChoiceValue("");
@@ -360,6 +372,7 @@ export default function LaunchGateCheckInModal({
     answersEntranceProgress,
     buttonLabelProgress,
     choiceAnimationProgress,
+    initialInjuryReport,
     prompt,
     questionEntranceProgress,
     titleEntranceProgress,
@@ -597,6 +610,10 @@ export default function LaunchGateCheckInModal({
         choiceAnimationProgress.setValue(0);
         onClose?.();
         return;
+      }
+
+      if (activeQuestionIndex >= questions.length - 1) {
+        onSubmit?.(answers);
       }
 
       setActiveQuestionIndex((current) => {

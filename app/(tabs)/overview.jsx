@@ -447,6 +447,13 @@ const OverviewScreen = observer(function OverviewScreen() {
     }
   }
 
+  function handleReadinessInjuryReportChange(value = "") {
+    model.setQuestionnaire?.({
+      ...(model.questionnaire || {}),
+      injuriesInput: String(value || "").trim(),
+    });
+  }
+
   return (
     <View style={styles.container}>
       <ProgramOverviewView
@@ -456,6 +463,7 @@ const OverviewScreen = observer(function OverviewScreen() {
         completedDays={completedDays}
         pendingTrainingCheckIn={pendingTrainingCheckIn}
         onSubmitTrainingCheckIn={handleSubmitTrainingCheckIn}
+        onReadinessInjuryReportChange={handleReadinessInjuryReportChange}
         trainingCheckInSubmitting={trainingCheckInSubmitting}
         questionnaire={model.questionnaire}
         selectedDay={selectedDay}

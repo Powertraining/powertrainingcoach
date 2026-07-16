@@ -224,7 +224,8 @@ function buildPlanSchemaInstructions(userInput = {}) {
   - "regions": one or more of "upper_body", "lower_body", "full_body", "core"
   - "qualities": one or more of "force", "power", "fatigue", "speed", "hypertrophy", "recovery"
   - "stressLevel": "low", "moderate", or "high"
-- Every exercise must include "name", "sets", "reps", and "notes", except exercises with an "endurancePrescription": those must include "name" and "notes" but must omit "sets" and "reps" — all prescription details belong in "endurancePrescription".
+- Every exercise must include "orderLabel", "name", "sets", "reps", and "notes", except exercises with an "endurancePrescription": those must include "orderLabel", "name", and "notes" but must omit "sets" and "reps" — all prescription details belong in "endurancePrescription".
+- Use plain numeric "orderLabel" values for standalone exercises ("1", "2", "3"). Use matching number-letter values for supersets ("1a", "1b", then "2a", "2b"). Never put the order label inside "name".
 - Add "substitutionOptions" only when there are useful comparable replacements. Omit it when no substitute is needed; the app will create the default option array.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.
 - If "performanceTarget" is included, its "strategy" must be exactly one of "e1rm", "best_set", or "fixed_rpe".
@@ -317,6 +318,7 @@ function buildPlanJsonExample(userInput = {}) {
           },
           "exercises": [
             {
+              "orderLabel": "1",
               "name": "Exercise Name",
               "sets": "3-5",
               "reps": "3-6",
@@ -347,6 +349,7 @@ function buildPlanJsonExample(userInput = {}) {
               includeEnduranceSchema
                 ? `,
             {
+              "orderLabel": "2",
               "name": "Assault Bike Intervals",
               "notes": "Dedicated endurance work with low impact.",
               "endurancePrescription": {
@@ -448,7 +451,7 @@ function buildMissedSessionSchemaInstructions(adjustmentInput = {}) {
 - Rewrite exactly one training-day object, not a full plan.
 - Keep the target slot's "day" number and preferredWeekday.
 - Keep the rescued session in the same movement family and training emphasis as the source day.
-- Every returned exercise must include "substitutionOptions".
+- Every returned exercise must include "orderLabel" and "substitutionOptions". Use matching number-letter labels for supersets, such as "1a" and "1b".
 - Keep "sessionLabel" tied to the rescued session identity rather than the slot it moved into.
 - Include "sessionProfile", "status", "rescueMode", "adjustmentReason", and "adjustmentSummary".
 - Preserve "performanceTarget" when the main tracked exposure is still present.
@@ -474,6 +477,7 @@ function buildMissedSessionJsonExample(targetDay = {}, mode = "late_week_rescue"
   "adjustmentSummary": "Short explanation of the rescue or re-entry choice.",
   "exercises": [
     {
+      "orderLabel": "1",
       "name": "Exercise Name",
       "sets": "2-3",
       "reps": "3-5",
