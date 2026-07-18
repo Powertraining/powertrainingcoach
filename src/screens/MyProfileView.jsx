@@ -208,7 +208,6 @@ export function MyProfileView(props) {
         {isMainMode ? (
           <SubscriptionCard
             planName={props.subscriptionPlanName}
-            subscriptionText={props.subscriptionText}
             isSubmitting={props.isSubmitting}
             showDetailsButton={props.isSubscriptionActive}
             onUpgradePress={props.onChangeSubscription}

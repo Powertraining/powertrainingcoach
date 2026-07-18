@@ -98,8 +98,6 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     [model.questionnaire, model.sessionsPerWeek]
   );
 
-  const subscriptionText = model.getSubscriptionSummaryText?.() ||
-    "No active subscription";
   const isSubscriptionActive = model.isSubscribed?.() || false;
   const subscriptionPlanName = model.getSubscriptionPlanName?.() || "No Plan";
 
@@ -443,7 +441,6 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         userPhotoUrl={profilePhotoUrl}
         password={password}
         subscriptionPlanName={subscriptionPlanName}
-        subscriptionText={subscriptionText}
         isSubscriptionActive={isSubscriptionActive}
         hasProgram={Boolean(model.trainingPlan)}
         isSubmitting={isSubmitting}
