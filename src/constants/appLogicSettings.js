@@ -82,6 +82,21 @@ export const PERCENTAGE_REFERENCE_METHOD_OPTIONS = Object.freeze([
   },
 ]);
 
+export const PROGRAM_MAX_SETUP_OPTIONS = Object.freeze([
+  {
+    label: "Estimate while I train",
+    value: "auto_estimate",
+    description:
+      "Start the program now. Missing main-lift maxes use RPE in Week 1, then switch to percentage loading after a valid estimate.",
+  },
+  {
+    label: "Calibration week first",
+    value: "calibration_week",
+    description:
+      "Use Week 1 to establish more accurate Program Maxes with your selected max-test method before percentage loading begins.",
+  },
+]);
+
 export const DELOAD_STRATEGY_OPTIONS = Object.freeze([
   {
     label: "Maintain intensity, reduce volume 30-50%",
@@ -126,6 +141,7 @@ export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   sportLoadLevel: 2,
   liftIntensityMethod: "percentage",
   percentageReferenceMethod: "rpe_based_1rm",
+  programMaxSetup: "auto_estimate",
   deloadStrategy: "maintain_intensity_reduce_volume",
   loadingStrategy: "flat_loading",
 });
@@ -212,6 +228,12 @@ function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = fal
     percentageReferenceMethod: normalizePercentageReferenceMethod(
       safeSource.percentageReferenceMethod
     ),
+    programMaxSetup: isAllowedValue(
+      safeSource.programMaxSetup,
+      PROGRAM_MAX_SETUP_OPTIONS
+    )
+      ? safeSource.programMaxSetup
+      : APP_LOGIC_SETTINGS_DEFAULTS.programMaxSetup,
     deloadStrategy: isAllowedValue(
       safeSource.deloadStrategy,
       DELOAD_STRATEGY_OPTIONS
@@ -274,6 +296,7 @@ export function areAppLogicSettingsEqual(left, right) {
       normalizedRight.liftIntensityMethod &&
     normalizedLeft.percentageReferenceMethod ===
       normalizedRight.percentageReferenceMethod &&
+    normalizedLeft.programMaxSetup === normalizedRight.programMaxSetup &&
     normalizedLeft.deloadStrategy === normalizedRight.deloadStrategy &&
     normalizedLeft.loadingStrategy === normalizedRight.loadingStrategy
   );

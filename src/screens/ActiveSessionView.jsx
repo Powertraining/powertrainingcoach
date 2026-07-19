@@ -32,6 +32,8 @@ import {
   getExerciseOrderLabel,
 } from "../services/utils/exerciseSupersets.js";
 import {
+  createStrengthAssessmentEntry,
+  getStrengthAssessmentMinimumRpe,
   getStrengthAssessmentLiftKey,
   getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentRequirements,
@@ -510,10 +512,16 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
           primaryWorkingSet.percent1RM
         )
       : null;
+    const percentageNotesDetails = notesDetails
+      .split(/\s*\*\s*/)
+      .filter((detail) => !/^(?:RPE|RIR)\b/i.test(detail))
+      .join(" * ");
     const detailParts = [
-      primaryWorkingSet.percent1RM ? `${primaryWorkingSet.percent1RM}% 1RM` : "",
+      primaryWorkingSet.percent1RM
+        ? `${primaryWorkingSet.percent1RM}% Program Max`
+        : "",
       primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
-      notesDetails,
+      percentageNotesDetails,
     ].filter(Boolean);
 
     return {
@@ -1228,8 +1236,20 @@ function ActiveSessionResultsList({
 export function getSetLoggingConfig(exercise = {}) {
   const performanceTarget = getExercisePerformanceTarget(exercise);
   const strengthAssessment = getExerciseStrengthAssessment(exercise);
-  const strengthRequirements = strengthAssessment
+  const baseStrengthRequirements = strengthAssessment
     ? getStrengthAssessmentRequirements(strengthAssessment.method)
+    : null;
+  const strengthMinimumRpe =
+    strengthAssessment?.method === "rpe_based_1rm"
+      ? getStrengthAssessmentMinimumRpe(exercise)
+      : null;
+  const strengthRequirements = baseStrengthRequirements
+    ? {
+        ...baseStrengthRequirements,
+        rpePlaceholder: strengthMinimumRpe
+          ? `${strengthMinimumRpe}-9`
+          : baseStrengthRequirements.rpePlaceholder,
+      }
     : null;
   const explicitCustomFields = getExerciseLoggingFieldSource(exercise)
     .map((field, fieldIndex) => normalizeCustomLoggingField(field, fieldIndex))
@@ -1295,6 +1315,8 @@ function ExerciseSessionStep({
   canGoPrevious = false,
   strengthReferenceOneRepMaxByLift,
   compact = false,
+  isEstimatingProgramMax = false,
+  programMaxStatusLabel = "Estimating your max",
 }) {
   const {
     performanceTarget,
@@ -1339,10 +1361,28 @@ function ExerciseSessionStep({
     setIndex,
     strengthReferenceOneRepMaxByLift
   );
-  const displayedTargetRpe = performanceTarget?.targetRpe || parseRpeFromText(exercise?.notes);
+  const assessmentMinimumRpe =
+    strengthAssessment?.method === "rpe_based_1rm"
+      ? getStrengthAssessmentMinimumRpe(exercise)
+      : null;
+  const usesPercentagePrescription = Boolean(
+    getExercisePercentagePrescription(exercise)
+  );
+  const displayedTargetRpe = usesPercentagePrescription
+    ? null
+    : performanceTarget?.targetRpe ||
+      parseRpeFromText(exercise?.notes) ||
+      assessmentMinimumRpe;
   const performanceTargetRpe = displayedTargetRpe
-    ? `RPE ${displayedTargetRpe}`
+    ? `RPE ${
+        assessmentMinimumRpe && displayedTargetRpe === assessmentMinimumRpe
+          ? `${assessmentMinimumRpe}-9`
+          : displayedTargetRpe
+      }`
     : "";
+  const programMaxIntensityMetric = isEstimatingProgramMax
+    ? [performanceTargetRpe, programMaxStatusLabel].filter(Boolean).join(" · ")
+    : performanceTargetRpe;
   const exerciseRecommendationDetails = String(exerciseRecommendation.details || "")
     .split(/\s*\*\s*/)
     .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
@@ -1358,7 +1398,7 @@ function ExerciseSessionStep({
         exercisePrescription,
         exerciseRecommendation.primary,
         ...exerciseRecommendationDetails,
-        performanceTargetRpe,
+        programMaxIntensityMetric,
         endurancePrescription.work,
         endurancePrescription.durationMinutes
           ? `${endurancePrescription.durationMinutes} min total`
@@ -1386,14 +1426,31 @@ function ExerciseSessionStep({
 
       {exerciseRecommendationMetrics.length > 0 ? (
         <View style={[styles.exerciseMetricsRow, compact ? styles.compactExerciseMetricsRow : null]}>
-          {exerciseRecommendationMetrics.map((metric) => (
-            <IBMPlexText
-              key={metric}
-              style={[styles.exerciseMetricLabel, compact ? styles.compactExerciseMetricLabel : null]}
-            >
-              {metric}
-            </IBMPlexText>
-          ))}
+          {exerciseRecommendationMetrics.map((metric) =>
+            isEstimatingProgramMax && metric === programMaxIntensityMetric ? (
+              <View key={metric} style={styles.programMaxIntensityChip}>
+                <IBMPlexText
+                  style={[
+                    styles.exerciseMetricLabel,
+                    compact ? styles.compactExerciseMetricLabel : null,
+                    styles.programMaxIntensityMetric,
+                  ]}
+                >
+                  {metric}
+                </IBMPlexText>
+              </View>
+            ) : (
+              <IBMPlexText
+                key={metric}
+                style={[
+                  styles.exerciseMetricLabel,
+                  compact ? styles.compactExerciseMetricLabel : null,
+                ]}
+              >
+                {metric}
+              </IBMPlexText>
+            )
+          )}
         </View>
       ) : null}
 
@@ -1534,6 +1591,7 @@ export default function ActiveSessionView({
   scrollStyle,
   contentContainerStyle,
   onSessionProgressChange,
+  onStrengthAssessmentSave,
   onBack,
   onFinish,
 }) {
@@ -1590,6 +1648,7 @@ export default function ActiveSessionView({
       : SESSION_SCREEN_MODES.SECTION_INTRO
   );
   const [isDescriptionMenuVisible, setIsDescriptionMenuVisible] = useState(false);
+  const [newProgramMax, setNewProgramMax] = useState(null);
   const advanceTimeoutRef = useRef(null);
   const [completedStepKeys, setCompletedStepKeys] = useState(() =>
     getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
@@ -1730,6 +1789,15 @@ export default function ActiveSessionView({
   );
 
   useEffect(() => {
+    if (!newProgramMax) {
+      return undefined;
+    }
+
+    const timeout = setTimeout(() => setNewProgramMax(null), 6000);
+    return () => clearTimeout(timeout);
+  }, [newProgramMax]);
+
+  useEffect(() => {
     onSessionProgressChange?.({
       activeExerciseIndex,
       activeSetIndex,
@@ -1843,6 +1911,35 @@ export default function ActiveSessionView({
     nextCompletedStepKeys.add(
       getStepKey(activeStep.exerciseIndex, activeStep.setIndex)
     );
+
+    const strengthAssessment = getExerciseStrengthAssessment(activeExercise);
+    const liftKey = getStrengthAssessmentLiftKey(strengthAssessment?.liftName || "", "");
+    const isMissingProgramMax = Boolean(
+      strengthAssessment &&
+      liftKey &&
+      !strengthReferenceOneRepMaxByLift[liftKey]
+    );
+
+    if (isMissingProgramMax) {
+      const result = trackingDrafts[
+        getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)
+      ];
+      const entry = createStrengthAssessmentEntry({
+        metadata: {
+          ...strengthAssessment,
+          minimumRpe: getStrengthAssessmentMinimumRpe(activeExercise),
+        },
+        result,
+        exerciseIndex: activeStep.exerciseIndex,
+        setIndex: activeStep.setIndex,
+        sourceExerciseName: activeExercise?.name,
+      });
+
+      if (entry) {
+        setNewProgramMax(entry);
+        onStrengthAssessmentSave?.(getTrackedResultsFromDrafts(trackingDrafts));
+      }
+    }
 
     setCompletedStepKeys((currentCompletedStepKeys) => {
       const updatedCompletedStepKeys = new Set(currentCompletedStepKeys);
@@ -2037,6 +2134,20 @@ export default function ActiveSessionView({
           onBack={handleExitSession}
         />
 
+        {newProgramMax ? (
+          <View accessibilityLiveRegion="polite" style={styles.newProgramMaxBanner}>
+            <IBMPlexText style={styles.newProgramMaxIcon}>✓</IBMPlexText>
+            <View style={styles.newProgramMaxCopy}>
+              <IBMPlexText style={styles.newProgramMaxTitle}>
+                New Program Max: {newProgramMax.trainingMaxKg} kg
+              </IBMPlexText>
+              <IBMPlexText style={styles.newProgramMaxDescription}>
+                {newProgramMax.liftName} switches to % loading on its next exposure
+              </IBMPlexText>
+            </View>
+          </View>
+        ) : null}
+
         <ActiveSessionSlideIn key={activeSessionSlideKey}>
           {isSessionCompleteIntro ? (
             <ActiveSessionSectionIntroView
@@ -2099,6 +2210,21 @@ export default function ActiveSessionView({
             <ExerciseSessionStep
               key={`${activeExercise.name}-${activeStep.exerciseIndex}`}
               exercise={activeExercise}
+              isEstimatingProgramMax={Boolean(
+                getExerciseStrengthAssessment(activeExercise) &&
+                !strengthReferenceOneRepMaxByLift[
+                  getStrengthAssessmentLiftKey(
+                    getExerciseStrengthAssessment(activeExercise)?.liftName || "",
+                    ""
+                  )
+                ]
+              )}
+              programMaxStatusLabel={
+                getExerciseStrengthAssessment(activeExercise)?.method ===
+                "rpe_based_1rm"
+                  ? "Estimating your max"
+                  : "Calibrating your max"
+              }
               exerciseIndex={activeStep.exerciseIndex}
               setIndex={activeStep.setIndex}
               draft={trackingDrafts[getDraftKey(activeStep.exerciseIndex, activeStep.setIndex)]}
@@ -2376,6 +2502,54 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 16,
     paddingVertical: 16,
+  },
+  programMaxIntensityMetric: {
+    color: "#F8E7A2",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 15,
+  },
+  programMaxIntensityChip: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(243, 208, 79, 0.14)",
+    borderColor: "rgba(243, 208, 79, 0.32)",
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: "row",
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  newProgramMaxBanner: {
+    alignItems: "center",
+    backgroundColor: "rgba(35, 115, 62, 0.2)",
+    borderColor: "#4BA96A",
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    marginBottom: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    width: "100%",
+  },
+  newProgramMaxIcon: {
+    color: "#70D78F",
+    fontSize: 20,
+    fontWeight: "800",
+    marginRight: 11,
+  },
+  newProgramMaxCopy: {
+    flex: 1,
+  },
+  newProgramMaxTitle: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  newProgramMaxDescription: {
+    color: "#B7DCC1",
+    fontSize: 12,
+    marginTop: 2,
   },
   compactExerciseCard: {
     gap: 10,

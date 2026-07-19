@@ -477,6 +477,14 @@ const OverviewScreen = observer(function OverviewScreen() {
         getActiveSessionProgress={getActiveSessionProgress}
         onActiveSessionProgressChange={handleActiveSessionProgressChange}
         onActiveSessionProgressClear={handleActiveSessionProgressClear}
+        onStrengthAssessmentSave={(weekNumber, dayNumber, exercises, results) =>
+          model.saveStrengthAssessmentResults?.({
+            weekNumber,
+            dayNumber,
+            exercises,
+            results,
+          })
+        }
         getCompletedSessionProgress={getCompletedSessionProgress}
         onCompletedSessionProgressSave={handleCompletedSessionProgressSave}
         onTestSession={handleTestSession}

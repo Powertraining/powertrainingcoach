@@ -10,6 +10,7 @@ const nodeGlobals = {
   console: "readonly",
   exports: "writable",
   global: "readonly",
+  Intl: "readonly",
   module: "readonly",
   process: "readonly",
   queueMicrotask: "readonly",

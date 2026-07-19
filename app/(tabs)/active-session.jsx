@@ -63,6 +63,10 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
       model.getTrainingPerformanceSessionResults?.(weekNumber, dayNumber) || [],
     [dayNumber, model, model.trainingPerformanceState, weekNumber]
   );
+  const strengthAssessmentSummary = useMemo(
+    () => model.getStrengthAssessmentSummary?.() || null,
+    [model, model.strengthAssessmentState]
+  );
   const totalDays = useMemo(
     () => model.getTrackableTrainingDayCount?.() || 0,
     [model, plan]
@@ -271,12 +275,21 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
         exercises={selectedDay.exercises}
         initialPerformanceResults={sessionPerformanceResults}
         initialAssessmentResults={sessionAssessmentResults}
+        strengthAssessmentSummary={strengthAssessmentSummary}
         initialSessionProgress={
           sessionProgressKey
             ? model.activeSessionProgressByKey?.[sessionProgressKey]
             : null
         }
         onSessionProgressChange={saveSessionProgress}
+        onStrengthAssessmentSave={(trackedResults) =>
+          model.saveStrengthAssessmentResults?.({
+            weekNumber: selectedDay.week,
+            dayNumber: selectedDay.day,
+            exercises: selectedDay.exercises,
+            results: trackedResults,
+          })
+        }
         onBack={handleBack}
         onFinish={handleFinish}
       />

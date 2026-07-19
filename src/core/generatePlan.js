@@ -15,6 +15,7 @@ import {
     normalizeTrainingDay,
     parseGeneratedTrainingPlan,
 } from "../services/utils/trainingPlan.js";
+import { applyMissingProgramMaxBridges } from "../services/utils/missingProgramMaxBridge.js";
 
 function findGeneratedWeek(generatedWeeks = [], scaffoldWeek = {}, weekIndex = 0) {
     return (
@@ -76,8 +77,13 @@ function applyTrainingPlanScaffold(plan = {}, scaffold = null) {
     };
 }
 
-function normalizeGeneratedPlan(plan = {}, scaffold = null) {
-    return parseGeneratedTrainingPlan(applyTrainingPlanScaffold(plan, scaffold));
+function normalizeGeneratedPlan(plan = {}, scaffold = null, userInput = {}) {
+    return parseGeneratedTrainingPlan(
+        applyMissingProgramMaxBridges(
+            applyTrainingPlanScaffold(plan, scaffold),
+            userInput
+        )
+    );
 }
 
 const TRAINING_PLAN_CALL_TIMEOUT_MS = 300000;
@@ -126,7 +132,7 @@ export async function generatePlan(userInput, oldPlan = null, options = {}) {
         OPENAI_PLAN_GENERATION_MODEL,
         options
     ).then((result) => ({
-        plan: normalizeGeneratedPlan(result.plan, scaffold),
+        plan: normalizeGeneratedPlan(result.plan, scaffold, userInput),
         regenerationUsage: result.regenerationUsage,
     }));
 }

@@ -24,6 +24,7 @@ import {
   getSafeReturnToPath,
 } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
+import { shouldGeneratePlanAfterCheckout } from "../../src/services/utils/checkoutPlanGeneration.js";
 
 const INVALID_CHECKOUT_SESSION_MESSAGE =
   "Stripe returned an invalid checkout session. Please try checkout again.";
@@ -129,13 +130,14 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
           lookupKey: verification.lookupKey,
         });
 
-        const shouldAutoGeneratePlan =
-          Boolean(model.questionnaire?.pendingPlanGeneration) &&
-          !model.trainingPlan;
+        const shouldAutoGeneratePlan = shouldGeneratePlanAfterCheckout({
+          questionnaire: model.questionnaire,
+          trainingPlan: model.trainingPlan,
+          returnTo,
+        });
 
         if (shouldAutoGeneratePlan) {
           setGeneratingPlan(true);
-          clearPendingPlanGenerationFlag();
 
           try {
             const trainingPlanInput = model.buildTrainingPlanInput?.();
@@ -150,6 +152,8 @@ const SubscriptionScreen = observer(function SubscriptionScreen() {
             if (model.user?.uid !== verificationUid) {
               return;
             }
+
+            clearPendingPlanGenerationFlag();
 
             const currentTrainingDay =
               getClosestActiveTrainingDay(generatedPlan || model.trainingPlan, []) ||

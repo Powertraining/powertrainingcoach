@@ -239,6 +239,7 @@ ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, incl
 - For sprinting exercises, also include "sprintPrescription" with "target", "distanceMeters", "repsPerSet", "sets", "restBetweenReps", "restBetweenSets", and "stopRule".` : ""}
 ${includePercentageSchema ? `- On percentage-based primary lifts with a known Program Max in the user input or strengthAssessmentSummary, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets". Start percentage loading from the first generated exposure.
 - If a primary lift's Program Max is missing from both the user input and strengthAssessmentSummary, prescribe RPE-based loading for that lift only (no percentagePrescription) and include "strengthAssessment" with method "rpe_based_1rm". Use RPE 7-9 at 3-10 reps, preferably 3-5 reps, so the app can estimate the max from logged Week 1 data.
+- Apply the automatic missing-max RPE bridge regardless of percentageReferenceMethod. If programMaxSetup is "calibration_week", make Week 1 an explicit optional calibration week using the selected safe percentageReferenceMethod, with percentage loading beginning on later exposures after results are logged.
 - For missing-max bridge work, "strengthAssessment.method" must be "rpe_based_1rm"; for deliberately scheduled RM tests, "strengthAssessment.method" must be "multi_rm" or "true_1rm".
 - Do not use "rpe_based_1rm" as a standalone testing week when a Program Max is already known.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
@@ -260,6 +261,11 @@ function buildUserVisibleTextInstructions() {
 
 function buildPlanJsonExample(userInput = {}) {
   const includePercentageSchema = shouldIncludePercentageSchema(userInput);
+  const hasKnownProgramMax = Array.isArray(
+    userInput?.strengthAssessmentSummary?.latestByLift
+  ) && userInput.strengthAssessmentSummary.latestByLift.some(
+    (entry) => Number(entry?.trainingMaxKg) > 0
+  );
   const includeEnduranceSchema = shouldIncludeEnduranceSchema(userInput);
   const {
     parentCycleWeeks,
@@ -323,7 +329,7 @@ function buildPlanJsonExample(userInput = {}) {
               "sets": "3-5",
               "reps": "3-6",
               "notes": "Short coaching cue."${
-                includePercentageSchema
+                includePercentageSchema && hasKnownProgramMax
                   ? `,
               "percentagePrescription": {
                 "referenceLiftName": "Back Squat",
@@ -336,13 +342,14 @@ function buildPlanJsonExample(userInput = {}) {
                     "relativeIntensity": 80
                   }
                 ]
-              },
-              "strengthAssessment": {
-                "method": "multi_rm",
-                "liftName": "Back Squat",
-                "prompt": "Warm up progressively, then work up to your heaviest set of 3–5 reps. Log the load and reps so the app can estimate your 1RM."
               }`
-                  // ARCHIVED: rpe_based_1rm example removed
+                  : includePercentageSchema
+                    ? `,
+              "strengthAssessment": {
+                "method": "rpe_based_1rm",
+                "liftName": "Back Squat",
+                "prompt": "Log the load, reps, and RPE so the app can estimate your Program Max."
+              }`
                   : ""
               }
             }${

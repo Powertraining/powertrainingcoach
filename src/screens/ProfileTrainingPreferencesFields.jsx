@@ -31,6 +31,7 @@ import {
   LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
   PERCENTAGE_REFERENCE_METHOD_OPTIONS,
+  PROGRAM_MAX_SETUP_OPTIONS,
   TRAINING_PHASE_OPTIONS,
 } from "../constants/appLogicSettings.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
@@ -1814,6 +1815,22 @@ export default function ProfileTrainingPreferencesFields({
                 liftIntensityMethod={resolvedValues.liftIntensityMethod}
                 percentageReferenceMethod={resolvedValues.percentageReferenceMethod}
                 onChange={updateFields}
+                allowDeselect={allowDeselect}
+              />
+            </FieldPanel>
+          ) : null}
+
+          {shouldShowPlanField("programMaxSetup") &&
+          resolvedValues.liftIntensityMethod === "percentage" ? (
+            <FieldPanel label="Program Max setup">
+              <HorizontalChoiceSlider
+                options={PROGRAM_MAX_SETUP_OPTIONS}
+                value={resolvedValues.programMaxSetup}
+                onChange={(value) => updateField("programMaxSetup", value)}
+                labelMap={{
+                  auto_estimate: "Estimate in Week 1",
+                  calibration_week: "Calibration week first",
+                }}
                 allowDeselect={allowDeselect}
               />
             </FieldPanel>

@@ -315,6 +315,7 @@ test("percentage prompt bridges missing Program Maxes through Week 1 RPE estimat
   assert.match(prompt, /RPE 7-9.*3-10 reps/i);
   assert.match(prompt, /90% of estimated 1RM/i);
   assert.match(prompt, /strengthAssessmentSummary/i);
+  assert.match(prompt, /programMaxSetup.*calibration_week/i);
 });
 
 test("training prompt includes session spacing advisory for same-day or back-to-back sessions", () => {

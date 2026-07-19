@@ -41,6 +41,7 @@ import {
     getExerciseSupersetKey,
 } from "../services/utils/exerciseSupersets.js";
 import {
+    getPendingProgramMaxAssessments,
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
     getStrengthAssessmentRequirements,
@@ -736,10 +737,16 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
                 primaryWorkingSet.percent1RM
             )
             : null;
+        const percentageNotesDetails = notesDetails
+            .split(/\s*\*\s*/)
+            .filter((detail) => !/^(?:RPE|RIR)\b/i.test(detail))
+            .join(" * ");
         const detailParts = [
-            primaryWorkingSet.percent1RM ? `${primaryWorkingSet.percent1RM}% 1RM` : "",
+            primaryWorkingSet.percent1RM
+                ? `${primaryWorkingSet.percent1RM}% Program Max`
+                : "",
             primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
-            notesDetails,
+            percentageNotesDetails,
         ].filter(Boolean);
 
         return {
@@ -1023,6 +1030,12 @@ export default function DayDetailView({
         .filter((item) => item.strengthAssessment || item.performanceTarget);
     const assessmentExercises = trackedExercises.filter(
         (item) => item.strengthAssessment
+    );
+    const pendingProgramMaxAssessmentByExerciseIndex = new Map(
+        getPendingProgramMaxAssessments(
+            normalizedExercises,
+            strengthAssessmentSummary
+        ).map((item) => [item.exerciseIndex, item])
     );
     function getExerciseTabAnimation(exerciseIndex) {
         const animations = exerciseTabAnimationsRef.current;
@@ -1381,9 +1394,26 @@ export default function DayDetailView({
                                             const joinsNextSuperset = Boolean(
                                                 supersetKey && supersetKey === nextSupersetKey
                                             );
+                                            const pendingProgramMaxAssessment =
+                                                pendingProgramMaxAssessmentByExerciseIndex.get(exerciseIndex);
+                                            const programMaxStatusLabel = pendingProgramMaxAssessment
+                                                ? pendingProgramMaxAssessment.method === "rpe_based_1rm"
+                                                    ? "Estimating your max"
+                                                    : "Calibrating your max"
+                                                : "";
                                             const exerciseCardMetrics = getCompactExerciseCardMetrics(
                                                 ex,
                                                 strengthReferenceOneRepMaxByLift
+                                            ).map((metric) =>
+                                                programMaxStatusLabel && metric.label === "Intensity"
+                                                    ? {
+                                                        ...metric,
+                                                        value: [metric.value, programMaxStatusLabel]
+                                                            .filter(Boolean)
+                                                            .join(" · "),
+                                                        isProgramMaxEstimate: true,
+                                                    }
+                                                    : metric
                                             );
                                             const isHighlighted =
                                                 exerciseIndex === highlightedExerciseIndex;
@@ -1480,12 +1510,25 @@ export default function DayDetailView({
                                                                                 >
                                                                                     {metric.label}
                                                                                 </IBMPlexText>
-                                                                                <IBMPlexText defaultWhite
-                                                                                    style={styles.tabButtonMetricValue}
-                                                                                    textColor="#CDBB58"
-                                                                                >
-                                                                                    {metric.value}
-                                                                                </IBMPlexText>
+                                                                                {metric.isProgramMaxEstimate ? (
+                                                                                    <View style={styles.programMaxIntensityChip}>
+                                                                                        <IBMPlexText
+                                                                                            style={[
+                                                                                                styles.tabButtonMetricValue,
+                                                                                                styles.programMaxIntensityMetric,
+                                                                                            ]}
+                                                                                        >
+                                                                                            {metric.value}
+                                                                                        </IBMPlexText>
+                                                                                    </View>
+                                                                                ) : (
+                                                                                    <IBMPlexText defaultWhite
+                                                                                        style={styles.tabButtonMetricValue}
+                                                                                        textColor="#CDBB58"
+                                                                                    >
+                                                                                        {metric.value}
+                                                                                    </IBMPlexText>
+                                                                                )}
                                                                             </View>
                                                                         ))}
                                                                     </View>
@@ -2455,6 +2498,23 @@ const styles = StyleSheet.create({
         fontSize: 19,
         fontWeight: '800',
         lineHeight: 24,
+    },
+    programMaxIntensityMetric: {
+        color: "#F8E7A2",
+        fontSize: 12,
+        fontWeight: "700",
+        lineHeight: 15,
+    },
+    programMaxIntensityChip: {
+        alignItems: "center",
+        alignSelf: "flex-start",
+        backgroundColor: "rgba(243, 208, 79, 0.14)",
+        borderColor: "rgba(243, 208, 79, 0.32)",
+        borderRadius: 999,
+        borderWidth: 1,
+        flexDirection: "row",
+        paddingHorizontal: 11,
+        paddingVertical: 7,
     },
     tabButtonBody: {
         flex: 1,

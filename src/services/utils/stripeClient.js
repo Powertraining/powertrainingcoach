@@ -14,6 +14,7 @@ import {
   STRIPE_LIST_SUBSCRIPTION_PLANS_ENDPOINT,
   STRIPE_PORTAL_ENDPOINT,
   STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT,
+  RESET_PROFILE_ENDPOINT,
   STRIPE_VERIFY_CONSULTATION_CHECKOUT_ENDPOINT,
   STRIPE_VERIFY_CHECKOUT_ENDPOINT,
 } from "../config/apiConfig.js";
@@ -339,6 +340,25 @@ export async function refreshSubscriptionStatus() {
     return await postStripeJson(STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT, {});
   } catch (error) {
     console.error("Subscription refresh error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Permanently clears the signed-in user's app data and cancels subscriptions.
+ * Firebase Authentication and identity fields are preserved by the server.
+ * @returns {Promise<object>}
+ */
+export async function resetProfile() {
+  try {
+    const result = await postStripeJson(RESET_PROFILE_ENDPOINT, {
+      action: "reset_profile",
+      confirmation: "RESET_PROFILE",
+    });
+    await auth.currentUser?.reload?.();
+    return result;
+  } catch (error) {
+    console.error("Profile reset error:", error);
     throw error;
   }
 }

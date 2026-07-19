@@ -12,7 +12,8 @@ import {
   Animated,
   Easing,
 } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import { Ionicons } from "@expo/vector-icons";
+import Svg, { Path } from "react-native-svg";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import SessionMoveCalendar from "../components/planComponents/SessionMoveCalendar.jsx";
 import ActiveSessionView, {
@@ -51,6 +52,7 @@ import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.j
 import { getPrescribedSetCount } from "../services/utils/exerciseSets.js";
 import { buildExerciseSessionSteps } from "../services/utils/exerciseSupersets.js";
 import {
+  getPendingProgramMaxAssessments,
   getStrengthAssessmentLiftKey,
   getStrengthAssessmentReferenceOneRepMaxKg,
 } from "../services/utils/strengthAssessment.js";
@@ -316,19 +318,7 @@ function WeekScheduleTypeIcon({ color = "#fff", type = "force", size = 20 }) {
   }
 
   if (type === "fatigue" || type === "conditioning") {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24">
-        <Circle cx={12} cy={6} r={2.1} fill={color} />
-        <Path
-          d="m10 9 3.2 1.6 2.2 2.8M13.2 10.6 11 14l-3 1.5M12.1 14.3l2.9 1.3 2.1 3.4M10.8 14l-1.5 2.6-2.8 2"
-          fill="none"
-          stroke={color}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={strokeWidth}
-        />
-      </Svg>
-    );
+    return <Ionicons color={color} name="footsteps" size={size} />;
   }
 
   return (
@@ -826,6 +816,7 @@ export default function ProgramOverviewView({
   getActiveSessionProgress,
   onActiveSessionProgressChange,
   onActiveSessionProgressClear,
+  onStrengthAssessmentSave,
   onCompletedSessionProgressSave,
   getCompletedSessionProgress,
   onTestSession,
@@ -964,10 +955,6 @@ export default function ProgramOverviewView({
     selectedDay,
     swapEditorVisible,
   ]);
-
-  if (!plan) {
-    return <ProgramOverviewSkeleton />;
-  }
 
   const completedDayEntries =
     completedDays instanceof Set
@@ -1128,6 +1115,13 @@ export default function ProgramOverviewView({
     activeSelectedDay?.dayData ||
     selectedArchivedDay?.dayData ||
     null;
+  const pendingProgramMaxAssessments = getPendingProgramMaxAssessments(
+    selectedHeaderDay?.exercises,
+    strengthAssessmentSummary
+  );
+  const isProgramMaxCalibration = pendingProgramMaxAssessments.some(
+    (assessment) => assessment.method !== "rpe_based_1rm"
+  );
   const selectedDateLabel = formatCurrentDateLabel(selectedHeaderDate);
   const selectedPhaseLabel = selectedHeaderPhase?.label
     ? `${selectedHeaderPhase.label} week ${selectedHeaderWeekNumber}`
@@ -1193,6 +1187,11 @@ export default function ProgramOverviewView({
       ? startOfLocalDay(selectedScheduleSlot.date)
       : null;
   }, [selectedScheduleSlot]);
+
+  if (!plan) {
+    return <ProgramOverviewSkeleton />;
+  }
+
   const selectedTrainingSlotIsToday =
     Boolean(selectedTrainingSlot) &&
     isSameCalendarDay(selectedTrainingSlot.date, today);
@@ -1254,10 +1253,21 @@ export default function ProgramOverviewView({
     selectedHeaderDay && !selectedRestSlot
       ? getSessionName(selectedHeaderDay)
       : "Recovery day";
-  const selectedCardBaseDescription = [
+  const selectedDayMetaParts = selectedDayMetaLabel
+    .split(" - ")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const selectedCardConnectedSummary = [
     selectedPhaseLabel,
-    selectedDayMetaLabel,
-  ].filter(Boolean).join(" - ");
+    selectedDayMetaParts[0],
+  ]
+    .filter(Boolean)
+    .map((part) => part.replace(/ /g, "\u00A0"))
+    .join("\u00A0·\u00A0");
+  const selectedCardBaseDescription = [
+    selectedCardConnectedSummary,
+    ...selectedDayMetaParts.slice(1),
+  ].filter(Boolean).join(" · ");
   const selectedCardDescription = (() => {
     if (showRestSessionStatus) {
       return `${selectedPhaseLabel} - No training session scheduled.`;
@@ -1668,6 +1678,14 @@ export default function ProgramOverviewView({
         onSessionProgressChange={(progress) =>
           onActiveSessionProgressChange?.(activeSessionKey, progress)
         }
+        onStrengthAssessmentSave={(trackedResults) =>
+          onStrengthAssessmentSave?.(
+            activeSessionDay.week,
+            activeSessionDay.day,
+            activeSessionDay.exercises,
+            trackedResults
+          )
+        }
         onBack={() => setActiveSessionDay(null)}
         onFinish={(trackedResults, completedProgress = {}) => {
           onCompletedSessionProgressSave?.(activeSessionKey, {
@@ -1912,9 +1930,20 @@ export default function ProgramOverviewView({
                   >
                     {selectedDateLabel}
                   </IBMPlexText>
-                  <IBMPlexText defaultWhite lines={2} style={styles.todayTitle}>
-                    {selectedCardTitle}
-                  </IBMPlexText>
+                  <View style={styles.todayTitleRow}>
+                    <IBMPlexText defaultWhite lines={1} style={styles.todayTitle}>
+                      {selectedCardTitle}
+                    </IBMPlexText>
+                    {pendingProgramMaxAssessments.length > 0 ? (
+                      <View style={styles.programMaxEstimateChip}>
+                        <IBMPlexText lines={1} style={styles.programMaxEstimateChipText}>
+                          {isProgramMaxCalibration ? "Calibrating" : "Estimating"}{" "}
+                          {pendingProgramMaxAssessments.length}{" "}
+                          {pendingProgramMaxAssessments.length === 1 ? "max" : "maxes"}
+                        </IBMPlexText>
+                      </View>
+                    ) : null}
+                  </View>
                   <IBMPlexText lines={3} style={styles.todayDescription}>
                     {selectedCardDescription}
                   </IBMPlexText>
@@ -2578,11 +2607,18 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     textTransform: "uppercase",
   },
+  todayTitleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 9,
+    minWidth: 0,
+  },
   todayTitle: {
+    flexShrink: 1,
     fontSize: 24,
     fontWeight: "800",
     lineHeight: 31,
-    marginBottom: 9,
   },
   todayDescription: {
     color: "#B8B8C2",
@@ -2590,6 +2626,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 22,
     maxWidth: 250,
+  },
+  programMaxEstimateChip: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(243, 208, 79, 0.14)",
+    borderColor: "rgba(243, 208, 79, 0.32)",
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: "row",
+    flexShrink: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  programMaxEstimateChipText: {
+    color: "#F8E7A2",
+    fontSize: 10,
+    fontWeight: "700",
+    lineHeight: 13,
   },
   todayProgressBlock: {
     gap: 6,
