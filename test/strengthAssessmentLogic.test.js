@@ -5,6 +5,8 @@ import { normalizeAppLogicSettings } from "../src/constants/appLogicSettings.js"
 import { parseGeneratedTrainingPlan } from "../src/services/utils/trainingPlan.js";
 import {
   createStrengthAssessmentEntry,
+  getPendingProgramMaxAssessments,
+  getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentSummary,
   resolveStrengthAssessmentReferenceOneRepMaxKg,
   upsertStrengthAssessmentSessionResults,
@@ -22,6 +24,7 @@ test("percentage app logic defaults to RPE-based 1RM estimates and preserves exp
   });
 
   assert.equal(defaults.percentageReferenceMethod, "rpe_based_1rm");
+  assert.equal(defaults.programMaxSetup, "auto_estimate");
   assert.equal(legacyChoice.percentageReferenceMethod, "rpe_based_1rm");
   assert.equal(explicitChoice.percentageReferenceMethod, "multi_rm");
 });
@@ -122,6 +125,46 @@ test("RPE-based missing-max estimates accept Week 1 bridge sets", () => {
 
   assert.equal(bridgeEntry.estimatedOneRepMaxKg, 143.3);
   assert.equal(bridgeEntry.trainingMaxKg, 129);
+  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(bridgeEntry), 129);
+});
+
+test("missing-max estimates require the prescribed RPE lower bound", () => {
+  const metadata = {
+    method: "rpe_based_1rm",
+    liftName: "Back Squat",
+    minimumRpe: 8,
+  };
+
+  assert.equal(createStrengthAssessmentEntry({
+    metadata,
+    result: { loadKg: 100, reps: 5, rpe: 7.5 },
+  }), null);
+  assert.equal(createStrengthAssessmentEntry({
+    metadata,
+    result: { loadKg: 100, reps: 5, rpe: 8 },
+  })?.trainingMaxKg, 111);
+});
+
+test("pending Program Max assessments exclude lifts with a saved max", () => {
+  const exercises = [
+    {
+      name: "Back Squat",
+      notes: "Work at RPE 8-9.",
+      strengthAssessment: { method: "rpe_based_1rm", liftName: "Back Squat" },
+    },
+    {
+      name: "Trap Bar Deadlift",
+      strengthAssessment: { method: "rpe_based_1rm", liftName: "Trap Bar Deadlift" },
+    },
+  ];
+  const pending = getPendingProgramMaxAssessments(exercises, {
+    latestByLift: [{ liftName: "Back Squat", trainingMaxKg: 120 }],
+  });
+
+  assert.deepEqual(pending.map((entry) => entry.liftName), ["Trap Bar Deadlift"]);
+
+  const squatOnlyPending = getPendingProgramMaxAssessments([exercises[0]], {});
+  assert.equal(squatOnlyPending[0].minimumRpe, 8);
 });
 
 test("generated training plans preserve strength assessment metadata on exercises", () => {

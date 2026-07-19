@@ -262,8 +262,8 @@ function getWeekScheduleDayTypeMeta(day = null) {
 
 function WeekScheduleTypeIcon({ color = "#fff", type = "force", size = 20 }) {
     const iconNames = {
-        conditioning: "pulse",
-        fatigue: "pulse",
+        conditioning: "footsteps",
+        fatigue: "footsteps",
         hypertrophy: "body",
         power: "flash",
         recovery: "heart",
@@ -1110,7 +1110,7 @@ export default function StartView({
             onPress: onNavigateQuestionnaire,
         },
         {
-            label: "Reset user",
+            label: "Reset profile",
             onPress: onResetUserProgress,
         },
     ]);
@@ -1215,7 +1215,7 @@ export default function StartView({
                                 onPress={onResetUserProgress}
                             >
                                 <IBMPlexText defaultWhite style={styles.resetUserButtonText}>
-                                    Reset user
+                                    Reset profile
                                 </IBMPlexText>
                             </TouchableOpacity>
                         </>

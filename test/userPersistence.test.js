@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 
 import {
   SERVER_MANAGED_USER_DATA_FIELDS,
+  applyFullProfileReset,
   applyUserProgressReset,
   buildClientPersistableUserData,
+  createFullProfileResetData,
   createUserProgressResetData,
   isSameAuthenticatedUser,
 } from "../src/services/utils/userPersistence.js";
@@ -97,4 +99,36 @@ test("testing reset clears questionnaire and progress while preserving account f
   assert.equal(model.subscription, true);
   assert.equal(model.subscriptionType, "pro");
   assert.deepEqual(model.forumProfile, { likedPostIds: ["post-a"] });
+});
+
+test("full profile reset clears subscription and saved app data but preserves identity", () => {
+  const model = {
+    user: {
+      uid: "user-a",
+      displayName: "Tester",
+      email: "tester@example.com",
+    },
+    subscription: true,
+    subscriptionType: "pro",
+    subscriptionStatus: "active",
+    stripeSubscriptionId: "sub_123",
+    stripeCustomerId: "cus_123",
+    questionnaire: { desiredTraining: "strength_power" },
+    trainingPlan: { weeks: [{ week: 1 }] },
+    forumProfile: { likedPostIds: ["post-a"], savedPostIds: ["post-b"] },
+  };
+
+  const resetData = applyFullProfileReset(model);
+
+  assert.deepEqual(resetData, createFullProfileResetData());
+  assert.equal(model.subscription, false);
+  assert.equal(model.stripeSubscriptionId, null);
+  assert.equal(model.trainingPlan, null);
+  assert.deepEqual(model.forumProfile.likedPostIds, []);
+  assert.deepEqual(model.forumProfile.savedPostIds, []);
+  assert.deepEqual(model.user, {
+    uid: "user-a",
+    displayName: "Tester",
+    email: "tester@example.com",
+  });
 });

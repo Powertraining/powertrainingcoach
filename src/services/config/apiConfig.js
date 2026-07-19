@@ -53,6 +53,9 @@ export const STRIPE_CHECKOUT_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/createChec
 export const STRIPE_LIST_SUBSCRIPTION_PLANS_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/listSubscriptionPlans`;
 export const STRIPE_VERIFY_CHECKOUT_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/verifyCheckoutSession`;
 export const STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/refreshSubscriptionStatus`;
+// Profile reset shares the authenticated subscription endpoint so it can
+// atomically cancel billing and clear the server-managed subscription fields.
+export const RESET_PROFILE_ENDPOINT = STRIPE_REFRESH_SUBSCRIPTION_ENDPOINT;
 export const STRIPE_PORTAL_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/createPortalSession`;
 export const STRIPE_WEBHOOK_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/stripeWebhook`;
 export const STRIPE_LIST_CONSULTATION_AVAILABILITY_ENDPOINT = `${STRIPE_FUNCTIONS_BASE_URL}/listConsultationAvailability`;

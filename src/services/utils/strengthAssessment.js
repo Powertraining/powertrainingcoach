@@ -54,6 +54,14 @@ function parsePositiveInteger(value) {
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
 }
 
+function parseRpeLowerBound(value) {
+  const match = normalizeString(value).match(
+    /(?:@\s*)?RPE\s*(\d+(?:\.\d+)?)(?:\s*[–-]\s*\d+(?:\.\d+)?)?/i
+  );
+
+  return match ? parsePositiveNumber(match[1]) : null;
+}
+
 function parseExerciseIndex(value) {
   const parsedValue =
     typeof value === "number" ? value : Number.parseInt(value, 10);
@@ -322,6 +330,67 @@ export function getStrengthAssessmentRequirements(method) {
   };
 }
 
+export function getStrengthAssessmentMinimumRpe(exercise = {}) {
+  const assessment = isPlainObject(exercise?.strengthAssessment)
+    ? exercise.strengthAssessment
+    : isPlainObject(exercise)
+      ? exercise
+      : {};
+  const explicitMinimum = parsePositiveNumber(
+    assessment.minimumRpe ?? assessment.targetRpe
+  );
+
+  return explicitMinimum ||
+    parseRpeLowerBound(exercise?.notes) ||
+    parseRpeLowerBound(assessment.prompt) ||
+    7;
+}
+
+export function getPendingProgramMaxAssessments(
+  exercises = [],
+  strengthAssessmentSummary = {}
+) {
+  const knownLiftKeys = new Set(
+    (Array.isArray(strengthAssessmentSummary?.latestByLift)
+      ? strengthAssessmentSummary.latestByLift
+      : []
+    )
+      .filter((entry) => parsePositiveNumber(entry?.trainingMaxKg))
+      .map((entry) => getStrengthAssessmentLiftKey(entry?.liftName, ""))
+      .filter(Boolean)
+  );
+  const pendingByLift = new Map();
+
+  (Array.isArray(exercises) ? exercises : []).forEach((exercise, exerciseIndex) => {
+    const assessment = normalizeStrengthAssessmentConfig(
+      exercise?.strengthAssessment,
+      exercise?.name
+    );
+
+    if (!assessment) {
+      return;
+    }
+
+    const liftKey = getStrengthAssessmentLiftKey(assessment.liftName, "");
+    if (!liftKey || knownLiftKeys.has(liftKey) || pendingByLift.has(liftKey)) {
+      return;
+    }
+
+    pendingByLift.set(liftKey, {
+      exerciseIndex,
+      liftKey,
+      liftName: assessment.liftName,
+      method: assessment.method,
+      minimumRpe:
+        assessment.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM
+          ? getStrengthAssessmentMinimumRpe(exercise)
+          : null,
+    });
+  });
+
+  return Array.from(pendingByLift.values());
+}
+
 export function normalizeStrengthAssessmentConfig(
   source = {},
   fallbackLiftName = ""
@@ -352,17 +421,17 @@ export function getStrengthAssessmentLiftKey(liftName = "", fallback = "main_lif
 }
 
 export function getStrengthAssessmentReferenceOneRepMaxKg(entry = {}) {
-  const estimatedOneRepMaxKg = parsePositiveNumber(entry?.estimatedOneRepMaxKg);
-
-  if (estimatedOneRepMaxKg) {
-    return roundToTenth(estimatedOneRepMaxKg);
-  }
-
   const trainingMaxKg = parsePositiveNumber(entry?.trainingMaxKg);
 
-  return trainingMaxKg ?
-    roundToTenth(trainingMaxKg / DEFAULT_TRAINING_MAX_BUFFER) :
-    null;
+  if (trainingMaxKg) {
+    return roundToTenth(trainingMaxKg);
+  }
+
+  const estimatedOneRepMaxKg = parsePositiveNumber(entry?.estimatedOneRepMaxKg);
+
+  return estimatedOneRepMaxKg
+    ? roundToTenth(estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER)
+    : null;
 }
 
 export function resolveStrengthAssessmentReferenceOneRepMaxKg(
@@ -451,6 +520,7 @@ export function createStrengthAssessmentEntry({
     normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM ?
       parsePositiveNumber(safeResult.rpe) :
       null;
+  const minimumRpe = getStrengthAssessmentMinimumRpe(metadata);
 
   if (
     normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.MULTI_RM &&
@@ -475,7 +545,7 @@ export function createStrengthAssessmentEntry({
 
   if (
     normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM &&
-    (rpe < 7 || rpe > 9)
+    (rpe < minimumRpe || rpe > 10)
   ) {
     return null;
   }

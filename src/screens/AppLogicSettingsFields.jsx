@@ -4,6 +4,7 @@ import { getAppLogicSettingsFormState } from "../constants/appLogicSettings.js";
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
 import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
+import ProgramMaxSetupView from "./appLogicSettings/ProgramMaxSetupView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
@@ -73,16 +74,25 @@ export default function AppLogicSettingsFields({
           updateFields({
             liftIntensityMethod: sectionValue,
             percentageReferenceMethod: null,
+            programMaxSetup: null,
           })
         }
       />
       {liftIntensityMethodValue === "percentage" ? (
-        <PercentageReferenceMethodView
-          value={percentageReferenceMethodValue}
-          onChange={(sectionValue) =>
-            updateField("percentageReferenceMethod", sectionValue)
-          }
-        />
+        <>
+          <PercentageReferenceMethodView
+            value={percentageReferenceMethodValue}
+            onChange={(sectionValue) =>
+              updateField("percentageReferenceMethod", sectionValue)
+            }
+          />
+          <ProgramMaxSetupView
+            value={resolvedValues.programMaxSetup}
+            onChange={(sectionValue) =>
+              updateField("programMaxSetup", sectionValue)
+            }
+          />
+        </>
       ) : null}
       <DeloadStrategyView
         value={deloadStrategyValue}

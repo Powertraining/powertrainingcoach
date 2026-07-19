@@ -22,6 +22,7 @@ import {
   buildClientPersistableUserData,
   isSameAuthenticatedUser,
 } from "../utils/userPersistence.js";
+import { hasActiveSubscriptionEntitlement } from "../utils/subscriptionState.js";
 
 // To subscribe to the login/logout event
 import {
@@ -78,10 +79,10 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     };
     const normalizedSubscriptionEndDate =
       persistedData.subscriptionEndDate ?? null;
-    const hasActiveSubscription = Boolean(
-      normalizedSubscriptionEndDate &&
-      new Date(normalizedSubscriptionEndDate) >= new Date(new Date().setHours(0, 0, 0, 0))
-    );
+    const hasActiveSubscription = hasActiveSubscriptionEntitlement({
+      active: persistedData.subscription,
+      endDate: normalizedSubscriptionEndDate,
+    });
 
     if (typeof model.setQuestionnaire === "function") {
       model.setQuestionnaire(persistedData.questionnaire ?? {});

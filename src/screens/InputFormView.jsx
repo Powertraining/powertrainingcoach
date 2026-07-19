@@ -100,6 +100,11 @@ export default function InputFormView({
                 formState,
                 "percentageReferenceMethod"
             ),
+            programMaxSetup: getNullableInitialValue(
+                initialValues,
+                formState,
+                "programMaxSetup"
+            ),
             deloadStrategy: getNullableInitialValue(initialValues, formState, "deloadStrategy"),
             loadingStrategy:
                 getNullableInitialValue(initialValues, formState, "loadingStrategy") ??
@@ -162,11 +167,13 @@ export default function InputFormView({
         activeStepKey === "combatTrainingIntensity";
     const isLiftIntensityMethodStep = activeStepKey === "liftIntensityMethod";
     const isPercentageReferenceMethodStep = activeStepKey === "percentageReferenceMethod";
+    const isProgramMaxSetupStep = activeStepKey === "programMaxSetup";
     const isDeloadStrategyStep = activeStepKey === "deloadStrategy";
     const liftIntensityMethodStepSelected = Boolean(trainingPreferences.liftIntensityMethod);
     const percentageReferenceMethodStepSelected = Boolean(
         trainingPreferences.percentageReferenceMethod
     );
+    const programMaxSetupStepSelected = Boolean(trainingPreferences.programMaxSetup);
     const deloadStrategyStepSelected = Boolean(trainingPreferences.deloadStrategy);
     const eventDescriptionStepSelected = Boolean(
         getEventDescription(trainingPreferences.eventPreparation)
@@ -179,6 +186,7 @@ export default function InputFormView({
         isEventDescriptionStep ||
         isLiftIntensityMethodStep ||
         isPercentageReferenceMethodStep ||
+        isProgramMaxSetupStep ||
         isDeloadStrategyStep;
     const canContinue =
         activeConfidenceKey ? confidenceStepSelected :
@@ -188,6 +196,7 @@ export default function InputFormView({
                     isEventDescriptionStep ? eventDescriptionStepSelected :
                         isLiftIntensityMethodStep ? liftIntensityMethodStepSelected :
                             isPercentageReferenceMethodStep ? percentageReferenceMethodStepSelected :
+                                isProgramMaxSetupStep ? programMaxSetupStepSelected :
                                 isDeloadStrategyStep ? deloadStrategyStepSelected :
                                     undefined;
 
@@ -378,7 +387,7 @@ export default function InputFormView({
                     canContinue={canContinue}
                     hideBack
                     text={activeStep >= sectionCount - 1
-                        ? "Generate Plan"
+                        ? (subscription ? "Build Program" : "Continue to subscription")
                         : (
                             (isEnduranceStyleStep && !enduranceStyleStepSelected) ||
                             (isEnduranceSprintingFocusStep && !enduranceSprintingFocusStepSelected) ||

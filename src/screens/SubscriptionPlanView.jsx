@@ -300,9 +300,9 @@ export default function SubscriptionPlanView({
           <SubscriptionCard
             planName={headerPlanText}
             planLabelStyle={styles.subscriptionCardPlanLabel}
+            centerBenefits
             showBackground={false}
             showActions={false}
-            showBraces={false}
             isSubmitting={Boolean(loadingPlan)}
           />
         </FadeInFromBottomView>

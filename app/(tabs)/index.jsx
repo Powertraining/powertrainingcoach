@@ -14,9 +14,11 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  Alert,
 } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import { saveUserData } from "../../src/services/models/dbService.js";
 
 import StartView from "../../src/screens/home/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/questionnaire/QuestionnaireSportView.jsx";
@@ -33,13 +35,18 @@ import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomM
 import SessionMoveCalendar from "../../src/components/planComponents/SessionMoveCalendar.jsx";
 import BlackGradient from "../../src/components/colorComponents/BlackGradient.jsx";
 import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
-import { refreshSubscriptionStatus } from "../../src/services/utils/stripeClient.js";
+import {
+  refreshSubscriptionStatus,
+  resetProfile,
+} from "../../src/services/utils/stripeClient.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 import { getWeekdayNameFromIndex } from "../../src/constants/weekdays.js";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
 import { getPlanWeekStartDate } from "../../src/services/utils/programOverview.js";
 import { getParamValue } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
+import { buildClientPersistableUserData } from "../../src/services/utils/userPersistence.js";
+import { QUESTIONNAIRE_CHECKOUT_RETURN_TO } from "../../src/services/utils/checkoutPlanGeneration.js";
 
 const STEPS = Object.freeze({
   START: "start",
@@ -314,11 +321,36 @@ const HomeScreen = observer(function HomeScreen() {
     setQuestionnaireNavigatorVisible(false);
   }
 
-  function resetUserProgressForTesting() {
+  async function performFullProfileReset() {
     setPushBackConfirmVisible(false);
     closeQuestionnaireNavigator();
-    resetQuestionnaireProgress();
-    model.resetUserProgressForTesting?.();
+
+    try {
+      await resetProfile();
+      resetQuestionnaireProgress();
+      model.resetFullProfileData?.();
+      model.showSuccess?.("Profile reset. Your login details were preserved.");
+    } catch (error) {
+      model.showError?.(
+        error,
+        "Could not reset your profile. No local data was cleared."
+      );
+    }
+  }
+
+  function resetUserProgressForTesting() {
+    Alert.alert(
+      "Reset profile?",
+      "This permanently clears all programs, workout history, saved maxes, preferences, and saved app data. It also cancels your subscription. Your username, email, and password are preserved.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset everything",
+          style: "destructive",
+          onPress: performFullProfileReset,
+        },
+      ]
+    );
   }
 
   function navigateToQuestionnaireItem(item) {
@@ -409,9 +441,31 @@ const HomeScreen = observer(function HomeScreen() {
     model.setQuestionnaire?.(questionnaire);
 
     if (requiresSubscription) {
+      const questionnaireUid = model.user?.uid || "";
+      const saveResult = questionnaireUid
+        ? await saveUserData(
+            questionnaireUid,
+            buildClientPersistableUserData(model)
+          )
+        : { success: false };
+
+      if (!saveResult.success || model.user?.uid !== questionnaireUid) {
+        const saveError =
+          saveResult.error ||
+          new Error(
+            "Your questionnaire could not be saved before checkout. Please try again."
+          );
+        setError(saveError.message);
+        model.showError?.(
+          saveError,
+          "Could not save your questionnaire. Please try again before subscribing."
+        );
+        return;
+      }
+
       router.push({
         pathname: "/(tabs)/subscription",
-        params: { returnTo: "/(tabs)?resume=input" },
+        params: { returnTo: QUESTIONNAIRE_CHECKOUT_RETURN_TO },
       });
       return;
     }

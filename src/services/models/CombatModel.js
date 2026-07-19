@@ -72,6 +72,7 @@ import {
 import {
   createDefaultStrengthAssessmentState,
   createStrengthAssessmentEntry,
+  getStrengthAssessmentMinimumRpe,
   getStrengthAssessmentLiftKey,
   getStrengthAssessmentSessionResults,
   getStrengthAssessmentSummary,
@@ -107,7 +108,12 @@ import {
   getPendingTrainingCheckIn,
   normalizeTrainingCheckInState,
 } from "../utils/trainingCheckIn.js";
-import { applyUserProgressReset } from "../utils/userPersistence.js";
+import {
+  applyFullProfileReset,
+  applyUserProgressReset,
+} from "../utils/userPersistence.js";
+import { hasActiveSubscriptionEntitlement } from "../utils/subscriptionState.js";
+import { applyProgramMaxToFutureExposures } from "../utils/missingProgramMaxBridge.js";
 
 const SUBSCRIPTION_PLAN_CONFIGS = Object.freeze({
   starter: Object.freeze({
@@ -1290,7 +1296,10 @@ export const model = {
               ]?.trainingMaxKg ?? null;
 
             return createStrengthAssessmentEntry({
-              metadata: normalizedStrengthAssessment,
+              metadata: {
+                ...normalizedStrengthAssessment,
+                minimumRpe: getStrengthAssessmentMinimumRpe(exercise),
+              },
               result,
               previousTrainingMaxKg,
               sessionKey,
@@ -1310,6 +1319,22 @@ export const model = {
       sessionKey,
       nextEntries
     );
+
+    if (this.trainingPlan && nextEntries.length > 0) {
+      this.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
+        nextEntries.reduce(
+          (nextPlan, entry) =>
+            applyProgramMaxToFutureExposures(nextPlan, {
+              liftName: entry.liftName,
+              afterWeekNumber: entry.weekNumber,
+              afterDayNumber: entry.dayNumber,
+              loadingStrategy: this.questionnaire?.loadingStrategy,
+            }),
+          this.trainingPlan
+        ),
+        this.questionnaire
+      );
+    }
 
     return this.strengthAssessmentState;
   },
@@ -1782,15 +1807,10 @@ export const model = {
   },
 
   isSubscribed() {
-    if (!this.subscriptionEndDate) {
-      return false;
-    }
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const endDate = new Date(this.subscriptionEndDate);
-    endDate.setHours(0, 0, 0, 0);
-    return today <= endDate;
+    return hasActiveSubscriptionEntitlement({
+      active: this.subscription,
+      endDate: this.subscriptionEndDate,
+    });
   },
 
   isOnFreeTrial() {
@@ -1929,15 +1949,15 @@ export const model = {
       normalizeSubscriptionType(nextLookupKey) ||
       normalizeSubscriptionType(this.subscriptionType) ||
       normalizeSubscriptionType(this.stripePriceLookupKey);
-    const hasActiveSubscription = Boolean(
-      normalizedSubscriptionEndDate &&
-      new Date(normalizedSubscriptionEndDate) >= new Date(new Date().setHours(0, 0, 0, 0))
-    );
+    // The server-verified entitlement flag is authoritative. A cancelled
+    // subscription can retain a future period-end date in Stripe, but that
+    // must not grant app access or bypass the questionnaire paywall.
+    const hasActiveSubscription = Boolean(subscription);
     const shouldResetTrainingProgress =
       hasActiveSubscription &&
       !this.subscriptionEndDate;
 
-    this.subscription = Boolean(subscription) || hasActiveSubscription;
+    this.subscription = hasActiveSubscription;
     this.subscriptionEndDate = normalizedSubscriptionEndDate;
     this.subscriptionStartDate =
       subscriptionStartDate || this.subscriptionStartDate || null;
@@ -2203,6 +2223,11 @@ export const model = {
   resetUserProgressForTesting() {
     applyUserProgressReset(this);
     console.log('[CombatModel.resetUserProgressForTesting] User progress and questionnaire reset');
+  },
+
+  resetFullProfileData() {
+    applyFullProfileReset(this);
+    console.log('[CombatModel.resetFullProfileData] All non-identity profile data reset');
   },
 
   setDailyTrainingState(state) {

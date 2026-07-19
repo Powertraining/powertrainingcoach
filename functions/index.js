@@ -40,6 +40,7 @@ const {
   appendCheckoutSessionTemplate,
   appendQueryParams,
 } = require("./stripeCheckoutUrls");
+const {sanitizeExerciseOption} = require("./trainingPlanValidation");
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -55,6 +56,7 @@ const HOSTING_BASE_URL =
 const USER_COLLECTION = "users";
 const COMBAT_MODEL_COLLECTION = "combatModel";
 const PLAN_REGENERATION_MONTHLY_LIMIT = 3;
+const PROFILE_RESET_CONFIRMATION = "RESET_PROFILE";
 const CHECKOUT_SUCCESS_URL =
   `${HOSTING_BASE_URL}/checkout_redirect/success.html`;
 const CHECKOUT_CANCEL_URL =
@@ -141,6 +143,45 @@ function getUsersCollection() {
  */
 function getCombatModelCollection() {
   return getFirestoreDb().collection(COMBAT_MODEL_COLLECTION);
+}
+
+/**
+ * Returns a clean app-data document for a profile reset.
+ * Authentication and identity live outside this document.
+ * @return {object}
+ */
+function createResetCombatModelData() {
+  return {
+    questionnaire: {},
+    primaryCombatSport: "",
+    sessionsPerWeek: 3,
+    trainingPlan: null,
+    trainingPlanHistory: [],
+    completedDays: [],
+    trainingPlanBatch: 1,
+    completedWeeks: 0,
+    subscription: false,
+    subscriptionEndDate: null,
+    subscriptionStartDate: null,
+    subscriptionType: "",
+    subscriptionStatus: "",
+    stripePriceLookupKey: "",
+    stripeSubscriptionId: null,
+    stripeCustomerId: null,
+    billingProvider: "",
+    planRegenerationUsage: null,
+    trainingPerformanceState: {sessions: {}},
+    strengthAssessmentState: {lifts: {}, sessions: {}},
+    trainingCheckInState: {},
+    activeSessionProgressByKey: {},
+    completedSessionProgressByKey: {},
+    forumProfile: {
+      followedUserIds: [],
+      likedPostIds: [],
+      savedPostIds: [],
+    },
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
 }
 
 /**
@@ -866,6 +907,88 @@ async function getAuthenticatedUser(req) {
 
   const token = authHeader.slice("Bearer ".length);
   return admin.auth().verifyIdToken(token);
+}
+
+/**
+ * Cancels billing and clears all non-identity profile data.
+ * @param {object} authUser
+ * @return {Promise<object>}
+ */
+async function resetAuthenticatedProfile(authUser) {
+  const firebaseUID = normalizeFirestoreDocumentId(
+      authUser.uid,
+      "firebaseUID",
+  );
+  const combatModelRef = getCombatModelCollection().doc(firebaseUID);
+  const userRef = getUsersCollection().doc(firebaseUID);
+  const [combatModelSnap, userSnap] = await Promise.all([
+    combatModelRef.get(),
+    userRef.get(),
+  ]);
+  const combatModelData = combatModelSnap.exists ?
+    combatModelSnap.data() : {};
+  const userData = userSnap.exists ? userSnap.data() : {};
+  const customerId = combatModelData.stripeCustomerId ||
+    userData.stripeCustomerId || null;
+  let cancelledSubscriptions = 0;
+
+  if (customerId) {
+    const secretKey = getRequiredSecretValue(
+        stripeSecretKeyParam,
+        "STRIPE_SECRET_KEY",
+    );
+    const stripeClient = stripe(secretKey);
+    const subscriptions = await stripeClient.subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 100,
+    });
+    const cancellableSubscriptions = subscriptions.data.filter(
+        (subscription) => ![
+          "canceled",
+          "incomplete_expired",
+        ].includes(subscription.status),
+    );
+
+    await Promise.all(cancellableSubscriptions.map(
+        (subscription) => stripeClient.subscriptions.cancel(subscription.id),
+    ));
+    cancelledSubscriptions = cancellableSubscriptions.length;
+  }
+
+  const preservedUserData = {
+    uid: userData.uid || firebaseUID,
+    email: userData.email || authUser.email || "",
+    emailVerified: typeof userData.emailVerified === "boolean" ?
+      userData.emailVerified : Boolean(authUser.email_verified),
+    displayName: userData.displayName || authUser.name || "",
+    role: userData.role || "user",
+    createdAt: userData.createdAt ||
+      admin.firestore.FieldValue.serverTimestamp(),
+  };
+  const batch = getFirestoreDb().batch();
+  batch.set(combatModelRef, createResetCombatModelData());
+  batch.set(userRef, preservedUserData);
+  await batch.commit();
+
+  await admin.auth().updateUser(firebaseUID, {photoURL: null});
+
+  try {
+    await admin.storage().bucket().deleteFiles({
+      prefix: `profilePictures/${firebaseUID}/`,
+    });
+  } catch (storageError) {
+    console.warn(
+        `Could not remove profile pictures for ${firebaseUID}:`,
+        storageError,
+    );
+  }
+
+  return {
+    reset: true,
+    cancelledSubscriptions,
+    identityPreserved: true,
+  };
 }
 
 /**
@@ -2929,6 +3052,18 @@ exports.refreshSubscriptionStatus = functions.https.onRequest(
 
       try {
         const authUser = await getAuthenticatedUser(req);
+        const requestBody = getValidatedRequestBody(req);
+
+        if (requestBody.action === "reset_profile") {
+          if (requestBody.confirmation !== PROFILE_RESET_CONFIRMATION) {
+            return res.status(400).json({
+              error: "Profile reset was not confirmed",
+            });
+          }
+
+          return res.json(await resetAuthenticatedProfile(authUser));
+        }
+
         const secretKey = getRequiredSecretValue(
             stripeSecretKeyParam,
             "STRIPE_SECRET_KEY",
@@ -3455,21 +3590,6 @@ function sanitizePhase(phase, phaseIndex) {
     weekStart: Math.min(weekStart, weekEnd),
     weekEnd: Math.max(weekStart, weekEnd),
     focus: fallbackFocus,
-  };
-}
-
-function sanitizeExerciseOption(option, optionIndex, fallbackExercise) {
-  if (!isPlainObject(option)) {
-    throw new Error(
-        `Training plan substitution option ${optionIndex + 1} must be an object.`,
-    );
-  }
-
-  return {
-    name: normalizeStringValue(option.name) || fallbackExercise.name,
-    sets: normalizeStringValue(option.sets) || fallbackExercise.sets,
-    reps: normalizeStringValue(option.reps) || fallbackExercise.reps,
-    notes: normalizeStringValue(option.notes) || fallbackExercise.notes,
   };
 }
 

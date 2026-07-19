@@ -1,4 +1,7 @@
-import { normalizeForumProfile } from "../models/forumModel.js";
+import {
+  createDefaultForumProfile,
+  normalizeForumProfile,
+} from "../models/forumModel.js";
 import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
 import { createDefaultStrengthAssessmentState } from "./strengthAssessment.js";
 import { createDefaultTrainingCheckInState } from "./trainingCheckIn.js";
@@ -60,10 +63,36 @@ export function createUserProgressResetData() {
   };
 }
 
+export function createFullProfileResetData() {
+  return {
+    ...createUserProgressResetData(),
+    subscription: false,
+    subscriptionEndDate: null,
+    subscriptionStartDate: null,
+    subscriptionType: "",
+    subscriptionStatus: "",
+    stripePriceLookupKey: "",
+    stripeSubscriptionId: null,
+    stripeCustomerId: null,
+    billingProvider: "",
+    planRegenerationUsage: null,
+    forumProfile: createDefaultForumProfile(),
+  };
+}
+
 export function applyUserProgressReset(model = {}) {
   const resetData = createUserProgressResetData();
 
   Object.assign(model, resetData);
+
+  return resetData;
+}
+
+export function applyFullProfileReset(model = {}) {
+  const resetData = createFullProfileResetData();
+
+  Object.assign(model, resetData);
+  model.resetForumRuntimeState?.();
 
   return resetData;
 }
