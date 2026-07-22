@@ -7,6 +7,10 @@ import { normalizePercentagePrescription } from "./percentagePrescription.js";
 import { normalizeStrengthAssessmentConfig } from "./strengthAssessment.js";
 import { DAY_IN_MS, startOfLocalDay } from "./dateUtils.js";
 import { normalizeExerciseOrderLabel } from "./exerciseSupersets.js";
+import {
+  getLoadedJumpPrescription,
+  isLoadedJumpExerciseName,
+} from "./loadedJumpPrescription.js";
 
 const SESSION_REGION_DEFINITIONS = Object.freeze([
   {
@@ -960,7 +964,7 @@ export function normalizeExercise(exercise = {}) {
     normalizedOptions[0] ||
     normalizeExerciseOption(currentExercise);
 
-  return applyPullUpChinUpRules(omitUndefinedObjectFields({
+  const normalizedExercise = applyPullUpChinUpRules(omitUndefinedObjectFields({
     ...exerciseWithoutVideo,
     name: selectedOption.name,
     sets: selectedOption.sets,
@@ -997,6 +1001,23 @@ export function normalizeExercise(exercise = {}) {
     selectedSubstitutionId: selectedOption.id,
     substitutionOptions: normalizedOptions,
   }));
+
+  if (!isLoadedJumpExerciseName(normalizedExercise.name)) {
+    return normalizedExercise;
+  }
+
+  const {
+    percentagePrescription: _percentagePrescription,
+    strengthAssessment: _strengthAssessment,
+    ...loadedJumpExercise
+  } = normalizedExercise;
+
+  return {
+    ...loadedJumpExercise,
+    bodyMassLoadPrescription: getLoadedJumpPrescription(normalizedExercise),
+    percentagePrescription: null,
+    strengthAssessment: null,
+  };
 }
 
 function shouldKeepPercentageOnlyFields(questionnaire = {}) {

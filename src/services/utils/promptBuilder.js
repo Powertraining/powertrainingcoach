@@ -244,6 +244,8 @@ ${includePercentageSchema ? `- On percentage-based primary lifts with a known Pr
 - Do not use "rpe_based_1rm" as a standalone testing week when a Program Max is already known.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
 - Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based; never add "percentagePrescription" or "strengthAssessment" to those exercises.
+- Back-squat jumps, trap-bar jumps, and similar loaded jumps must use body mass as the primary loading reference. Include "bodyMassLoadPrescription" with numeric "minPercent" and "maxPercent" (normally 30 and 60). These percentages describe the total external load (bar + plates), not a percentage of the exercise 1RM.
+- Never add "percentagePrescription" or "strengthAssessment" to a loaded jump. State the selected % BM range clearly; account for the empty bar and use a lighter implement if the bar alone exceeds the target.
 - When a field is not needed, omit it instead of filling it with placeholders.
 `;
 }

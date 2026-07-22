@@ -46,6 +46,11 @@ import {
   getPrescribedSetCount,
 } from "../services/utils/exerciseSets.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import LoadedJumpGuideline from "../components/planComponents/LoadedJumpGuideline.jsx";
+import {
+  formatBodyMassLoadRange,
+  getLoadedJumpPrescription,
+} from "../services/utils/loadedJumpPrescription.js";
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
 const SESSION_CONTENT_SLIDE_DURATION_MS = 220;
@@ -1399,10 +1404,13 @@ function ExerciseSessionStep({
     .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
   const endurancePrescription = exercise?.endurancePrescription || {};
   const setDisplayValue = getExerciseSetDisplayValue(exercise);
+  const loadedJumpPrescription = getLoadedJumpPrescription(exercise);
   const intensityMetric =
-    programMaxIntensityMetric ||
-    exerciseRecommendation.primary ||
-    exerciseRecommendationDetails[0] ||
+    (loadedJumpPrescription
+      ? formatBodyMassLoadRange(loadedJumpPrescription)
+      : programMaxIntensityMetric ||
+        exerciseRecommendation.primary ||
+        exerciseRecommendationDetails[0]) ||
     "";
   const planMetrics = [
     intensityMetric
@@ -1533,6 +1541,10 @@ function ExerciseSessionStep({
           </View>
         ) : null}
       </View>
+
+      {loadedJumpPrescription ? (
+        <LoadedJumpGuideline compact={compact} />
+      ) : null}
 
       {showRpe ? (
         <IBMPlexText style={[styles.workingSetsNote, compact ? styles.compactWorkingSetsNote : null]}>

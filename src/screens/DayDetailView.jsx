@@ -60,6 +60,11 @@ import {
 } from "../services/utils/exerciseSets.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import LoadedJumpGuideline from "../components/planComponents/LoadedJumpGuideline.jsx";
+import {
+    formatBodyMassLoadRange,
+    getLoadedJumpPrescription,
+} from "../services/utils/loadedJumpPrescription.js";
 function buildTrackingDrafts(
     exercises = [],
     initialPerformanceResults = [],
@@ -764,6 +769,7 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
 }
 
 function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+    const loadedJumpPrescription = getLoadedJumpPrescription(exercise);
     const recommendation = getExerciseRecommendationDisplay(
         exercise,
         strengthReferenceOneRepMaxByLift
@@ -813,9 +819,11 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
         recommendationDetails.find((detail) => /%|BPM|zone/i.test(detail)) ||
         recommendationDetails[0] ||
         "";
-    const intensity = formatIntensityDisplay(displayedTargetRpe
-        ? `RPE ${displayedTargetRpe}`
-        : endurancePrescription.intensity || intensityFromDetails);
+    const intensity = loadedJumpPrescription
+        ? formatBodyMassLoadRange(loadedJumpPrescription)
+        : formatIntensityDisplay(displayedTargetRpe
+            ? `RPE ${displayedTargetRpe}`
+            : endurancePrescription.intensity || intensityFromDetails);
     const exerciseSetCount = getExerciseSetDisplayValue(exercise);
     const sets = String(exerciseSetCount || sprintPrescription.sets || "").trim();
     const formatRepDisplay = (value = "") =>
@@ -1423,6 +1431,8 @@ export default function DayDetailView({
                                                 exerciseSubstitutionOptions.length > 1 &&
                                                 onReplaceExercise;
                                             const hasExerciseTips = Boolean(ex.notes);
+                                            const loadedJumpPrescription =
+                                                getLoadedJumpPrescription(ex);
                                             const totalSetCount = parsePrescribedSetCount(ex);
                                             const completedSetCount =
                                                 completedSessionStepKeys.size > 0
@@ -1545,6 +1555,9 @@ export default function DayDetailView({
                                                                             </IBMPlexText>
                                                                         ))}
                                                                     </View>
+                                                                ) : null}
+                                                                {loadedJumpPrescription ? (
+                                                                    <LoadedJumpGuideline compact />
                                                                 ) : null}
                                                                 <View style={styles.tabButtonDivider} />
                                                             </View>
