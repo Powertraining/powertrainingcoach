@@ -34,8 +34,11 @@ export default function SetLoggingInputPanel({
   renderField,
   fieldOrder,
   rowStyle,
+  fieldStyle,
+  separatorStyle,
   showFieldSeparators = false,
   formatLabel,
+  renderLabel,
   anchorStyle,
   contentHorizontalInset = 14,
   expansionHorizontalOffset = SESSION_HORIZONTAL_PADDING,
@@ -267,18 +270,22 @@ export default function SetLoggingInputPanel({
           {fields.map((field, fieldIndex) => (
             <Animated.View
               key={field.id}
-              style={[styles.inputField, paddedFieldStyle]}
+              style={[styles.inputField, paddedFieldStyle, fieldStyle]}
               onLayout={(event) => {
                 inputFieldLayoutsRef.current[field.id] = event.nativeEvent.layout;
               }}
             >
-              <IBMPlexText style={[styles.inputLabel, labelStyle]}>
-                {formatLabel?.(field.label, field) ?? field.label}
-              </IBMPlexText>
+              {renderLabel?.({ field }) ?? (
+                <IBMPlexText style={[styles.inputLabel, labelStyle]}>
+                  {formatLabel?.(field.label, field) ?? field.label}
+                </IBMPlexText>
+              )}
               {renderField?.({
                 field,
                 onChange: (value) =>
                   onDraftChange(exerciseIndex, setIndex, field.id, value, field.isCustom),
+                onFocus: () => handleInputFocus(field.id),
+                onBlur: handleInputBlur,
               }) ?? (
                 <TextInput
                   value={field.value}
@@ -294,7 +301,10 @@ export default function SetLoggingInputPanel({
                 />
               )}
               {showFieldSeparators && fieldIndex < fields.length - 1 ? (
-                <View pointerEvents="none" style={styles.inputFieldSeparator} />
+                <View
+                  pointerEvents="none"
+                  style={[styles.inputFieldSeparator, separatorStyle]}
+                />
               ) : null}
             </Animated.View>
           ))}

@@ -52,13 +52,17 @@ export default function WeightScroller({
   scrollStyle,
   scrollContainerStyle,
   compact = false,
+  showTickLabels = true,
   editableValue = false,
+  valueInIndicator = false,
   emitInitialValue = true,
   animateValueChanges = false,
   valueChangeKey,
   edgeFade = false,
   edgeFadeColor = "#0F0F0F",
   edgeFadeWidth = 32,
+  onValueFocus,
+  onValueBlur,
   onChange,
 }) {
   const scrollRef = useRef(null);
@@ -230,6 +234,7 @@ export default function WeightScroller({
 
   function commitInputValue() {
     isValueFocused.current = false;
+    onValueBlur?.();
     if (inputError) {
       return;
     }
@@ -264,12 +269,13 @@ export default function WeightScroller({
             onChangeText={updateInputValue}
             onFocus={() => {
               isValueFocused.current = true;
+              onValueFocus?.();
             }}
             onSubmitEditing={commitInputValue}
             returnKeyType="done"
             selectTextOnFocus
             selectionColor="rgba(201, 178, 89, 0.38)"
-            style={[styles.valueText, valueTextStyle, styles.valueInput]}
+            style={[styles.valueText, styles.valueInput, valueTextStyle]}
             underlineColorAndroid="transparent"
             value={inputValue}
           />
@@ -287,16 +293,18 @@ export default function WeightScroller({
 
   return (
     <View style={[styles.container, { height }, style]}>
-      <View style={styles.valueEditorArea}>
-        <View style={[styles.valueRow, valueRowStyle]}>
-          {selectedValueContent}
-        </View>
-        {editableValue && inputError ? (
-          <View style={styles.inputErrorDropdown}>
-            <StandardText style={styles.inputErrorText}>{inputError}</StandardText>
+      {!valueInIndicator ? (
+        <View style={styles.valueEditorArea}>
+          <View style={[styles.valueRow, valueRowStyle]}>
+            {selectedValueContent}
           </View>
-        ) : null}
-      </View>
+          {editableValue && inputError ? (
+            <View style={styles.inputErrorDropdown}>
+              <StandardText style={styles.inputErrorText}>{inputError}</StandardText>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       <View
         style={[
@@ -306,7 +314,16 @@ export default function WeightScroller({
         ]}
         onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
       >
-        <View pointerEvents="none" style={[styles.indicator, indicatorStyle]} />
+        <View
+          pointerEvents={valueInIndicator ? "box-none" : "none"}
+          style={[styles.indicator, indicatorStyle]}
+        >
+          {valueInIndicator ? (
+            <View style={styles.indicatorValueContent}>
+              {selectedValueContent}
+            </View>
+          ) : null}
+        </View>
         {indicatorLabel ? (
           <View pointerEvents="none" style={styles.indicatorLabelWrap}>
             <StandardText style={styles.indicatorLabel}>{indicatorLabel}</StandardText>
@@ -344,13 +361,13 @@ export default function WeightScroller({
                     key={index}
                     style={[styles.tickColumn, compact ? styles.compactTickColumn : null]}
                   >
-                    {compact && isMajorTick ? (
+                    {showTickLabels && compact && isMajorTick ? (
                       <View style={styles.compactTickLabelWrap}>
                         <StandardText style={styles.compactTickLabel}>
                           {tickValue.toFixed(precision)}
                         </StandardText>
                       </View>
-                    ) : !compact && isMajorTick ? (
+                    ) : showTickLabels && !compact && isMajorTick ? (
                       <View style={styles.tickLabelWrap}>
                         <StandardText style={styles.tickLabel}>
                           {tickValue.toFixed(precision)}
@@ -487,6 +504,12 @@ const styles = StyleSheet.create({
     marginLeft: -1,
     backgroundColor: "#fff",
     zIndex: 1,
+  },
+  indicatorValueContent: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+    width: "100%",
   },
   indicatorLabelWrap: {
     position: "absolute",
