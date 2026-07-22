@@ -269,6 +269,7 @@ const styles = StyleSheet.create({
         bottom: 20,
         height: 60,
         position: "absolute",
+        zIndex: 30,
     },
     contentSizedButton: {
         alignSelf: "stretch",
@@ -291,7 +292,8 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: 0,
         marginBottom: 20,
-        alignSelf: "center"
+        alignSelf: "center",
+        zIndex: 30,
     },
     stackedContainer: {
         position: "absolute",
@@ -301,6 +303,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         alignItems: "center",
         justifyContent: "center",
+        zIndex: 30,
     },
     stackedBackButton: {
         height: 60,
@@ -324,6 +327,7 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         height: 60,
         justifyContent: "center",
+        zIndex: 30,
     },
     bottomBackButtonText: {
         color: "#585858"

@@ -3,7 +3,7 @@
 import {
   useEffect,
   useState } from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { ScrollView, View, TouchableOpacity, StyleSheet } from "react-native";
 import QuestionnaireShell from "./questionnaire/QuestionnaireShell.jsx";
 import QuestionnaireBottomActionButton from "../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import TrainingPreferencesFields, {
@@ -330,8 +330,9 @@ export default function InputFormView({
             {isEventDescriptionEditorOpen ? (
                 <View pointerEvents="none" style={styles.eventEditorDimLayer} />
             ) : null}
-            <View
-                style={[
+            <ScrollView
+                style={styles.contentScroll}
+                contentContainerStyle={[
                     styles.center,
                     isEnduranceStyleStep ||
                     isEnduranceCircuitFocusStep ||
@@ -345,6 +346,9 @@ export default function InputFormView({
                         : null,
                     isEventDescriptionEditorOpen ? styles.centerAboveDimLayer : null,
                 ]}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}
             >
                 <View style={styles.card}>
                     <View style={styles.form}>
@@ -380,7 +384,7 @@ export default function InputFormView({
 
                     </View>
                 </View>
-            </View>
+            </ScrollView>
             {!isEventDescriptionEditorOpen && !isEnduranceMethodsInfoOpen && !isInjuriesStep && !isEnduranceCircuitFocusStep ? (
                 <QuestionnaireBottomActionButton
                     layout={requiresSelection ? "single" : "stacked"}
@@ -404,8 +408,12 @@ export default function InputFormView({
 }
 
 const styles = StyleSheet.create({
-    center: {
+    contentScroll: {
         flex: 1,
+        minHeight: 0,
+    },
+    center: {
+        flexGrow: 1,
         justifyContent: "center",
         paddingBottom: 120,
     },
