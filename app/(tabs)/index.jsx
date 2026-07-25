@@ -19,6 +19,7 @@ import {
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { saveUserData } from "../../src/services/models/dbService.js";
+import { isUserAdmin } from "../../src/services/models/authService.js";
 
 import StartView from "../../src/screens/home/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/questionnaire/QuestionnaireSportView.jsx";
@@ -126,11 +127,33 @@ const HomeScreen = observer(function HomeScreen() {
   const [questionnaireNavigatorVisible, setQuestionnaireNavigatorVisible] =
     useState(false);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const subscriptionRefreshAttemptedRef = useRef("");
 
   useEffect(() => {
     model.restoreRemovedManualSessionMerges?.();
   }, [model, model.trainingPlan]);
+
+  useEffect(() => {
+    const uid = model.user?.uid;
+
+    if (!uid) {
+      setIsAdmin(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    isUserAdmin(uid).then((admin) => {
+      if (!cancelled) {
+        setIsAdmin(admin);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [model.user?.uid]);
 
   function getSafeResumeStep() {
     const resume = getParamValue(params.resume);
@@ -691,6 +714,7 @@ const HomeScreen = observer(function HomeScreen() {
         completedDays={model.completedDays}
         activeSessionProgressByKey={model.activeSessionProgressByKey}
         completedSessionProgressByKey={model.completedSessionProgressByKey}
+        isAdmin={isAdmin}
         onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
         onNavigateQuestionnaire={openQuestionnaireNavigator}
         onStartSession={openTrainingSession}
