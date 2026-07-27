@@ -132,7 +132,8 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Account for the empty implement: hex bars commonly weigh 20-25 kg and standard barbells about 20 kg. If the empty bar already exceeds the target load for a smaller athlete, prescribe a lighter bar or dumbbells and explicitly say so in the exercise notes.
 - Keep every loaded jump crisp and full-effort. Do not solve poor output by loading heavier; excess load reduces flight time and degrades mechanics.
 - When jump-height data from a contact mat/app or bar-velocity data from a linear position transducer (LPT) is available, use it to auto-regulate load and stop the set when output or mechanics drop. Without technology, use the athlete's feel and visible jump quality.
-- Rep ranges should match the drill: extensive stiffness work such as pogos or ankle jumps can use 10-20 reps, low-hurdle hops or low box jumps 5-10, jumps for height or distance 3-6, and depth/shock jumps or loaded jumps 3-5. Very rarely prescribe fewer than 3 reps for a jump.`,
+- Rep ranges should match the drill: extensive stiffness work such as pogos or ankle jumps can use 10-20 reps, low-hurdle hops or low box jumps 5-10, jumps for height or distance 3-6, and depth/shock jumps or loaded jumps 3-5. Very rarely prescribe fewer than 3 reps for a jump.
+- For jump and plyometric exercises performed with bodyweight only and no added external load (e.g. squat jumps, broad jumps, tuck jumps, split-squat jumps, pogos, ankle jumps, standard box jumps, line hops, bounds, skater jumps), state the intensity explicitly as "Bodyweight" in the exercise notes instead of leaving load blank or inventing a percentage or RPE value, so the app can display "Bodyweight" as the tracked intensity. This does not apply to loaded jumps (trap-bar jumps, weighted or dumbbell-loaded box jumps), which follow the external-load rule above, or to depth/drop jumps, which use the drop-height rule instead.`,
   depth_drop_jump_height: `# Depth jump and drop jump height rules
 - For every depth jump or drop jump, prescribe the drop height in centimeters as the primary programmed value instead of external load, and state it explicitly in the exercise notes, for example "Drop height: 30 cm".
 - Set drop height by strength-and-conditioning experience (beginner is equivalent to "novice"):
@@ -158,7 +159,8 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Medicine-ball throw reps should be pragmatic rather than ultra-low: usually 3-10 reps depending on the throw.
 - Chest passes can use the higher end, while rotational punches or hip throws usually sit around 3-5 per side.
 - Rarely prescribe fewer than 3 reps for a medicine-ball throw variation.
-- Include prescription about rebound - low-, moderate- or non-bouncing`,
+- Include prescription about rebound - low-, moderate- or non-bouncing
+- Medicine-ball load should sit within a practical 2-8 kg range for most fighters (roughly 4-18 lb): lighter balls of 2-4 kg suit rotational punches, hip throws, and other speed-biased throws, while heavier balls of 5-8 kg suit chest passes and slower, stability-biased throws. State the chosen ball weight explicitly in kg with its pound equivalent in the exercise notes, for example "4 kg medicine ball (9 lb)", so the app can display it as the tracked intensity.`,
   superset_complexes: `# Superset and complex rules
 - When weekly S&C frequency is low or session time is short, compress the session with low-interference supersets.
 - Favor pairings such as push plus pull, lower-body strength plus upper accessory, and core plus grip or neck.
