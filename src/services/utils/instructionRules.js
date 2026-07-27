@@ -92,6 +92,12 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Low-load motor-control drills such as dead bugs or bird dogs belong in warm-ups, rehab, or deload maintenance, not as the only real core work in a normal week.
 - Keep accessories practical: heavier secondary lifts use RPE, small isolation work uses RPE or feel, and rehab or activation drills use quality-based notes rather than fake percentage precision.
 - Use concrete exercise names for neck work rather than vague movement-pattern labels.`,
+  supplemental_exercise_intensity: `# Supplemental exercise intensity rules
+- For neck, wrist/forearm, abs/trunk, and grip/carry/hold work, prescribe intensity mainly through RPE rather than percentage-based loading, even when the athlete selected the percentage system.
+- Neck work: use RPE 5-8. Keep it especially controlled; never push toward the top of that range as a default.
+- Wrist and forearm work: use RPE 6-8, also kept especially controlled given how sensitive these joints are to overload.
+- Abs/trunk work: if the exercise is loadable, technically simple, and safe to load hard (e.g. weighted sit-ups, cable crunches, loaded carries used as core work), use RPE 7-9 and progress through added load or reps. If it is not loadable, or is more skill-dependent or unstable (e.g. rollouts, hanging leg raises, anti-rotation holds), use RPE 6-8 and progress through reps, hold time, or a harder variation instead of external load.
+- Grip, carry, and hold work: use RPE 7-9 and progress through added load, hold or carry time, or distance.`,
   coaching_language: `# Coaching language and exercise description rules
 - All exercise notes, coaching cues, and descriptions must be logical and specific to the exact exercise, rep scheme, intensity, and session purpose prescribed.
 - Before writing any instruction, check that it is consistent with the programmed volume. An instruction that only makes sense for higher-rep or open-ended work must not appear on a low-rep set where it is physically impossible to apply.
@@ -262,6 +268,7 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "close_grip_bench_press",
   "compound_lifts",
   "accessory_exercises",
+  "supplemental_exercise_intensity",
   "coaching_language",
   "pull_ups_chin_ups",
   "substitutes",
@@ -468,6 +475,7 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
     "missed_rep",
     "compound_lifts",
     "accessory_exercises",
+    "supplemental_exercise_intensity",
     "pull_ups_chin_ups",
     "substitutes",
     "plyometrics_loading_jumps",
