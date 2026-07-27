@@ -166,7 +166,10 @@ function calculateEstimatedOneRepMax(method, { loadKg, reps, rpe }) {
 }
 
 function calculateTrainingMax(method, estimatedOneRepMaxKg, previousTrainingMaxKg = null) {
-  const baseTrainingMax = estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER;
+  const baseTrainingMax =
+    method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
+      ? estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER
+      : estimatedOneRepMaxKg;
 
   if (!Number.isFinite(previousTrainingMaxKg) || previousTrainingMaxKg <= 0) {
     return roundToTenth(baseTrainingMax);
