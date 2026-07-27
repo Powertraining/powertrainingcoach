@@ -342,6 +342,7 @@ export function MyProfileView(props) {
             onUsernameEdit={openUsernameEditorACB}
             onPasswordChange={props.onPasswordChange}
             onPasswordResetMenuOpen={openPasswordResetMenuACB}
+            onDeleteAccountRequest={props.onDeleteAccountRequest}
           />
         ) : null}
 
