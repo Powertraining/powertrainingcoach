@@ -332,7 +332,7 @@ function buildPlanJsonExample(userInput = {}) {
                 includePercentageSchema && hasKnownProgramMax
                   ? `,
               "percentagePrescription": {
-                "referenceLiftName": "Back Squat",
+                "referenceLiftName": "Back Squat (High-Bar)",
                 "loadingStrategy": "flat_loading",
                 "workingSets": [
                   {
@@ -347,7 +347,7 @@ function buildPlanJsonExample(userInput = {}) {
                     ? `,
               "strengthAssessment": {
                 "method": "rpe_based_1rm",
-                "liftName": "Back Squat",
+                "liftName": "Back Squat (High-Bar)",
                 "prompt": "Log the load, reps, and RPE so the app can estimate your Program Max."
               }`
                   : ""
