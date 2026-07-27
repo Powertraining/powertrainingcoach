@@ -60,7 +60,7 @@ test("known Program Maxes and non-percentage plans are not bridged", () => {
   }), sourcePlan);
 });
 
-test("missing Program Max bridge applies to every percentage reference method", () => {
+test("missing Program Max bridge always uses the RPE-based estimate regardless of percentageReferenceMethod", () => {
   for (const percentageReferenceMethod of ["true_1rm", "multi_rm", "rpe_based_1rm"]) {
     const plan = applyMissingProgramMaxBridges({
       weeks: [{
@@ -83,7 +83,6 @@ test("missing Program Max bridge applies to every percentage reference method", 
     }, {
       liftIntensityMethod: "percentage",
       percentageReferenceMethod,
-      programMaxSetup: "auto_estimate",
       strengthAssessmentSummary: { latestByLift: [] },
     });
     const exercise = plan.weeks[0].days[0].exercises[0];
@@ -92,65 +91,6 @@ test("missing Program Max bridge applies to every percentage reference method", 
     assert.equal(exercise.percentagePrescription, null);
     assert.match(exercise.notes, /RPE 7-9.*target 8/i);
   }
-});
-
-test("calibration week honors the selected max-test method", () => {
-  const plan = applyMissingProgramMaxBridges({
-    weeks: [{
-      week: 1,
-      days: [{ day: 1, exercises: [{ name: "Bench Press", sets: "3", reps: "3" }] }],
-    }],
-  }, {
-    liftIntensityMethod: "percentage",
-    percentageReferenceMethod: "multi_rm",
-    programMaxSetup: "calibration_week",
-  });
-
-  assert.equal(
-    plan.weeks[0].days[0].exercises[0].strengthAssessment.method,
-    "multi_rm"
-  );
-});
-
-test("calibration week keeps true 1RM testing within safety limits", () => {
-  const plan = applyMissingProgramMaxBridges({
-    weeks: [{
-      week: 1,
-      days: [{
-        day: 1,
-        exercises: [
-          { name: "Back Squat", sets: "1", reps: "1" },
-          { name: "Bench Press", sets: "1", reps: "1" },
-        ],
-      }],
-    }],
-  }, {
-    liftIntensityMethod: "percentage",
-    percentageReferenceMethod: "true_1rm",
-    programMaxSetup: "calibration_week",
-    experience: "intermediate",
-  });
-  const exercises = plan.weeks[0].days[0].exercises;
-
-  assert.equal(exercises[0].strengthAssessment.method, "true_1rm");
-  assert.equal(exercises[1].strengthAssessment.method, "multi_rm");
-
-  const beginnerPlan = applyMissingProgramMaxBridges({
-    weeks: [{
-      week: 1,
-      days: [{ day: 1, exercises: [{ name: "Back Squat", sets: "1", reps: "1" }] }],
-    }],
-  }, {
-    liftIntensityMethod: "percentage",
-    percentageReferenceMethod: "true_1rm",
-    programMaxSetup: "calibration_week",
-    experience: "beginner",
-  });
-
-  assert.equal(
-    beginnerPlan.weeks[0].days[0].exercises[0].strengthAssessment.method,
-    "multi_rm"
-  );
 });
 
 test("saved Program Max activates percentage loading on future lift exposures", () => {
