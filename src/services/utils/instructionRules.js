@@ -81,7 +81,10 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   compound_lifts: `# Compound-lift selection rules
 - Favor fundamental squat, hinge, push, pull, carry, and similar compound patterns.
 - For boxing, kickboxing, and Muay Thai, skip conventional deadlift-style main lifts unless the user clearly asked for them.
-- For striking sports, prefer trap-bar jumps, clean pulls, or clean high pulls as explosive hinge options, while RDLs stay fine as accessories.`,
+- For striking sports, prefer trap-bar jumps, clean pulls, or clean high pulls as explosive hinge options, while RDLs stay fine as accessories.
+- Never prescribe a bare, ambiguous "Back Squat". Always name it exactly "Back Squat (High-Bar)" or "Back Squat (Low-Bar)" so the athlete and the app both know which variation is programmed. High-bar keeps the torso more upright with more quad emphasis; low-bar shifts more work to the hips and posterior chain and typically supports heavier loading.
+- Choose the bar-position variation deliberately from the athlete's goal, sport, and any stated preference, then keep using that exact same exercise name for every exposure of that lift across the whole cycle. The app tracks Program Max and performance history by exercise name, so switching the label mid-cycle (e.g. from "Back Squat (High-Bar)" to "Back Squat (Low-Bar)") silently breaks that history. Only change the name when deliberately switching squat variation as a real program change, and call that switch out explicitly in the notes.
+- Front squat and safety-bar squat are separate lifts, not back-squat bar-position labels; do not add a "(High-Bar)"/"(Low-Bar)" suffix to those.`,
   accessory_exercises: `# Accessory exercise rules
 - Main horizontal pull slots should default to productive weighted rows such as barbell, chest-supported, cable, T-bar, or one-arm dumbbell rows.
 - Band rows, face pulls, and similar low-load pulls stay in accessory, prehab, or warm-up slots unless equipment is extremely limited or the athlete is in rehab.
@@ -113,7 +116,8 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Every exercise needs a substitutionOptions array so the app can swap in comparable variations.
 - Add pragmatic substitutes for exercises that are technical, inconvenient, crowded, or equipment-sensitive.
 - Keep every substitute in the same movement family and preserve the same training emphasis.
-- If a substitute would change the quality too much, do not use it.`,
+- If a substitute would change the quality too much, do not use it.
+- Example: "Back Squat (High-Bar)" substitutes to Front Squat, "Back Squat (Low-Bar)", or Safety Bar Squat. Keep the "(High-Bar)"/"(Low-Bar)" label on any back-squat substitute option so the variation stays unambiguous.`,
   plyometrics_loading_jumps: `# Plyometric and loaded-jump rules
 - Start every athlete at the lowest impact tier allowed by experience, movement competency, recovery status, and program phase.
 - Progress impact one tier at a time: low, then medium, then high. Regress if landing quality, recovery, or pain says to.

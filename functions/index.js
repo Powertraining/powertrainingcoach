@@ -4327,8 +4327,14 @@ Follow these domain rules:
   inaccessible, include 2-5 pragmatic substitute options.
 - Keep every substitute in the same movement category and training emphasis.
   Never swap to an unrelated pattern.
+- Never prescribe a bare, ambiguous "Back Squat". Always name it exactly
+  "Back Squat (High-Bar)" or "Back Squat (Low-Bar)" so the athlete and the
+  app both know which variation is programmed. Choose the variation
+  deliberately based on the athlete's goal and sport, then keep using that
+  exact name for every exposure of that lift across the cycle so Program
+  Max and performance history stay attached to the same lift.
 - Good examples:
-  - High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat
+  - Back Squat (High-Bar) -> Front Squat / Back Squat (Low-Bar) / Safety Bar Squat
   - Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips
   - Power Clean -> Power Snatch
 - Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric
