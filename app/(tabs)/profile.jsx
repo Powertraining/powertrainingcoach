@@ -5,7 +5,7 @@ import {
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams,
   useRouter } from "expo-router";
-import { View, StyleSheet } from "react-native";
+import { Linking, View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { MyProfileView } from "../../src/screens/MyProfileView.jsx";
@@ -18,6 +18,7 @@ import {
   normalizeTrainingPreferences,
 } from "../../src/constants/trainingPreferences.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
+import { DELETE_ACCOUNT_REQUEST_URL } from "../../src/services/config/apiConfig.js";
 import {
   pickProfileImage,
   uploadProfileImage,
@@ -399,6 +400,16 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     }
   }
 
+  async function requestAccountDeletionACB() {
+    try {
+      await Linking.openURL(DELETE_ACCOUNT_REQUEST_URL);
+    } catch (e) {
+      const message = e.message || "Could not open the account deletion page.";
+      setError(message);
+      model.showError?.(e, "Could not open the account deletion page.");
+    }
+  }
+
   async function changeProfilePhotoACB() {
     setError(null);
     setPasswordResetMessage(null);
@@ -457,6 +468,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
         onPasswordReset={sendPasswordResetACB}
+        onDeleteAccountRequest={requestAccountDeletionACB}
         onProfilePhotoChange={changeProfilePhotoACB}
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}

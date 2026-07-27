@@ -2,6 +2,7 @@ import { View, StyleSheet } from "react-native";
 
 import PersonalDetailsUsernameCard from "../../components/profileComponents/PersonalDetailsUsernameCard.jsx";
 import PersonalDetailsPasswordCard from "../../components/profileComponents/PersonalDetailsPasswordCard.jsx";
+import DeleteAccountCard from "../../components/profileComponents/DeleteAccountCard.jsx";
 import FadeInFromBottomView from "../../components/navigation/FadeInFromBottomView.jsx";
 
 export default function ProfilePersonalDetailsView(props) {
@@ -19,6 +20,12 @@ export default function ProfilePersonalDetailsView(props) {
           <PersonalDetailsPasswordCard
             disabled={props.isSubmitting}
             onPress={props.onPasswordResetMenuOpen}
+          />
+        </FadeInFromBottomView>
+        <FadeInFromBottomView delay={180}>
+          <DeleteAccountCard
+            disabled={props.isSubmitting}
+            onPress={props.onDeleteAccountRequest}
           />
         </FadeInFromBottomView>
       </View>
