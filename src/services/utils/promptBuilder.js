@@ -244,6 +244,7 @@ ${includePercentageSchema ? `- On percentage-based primary lifts with a known Pr
 - Do not use "rpe_based_1rm" as a standalone testing week when a Program Max is already known.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
 - Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based; never add "percentagePrescription" or "strengthAssessment" to those exercises.
+- Add "loggingFields" only when the app needs to log something other than standard load/reps/RPE for that exercise. Each entry is an object with "type", "label", and optional "placeholder", for example { "type": "height", "label": "Drop height", "placeholder": "e.g. 40 cm" }. Depth jumps and drop jumps must always include a "loggingFields" entry of type "height" so the app tracks height as the primary value instead of load. Omit "loggingFields" for standard sets.
 - When a field is not needed, omit it instead of filling it with placeholders.
 `;
 }

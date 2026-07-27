@@ -123,6 +123,17 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Keep every loaded jump crisp and full-effort. Do not solve poor output by loading heavier; excess load reduces flight time and degrades mechanics.
 - When jump-height data from a contact mat/app or bar-velocity data from a linear position transducer (LPT) is available, use it to auto-regulate load and stop the set when output or mechanics drop. Without technology, use the athlete's feel and visible jump quality.
 - Rep ranges should match the drill: extensive stiffness work such as pogos or ankle jumps can use 10-20 reps, low-hurdle hops or low box jumps 5-10, jumps for height or distance 3-6, and depth/shock jumps or loaded jumps 3-5. Very rarely prescribe fewer than 3 reps for a jump.`,
+  depth_drop_jump_height: `# Depth jump and drop jump height rules
+- For every depth jump or drop jump, prescribe the drop height in centimeters as the primary programmed value instead of external load, and state it explicitly in the exercise notes, for example "Drop height: 30 cm".
+- Set drop height by strength-and-conditioning experience (beginner is equivalent to "novice"):
+  - Beginner: drop jump 10-20 cm, depth jump 20-30 cm.
+  - Intermediate: drop jump 20-40 cm, depth jump 30-50 cm.
+  - Advanced: drop jump 40-60 cm, depth jump 50-75 cm.
+- If the athlete is advanced and their back-squat 1RM is at least 2.0x bodyweight, based on data available in the user input or strengthAssessmentSummary, the depth jump height can extend into the advanced-high range of 75-100 cm by default.
+- Do not use the advanced-high 75-100 cm depth jump range unless the athlete is advanced and the 2.0x-bodyweight squat threshold is confirmed by available data. If bodyweight or squat 1RM is missing or unconfirmed, stay within the standard advanced depth jump range of 50-75 cm.
+- These height ranges are still bounded by the plyometric impact-tier rules above: never prescribe a height that exceeds what the athlete's current impact tier, program phase, and landing competency allow, even if their experience level alone would qualify for a higher height.
+- Progress height gradually within the allowed range while landing mechanics, ground contact time, and reactive quality stay high. Regress height immediately, and drop back an impact tier if needed, when landing quality drops, contact time slows, or pain appears.
+- Give every depth jump and drop jump exercise an explicit "loggingFields" entry of type "height" (for example { "type": "height", "label": "Drop height", "placeholder": "e.g. 40 cm" }) so the app logs and displays height as the primary tracked value for that set instead of load.`,
   bilateral: `# Bilateral plyometric impact guide
 - Treat CMJs, squat jumps, pogos, box jumps, and simple line hops as low impact.
 - Broad jumps, tuck jumps, split-squat jumps, low-box drop jumps, and similar rebound drills are medium impact.
@@ -251,6 +262,7 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "pull_ups_chin_ups",
   "substitutes",
   "plyometrics_loading_jumps",
+  "depth_drop_jump_height",
   "bilateral",
   "unilateral",
   "ballistic_training",
@@ -455,6 +467,7 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
     "pull_ups_chin_ups",
     "substitutes",
     "plyometrics_loading_jumps",
+    "depth_drop_jump_height",
     "bilateral",
     "unilateral",
     "ballistic_training",
