@@ -23,7 +23,6 @@ import {
   setDoc,
 } from "../config/firebaseSdk.js";
 import {
-  createDefaultForumProfile,
   DEFAULT_FORUM_COMMENT_LIMIT,
   DEFAULT_FORUM_FEED_LIMIT,
   MAX_FORUM_COMMENT_REPLY_DEPTH,
@@ -35,9 +34,7 @@ import {
   normalizeBoundedString,
   normalizeInteger,
 } from "../utils/inputValidation.js";
-import { createDefaultTrainingPerformanceState } from "../utils/trainingPerformance.js";
-import { createDefaultStrengthAssessmentState } from "../utils/strengthAssessment.js";
-import { createDefaultTrainingCheckInState } from "../utils/trainingCheckIn.js";
+import { buildDefaultSimplePersistedFields } from "../utils/persistedFields.js";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
@@ -305,13 +302,8 @@ async function saveUserDataViaRest(uid, dataToSave) {
 export function createDefaultUserData() {
   return {
     questionnaire: normalizeAppLogicSettings({}),
-    primaryCombatSport: "",
-    sessionsPerWeek: 3,
     trainingPlan: null,
     trainingPlanHistory: [],
-    completedDays: [],
-    trainingPlanBatch: 1,
-    completedWeeks: 0,
     subscription: false,
     subscriptionEndDate: null,
     subscriptionStartDate: null,
@@ -319,13 +311,7 @@ export function createDefaultUserData() {
     subscriptionStatus: "",
     stripePriceLookupKey: "",
     planRegenerationUsage: null,
-    trainingPerformanceState: createDefaultTrainingPerformanceState(),
-    strengthAssessmentState: createDefaultStrengthAssessmentState(),
-    trainingCheckInState: createDefaultTrainingCheckInState(),
-    activeSessionProgressByKey: {},
-    completedSessionProgressByKey: {},
-    forumProfile: createDefaultForumProfile(),
-    forumPolicyAcceptedAt: null,
+    ...buildDefaultSimplePersistedFields(),
   };
 }
 
