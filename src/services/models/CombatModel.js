@@ -255,6 +255,7 @@ export const model = {
   planRegenerationUsage: null,
 
   forumProfile: createDefaultForumProfile(),
+  forumPolicyAcceptedAt: null,
   forumFilters: createDefaultForumFilters(),
   forumComposer: createDefaultForumComposer(),
   forumFeed: [],
@@ -1811,6 +1812,14 @@ export const model = {
       active: this.subscription,
       endDate: this.subscriptionEndDate,
     });
+  },
+
+  hasAcceptedForumPolicy() {
+    return Boolean(this.forumPolicyAcceptedAt);
+  },
+
+  acceptForumPolicy() {
+    this.forumPolicyAcceptedAt = new Date().toISOString();
   },
 
   isOnFreeTrial() {

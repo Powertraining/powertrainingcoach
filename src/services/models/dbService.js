@@ -325,6 +325,7 @@ export function createDefaultUserData() {
     activeSessionProgressByKey: {},
     completedSessionProgressByKey: {},
     forumProfile: createDefaultForumProfile(),
+    forumPolicyAcceptedAt: null,
   };
 }
 

@@ -18,6 +18,8 @@ const HOSTING_BASE_URL = getEnv(
   "HOSTING_BASE_URL"
 ) || `https://${FIREBASE_PROJECT_ID}.web.app`;
 export const DELETE_ACCOUNT_REQUEST_URL = `${HOSTING_BASE_URL}/delete-account`;
+export const PRIVACY_POLICY_URL = `${HOSTING_BASE_URL}/privacy-policy`;
+export const FORUM_POLICY_URL = `${HOSTING_BASE_URL}/forum-policy`;
 
 export const OPENAI_PLAN_GENERATION_MODEL = getEnv(
   process.env.EXPO_PUBLIC_OPENAI_PLAN_GENERATION_MODEL ||

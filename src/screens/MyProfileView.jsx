@@ -343,6 +343,8 @@ export function MyProfileView(props) {
             onPasswordChange={props.onPasswordChange}
             onPasswordResetMenuOpen={openPasswordResetMenuACB}
             onDeleteAccountRequest={props.onDeleteAccountRequest}
+            onOpenPrivacyPolicy={props.onOpenPrivacyPolicy}
+            onOpenForumPolicy={props.onOpenForumPolicy}
           />
         ) : null}
 

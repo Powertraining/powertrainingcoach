@@ -42,6 +42,7 @@ export function buildClientPersistableUserData(model = {}) {
     activeSessionProgressByKey: model.activeSessionProgressByKey,
     completedSessionProgressByKey: model.completedSessionProgressByKey,
     forumProfile: normalizeForumProfile(model.forumProfile),
+    forumPolicyAcceptedAt: model.forumPolicyAcceptedAt ?? null,
   };
 }
 

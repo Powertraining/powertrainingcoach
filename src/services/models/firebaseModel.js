@@ -148,6 +148,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
         ? persistedData.completedSessionProgressByKey
         : {};
     model.forumProfile = normalizeForumProfile(persistedData.forumProfile);
+    model.forumPolicyAcceptedAt = persistedData.forumPolicyAcceptedAt ?? null;
     if (typeof model.resetForumRuntimeState === "function") {
       model.resetForumRuntimeState();
     } else {
@@ -184,6 +185,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.activeSessionProgressByKey,
       model.completedSessionProgressByKey,
       model.forumProfile,
+      model.forumPolicyAcceptedAt,
     ];
     return data;
   }
@@ -363,6 +365,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.activeSessionProgressByKey = {};
       model.completedSessionProgressByKey = {};
       model.forumProfile = normalizeForumProfile();
+      model.forumPolicyAcceptedAt = null;
       if (typeof model.resetForumRuntimeState === "function") {
         model.resetForumRuntimeState();
       } else {

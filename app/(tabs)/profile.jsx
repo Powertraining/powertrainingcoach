@@ -18,7 +18,11 @@ import {
   normalizeTrainingPreferences,
 } from "../../src/constants/trainingPreferences.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
-import { DELETE_ACCOUNT_REQUEST_URL } from "../../src/services/config/apiConfig.js";
+import {
+  DELETE_ACCOUNT_REQUEST_URL,
+  FORUM_POLICY_URL,
+  PRIVACY_POLICY_URL,
+} from "../../src/services/config/apiConfig.js";
 import {
   pickProfileImage,
   uploadProfileImage,
@@ -410,6 +414,22 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     }
   }
 
+  async function openPrivacyPolicyACB() {
+    try {
+      await Linking.openURL(PRIVACY_POLICY_URL);
+    } catch (e) {
+      model.showError?.(e, "Could not open the Privacy Policy.");
+    }
+  }
+
+  async function openForumPolicyACB() {
+    try {
+      await Linking.openURL(FORUM_POLICY_URL);
+    } catch (e) {
+      model.showError?.(e, "Could not open the Forum Policy.");
+    }
+  }
+
   async function changeProfilePhotoACB() {
     setError(null);
     setPasswordResetMessage(null);
@@ -469,6 +489,8 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onPasswordChange={setPassword}
         onPasswordReset={sendPasswordResetACB}
         onDeleteAccountRequest={requestAccountDeletionACB}
+        onOpenPrivacyPolicy={openPrivacyPolicyACB}
+        onOpenForumPolicy={openForumPolicyACB}
         onProfilePhotoChange={changeProfilePhotoACB}
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}

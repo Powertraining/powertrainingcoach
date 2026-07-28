@@ -10,7 +10,7 @@ import { Redirect,
   useLocalSearchParams,
   usePathname,
   useRouter } from "expo-router";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, Linking, StyleSheet, View } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import LoadingView from "../../src/screens/LoadingView.jsx";
@@ -19,12 +19,14 @@ import CommentsView from "../../src/screens/forum/commentsView.jsx";
 import ForumView from "../../src/screens/forum/ForumView.jsx";
 import MakePostView from "../../src/screens/forum/makePostView.jsx";
 import PostView from "../../src/screens/forum/postView.jsx";
+import ForumPolicyGateModal from "../../src/components/forumComponents/ForumPolicyGateModal.jsx";
 import {
   pickForumImage,
   pickForumVideo,
   uploadForumMedia,
 } from "../../src/services/utils/mediaUpload.js";
 import { ANALYSIS_FORUM_TAG } from "../../src/services/models/forumModel.js";
+import { FORUM_POLICY_URL } from "../../src/services/config/apiConfig.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
 
 function buildForumReturnTo(pathname, params) {
@@ -94,6 +96,8 @@ const ForumScreen = observer(function ForumScreen() {
   const [canTagAnalysisPosts, setCanTagAnalysisPosts] = useState(false);
   const [postButtonEntranceKey, setPostButtonEntranceKey] = useState(0);
   const [isPostButtonEntranceVisible, setIsPostButtonEntranceVisible] = useState(true);
+  const [isForumPolicyGateVisible, setIsForumPolicyGateVisible] = useState(false);
+  const [pendingForumAction, setPendingForumAction] = useState(null);
   const isForumScreenFocused = useIsFocused();
 
   useEffect(() => {
@@ -300,6 +304,34 @@ const ForumScreen = observer(function ForumScreen() {
     );
   }
 
+  function requestForumPolicyAcceptance(action) {
+    setPendingForumAction(() => action);
+    setIsForumPolicyGateVisible(true);
+  }
+
+  function handleAcceptForumPolicy() {
+    model.acceptForumPolicy();
+    setIsForumPolicyGateVisible(false);
+
+    const action = pendingForumAction;
+    setPendingForumAction(null);
+    action?.();
+  }
+
+  function handleDeclineForumPolicyGate() {
+    setIsForumPolicyGateVisible(false);
+    setPendingForumAction(null);
+  }
+
+  async function handleOpenForumPolicy() {
+    try {
+      await Linking.openURL(FORUM_POLICY_URL);
+    } catch (error) {
+      console.warn("Could not open the Forum Policy:", error);
+      model.showError?.(error, "Could not open the Forum Policy.");
+    }
+  }
+
   function handlePressPostButton() {
     if (!canUseForumActions) {
       setForumCurrentView("composeLocked");
@@ -418,6 +450,11 @@ const ForumScreen = observer(function ForumScreen() {
       return;
     }
 
+    if (!model.hasAcceptedForumPolicy?.()) {
+      requestForumPolicyAcceptance(handleCreatePost);
+      return;
+    }
+
     setCreatePostError(null);
     setIsCreatingPost(true);
 
@@ -525,6 +562,11 @@ const ForumScreen = observer(function ForumScreen() {
       return;
     }
 
+    if (!model.hasAcceptedForumPolicy?.()) {
+      requestForumPolicyAcceptance(handleCreateComment);
+      return;
+    }
+
     setCreateCommentError(null);
     setIsCreatingComment(true);
 
@@ -547,6 +589,11 @@ const ForumScreen = observer(function ForumScreen() {
     }
 
     if (!selectedPost?.id || !activeReplyCommentId || isCreatingReply) {
+      return;
+    }
+
+    if (!model.hasAcceptedForumPolicy?.()) {
+      requestForumPolicyAcceptance(handleCreateReply);
       return;
     }
 
@@ -797,6 +844,13 @@ const ForumScreen = observer(function ForumScreen() {
           onChangeReplyText={setReplyDraft}
           onCreateReply={handleCreateReply}
           onCancelReply={resetReplyComposer}
+        />
+      ) : null}
+      {isForumPolicyGateVisible ? (
+        <ForumPolicyGateModal
+          onAccept={handleAcceptForumPolicy}
+          onDecline={handleDeclineForumPolicyGate}
+          onReadPolicy={handleOpenForumPolicy}
         />
       ) : null}
     </View>
