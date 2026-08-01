@@ -52,7 +52,8 @@
           "photosPermission": "Allow Power Training Coach to choose profile photos and forum media from your library."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-web-browser"
     ],
     "owner": "power-training"
   }

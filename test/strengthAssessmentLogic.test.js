@@ -24,7 +24,6 @@ test("percentage app logic defaults to RPE-based 1RM estimates and preserves exp
   });
 
   assert.equal(defaults.percentageReferenceMethod, "rpe_based_1rm");
-  assert.equal(defaults.programMaxSetup, "auto_estimate");
   assert.equal(legacyChoice.percentageReferenceMethod, "rpe_based_1rm");
   assert.equal(explicitChoice.percentageReferenceMethod, "multi_rm");
 });
@@ -53,9 +52,9 @@ test("strength assessment entries compute estimated 1RM for RPE-based and multi-
   });
 
   assert.equal(rpeBasedEntry.estimatedOneRepMaxKg, 175);
-  assert.equal(rpeBasedEntry.trainingMaxKg, 157.5);
+  assert.equal(rpeBasedEntry.trainingMaxKg, 175);
   assert.equal(multiRmEntry.estimatedOneRepMaxKg, 140);
-  assert.equal(multiRmEntry.trainingMaxKg, 126);
+  assert.equal(multiRmEntry.trainingMaxKg, 140);
 });
 
 test("strength assessment state summarizes the latest result per lift", () => {
@@ -106,7 +105,7 @@ test("strength assessment state summarizes the latest result per lift", () => {
 
   assert.equal(summary.latestByLift.length, 1);
   assert.equal(summary.latestByLift[0].method, "rpe_based_1rm");
-  assert.equal(summary.latestByLift[0].trainingMaxKg, 135.5);
+  assert.equal(summary.latestByLift[0].trainingMaxKg, 150.5);
   assert.equal(summary.recentAssessments.length, 2);
 });
 
@@ -124,8 +123,8 @@ test("RPE-based missing-max estimates accept Week 1 bridge sets", () => {
   });
 
   assert.equal(bridgeEntry.estimatedOneRepMaxKg, 143.3);
-  assert.equal(bridgeEntry.trainingMaxKg, 129);
-  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(bridgeEntry), 129);
+  assert.equal(bridgeEntry.trainingMaxKg, 143.3);
+  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(bridgeEntry), 143.3);
 });
 
 test("missing-max estimates require the prescribed RPE lower bound", () => {
@@ -142,7 +141,7 @@ test("missing-max estimates require the prescribed RPE lower bound", () => {
   assert.equal(createStrengthAssessmentEntry({
     metadata,
     result: { loadKg: 100, reps: 5, rpe: 8 },
-  })?.trainingMaxKg, 111);
+  })?.trainingMaxKg, 123.3);
 });
 
 test("pending Program Max assessments exclude lifts with a saved max", () => {

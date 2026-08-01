@@ -31,7 +31,6 @@ import TrainingPreferencesPreferredWeekdaysView from "./trainingPreferences/Trai
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
 import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
-import ProgramMaxSetupView from "./appLogicSettings/ProgramMaxSetupView.jsx";
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
@@ -43,8 +42,7 @@ export const EVENT_DESCRIPTION_STEP_INDEX = 13;
 export const INJURIES_STEP_INDEX = 15;
 export const LIFT_INTENSITY_METHOD_STEP_INDEX = 17;
 export const PERCENTAGE_REFERENCE_METHOD_STEP_INDEX = 18;
-export const PROGRAM_MAX_SETUP_STEP_INDEX = 19;
-export const DELOAD_STRATEGY_STEP_INDEX = 20;
+export const DELOAD_STRATEGY_STEP_INDEX = 19;
 
 function shouldShowEnduranceMethods(values = {}) {
   return (
@@ -196,7 +194,6 @@ const NULLABLE_FORM_KEYS = Object.freeze([
   "combatTrainingIntensity",
   "liftIntensityMethod",
   "percentageReferenceMethod",
-  "programMaxSetup",
   "deloadStrategy",
   "loadingStrategy",
 ]);
@@ -312,7 +309,7 @@ export function getTrainingPreferencesStepKeys(values = {}) {
     "combatTrainingIntensity",
     "liftIntensityMethod",
     ...(resolvedValues.liftIntensityMethod === "percentage"
-      ? ["percentageReferenceMethod", "programMaxSetup"]
+      ? ["percentageReferenceMethod"]
       : []),
     "deloadStrategy",
     "loadingStrategy",
@@ -364,7 +361,6 @@ export function getTrainingPreferencesStepLabel(stepKey = "") {
     combatTrainingIntensity: "Combat training intensity",
     liftIntensityMethod: "Lift intensity method",
     percentageReferenceMethod: "Percentage reference method",
-    programMaxSetup: "Program Max setup",
     deloadStrategy: "Deload strategy",
     loadingStrategy: "Loading strategy",
     preferredWeekdays: "Preferred weekdays",
@@ -441,12 +437,6 @@ export default function TrainingPreferencesFields({
   const percentageReferenceMethodValue = hasPercentageReferenceMethod
     ? values.percentageReferenceMethod
     : resolvedValues.percentageReferenceMethod;
-  const programMaxSetupValue = Object.prototype.hasOwnProperty.call(
-    values ?? {},
-    "programMaxSetup"
-  )
-    ? values.programMaxSetup
-    : resolvedValues.programMaxSetup;
   const hasDeloadStrategy = Object.prototype.hasOwnProperty.call(
     values ?? {},
     "deloadStrategy"
@@ -730,7 +720,6 @@ export default function TrainingPreferencesFields({
           updateFields({
             liftIntensityMethod: sectionValue,
             percentageReferenceMethod: null,
-            programMaxSetup: null,
           })
         }
       />
@@ -742,14 +731,6 @@ export default function TrainingPreferencesFields({
               value={percentageReferenceMethodValue}
               onChange={(sectionValue) =>
                 updateField("percentageReferenceMethod", sectionValue)
-              }
-            />
-          ),
-          () => (
-            <ProgramMaxSetupView
-              value={programMaxSetupValue}
-              onChange={(sectionValue) =>
-                updateField("programMaxSetup", sectionValue)
               }
             />
           ),

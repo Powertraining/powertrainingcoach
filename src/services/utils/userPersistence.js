@@ -1,11 +1,12 @@
-import {
-  createDefaultForumProfile,
-  normalizeForumProfile,
-} from "../models/forumModel.js";
+import { createDefaultForumProfile } from "../models/forumModel.js";
 import { normalizeAppLogicSettings } from "../../constants/appLogicSettings.js";
 import { createDefaultStrengthAssessmentState } from "./strengthAssessment.js";
 import { createDefaultTrainingCheckInState } from "./trainingCheckIn.js";
 import { createDefaultTrainingPerformanceState } from "./trainingPerformance.js";
+import {
+  buildSimplePersistableFields,
+  SIMPLE_PERSISTED_FIELD_KEYS,
+} from "./persistedFields.js";
 
 export const SERVER_MANAGED_USER_DATA_FIELDS = Object.freeze([
   "subscription",
@@ -20,6 +21,20 @@ export const SERVER_MANAGED_USER_DATA_FIELDS = Object.freeze([
   "planRegenerationUsage",
 ]);
 
+// Guard against a future SIMPLE_PERSISTED_FIELDS entry accidentally reusing a
+// server-managed field name, which would let the client overwrite a
+// server/Stripe-owned value. This throws at import time, not per-call, so it
+// fails loudly in tests/dev rather than silently weakening the write payload.
+const overlappingFieldNames = SIMPLE_PERSISTED_FIELD_KEYS.filter((key) =>
+  SERVER_MANAGED_USER_DATA_FIELDS.includes(key)
+);
+
+if (overlappingFieldNames.length > 0) {
+  throw new Error(
+    `Persisted field manifest conflicts with server-managed fields: ${overlappingFieldNames.join(", ")}`
+  );
+}
+
 export function isSameAuthenticatedUser(model, uid) {
   return Boolean(uid) && model?.user?.uid === uid;
 }
@@ -27,21 +42,13 @@ export function isSameAuthenticatedUser(model, uid) {
 export function buildClientPersistableUserData(model = {}) {
   return {
     questionnaire: model.questionnaire,
-    primaryCombatSport: model.primaryCombatSport,
-    sessionsPerWeek: model.sessionsPerWeek,
     trainingPlan: model.trainingPlan,
     trainingPlanHistory: Array.isArray(model.trainingPlanHistory)
       ? model.trainingPlanHistory
       : [],
-    completedDays: Array.from(model.completedDays || []),
-    trainingPlanBatch: model.trainingPlanBatch,
-    completedWeeks: model.completedWeeks,
-    trainingPerformanceState: model.trainingPerformanceState,
-    strengthAssessmentState: model.strengthAssessmentState,
-    trainingCheckInState: model.trainingCheckInState,
-    activeSessionProgressByKey: model.activeSessionProgressByKey,
-    completedSessionProgressByKey: model.completedSessionProgressByKey,
-    forumProfile: normalizeForumProfile(model.forumProfile),
+    // See SIMPLE_PERSISTED_FIELDS in persistedFields.js - adding a new
+    // client-owned field there is picked up here automatically.
+    ...buildSimplePersistableFields(model),
   };
 }
 

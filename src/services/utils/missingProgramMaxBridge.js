@@ -47,47 +47,9 @@ function ensureRpeBridgeNotes(notes = "", targetRpe = 8) {
     .join(" ");
 }
 
-function getAssessmentReps(reps, assessmentMethod) {
+function getRpeBridgeReps(reps) {
   const parsedReps = parsePositiveInteger(reps);
-
-  if (assessmentMethod === "true_1rm") {
-    return "1";
-  }
-
-  if (assessmentMethod === "multi_rm") {
-    return parsedReps >= 2 && parsedReps <= 5 ? reps : "2-5";
-  }
-
   return parsedReps >= 3 && parsedReps <= 10 ? reps : "3-5";
-}
-
-function getAssessmentMethod(userInput = {}) {
-  if (userInput?.programMaxSetup !== "calibration_week") {
-    return "rpe_based_1rm";
-  }
-
-  const requestedMethod = ["true_1rm", "multi_rm", "rpe_based_1rm"].includes(
-    userInput?.percentageReferenceMethod
-  )
-    ? userInput.percentageReferenceMethod
-    : "rpe_based_1rm";
-
-  if (requestedMethod !== "true_1rm") {
-    return requestedMethod;
-  }
-
-  const competitionDate = new Date(
-    userInput?.competitionTimeline || userInput?.eventPreparation || ""
-  );
-  const millisecondsUntilCompetition = competitionDate.getTime() - Date.now();
-  const isWithinEightWeeks =
-    Number.isFinite(millisecondsUntilCompetition) &&
-    millisecondsUntilCompetition >= 0 &&
-    millisecondsUntilCompetition <= 8 * 7 * 24 * 60 * 60 * 1000;
-
-  return userInput?.experience === "beginner" || isWithinEightWeeks
-    ? "multi_rm"
-    : requestedMethod;
 }
 
 function isLikelyMainLift(exercise = {}) {
@@ -130,8 +92,6 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
     userInput?.strengthAssessmentSummary
   );
   const bridgedLiftKeys = new Set();
-  const requestedAssessmentMethod = getAssessmentMethod(userInput);
-  let trueRmAssigned = false;
 
   return {
     ...plan,
@@ -142,10 +102,6 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
         exercises: (Array.isArray(day?.exercises) ? day.exercises : []).map((exercise) => {
           const liftName = normalizeString(exercise?.name);
           const liftKey = toLiftKey(liftName);
-          const assessmentMethod =
-            requestedAssessmentMethod === "true_1rm" && trueRmAssigned
-              ? "multi_rm"
-              : requestedAssessmentMethod;
           const targetRpe = parseRpeTarget(exercise);
           const isRequiredLift =
             liftKey &&
@@ -200,26 +156,16 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
           }
 
           bridgedLiftKeys.add(liftKey);
-          if (assessmentMethod === "true_1rm") {
-            trueRmAssigned = true;
-          }
           return {
             ...exercise,
-            notes:
-              assessmentMethod === "rpe_based_1rm"
-                ? ensureRpeBridgeNotes(exercise?.notes, targetRpe)
-                : exercise?.notes,
-            reps: getAssessmentReps(exercise?.reps, assessmentMethod),
+            notes: ensureRpeBridgeNotes(exercise?.notes, targetRpe),
+            reps: getRpeBridgeReps(exercise?.reps),
             percentagePrescription: null,
             strengthAssessment: {
-              method: assessmentMethod,
+              method: "rpe_based_1rm",
               liftName,
-              minimumRpe:
-                assessmentMethod === "rpe_based_1rm" ? targetRpe : undefined,
-              prompt:
-                assessmentMethod === "rpe_based_1rm"
-                  ? `Log the load, reps, and RPE for ${liftName} so the app can estimate your Program Max.`
-                  : `Complete the ${liftName} calibration and log the result so the app can set your Program Max.`,
+              minimumRpe: targetRpe,
+              prompt: `Log the load, reps, and RPE for ${liftName} so the app can estimate your Program Max.`,
             },
           };
         }),

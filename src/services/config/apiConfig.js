@@ -13,6 +13,13 @@ export const STRIPE_FUNCTIONS_BASE_URL = getEnv(
   process.env.EXPO_PUBLIC_STRIPE_FUNCTIONS_BASE_URL,
   "STRIPE_FUNCTIONS_BASE_URL"
 ) || `https://${STRIPE_FUNCTIONS_REGION}-${FIREBASE_PROJECT_ID}.cloudfunctions.net`;
+const HOSTING_BASE_URL = getEnv(
+  process.env.EXPO_PUBLIC_HOSTING_BASE_URL,
+  "HOSTING_BASE_URL"
+) || `https://${FIREBASE_PROJECT_ID}.web.app`;
+export const DELETE_ACCOUNT_REQUEST_URL = `${HOSTING_BASE_URL}/delete-account`;
+export const PRIVACY_POLICY_URL = `${HOSTING_BASE_URL}/privacy-policy`;
+export const FORUM_POLICY_URL = `${HOSTING_BASE_URL}/forum-policy`;
 
 export const OPENAI_PLAN_GENERATION_MODEL = getEnv(
   process.env.EXPO_PUBLIC_OPENAI_PLAN_GENERATION_MODEL ||

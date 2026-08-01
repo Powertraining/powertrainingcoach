@@ -14,8 +14,6 @@ Max missing
 Use RPE-based loading temporarily
 Enough data collected
 Estimate Program Max and switch to percentage-based loading
-User wants more accuracy before starting
-Offer optional Calibration Week
 
 Step 1: Identify Required Percentage-Based Lifts
 Only main big lifts need max data.
@@ -136,10 +134,10 @@ Calculation:
 5 completed reps
 RPE 8 = 2 reps in reserve
 Estimated max reps = 7
-140 × (1 + 7/30) = 173 kg estimated 1RM
+140 × (1 + 7/30) = 172.7 kg estimated 1RM
 Then:
-Program Max = 90% of estimated 1RM
-173 × 0.90 = 156 kg Program Max
+Program Max = 100% of the estimated 1RM (no reduction applied to auto-estimated maxes)
+Program Max = 172.7 kg
 Round load:
 kg: nearest 2.5 kg
 lb: nearest 5 lb

@@ -239,13 +239,12 @@ ${includeEnduranceSchema ? `- When an exercise is dedicated endurance work, incl
 - For sprinting exercises, also include "sprintPrescription" with "target", "distanceMeters", "repsPerSet", "sets", "restBetweenReps", "restBetweenSets", and "stopRule".` : ""}
 ${includePercentageSchema ? `- On percentage-based primary lifts with a known Program Max in the user input or strengthAssessmentSummary, include "percentagePrescription" with "referenceLiftName", "loadingStrategy", and "workingSets". Start percentage loading from the first generated exposure.
 - If a primary lift's Program Max is missing from both the user input and strengthAssessmentSummary, prescribe RPE-based loading for that lift only (no percentagePrescription) and include "strengthAssessment" with method "rpe_based_1rm". Use RPE 7-9 at 3-10 reps, preferably 3-5 reps, so the app can estimate the max from logged Week 1 data.
-- Apply the automatic missing-max RPE bridge regardless of percentageReferenceMethod. If programMaxSetup is "calibration_week", make Week 1 an explicit optional calibration week using the selected safe percentageReferenceMethod, with percentage loading beginning on later exposures after results are logged.
+- Always apply the automatic missing-max RPE bridge in Week 1 regardless of percentageReferenceMethod. Never schedule a dedicated calibration week; start normal training immediately and let the app estimate any missing Program Max from logged Week 1 RPE data.
 - For missing-max bridge work, "strengthAssessment.method" must be "rpe_based_1rm"; for deliberately scheduled RM tests, "strengthAssessment.method" must be "multi_rm" or "true_1rm".
 - Do not use "rpe_based_1rm" as a standalone testing week when a Program Max is already known.` : `- Do not invent percentagePrescription objects when the athlete is not using the percentage system.`}
 - When the athlete is using RPE instead of the percentage system, do not add "percentagePrescription" or "strengthAssessment".
 - Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric pull-ups, weighted pull-ups, and lat pulldowns must stay RPE/RIR-based; never add "percentagePrescription" or "strengthAssessment" to those exercises.
-- Back-squat jumps, trap-bar jumps, and similar loaded jumps must use body mass as the primary loading reference. Include "bodyMassLoadPrescription" with numeric "minPercent" and "maxPercent" (normally 30 and 60). These percentages describe the total external load (bar + plates), not a percentage of the exercise 1RM.
-- Never add "percentagePrescription" or "strengthAssessment" to a loaded jump. State the selected % BM range clearly; account for the empty bar and use a lighter implement if the bar alone exceeds the target.
+- Add "loggingFields" only when the app needs to log something other than standard load/reps/RPE for that exercise. Each entry is an object with "type", "label", and optional "placeholder", for example { "type": "height", "label": "Drop height", "placeholder": "e.g. 40 cm" }. Depth jumps and drop jumps must always include a "loggingFields" entry of type "height" so the app tracks height as the primary value instead of load. Omit "loggingFields" for standard sets.
 - When a field is not needed, omit it instead of filling it with placeholders.
 `;
 }
@@ -334,7 +333,7 @@ function buildPlanJsonExample(userInput = {}) {
                 includePercentageSchema && hasKnownProgramMax
                   ? `,
               "percentagePrescription": {
-                "referenceLiftName": "Back Squat",
+                "referenceLiftName": "Back Squat (High-Bar)",
                 "loadingStrategy": "flat_loading",
                 "workingSets": [
                   {
@@ -349,7 +348,7 @@ function buildPlanJsonExample(userInput = {}) {
                     ? `,
               "strengthAssessment": {
                 "method": "rpe_based_1rm",
-                "liftName": "Back Squat",
+                "liftName": "Back Squat (High-Bar)",
                 "prompt": "Log the load, reps, and RPE so the app can estimate your Program Max."
               }`
                   : ""

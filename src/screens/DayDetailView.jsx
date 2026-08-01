@@ -60,11 +60,6 @@ import {
 } from "../services/utils/exerciseSets.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
-import LoadedJumpGuideline from "../components/planComponents/LoadedJumpGuideline.jsx";
-import {
-    formatBodyMassLoadRange,
-    getLoadedJumpPrescription,
-} from "../services/utils/loadedJumpPrescription.js";
 function buildTrackingDrafts(
     exercises = [],
     initialPerformanceResults = [],
@@ -768,8 +763,54 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
     };
 }
 
+function isMedicineBallExercise(exercise = {}) {
+    const exerciseText = `${exercise?.name || ""} ${exercise?.notes || ""}`.toLowerCase();
+    return /\bmed(?:icine)?[\s-]?ball\b/.test(exerciseText);
+}
+
+function getMedicineBallIntensity(exercise = {}) {
+    if (!isMedicineBallExercise(exercise)) {
+        return "";
+    }
+
+    const exerciseText = `${exercise?.notes || ""} ${exercise?.reps || ""}`;
+    const kgMatch = exerciseText.match(
+        /\b(\d+(?:[.,]\d+)?)(?:\s*[-–]\s*(\d+(?:[.,]\d+)?))?\s*kgs?\b/i
+    );
+    const startKg = kgMatch ? Number.parseFloat(kgMatch[1].replace(",", ".")) : 2;
+    const endKg = kgMatch
+        ? (kgMatch[2] ? Number.parseFloat(kgMatch[2].replace(",", ".")) : null)
+        : 8;
+    const toLb = (kg) => Math.round(kg * 2.20462);
+    const formatRange = (start, end, unit) =>
+        end != null ? `${start}-${end} ${unit}` : `${start} ${unit}`;
+
+    return `${formatRange(startKg, endKg, "kg")} (${formatRange(
+        toLb(startKg),
+        endKg != null ? toLb(endKg) : null,
+        "lb"
+    )})`;
+}
+
+function isBodyweightOnlyPlyoExercise(exercise = {}) {
+    const exerciseText = `${exercise?.name || ""} ${exercise?.notes || ""}`.toLowerCase();
+
+    if (!/\b(?:jump|plyo|pogo|hop|bound)/.test(exerciseText)) {
+        return false;
+    }
+
+    if (
+        /\b(?:trap[\s-]?bar|loaded|weighted|dumbbell|barbell|kettlebell|kgs?|kilograms?|depth jump|drop jump|drop height)\b/.test(
+            exerciseText
+        )
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
 function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
-    const loadedJumpPrescription = getLoadedJumpPrescription(exercise);
     const recommendation = getExerciseRecommendationDisplay(
         exercise,
         strengthReferenceOneRepMaxByLift
@@ -819,11 +860,16 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
         recommendationDetails.find((detail) => /%|BPM|zone/i.test(detail)) ||
         recommendationDetails[0] ||
         "";
-    const intensity = loadedJumpPrescription
-        ? formatBodyMassLoadRange(loadedJumpPrescription)
-        : formatIntensityDisplay(displayedTargetRpe
+    const medicineBallIntensity = getMedicineBallIntensity(exercise);
+    const bodyweightOnlyPlyoIntensity =
+        !medicineBallIntensity && isBodyweightOnlyPlyoExercise(exercise) ? "Bodyweight" : "";
+    const intensity = formatIntensityDisplay(
+        medicineBallIntensity ||
+        bodyweightOnlyPlyoIntensity ||
+        (displayedTargetRpe
             ? `RPE ${displayedTargetRpe}`
-            : endurancePrescription.intensity || intensityFromDetails);
+            : endurancePrescription.intensity || intensityFromDetails)
+    );
     const exerciseSetCount = getExerciseSetDisplayValue(exercise);
     const sets = String(exerciseSetCount || sprintPrescription.sets || "").trim();
     const formatRepDisplay = (value = "") =>
@@ -1431,8 +1477,6 @@ export default function DayDetailView({
                                                 exerciseSubstitutionOptions.length > 1 &&
                                                 onReplaceExercise;
                                             const hasExerciseTips = Boolean(ex.notes);
-                                            const loadedJumpPrescription =
-                                                getLoadedJumpPrescription(ex);
                                             const totalSetCount = parsePrescribedSetCount(ex);
                                             const completedSetCount =
                                                 completedSessionStepKeys.size > 0
@@ -1555,9 +1599,6 @@ export default function DayDetailView({
                                                                             </IBMPlexText>
                                                                         ))}
                                                                     </View>
-                                                                ) : null}
-                                                                {loadedJumpPrescription ? (
-                                                                    <LoadedJumpGuideline compact />
                                                                 ) : null}
                                                                 <View style={styles.tabButtonDivider} />
                                                             </View>
