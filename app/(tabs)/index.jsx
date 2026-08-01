@@ -23,6 +23,7 @@ import { isUserAdmin } from "../../src/services/models/authService.js";
 
 import StartView from "../../src/screens/home/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/questionnaire/QuestionnaireSportView.jsx";
+import QuestionnaireMeasurementSystemView from "../../src/screens/questionnaire/QuestionnaireMeasurementSystemView.jsx";
 import QuestionnaireFrequencyView from "../../src/screens/questionnaire/QuestionnaireFrequencyView.jsx";
 import InputFormView from "../../src/screens/InputFormView.jsx";
 import {
@@ -52,6 +53,7 @@ import { QUESTIONNAIRE_CHECKOUT_RETURN_TO } from "../../src/services/utils/check
 const STEPS = Object.freeze({
   START: "start",
   Q_SPORT: "questionnaireSport",
+  Q_UNITS: "questionnaireMeasurementSystem",
   Q_FREQ: "questionnaireFrequency",
   INPUT: "input",
 });
@@ -160,6 +162,7 @@ const HomeScreen = observer(function HomeScreen() {
     const allowedSteps = new Set([
       STEPS.START,
       STEPS.Q_SPORT,
+      STEPS.Q_UNITS,
       STEPS.Q_FREQ,
       STEPS.INPUT,
     ]);
@@ -255,7 +258,11 @@ const HomeScreen = observer(function HomeScreen() {
       return;
     }
 
-    if (step === STEPS.Q_SPORT || step === STEPS.Q_FREQ) {
+    if (
+      step === STEPS.Q_SPORT ||
+      step === STEPS.Q_UNITS ||
+      step === STEPS.Q_FREQ
+    ) {
       goBack();
       return;
     }
@@ -286,12 +293,15 @@ const HomeScreen = observer(function HomeScreen() {
       case STEPS.Q_SPORT:
         setStep(STEPS.START);
         break;
+      case STEPS.Q_UNITS:
+        setQuestionnaireStep(STEPS.Q_SPORT);
+        break;
       case STEPS.Q_FREQ:
         setInputActiveStep(1);
         setQuestionnaireStep(STEPS.INPUT);
         break;
       case STEPS.INPUT:
-        setQuestionnaireStep(STEPS.Q_SPORT);
+        setQuestionnaireStep(STEPS.Q_UNITS);
         break;
       default:
         setStep(STEPS.START);
@@ -335,13 +345,18 @@ const HomeScreen = observer(function HomeScreen() {
         step: STEPS.Q_SPORT,
       },
       {
-        label: "Training frequency",
+        label: "Measurement system",
         detail: "Question 2",
+        step: STEPS.Q_UNITS,
+      },
+      {
+        label: "Training frequency",
+        detail: "Question 3",
         step: STEPS.Q_FREQ,
       },
       ...getTrainingPreferencesStepKeys(inputValues).map((stepKey, index) => ({
         label: getTrainingPreferencesStepLabel(stepKey),
-        detail: `Question ${index + 3}`,
+        detail: `Question ${index + 4}`,
         step: STEPS.INPUT,
         inputStep: index,
         inputStepKey: stepKey,
@@ -762,6 +777,22 @@ const HomeScreen = observer(function HomeScreen() {
           setQuestionnaireDraft((currentDraft) => ({
             ...currentDraft,
             primaryCombatSport: sport,
+          }));
+        }}
+        onBack={goBack}
+        onClose={closeQuestionnaire}
+        onContinue={() => setQuestionnaireStep(STEPS.Q_UNITS)}
+      />
+    ),
+
+    [STEPS.Q_UNITS]: () => (
+      <QuestionnaireMeasurementSystemView
+        value={model.unitSystem}
+        onChange={(unitSystem) => {
+          model.unitSystem = unitSystem;
+          setQuestionnaireDraft((currentDraft) => ({
+            ...currentDraft,
+            unitSystem,
           }));
         }}
         onBack={goBack}

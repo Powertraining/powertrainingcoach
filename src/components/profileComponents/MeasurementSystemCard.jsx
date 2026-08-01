@@ -14,7 +14,7 @@ const OPTIONS = Object.freeze([
 
 const GOLD = "#C9B259";
 
-export default function MeasurementSystemCard({ value, disabled, onChange }) {
+export function MeasurementSystemSelector({ value, disabled, onChange }) {
   const selectedValue = normalizeUnitSystem(value);
   const selectedIndex = selectedValue === UNIT_SYSTEMS.IMPERIAL ? 1 : 0;
   const slideProgress = useRef(new Animated.Value(selectedIndex)).current;
@@ -32,18 +32,10 @@ export default function MeasurementSystemCard({ value, disabled, onChange }) {
   }, [selectedIndex, slideProgress]);
 
   return (
-    <View style={[styles.card, disabled ? styles.cardDisabled : null]}>
-      <View style={styles.copy}>
-        <IBMPlexText style={styles.title}>Measurement system</IBMPlexText>
-        <IBMPlexText style={styles.text}>
-          Updates units throughout your program. Saved training data stays unchanged.
-        </IBMPlexText>
-      </View>
-
-      <View
+    <View
         accessibilityRole="radiogroup"
         onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
-        style={styles.options}
+        style={[styles.options, disabled ? styles.selectorDisabled : null]}
       >
         {thumbWidth > 0 ? (
           <Animated.View
@@ -82,7 +74,25 @@ export default function MeasurementSystemCard({ value, disabled, onChange }) {
             </Pressable>
           );
         })}
+    </View>
+  );
+}
+
+export default function MeasurementSystemCard({ value, disabled, onChange }) {
+  return (
+    <View style={[styles.card, disabled ? styles.cardDisabled : null]}>
+      <View style={styles.copy}>
+        <IBMPlexText style={styles.title}>Measurement system</IBMPlexText>
+        <IBMPlexText style={styles.text}>
+          Updates units throughout your program. Saved training data stays unchanged.
+        </IBMPlexText>
       </View>
+
+      <MeasurementSystemSelector
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+      />
     </View>
   );
 }
@@ -100,6 +110,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   cardDisabled: {
+    opacity: 0.58,
+  },
+  selectorDisabled: {
     opacity: 0.58,
   },
   copy: {
