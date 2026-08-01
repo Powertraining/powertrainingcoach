@@ -18,15 +18,15 @@ import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
 const PERCENTAGE_REFERENCE_BUTTONS = Object.freeze({
   rpe_based_1rm: {
-    label: "Estimate from RPE top set",
-    mediaText: "RPE",
+    label: "Estimate from reps in reserve",
+    mediaText: "RIR",
   },
   multi_rm: {
-    label: "Estimate from 2-5 reps",
-    mediaText: "2-5RM",
+    label: "Estimate from a hard set",
+    mediaText: "2–5RM",
   },
   true_1rm: {
-    label: "Use tested max",
+    label: "Use a tested maximum",
     mediaText: "1RM",
   },
 });
@@ -83,7 +83,7 @@ export default function PercentageReferenceMethodView({
   return (
     <View style={[styles.section, { minHeight: screenHeight }]}>
       <IBMPlexText titleBlock height={TITLE_BLOCK_HEIGHT}>
-        How do you prefer to perform max tests?
+        How would you like to determine your 1RM?
       </IBMPlexText>
       <ScrollView
         style={styles.optionsScroll}

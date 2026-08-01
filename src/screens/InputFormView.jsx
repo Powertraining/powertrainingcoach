@@ -163,6 +163,7 @@ export default function InputFormView({
     const isLiftIntensityMethodStep = activeStepKey === "liftIntensityMethod";
     const isPercentageReferenceMethodStep = activeStepKey === "percentageReferenceMethod";
     const isDeloadStrategyStep = activeStepKey === "deloadStrategy";
+    const isLoadingStrategyStep = activeStepKey === "loadingStrategy";
     const liftIntensityMethodStepSelected = Boolean(trainingPreferences.liftIntensityMethod);
     const percentageReferenceMethodStepSelected = Boolean(
         trainingPreferences.percentageReferenceMethod
@@ -328,7 +329,8 @@ export default function InputFormView({
                     isEnduranceCircuitFocusStep ||
                     isLiftIntensityMethodStep ||
                     isPercentageReferenceMethodStep ||
-                    isDeloadStrategyStep
+                    isDeloadStrategyStep ||
+                    isLoadingStrategyStep
                         ? styles.centerFullHeight
                         : null,
                     isCombatTrainingIntensityStep

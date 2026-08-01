@@ -66,19 +66,19 @@ export const PERCENTAGE_REFERENCE_METHOD_OPTIONS = Object.freeze([
     label: "1. True 1RM tests",
     value: "true_1rm",
     description:
-      "Rare, most precise, and only suitable far from competition for experienced lifters.",
+      "Enter the heaviest weight you can lift once with good technique. Choose this only if you have tested your 1RM recently and are experienced with maximal lifting.",
   },
   {
     label: "2. 2-5RM + Epley estimate",
     value: "multi_rm",
     description:
-      "Use a hard set of 2-5 reps, then estimate 1RM with Epley's formula for future percentage work.",
+      "Complete the heaviest set of 2–5 clean reps you can perform. We’ll use the weight and number of reps to estimate your 1RM.",
   },
   {
     label: "3. RPE-based 1RM estimation",
     value: "rpe_based_1rm",
     description:
-      "Default option. Estimate 1RM from a clean 1-3 rep top set by adding reps in reserve (We use Epley's formula).",
+      "Complete a heavy set of 1–3 reps, then estimate how many more reps you could have performed. We’ll use the weight, reps, and reps in reserve to estimate your 1RM.\n\nRecommended for most users.",
   },
 ]);
 
@@ -97,24 +97,21 @@ export const DELOAD_STRATEGY_OPTIONS = Object.freeze([
 
 export const LOADING_STRATEGY_OPTIONS = Object.freeze([
   {
-    label: "Straight Loading",
+    label: "Flat Loading",
     value: "flat_loading",
-    description:
-      "Use the same load for every working set. Simple, consistent, and easy to track.",
-    example: "4 sets x 5 reps @ 80%",
+    description: "Keep the load the same across all sets.",
+    example: "80% -> 80% -> 80% -> 80%",
   },
   {
-    label: "Ascending Loading",
+    label: "Ascending",
     value: "ascending_pyramid",
-    description:
-      "Start lighter and increase the load each set. Best for building toward heavier work gradually.",
+    description: "Start lighter, then increase the load each set.",
     example: "70% -> 75% -> 80% -> 85%",
   },
   {
-    label: "Descending Loading",
+    label: "Descending",
     value: "descending_pyramid",
-    description:
-      "Start heavier, then reduce the load each set. Best when you want your heaviest work while fresh.",
+    description: "Start heavier, then reduce the load each set.",
     example: "85% -> 80% -> 75% -> 70%",
   },
 ]);
