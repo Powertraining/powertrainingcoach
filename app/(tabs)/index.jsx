@@ -302,19 +302,31 @@ const HomeScreen = observer(function HomeScreen() {
     setStep(STEPS.START);
   }
 
-  function getQuestionnaireNavigatorItems() {
-    const inputValues = {
+  function getQuestionnaireNavigationValues() {
+    return {
+      ...(model.questionnaire || {}),
       ...questionnaireDraft,
       primaryCombatSport:
-        questionnaireDraft?.primaryCombatSport || model.primaryCombatSport,
+        questionnaireDraft?.primaryCombatSport ||
+        model.primaryCombatSport ||
+        model.questionnaire?.primaryCombatSport,
       sessionsPerWeek:
-        questionnaireDraft?.sessionsPerWeek || model.sessionsPerWeek || 1,
+        questionnaireDraft?.sessionsPerWeek ||
+        model.questionnaire?.sessionsPerWeek ||
+        model.sessionsPerWeek ||
+        1,
       daysPerWeek:
         questionnaireDraft?.daysPerWeek ||
         questionnaireDraft?.sessionsPerWeek ||
+        model.questionnaire?.daysPerWeek ||
+        model.questionnaire?.sessionsPerWeek ||
         model.sessionsPerWeek ||
         1,
     };
+  }
+
+  function getQuestionnaireNavigatorItems() {
+    const inputValues = getQuestionnaireNavigationValues();
 
     return [
       {
@@ -332,6 +344,7 @@ const HomeScreen = observer(function HomeScreen() {
         detail: `Question ${index + 3}`,
         step: STEPS.INPUT,
         inputStep: index,
+        inputStepKey: stepKey,
       })),
     ];
   }
@@ -379,7 +392,19 @@ const HomeScreen = observer(function HomeScreen() {
   function navigateToQuestionnaireItem(item) {
     closeQuestionnaireNavigator();
 
-    if (typeof item.inputStep === "number") {
+    if (item.step === STEPS.INPUT && item.inputStepKey) {
+      const navigationValues = getQuestionnaireNavigationValues();
+      const targetStep = getTrainingPreferencesStepKeys(navigationValues).indexOf(
+        item.inputStepKey
+      );
+
+      if (targetStep < 0) {
+        return;
+      }
+
+      setQuestionnaireDraft(navigationValues);
+      setInputActiveStep(targetStep);
+    } else if (typeof item.inputStep === "number") {
       setInputActiveStep(item.inputStep);
     }
 
