@@ -1,6 +1,8 @@
 import { Pressable, View, StyleSheet } from "react-native";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 
+const GOLD = "#C9B259";
+
 export default function LegalLinkCard({ title, text, onPress, disabled }) {
   return (
     <Pressable
@@ -66,7 +68,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   actionText: {
-    color: "#ffffff",
+    color: GOLD,
     flexShrink: 0,
     fontSize: 12, fontWeight: "800",
     lineHeight: 16,

@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
 
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 import {
@@ -11,8 +12,24 @@ const OPTIONS = Object.freeze([
   { label: "Imperial", detail: "lb, mi, in", value: UNIT_SYSTEMS.IMPERIAL },
 ]);
 
+const GOLD = "#C9B259";
+
 export default function MeasurementSystemCard({ value, disabled, onChange }) {
   const selectedValue = normalizeUnitSystem(value);
+  const selectedIndex = selectedValue === UNIT_SYSTEMS.IMPERIAL ? 1 : 0;
+  const slideProgress = useRef(new Animated.Value(selectedIndex)).current;
+  const [trackWidth, setTrackWidth] = useState(0);
+  const thumbWidth = Math.max(0, (trackWidth - 8) / OPTIONS.length);
+
+  useEffect(() => {
+    Animated.spring(slideProgress, {
+      toValue: selectedIndex,
+      damping: 18,
+      stiffness: 190,
+      mass: 0.7,
+      useNativeDriver: true,
+    }).start();
+  }, [selectedIndex, slideProgress]);
 
   return (
     <View style={[styles.card, disabled ? styles.cardDisabled : null]}>
@@ -23,7 +40,23 @@ export default function MeasurementSystemCard({ value, disabled, onChange }) {
         </IBMPlexText>
       </View>
 
-      <View accessibilityRole="radiogroup" style={styles.options}>
+      <View
+        accessibilityRole="radiogroup"
+        onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
+        style={styles.options}
+      >
+        {thumbWidth > 0 ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.sliderThumb,
+              {
+                width: thumbWidth,
+                transform: [{ translateX: Animated.multiply(slideProgress, thumbWidth) }],
+              },
+            ]}
+          />
+        ) : null}
         {OPTIONS.map((option) => {
           const selected = selectedValue === option.value;
 
@@ -86,24 +119,33 @@ const styles = StyleSheet.create({
   },
   options: {
     backgroundColor: "#0D0D0D",
+    borderColor: "#242119",
     borderRadius: 14,
+    borderWidth: 1,
     flexDirection: "row",
-    gap: 6,
-    padding: 5,
+    overflow: "hidden",
+    padding: 4,
+    position: "relative",
+  },
+  sliderThumb: {
+    backgroundColor: GOLD,
+    borderRadius: 10,
+    bottom: 4,
+    left: 4,
+    position: "absolute",
+    top: 4,
   },
   option: {
     alignItems: "center",
-    borderColor: "transparent",
     borderRadius: 10,
-    borderWidth: 1,
     flex: 1,
     gap: 2,
     paddingHorizontal: 10,
     paddingVertical: 9,
+    zIndex: 1,
   },
   optionSelected: {
-    backgroundColor: "rgba(10, 132, 255, 0.16)",
-    borderColor: "#0A84FF",
+    backgroundColor: "transparent",
   },
   optionPressed: {
     opacity: 0.72,
@@ -115,7 +157,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   optionLabelSelected: {
-    color: "#FFFFFF",
+    color: "#111111",
   },
   optionDetail: {
     color: "#71717A",
@@ -124,6 +166,6 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   optionDetailSelected: {
-    color: "#7CC0FF",
+    color: "rgba(17, 17, 17, 0.72)",
   },
 });
