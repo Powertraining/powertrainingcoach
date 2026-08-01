@@ -2,6 +2,7 @@ import { View, StyleSheet } from "react-native";
 
 import PersonalDetailsUsernameCard from "../../components/profileComponents/PersonalDetailsUsernameCard.jsx";
 import PersonalDetailsPasswordCard from "../../components/profileComponents/PersonalDetailsPasswordCard.jsx";
+import MeasurementSystemCard from "../../components/profileComponents/MeasurementSystemCard.jsx";
 import DeleteAccountCard from "../../components/profileComponents/DeleteAccountCard.jsx";
 import LegalLinkCard from "../../components/profileComponents/LegalLinkCard.jsx";
 import FadeInFromBottomView from "../../components/navigation/FadeInFromBottomView.jsx";
@@ -24,6 +25,13 @@ export default function ProfilePersonalDetailsView(props) {
           />
         </FadeInFromBottomView>
         <FadeInFromBottomView delay={180}>
+          <MeasurementSystemCard
+            value={props.unitSystem}
+            disabled={props.isSubmitting}
+            onChange={props.onUnitSystemChange}
+          />
+        </FadeInFromBottomView>
+        <FadeInFromBottomView delay={220}>
           <LegalLinkCard
             title="Privacy Policy"
             text="How we collect, use, and protect your data"
@@ -31,7 +39,7 @@ export default function ProfilePersonalDetailsView(props) {
             onPress={props.onOpenPrivacyPolicy}
           />
         </FadeInFromBottomView>
-        <FadeInFromBottomView delay={220}>
+        <FadeInFromBottomView delay={260}>
           <LegalLinkCard
             title="Forum Policy"
             text="Community rules for the Power Training forum"
@@ -39,7 +47,7 @@ export default function ProfilePersonalDetailsView(props) {
             onPress={props.onOpenForumPolicy}
           />
         </FadeInFromBottomView>
-        <FadeInFromBottomView delay={260}>
+        <FadeInFromBottomView delay={300}>
           <DeleteAccountCard
             disabled={props.isSubmitting}
             onPress={props.onDeleteAccountRequest}

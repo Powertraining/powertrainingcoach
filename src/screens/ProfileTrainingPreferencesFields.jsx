@@ -36,6 +36,7 @@ import {
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
 import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import { formatMeasurementText } from "../services/utils/measurementUnits.js";
 const SESSION_DURATION_ITEM_WIDTH = 96;
 const SESSION_DURATION_ITEM_HEIGHT = 70;
 const LIFT_INTENSITY_CARD_WIDTH = 190;
@@ -1094,7 +1095,12 @@ function ProfileLoadingBlock({ width, isSelected }) {
   );
 }
 
-export function ProfileDeloadStrategyOptions({ value, onChange, compact = false }) {
+export function ProfileDeloadStrategyOptions({
+  value,
+  onChange,
+  compact = false,
+  unitSystem = "metric",
+}) {
   const scrollRef = useRef(null);
   const isAdjustingRef = useRef(false);
   const { width: screenWidth } = useWindowDimensions();
@@ -1247,7 +1253,7 @@ export function ProfileDeloadStrategyOptions({ value, onChange, compact = false 
                         loadChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
-                      10kg
+                      {formatMeasurementText("10kg", unitSystem)}
                     </IBMPlexText>
                   </View>
                   <Image
@@ -1270,7 +1276,10 @@ export function ProfileDeloadStrategyOptions({ value, onChange, compact = false 
                         loadChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
-                      {content?.afterWeight ?? "10kg"}
+                      {formatMeasurementText(
+                        content?.afterWeight ?? "10kg",
+                        unitSystem
+                      )}
                     </IBMPlexText>
                   </View>
                 </View>
@@ -1482,6 +1491,7 @@ export default function ProfileTrainingPreferencesFields({
   colorScheme = "dark",
   endurancePreferencesBare = false,
   endurancePreferencesLabel = "Endurance preferences",
+  unitSystem = "metric",
 }) {
   const safeValues = values && typeof values === "object" ? values : {};
   const resolvedValues = getTrainingPreferencesFormState(safeValues);
@@ -1832,6 +1842,7 @@ export default function ProfileTrainingPreferencesFields({
             <FieldPanel label="Deload strategy">
               <ProfileDeloadStrategyOptions
                 value={resolvedValues.deloadStrategy}
+                unitSystem={unitSystem}
                 onChange={(value) => updateField("deloadStrategy", value)}
               />
             </FieldPanel>

@@ -49,6 +49,7 @@ export default function InputFormView({
     onClose,
     onDesiredTrainingContinue,
     onBackToFrequency,
+    unitSystem = "metric",
 }) {
     const [trainingPreferences, setTrainingPreferences] = useState(() => {
         const formState = getTrainingPreferencesFormState(initialValues);
@@ -358,6 +359,7 @@ export default function InputFormView({
 
                         <TrainingPreferencesFields
                             values={trainingPreferences}
+                            unitSystem={unitSystem}
                             onChange={updateTrainingPreferences}
                             appLogicTitle="App Logic Settings"
                             appLogicDescription="Choose the strength-planning logic you want the app to use for this athlete profile."

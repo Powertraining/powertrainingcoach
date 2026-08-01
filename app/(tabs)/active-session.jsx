@@ -270,6 +270,7 @@ const ActiveSessionScreen = observer(function ActiveSessionScreen() {
     <ExpandingRouteView routeKey={sessionProgressKey}>
       <ActiveSessionView
         plan={plan}
+        unitSystem={model.unitSystem}
         weekNumber={selectedDay.week}
         day={selectedDay.dayData}
         exercises={selectedDay.exercises}

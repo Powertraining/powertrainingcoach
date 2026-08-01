@@ -29,6 +29,7 @@ import {
 } from "../../src/services/utils/mediaUpload.js";
 import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
+import { normalizeUnitSystem } from "../../src/services/utils/measurementUnits.js";
 
 function getSyncedTrainingPreferences(questionnaire = {}, sessionsPerWeek = 3) {
   const resolvedSessionsPerWeek = Number.parseInt(sessionsPerWeek, 10) || 3;
@@ -244,6 +245,10 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     setTrainingPreferences((currentPreferences) =>
       getSyncedTrainingPreferences(currentPreferences, nextSessionsPerWeek)
     );
+  }
+
+  function changeUnitSystemACB(nextUnitSystem) {
+    model.unitSystem = normalizeUnitSystem(nextUnitSystem);
   }
 
   function clearEventPreparationACB() {
@@ -482,6 +487,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         combatSportOptions={PRIMARY_COMBAT_SPORT_OPTIONS}
         primaryCombatSport={primaryCombatSport}
         sessionsPerWeek={sessionsPerWeek}
+        unitSystem={model.unitSystem}
         planRegenerationsRemaining={model.getPlanRegenerationsRemaining?.() ?? 3}
         canRegeneratePlan={!model.isOnFreeTrial?.()}
         onUsernameChange={setUsername}
@@ -495,6 +501,7 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}
         onSessionsPerWeekChange={changeSessionsPerWeekACB}
+        onUnitSystemChange={changeUnitSystemACB}
         onRegeneratePlan={regeneratePlanACB}
         onClearEventPreparation={clearEventPreparationACB}
         onSave={saveACB}

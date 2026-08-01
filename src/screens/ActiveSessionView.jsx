@@ -51,6 +51,10 @@ import {
   formatBodyMassLoadRange,
   getLoadedJumpPrescription,
 } from "../services/utils/loadedJumpPrescription.js";
+import {
+  formatMeasurementText,
+  formatWeightFromKilograms,
+} from "../services/utils/measurementUnits.js";
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
 const SESSION_CONTENT_SLIDE_DURATION_MS = 220;
@@ -420,12 +424,12 @@ function formatCompactNumberUnit(value, unit = "") {
   return `${String(value).replace(/\s+/g, "")}${unit}`;
 }
 
-function formatCompactKg(value) {
+function formatCompactKg(value, unitSystem = "metric") {
   if (!Number.isFinite(value)) {
     return "";
   }
 
-  return `${Math.round(value * 10) / 10}kg`;
+  return formatWeightFromKilograms(value, unitSystem, { compact: true });
 }
 
 function getPrimaryPercentageWorkingSet(percentagePrescription = {}) {
@@ -471,7 +475,11 @@ function getPercentRangeFromNotes(exercise = {}) {
   };
 }
 
-function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+function getEstimatedLoadFromNotesPercent(
+  exercise = {},
+  strengthReferenceOneRepMaxByLift = {},
+  unitSystem = "metric"
+) {
   const percentRange = getPercentRangeFromNotes(exercise);
 
   if (!percentRange) {
@@ -502,13 +510,19 @@ function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRep
       percentRange.endPercent
     );
 
-    return endLoad ? `${formatCompactKg(startLoad)}-${formatCompactKg(endLoad)}` : formatCompactKg(startLoad);
+    return endLoad
+      ? `${formatCompactKg(startLoad, unitSystem)}-${formatCompactKg(endLoad, unitSystem)}`
+      : formatCompactKg(startLoad, unitSystem);
   }
 
-  return formatCompactKg(startLoad);
+  return formatCompactKg(startLoad, unitSystem);
 }
 
-function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+function getExerciseRecommendationDisplay(
+  exercise = {},
+  strengthReferenceOneRepMaxByLift = {},
+  unitSystem = "metric"
+) {
   const percentagePrescription = getExercisePercentagePrescription(exercise);
   const primaryWorkingSet = getPrimaryPercentageWorkingSet(percentagePrescription);
   const notesDetails = getNotesIntensityDetails(exercise);
@@ -537,16 +551,22 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
     ].filter(Boolean);
 
     return {
-      primary: estimatedLoadKg ? formatCompactNumberUnit(estimatedLoadKg, "kg") : "",
-      details: detailParts.join(" * "),
+      primary: estimatedLoadKg
+        ? formatWeightFromKilograms(estimatedLoadKg, unitSystem, { compact: true })
+        : "",
+      details: formatMeasurementText(detailParts.join(" * "), unitSystem),
     };
   }
 
   return {
     primary:
-      getExplicitLoadOrSpeedValue(exercise) ||
-      getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
-    details: notesDetails,
+      formatMeasurementText(getExplicitLoadOrSpeedValue(exercise), unitSystem) ||
+      getEstimatedLoadFromNotesPercent(
+        exercise,
+        strengthReferenceOneRepMaxByLift,
+        unitSystem
+      ),
+    details: formatMeasurementText(notesDetails, unitSystem),
   };
 }
 
@@ -1060,7 +1080,11 @@ function getAverageTrackedValue(values = []) {
   return formatAverageNumber(average);
 }
 
-function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex = 0) {
+function getReportedResultSummaryForExercise(
+  trackingDrafts = {},
+  exerciseIndex = 0,
+  unitSystem = "metric"
+) {
   const drafts = Object.values(trackingDrafts)
     .filter((draft) => draft?.exerciseIndex === exerciseIndex)
     .sort((left, right) => (left.setIndex || 0) - (right.setIndex || 0));
@@ -1084,7 +1108,7 @@ function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex 
   );
 
   if (averageLoadKg) {
-    parts.push(`${averageLoadKg} kg`);
+    parts.push(formatWeightFromKilograms(averageLoadKg, unitSystem));
   }
 
   if (averageReps) {
@@ -1122,6 +1146,7 @@ function ActiveSessionResultsList({
   sectionRuns = [],
   completedStepKeys,
   trackingDrafts = {},
+  unitSystem = "metric",
 }) {
   const router = useRouter();
   const fadeProgress = useRef(new Animated.Value(0)).current;
@@ -1191,7 +1216,11 @@ function ActiveSessionResultsList({
           <IBMPlexText style={styles.resultsSectionTitle}>{getSectionLabel(section)}</IBMPlexText>
           <View style={styles.resultsExerciseList}>
             {sectionExercises.map(({ exercise, exerciseIndex }) => {
-              const recommendation = getExerciseRecommendationDisplay(exercise);
+              const recommendation = getExerciseRecommendationDisplay(
+                exercise,
+                {},
+                unitSystem
+              );
               const prescription = getExercisePrescriptionDisplay(exercise);
               const totalSetCount = parsePrescribedSetCount(exercise);
               const completedSetCount = Array.from({ length: totalSetCount }).filter(
@@ -1199,7 +1228,8 @@ function ActiveSessionResultsList({
               ).length;
               const reportedResultSummary = getReportedResultSummaryForExercise(
                 trackingDrafts,
-                exerciseIndex
+                exerciseIndex,
+                unitSystem
               );
 
               return (
@@ -1333,6 +1363,7 @@ function ExerciseSessionStep({
   compact = false,
   isEstimatingProgramMax = false,
   programMaxStatusLabel = "Estimating your max",
+  unitSystem = "metric",
 }) {
   const [setOverviewWidth, setSetOverviewWidth] = useState(0);
   const {
@@ -1370,7 +1401,8 @@ function ExerciseSessionStep({
   }
   const exerciseRecommendation = getExerciseRecommendationDisplay(
     exercise,
-    strengthReferenceOneRepMaxByLift
+    strengthReferenceOneRepMaxByLift,
+    unitSystem
   );
   const recommendedLoadKg = getRecommendedLoadKg(
     exercise,
@@ -1465,7 +1497,9 @@ function ExerciseSessionStep({
     const setSummaryParts = [];
 
     if (setDraft.loadKg) {
-      setSummaryParts.push(`${setDraft.loadKg} kg`);
+      setSummaryParts.push(
+        formatWeightFromKilograms(setDraft.loadKg, unitSystem)
+      );
     }
 
     if (setDraft.reps) {
@@ -1528,12 +1562,16 @@ function ExerciseSessionStep({
                       numberOfLines={2}
                       style={styles.programMaxIntensityMetric}
                     >
-                      {formatTargetSections(metric.value)}
+                      {formatTargetSections(
+                        formatMeasurementText(metric.value, unitSystem)
+                      )}
                     </IBMPlexText>
                   </View>
                 ) : (
                   <IBMPlexText style={styles.activeExerciseMetricValue}>
-                    {formatTargetSections(metric.value)}
+                    {formatTargetSections(
+                      formatMeasurementText(metric.value, unitSystem)
+                    )}
                   </IBMPlexText>
                 )}
               </View>
@@ -1569,6 +1607,7 @@ function ExerciseSessionStep({
             recommendedRepCount={recommendedRepCount}
             targetDurationMinutes={endurancePrescription.durationMinutes}
             targetRpe={displayedTargetRpe}
+            unitSystem={unitSystem}
             onDraftChange={onDraftChange}
             compact={compact}
           />
@@ -1723,6 +1762,7 @@ export default function ActiveSessionView({
   onStrengthAssessmentSave,
   onBack,
   onFinish,
+  unitSystem = "metric",
 }) {
   const normalizedExercises = useMemo(
     () =>
@@ -1836,7 +1876,10 @@ export default function ActiveSessionView({
         ? getExerciseDisplayName(activeExercise)
         : "";
   const activeExerciseGuidance = activeExercise
-    ? activeExercise.notes || "No additional guidance for this exercise."
+    ? formatMeasurementText(
+        activeExercise.notes || "No additional guidance for this exercise.",
+        unitSystem
+      )
     : "";
   const activeExerciseSetTabs = activeExercise
     ? Array.from({ length: activeStep.setCount }).map((_, setIndex) => ({
@@ -2259,7 +2302,11 @@ export default function ActiveSessionView({
             <IBMPlexText style={styles.newProgramMaxIcon}>✓</IBMPlexText>
             <View style={styles.newProgramMaxCopy}>
               <IBMPlexText style={styles.newProgramMaxTitle}>
-                New Program Max: {newProgramMax.trainingMaxKg} kg
+                New Program Max:{" "}
+                {formatWeightFromKilograms(
+                  newProgramMax.trainingMaxKg,
+                  unitSystem
+                )}
               </IBMPlexText>
               <IBMPlexText style={styles.newProgramMaxDescription}>
                 {newProgramMax.liftName} switches to % loading on its next exposure
@@ -2296,6 +2343,7 @@ export default function ActiveSessionView({
                 sectionRuns={sectionRuns}
                 completedStepKeys={completedStepKeys}
                 trackingDrafts={trackingDrafts}
+                unitSystem={unitSystem}
               />
             </ActiveSessionSectionIntroView>
           ) : showSectionIntro ? (
@@ -2365,6 +2413,7 @@ export default function ActiveSessionView({
               onDraftChange={updateTrackingDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
               compact={embedded}
+              unitSystem={unitSystem}
             />
           ) : (
             <View style={styles.emptyState}>

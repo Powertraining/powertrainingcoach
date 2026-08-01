@@ -457,6 +457,7 @@ function ExerciseLogSheetContent({
   draft,
   onDraftChange,
   strengthReferenceOneRepMaxByLift,
+  unitSystem = "metric",
 }) {
   const {
     strengthAssessment,
@@ -487,6 +488,7 @@ function ExerciseLogSheetContent({
         strengthRequirements={strengthRequirements}
         customFields={customFields}
         recommendedLoadKg={recommendedLoadKg}
+        unitSystem={unitSystem}
         onDraftChange={onDraftChange}
       />
     </View>
@@ -797,6 +799,7 @@ function ProgramOverviewSkeleton() {
 
 export default function ProgramOverviewView({
   plan,
+  unitSystem = "metric",
   trainingPlanHistory = [],
   onSelectDay,
   completedDays,
@@ -1669,6 +1672,7 @@ export default function ProgramOverviewView({
 
     return (
       <ActiveSessionView
+        unitSystem={unitSystem}
         day={activeSessionDay.dayData}
         exercises={activeSessionDay.exercises}
         initialPerformanceResults={selectedDayPerformanceResults}
@@ -2082,6 +2086,7 @@ export default function ProgramOverviewView({
             >
               <DayDetailView
                 week={detailSelectedDay.week}
+                unitSystem={unitSystem}
                 day={detailSelectedDay.dayData}
                 exercises={detailSelectedDay.exercises}
                 preferredWeekday={detailSelectedDay.preferredWeekday}
@@ -2203,6 +2208,7 @@ export default function ProgramOverviewView({
               draft={exerciseLogDraft}
               onDraftChange={updateExerciseLogDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
+              unitSystem={unitSystem}
             />
           ) : null
         }

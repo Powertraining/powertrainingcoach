@@ -418,6 +418,7 @@ export default function TrainingPreferencesFields({
   onEnduranceCircuitFocusBack,
   onInjuriesContinue,
   onInjuriesSkip,
+  unitSystem = "metric",
 }) {
   const resolvedValues = preserveExplicitEmptyValues(
     getTrainingPreferencesFormState(values),
@@ -739,6 +740,7 @@ export default function TrainingPreferencesFields({
     () => (
       <DeloadStrategyView
         value={deloadStrategyValue}
+        unitSystem={unitSystem}
         onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}
       />
     ),

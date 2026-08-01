@@ -18,6 +18,13 @@ import IBMPlexText from "../textComponents/IBMPlexText.jsx";
 import RepCountSelector from "./RepCountSelector.jsx";
 import TimeDurationSelector from "./TimeDurationSelector.jsx";
 import { fonts } from "../../theme/colors.js";
+import {
+  formatWeightFromKilograms,
+  getDisplayWeightFromKilograms,
+  getKilogramsFromDisplayWeight,
+  getWeightUnit,
+  isImperialUnitSystem,
+} from "../../services/utils/measurementUnits.js";
 
 const RPE_OPTIONS = Object.freeze([
   5,
@@ -46,7 +53,10 @@ function getFieldSupportText(field, props) {
     props.recommendedLoadKg != null &&
     Number.isFinite(Number(props.recommendedLoadKg))
   ) {
-    return `Suggested: ${props.recommendedLoadKg} kg`;
+    return `Suggested: ${formatWeightFromKilograms(
+      props.recommendedLoadKg,
+      props.unitSystem
+    )}`;
   }
 
   if (
@@ -83,9 +93,13 @@ function LoadScrollerField({
   onInputFocus,
   onInputBlur,
   onChange,
+  unitSystem,
 }) {
-  const currentLoad = Number.parseFloat(field.value);
-  const recommendedLoad = Number.parseFloat(recommendedLoadKg);
+  const currentLoad = getDisplayWeightFromKilograms(field.value, unitSystem);
+  const recommendedLoad = getDisplayWeightFromKilograms(
+    recommendedLoadKg,
+    unitSystem
+  );
   const initialLoad = Number.isFinite(currentLoad)
     ? currentLoad
     : Number.isFinite(recommendedLoad)
@@ -94,10 +108,10 @@ function LoadScrollerField({
   return (
     <WeightScroller
       min={0}
-      max={300}
-      step={0.5}
+      max={isImperialUnitSystem(unitSystem) ? 660 : 300}
+      step={isImperialUnitSystem(unitSystem) ? 1 : 0.5}
       initialValue={initialLoad}
-      unit="kg"
+      unit={getWeightUnit(unitSystem)}
       height={78}
       valueRowStyle={[
         styles.weightValuePill,
@@ -123,10 +137,13 @@ function LoadScrollerField({
       valueInIndicator
       emitInitialValue={false}
       animateValueChanges
-      valueChangeKey={`${exerciseIndex}:${setIndex}`}
+      valueChangeKey={`${exerciseIndex}:${setIndex}:${unitSystem}`}
       onValueFocus={onInputFocus}
       onValueBlur={onInputBlur}
-      onChange={(value) => onChange(String(value))}
+      onChange={(value) => {
+        const kilograms = getKilogramsFromDisplayWeight(value, unitSystem);
+        onChange(kilograms == null ? "" : String(kilograms));
+      }}
     />
   );
 }
@@ -371,7 +388,9 @@ export default function ActiveSessionSetLoggingInputPanel(props) {
         );
       }}
       formatLabel={(label, field) =>
-        field.id === "loadKg" ? label.replace(/\s*\(kg\)\s*/gi, "").trim() : label
+        field.id === "loadKg"
+          ? label.replace(/\s*\((?:kg|lb)\)\s*/gi, "").trim()
+          : label
       }
       renderField={({ field, onChange, onFocus, onBlur }) => {
         if (field.id === "rpe") {
@@ -427,6 +446,7 @@ export default function ActiveSessionSetLoggingInputPanel(props) {
               exerciseIndex={props.exerciseIndex}
               setIndex={props.setIndex}
               compact={compact}
+              unitSystem={props.unitSystem}
               onInputFocus={onFocus}
               onInputBlur={onBlur}
               onChange={onChange}

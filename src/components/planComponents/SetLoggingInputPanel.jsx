@@ -9,6 +9,10 @@ import {
   View,
 } from "react-native";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
+import {
+  formatMeasurementText,
+  getWeightUnit,
+} from "../../services/utils/measurementUnits.js";
 
 const NEXT_INPUT_KEYBOARD_GAP = 36;
 const INPUT_PANEL_ANIMATION_DURATION = 90;
@@ -42,6 +46,7 @@ export default function SetLoggingInputPanel({
   anchorStyle,
   contentHorizontalInset = 14,
   expansionHorizontalOffset = SESSION_HORIZONTAL_PADDING,
+  unitSystem = "metric",
 }) {
   const focusedScrollTargetKeyRef = useRef(null);
   const inputFieldLayoutsRef = useRef({});
@@ -207,10 +212,12 @@ export default function SetLoggingInputPanel({
   const fields = [
     showLoad && {
       id: "loadKg",
-      label: strengthRequirements?.loadLabel || "Load used (kg)",
+      label: strengthRequirements?.loadLabel
+        ? strengthRequirements.loadLabel.replace(/\((?:kg|lb)\)/i, `(${getWeightUnit(unitSystem)})`)
+        : `Load used (${getWeightUnit(unitSystem)})`,
       value: draft.loadKg,
       keyboardType: "decimal-pad",
-      placeholder: "e.g. 150",
+      placeholder: unitSystem === "imperial" ? "e.g. 330" : "e.g. 150",
     },
     showReps && {
       id: "reps",
@@ -236,8 +243,12 @@ export default function SetLoggingInputPanel({
     },
     ...customFields.map((field) => ({
       ...field,
+      label: formatMeasurementText(field.label, unitSystem),
       value: draft.customValues?.[field.id] || "",
-      placeholder: field.placeholder || `Enter ${field.label.toLowerCase()}`,
+      placeholder: formatMeasurementText(
+        field.placeholder || `Enter ${field.label.toLowerCase()}`,
+        unitSystem
+      ),
       isCustom: true,
     })),
   ]

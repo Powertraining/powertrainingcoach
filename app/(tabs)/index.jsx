@@ -803,6 +803,7 @@ const HomeScreen = observer(function HomeScreen() {
 
     [STEPS.INPUT]: () => (
       <InputFormView
+        unitSystem={model.unitSystem}
         onSubmit={handleQuestionnaireSubmit}
         onBack={goBack}
         initialValues={{

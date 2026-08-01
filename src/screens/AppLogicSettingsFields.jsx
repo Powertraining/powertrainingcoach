@@ -12,6 +12,7 @@ export default function AppLogicSettingsFields({
   description,
   values,
   onChange,
+  unitSystem = "metric",
 }) {
   const safeValues = values && typeof values === "object" ? values : {};
   const resolvedValues = {
@@ -86,6 +87,7 @@ export default function AppLogicSettingsFields({
       ) : null}
       <DeloadStrategyView
         value={deloadStrategyValue}
+        unitSystem={unitSystem}
         onChange={(sectionValue) => updateField("deloadStrategy", sectionValue)}
       />
       <LoadingStrategyView

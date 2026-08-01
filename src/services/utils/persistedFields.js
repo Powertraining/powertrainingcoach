@@ -14,6 +14,7 @@ import {
   createDefaultTrainingPerformanceState,
   normalizeTrainingPerformanceState,
 } from "./trainingPerformance.js";
+import { normalizeUnitSystem, UNIT_SYSTEMS } from "./measurementUnits.js";
 
 function isPlainObjectValue(value) {
   return Boolean(value) && typeof value === "object";
@@ -31,6 +32,12 @@ function isPlainObjectValue(value) {
 // etc. - see SERVER_MANAGED_USER_DATA_FIELDS in userPersistence.js) stay
 // hand-written at their call sites; they intentionally are not in this list.
 export const SIMPLE_PERSISTED_FIELDS = [
+  {
+    key: "unitSystem",
+    createDefault: () => UNIT_SYSTEMS.METRIC,
+    normalizeOnRead: normalizeUnitSystem,
+    serializeForWrite: normalizeUnitSystem,
+  },
   { key: "primaryCombatSport", createDefault: () => "" },
   { key: "sessionsPerWeek", createDefault: () => 3 },
   { key: "trainingPlanBatch", createDefault: () => 1 },

@@ -338,6 +338,8 @@ export function MyProfileView(props) {
             password={props.password}
             hidePassword={props.hidePassword}
             isSubmitting={props.isSubmitting}
+            unitSystem={props.unitSystem}
+            onUnitSystemChange={props.onUnitSystemChange}
             onUsernameChange={props.onUsernameChange}
             onUsernameEdit={openUsernameEditorACB}
             onPasswordChange={props.onPasswordChange}
@@ -351,6 +353,7 @@ export function MyProfileView(props) {
         {isPlanAdjustmentsMode ? (
           <ProfilePlanAdjustmentsView
             trainingPreferences={props.trainingPreferences}
+            unitSystem={props.unitSystem}
             combatSportOptions={props.combatSportOptions}
             primaryCombatSport={props.primaryCombatSport}
             sessionsPerWeek={props.sessionsPerWeek}

@@ -100,6 +100,7 @@ export default function ProfilePlanAdjustmentsView(props) {
           />
         </View>
         <ProfileTrainingPreferencesFields
+          unitSystem={props.unitSystem}
           sections="plan"
           visiblePlanFields={[
             "desiredTraining",
@@ -180,6 +181,7 @@ export default function ProfilePlanAdjustmentsView(props) {
             <IBMPlexText style={styles.preferenceControlLabel}>Deload Strategy</IBMPlexText>
             <ProfileDeloadStrategyOptions
               compact
+              unitSystem={props.unitSystem}
               value={props.trainingPreferences?.deloadStrategy}
               onChange={(value) =>
                 props.onTrainingPreferencesChange?.({
@@ -194,6 +196,7 @@ export default function ProfilePlanAdjustmentsView(props) {
 
       <FadeInFromBottomView delay={240} style={styles.inlineSection}>
         <ProfileTrainingPreferencesFields
+          unitSystem={props.unitSystem}
           sections="plan"
           hiddenPlanFields={[
             "desiredTraining",
@@ -215,6 +218,7 @@ export default function ProfilePlanAdjustmentsView(props) {
         <IBMPlexText style={styles.preferenceSummaryLabel}>Endurance Training</IBMPlexText>
         <View style={styles.preferenceBox}>
           <ProfileTrainingPreferencesFields
+            unitSystem={props.unitSystem}
             sections="plan"
             visiblePlanFields={["endurancePreferences"]}
             values={props.trainingPreferences}

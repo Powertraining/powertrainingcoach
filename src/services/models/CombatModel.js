@@ -229,6 +229,7 @@ export const model = {
 
   // Questionnaire responses (persistent across sessions)
   questionnaire: null,
+  unitSystem: "metric",
   primaryCombatSport: "", // Combat sport selection from questionnaire
   sessionsPerWeek: 3, // Number of sessions per week from questionnaire
   
@@ -1511,6 +1512,7 @@ export const model = {
     return {
       ...source,
       ...normalizedAppLogicSettings,
+      unitSystem: this.unitSystem === "imperial" ? "imperial" : "metric",
       sportLoadMultiplier: getSportLoadMultiplier(
         normalizedAppLogicSettings.sportLoadLevel
       ),
