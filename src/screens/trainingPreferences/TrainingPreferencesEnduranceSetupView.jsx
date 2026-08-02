@@ -18,6 +18,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import {
@@ -144,6 +145,25 @@ const SPRINTING_TARGET_ICONS = Object.freeze({
   repeat_bursts: "repeat",
   hard_conditioning: "fire",
 });
+const SPRINTING_TARGET_DETAILS = Object.freeze({
+  speed_explosiveness:
+    "Max-effort sprints with plenty of rest. Built to improve acceleration and top-end speed.\nUse when: Speed and explosiveness are the priority.",
+  repeat_bursts:
+    "Short sprints repeated with incomplete rest. Built to maintain speed across several hard efforts.\nUse when: You need repeated high-intensity output with less drop-off.",
+  hard_conditioning:
+    "Hard sprint intervals with limited recovery. Built to improve conditioning and your ability to keep working under fatigue.\nUse when: Conditioning and competition readiness are the priority.",
+});
+const SPRINTING_DESCRIPTION_COLLAPSE_END = 64;
+const SPRINTING_HEADER_COLLAPSE_END = 142;
+const SPRINTING_TITLE_COLLAPSE_START = 84;
+const SPRINTING_TITLE_COLLAPSE_END = 116;
+const SPRINTING_COLLAPSED_HEADER_HEIGHT = 64;
+const SPRINTING_EXPANDED_TITLE_TOP = 58;
+const SPRINTING_EXPANDED_TITLE_HEIGHT = 88;
+const SPRINTING_EXPANDED_DESCRIPTION_TOP = 138;
+const SPRINTING_EXPANDED_HEADER_HEIGHT = 252;
+const SPRINTING_OPTIONS_TOP_GAP = 12;
+const SPRINTING_BOTTOM_ACTION_CLEARANCE = 96;
 const GOLD_RAY_ANGLES = Object.freeze([0, 45, 90, 135, 180, 225, 270, 315]);
 const HEAVY_BAG_TARGET_ICONS = Object.freeze({
   aerobic_bag_work: "heart-pulse",
@@ -216,6 +236,7 @@ function EnduranceStyleOptionButton({
 }
 
 function SprintingFocusOptionButton({
+  description,
   iconName,
   isSelected,
   label,
@@ -305,6 +326,7 @@ function SprintingFocusOptionButton({
         <PreferenceOptionButton
           isSelected={isSelected}
           label={label}
+          description={description}
           icon={
             <MaterialCommunityIcons
               name={iconName}
@@ -316,6 +338,7 @@ function SprintingFocusOptionButton({
           buttonStyle={styles.sprintingOptionButton}
           selectedButtonStyle={styles.sprintingOptionButtonSelected}
           labelStyle={styles.sprintingOptionLabel}
+          descriptionStyle={styles.sprintingOptionDescription}
           onPress={onPress}
           onPressIn={(event) => animatePress(1, event)}
           onPressOut={() => animatePress(0)}
@@ -340,6 +363,185 @@ function SprintingFocusOptionButton({
               ]}
             />
           ))}
+        </Animated.View>
+      </Animated.View>
+    </View>
+  );
+}
+
+function SprintingFocusView({ values, onChange }) {
+  const insets = useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [optionsHeight, setOptionsHeight] = useState(0);
+  const expandedHeaderHeight = insets.top + SPRINTING_EXPANDED_HEADER_HEIGHT;
+  const collapsedHeaderHeight = SPRINTING_COLLAPSED_HEADER_HEIGHT;
+  const optionsBottom =
+    expandedHeaderHeight + SPRINTING_OPTIONS_TOP_GAP + optionsHeight;
+  const requiredScrollRange = Math.max(
+    0,
+    optionsBottom - (screenHeight - SPRINTING_BOTTOM_ACTION_CLEARANCE)
+  );
+  const needsScrolling = optionsHeight > 0 && requiredScrollRange > 0;
+  let scrollRange = needsScrolling
+    ? Math.max(requiredScrollRange, SPRINTING_TITLE_COLLAPSE_END)
+    : 0;
+
+  if (
+    scrollRange > SPRINTING_TITLE_COLLAPSE_START &&
+    scrollRange < SPRINTING_TITLE_COLLAPSE_END
+  ) {
+    scrollRange = SPRINTING_TITLE_COLLAPSE_END;
+  }
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [
+      0,
+      SPRINTING_DESCRIPTION_COLLAPSE_END,
+      SPRINTING_HEADER_COLLAPSE_END,
+    ],
+    outputRange: [
+      expandedHeaderHeight,
+      expandedHeaderHeight - 70,
+      collapsedHeaderHeight,
+    ],
+    extrapolate: "clamp",
+  });
+  const descriptionOpacity = scrollY.interpolate({
+    inputRange: [0, 38, SPRINTING_DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.7, 0],
+    extrapolate: "clamp",
+  });
+  const descriptionScale = scrollY.interpolate({
+    inputRange: [0, SPRINTING_DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.78],
+    extrapolate: "clamp",
+  });
+  const expandedTitleOpacity = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, 102, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [1, 0.8, 0],
+    extrapolate: "clamp",
+  });
+  const titleScale = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [1, 0.58],
+    extrapolate: "clamp",
+  });
+  const titleTranslateX = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [0, Math.min(112, screenWidth * 0.28)],
+    extrapolate: "clamp",
+  });
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [0, -(insets.top + 75)],
+    extrapolate: "clamp",
+  });
+  const compactTitleOpacity = scrollY.interpolate({
+    inputRange: [98, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <View style={[styles.sprintingScreen, { height: screenHeight }]}>
+      <Animated.ScrollView
+        bounces={false}
+        contentContainerStyle={[
+          styles.sprintingScrollContent,
+          {
+            minHeight: screenHeight + scrollRange,
+            paddingTop: expandedHeaderHeight + SPRINTING_OPTIONS_TOP_GAP,
+          },
+        ]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEnabled={needsScrolling}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        style={styles.sprintingScroll}
+      >
+        <View
+          accessibilityRole="radiogroup"
+          onLayout={(event) => {
+            const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+            setOptionsHeight((currentHeight) =>
+              currentHeight === nextHeight ? currentHeight : nextHeight
+            );
+          }}
+          style={styles.sprintingOptions}
+        >
+          {SPRINTING_TARGET_OPTIONS.map((option) => {
+            const isSelected = values?.sprintingTarget === option.value;
+
+            return (
+              <SprintingFocusOptionButton
+                key={option.value}
+                isSelected={isSelected}
+                label={option.label}
+                description={SPRINTING_TARGET_DETAILS[option.value]}
+                iconName={SPRINTING_TARGET_ICONS[option.value]}
+                onPress={() =>
+                  onChange?.({
+                    ...values,
+                    sprintingTarget: isSelected ? null : option.value,
+                  })
+                }
+              />
+            );
+          })}
+        </View>
+      </Animated.ScrollView>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.sprintingStickyHeader, { height: headerHeight }]}
+      >
+        <Animated.View
+          style={[
+            styles.sprintingExpandedTitle,
+            {
+              opacity: expandedTitleOpacity,
+              top: insets.top + SPRINTING_EXPANDED_TITLE_TOP,
+              transform: [
+                { translateX: titleTranslateX },
+                { translateY: titleTranslateY },
+                { scale: titleScale },
+              ],
+            },
+          ]}
+        >
+          <IBMPlexText titleBlock height={SPRINTING_EXPANDED_TITLE_HEIGHT}>
+            Sprinting focus
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.sprintingDescription,
+            {
+              opacity: descriptionOpacity,
+              top: insets.top + SPRINTING_EXPANDED_DESCRIPTION_TOP,
+              transform: [{ scale: descriptionScale }],
+            },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.sprintingHelperText} center>
+            Pick what sprint sessions should mainly train.
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.sprintingCompactTitle,
+            { opacity: compactTitleOpacity },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.sprintingCompactTitleText}>
+            Sprinting focus
+          </IBMPlexText>
         </Animated.View>
       </Animated.View>
     </View>
@@ -1387,31 +1589,7 @@ export default function TrainingPreferencesEnduranceSetupView({
   }
 
   if (mode === "sprintingFocus") {
-    return (
-      <View style={[styles.section, { minHeight: screenHeight }]}>
-        <IBMPlexText titleBlock height={130}>Sprinting focus</IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.helperText} center>
-          Pick what sprint sessions should mainly train.
-        </IBMPlexText>
-        <View style={styles.sprintingOptions}>
-          {SPRINTING_TARGET_OPTIONS.map((option) => {
-            const isSelected = values?.sprintingTarget === option.value;
-
-            return (
-              <SprintingFocusOptionButton
-                key={option.value}
-                isSelected={isSelected}
-                label={option.label}
-                iconName={SPRINTING_TARGET_ICONS[option.value]}
-                onPress={() =>
-                  updateField("sprintingTarget", isSelected ? null : option.value)
-                }
-              />
-            );
-          })}
-        </View>
-      </View>
-    );
+    return <SprintingFocusView values={values} onChange={onChange} />;
   }
 
   return (
@@ -1807,14 +1985,26 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sprintingOptions: {
+    alignSelf: "stretch",
     gap: 16,
-    marginTop: 56,
+  },
+  sprintingScreen: {
+    alignSelf: "stretch",
+    position: "relative",
+  },
+  sprintingScroll: {
+    alignSelf: "stretch",
+    flex: 1,
+  },
+  sprintingScrollContent: {
+    alignItems: "center",
+    paddingHorizontal: 24,
   },
   sprintingOptionWrap: {
     alignSelf: "center",
     overflow: "visible",
     position: "relative",
-    width: "75%",
+    width: "100%",
   },
   sprintingOptionShell: {
     overflow: "visible",
@@ -1822,9 +2012,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sprintingOptionButton: {
-    minHeight: 118,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    minHeight: 190,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     width: "100%",
   },
   sprintingOptionButtonSelected: {
@@ -1839,6 +2029,51 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14,
     lineHeight: 18,
+  },
+  sprintingOptionDescription: {
+    color: "#A8A8A8",
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 2,
+    textAlign: "left",
+  },
+  sprintingStickyHeader: {
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 10,
+  },
+  sprintingExpandedTitle: {
+    left: 0,
+    position: "absolute",
+    right: 0,
+  },
+  sprintingDescription: {
+    left: 24,
+    position: "absolute",
+    right: 24,
+  },
+  sprintingHelperText: {
+    alignSelf: "center",
+    color: "#9A9AA2",
+    fontSize: 15,
+    lineHeight: 20,
+    maxWidth: 330,
+    width: "88%",
+  },
+  sprintingCompactTitle: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    position: "absolute",
+    right: 24,
+    top: 17,
+  },
+  sprintingCompactTitleText: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 20,
   },
   sprintingGoldBurst: {
     alignItems: "center",

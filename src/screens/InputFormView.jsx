@@ -336,6 +336,7 @@ export default function InputFormView({
                 style={[
                     styles.center,
                     isEnduranceStyleStep ||
+                    isEnduranceSprintingFocusStep ||
                     isEnduranceCircuitFocusStep ||
                     isLiftIntensityMethodStep ||
                     isPercentageReferenceMethodStep ||
