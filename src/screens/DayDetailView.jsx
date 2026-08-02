@@ -844,6 +844,19 @@ function getCompactExerciseCardMetrics(
     strengthReferenceOneRepMaxByLift = {},
     unitSystem = "metric"
 ) {
+    const strengthAssessmentPrescription =
+        getStrengthAssessmentPrescription(exercise);
+
+    if (strengthAssessmentPrescription) {
+        return [
+            {
+                label: "Prescription",
+                value: strengthAssessmentPrescription,
+                isStrengthAssessmentPrescription: true,
+            },
+        ];
+    }
+
     const recommendation = getExerciseRecommendationDisplay(
         exercise,
         strengthReferenceOneRepMaxByLift,
@@ -1513,6 +1526,19 @@ export default function DayDetailView({
                                                     }
                                                     : metric
                                             );
+                                            if (
+                                                programMaxStatusLabel &&
+                                                exerciseCardMetrics.some(
+                                                    (metric) =>
+                                                        metric.isStrengthAssessmentPrescription
+                                                )
+                                            ) {
+                                                exerciseCardMetrics.push({
+                                                    label: "Purpose",
+                                                    value: programMaxStatusLabel,
+                                                    isProgramMaxEstimate: true,
+                                                });
+                                            }
                                             const isHighlighted =
                                                 exerciseIndex === highlightedExerciseIndex;
                                             const exerciseSubstitutionOptions =
@@ -1601,7 +1627,12 @@ export default function DayDetailView({
                                                                         {exerciseCardMetrics.map((metric) => (
                                                                             <View
                                                                                 key={metric.label}
-                                                                                style={styles.tabButtonMetricColumn}
+                                                                                style={[
+                                                                                    styles.tabButtonMetricColumn,
+                                                                                    metric.isStrengthAssessmentPrescription
+                                                                                        ? styles.strengthAssessmentPrescriptionMetric
+                                                                                        : null,
+                                                                                ]}
                                                                             >
                                                                                 <IBMPlexText
                                                                                     style={styles.tabButtonMetricLabel}
@@ -2651,6 +2682,10 @@ const styles = StyleSheet.create({
         flexShrink: 1,
         gap: 5,
         minWidth: 52,
+    },
+    strengthAssessmentPrescriptionMetric: {
+        flexBasis: "100%",
+        width: "100%",
     },
     tabButtonMetricLabel: {
         color: '#8B8B94',
