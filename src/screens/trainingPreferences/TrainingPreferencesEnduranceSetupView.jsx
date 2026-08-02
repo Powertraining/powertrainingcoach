@@ -140,10 +140,22 @@ const CIRCUIT_REGION_SHADOW_SCALE =
 const CIRCUIT_REGION_GRID_GAP = 15;
 const CIRCUIT_REGION_GRID_WIDTH =
   CIRCUIT_REGION_OPTION_WIDTH * 2 + CIRCUIT_REGION_GRID_GAP;
-const SPRINTING_TARGET_ICONS = Object.freeze({
-  speed_explosiveness: "run-fast",
-  repeat_bursts: "repeat",
-  hard_conditioning: "fire",
+const SPRINTING_TARGET_META = Object.freeze({
+  speed_explosiveness: Object.freeze({
+    icon: "run-fast",
+    accent: "#0A84FF",
+    accentMuted: "rgba(10, 132, 255, 0.14)",
+  }),
+  repeat_bursts: Object.freeze({
+    icon: "repeat",
+    accent: "#F3D04F",
+    accentMuted: "rgba(243, 208, 79, 0.14)",
+  }),
+  hard_conditioning: Object.freeze({
+    icon: "fire",
+    accent: "#FF9F0A",
+    accentMuted: "rgba(255, 159, 10, 0.14)",
+  }),
 });
 const SPRINTING_TARGET_DETAILS = Object.freeze({
   speed_explosiveness:
@@ -237,12 +249,13 @@ function EnduranceStyleOptionButton({
 
 function SprintingFocusOptionButton({
   description,
-  iconName,
+  index,
   isSelected,
   label,
+  meta,
   onPress,
 }) {
-  const selectedProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
+  const entranceProgress = useRef(new Animated.Value(0)).current;
   const pressProgress = useRef(new Animated.Value(0)).current;
   const burstProgress = useRef(new Animated.Value(0)).current;
   const optionShellRef = useRef(null);
@@ -250,13 +263,16 @@ function SprintingFocusOptionButton({
   const [burstOrigin, setBurstOrigin] = useState({ x: "50%", y: "50%" });
 
   useEffect(() => {
-    Animated.timing(selectedProgress, {
-      toValue: isSelected ? 1 : 0,
-      duration: isSelected ? 160 : 120,
+    Animated.timing(entranceProgress, {
+      toValue: 1,
+      duration: 360,
+      delay: index * 70,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
+  }, [entranceProgress, index]);
 
+  useEffect(() => {
     if (isSelected && !wasSelectedRef.current) {
       burstProgress.setValue(0);
       Animated.timing(burstProgress, {
@@ -268,7 +284,7 @@ function SprintingFocusOptionButton({
     }
 
     wasSelectedRef.current = isSelected;
-  }, [burstProgress, isSelected, selectedProgress]);
+  }, [burstProgress, isSelected]);
 
   function animatePress(toValue, event) {
     if (event?.nativeEvent) {
@@ -308,21 +324,24 @@ function SprintingFocusOptionButton({
   }
 
   const optionAnimatedStyle = {
-    opacity: pressProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: [1, 0.78],
-    }),
+    opacity: Animated.multiply(
+      entranceProgress,
+      pressProgress.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 0.76],
+      })
+    ),
     transform: [
       {
-        translateY: selectedProgress.interpolate({
+        translateY: entranceProgress.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -7],
+          outputRange: [24, 0],
         }),
       },
       {
-        scale: selectedProgress.interpolate({
+        scale: pressProgress.interpolate({
           inputRange: [0, 1],
-          outputRange: [1, 1.025],
+          outputRange: [1, 0.985],
         }),
       },
     ],
@@ -348,26 +367,58 @@ function SprintingFocusOptionButton({
         ref={optionShellRef}
         style={[styles.sprintingOptionShell, optionAnimatedStyle]}
       >
-        <PreferenceOptionButton
-          isSelected={isSelected}
-          label={label}
-          description={description}
-          icon={
-            <MaterialCommunityIcons
-              name={iconName}
-              size={34}
-              color={isSelected ? "#ffffff" : "#C9B259"}
-            />
-          }
-          stacked
-          buttonStyle={styles.sprintingOptionButton}
-          selectedButtonStyle={styles.sprintingOptionButtonSelected}
-          labelStyle={styles.sprintingOptionLabel}
-          descriptionStyle={styles.sprintingOptionDescription}
+        <Pressable
+          accessibilityLabel={`${label}. ${description}`}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: isSelected }}
           onPress={onPress}
           onPressIn={(event) => animatePress(1, event)}
           onPressOut={() => animatePress(0)}
-        />
+          style={[
+            styles.sprintingOptionButton,
+            isSelected ? styles.sprintingOptionButtonSelected : null,
+            isSelected ? { borderColor: meta.accent } : null,
+          ]}
+        >
+          <View style={styles.sprintingOptionHeader}>
+            <View
+              style={[
+                styles.sprintingOptionIcon,
+                { backgroundColor: meta.accentMuted },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name={meta.icon}
+                size={29}
+                color={meta.accent}
+              />
+            </View>
+
+            <IBMPlexText defaultWhite style={styles.sprintingOptionLabel}>
+              {label}
+            </IBMPlexText>
+
+            <View
+              style={[
+                styles.sprintingOptionRadio,
+                isSelected ? { borderColor: meta.accent } : null,
+              ]}
+            >
+              {isSelected ? (
+                <View
+                  style={[
+                    styles.sprintingOptionRadioFill,
+                    { backgroundColor: meta.accent },
+                  ]}
+                />
+              ) : null}
+            </View>
+          </View>
+
+          <IBMPlexText style={styles.sprintingOptionDescription}>
+            {description}
+          </IBMPlexText>
+        </Pressable>
         <Animated.View
           pointerEvents="none"
           style={[
@@ -384,6 +435,7 @@ function SprintingFocusOptionButton({
               key={`sprinting-gold-ray-${angle}`}
               style={[
                 styles.sprintingGoldRay,
+                { backgroundColor: meta.accent },
                 { transform: [{ rotate: `${angle}deg` }, { translateY: -54 }] },
               ]}
             />
@@ -498,16 +550,17 @@ function SprintingFocusView({ values, onChange }) {
           }}
           style={styles.sprintingOptions}
         >
-          {SPRINTING_TARGET_OPTIONS.map((option) => {
+          {SPRINTING_TARGET_OPTIONS.map((option, index) => {
             const isSelected = values?.sprintingTarget === option.value;
 
             return (
               <SprintingFocusOptionButton
                 key={option.value}
+                index={index}
                 isSelected={isSelected}
                 label={option.label}
                 description={SPRINTING_TARGET_DETAILS[option.value]}
-                iconName={SPRINTING_TARGET_ICONS[option.value]}
+                meta={SPRINTING_TARGET_META[option.value]}
                 onPress={() =>
                   onChange?.({
                     ...values,
@@ -2011,7 +2064,7 @@ const styles = StyleSheet.create({
   },
   sprintingOptions: {
     alignSelf: "stretch",
-    gap: 16,
+    gap: 12,
   },
   sprintingScreen: {
     alignSelf: "stretch",
@@ -2037,30 +2090,62 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sprintingOptionButton: {
-    minHeight: 190,
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+    minHeight: 154,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
     width: "100%",
   },
   sprintingOptionButtonSelected: {
-    borderColor: "#ffffff",
-    shadowColor: "#ffffff",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.24,
-    shadowRadius: 14,
-    elevation: 8,
+    backgroundColor: "#171717",
+    borderWidth: 2,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+  },
+  sprintingOptionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+  },
+  sprintingOptionIcon: {
+    alignItems: "center",
+    borderRadius: 12,
+    height: 52,
+    justifyContent: "center",
+    width: 52,
   },
   sprintingOptionLabel: {
     color: "#ffffff",
-    fontSize: 14,
-    lineHeight: 18,
+    flex: 1,
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 22,
+    minWidth: 0,
   },
   sprintingOptionDescription: {
-    color: "#A8A8A8",
+    color: "#9A9AA2",
     fontSize: 12,
-    lineHeight: 17,
-    marginTop: 2,
+    fontWeight: "600",
+    lineHeight: 16,
     textAlign: "left",
+  },
+  sprintingOptionRadio: {
+    alignItems: "center",
+    borderColor: "#56565F",
+    borderRadius: 12,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  sprintingOptionRadioFill: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
   },
   sprintingStickyHeader: {
     left: 0,
@@ -2110,7 +2195,6 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   sprintingGoldRay: {
-    backgroundColor: "#ffffff",
     borderRadius: 2,
     height: 34,
     left: "50%",
