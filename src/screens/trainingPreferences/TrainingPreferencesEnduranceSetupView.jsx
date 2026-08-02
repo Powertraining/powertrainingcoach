@@ -245,6 +245,7 @@ function SprintingFocusOptionButton({
   const selectedProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
   const pressProgress = useRef(new Animated.Value(0)).current;
   const burstProgress = useRef(new Animated.Value(0)).current;
+  const optionShellRef = useRef(null);
   const wasSelectedRef = useRef(isSelected);
   const [burstOrigin, setBurstOrigin] = useState({ x: "50%", y: "50%" });
 
@@ -271,10 +272,31 @@ function SprintingFocusOptionButton({
 
   function animatePress(toValue, event) {
     if (event?.nativeEvent) {
-      setBurstOrigin({
-        x: event.nativeEvent.locationX,
-        y: event.nativeEvent.locationY,
-      });
+      const {
+        locationX,
+        locationY,
+        pageX,
+        pageY,
+      } = event.nativeEvent;
+
+      if (Number.isFinite(locationX) && Number.isFinite(locationY)) {
+        setBurstOrigin({ x: locationX, y: locationY });
+      }
+
+      if (
+        Number.isFinite(pageX) &&
+        Number.isFinite(pageY) &&
+        optionShellRef.current?.measure
+      ) {
+        optionShellRef.current.measure(
+          (_x, _y, shellWidth, shellHeight, shellPageX, shellPageY) => {
+            setBurstOrigin({
+              x: Math.min(Math.max(pageX - shellPageX, 0), shellWidth),
+              y: Math.min(Math.max(pageY - shellPageY, 0), shellHeight),
+            });
+          }
+        );
+      }
     }
 
     Animated.timing(pressProgress, {
@@ -322,7 +344,10 @@ function SprintingFocusOptionButton({
 
   return (
     <View style={styles.sprintingOptionWrap}>
-      <Animated.View style={[styles.sprintingOptionShell, optionAnimatedStyle]}>
+      <Animated.View
+        ref={optionShellRef}
+        style={[styles.sprintingOptionShell, optionAnimatedStyle]}
+      >
         <PreferenceOptionButton
           isSelected={isSelected}
           label={label}
