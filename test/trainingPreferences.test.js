@@ -2,10 +2,25 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  ENDURANCE_FORMAT_OPTIONS,
   ENDURANCE_MODALITY_OPTIONS,
   getTrainingPreferencesFormState,
   normalizeTrainingPreferences,
 } from "../src/constants/trainingPreferences.js";
+
+test("endurance formats include the automatic plan-led choice", () => {
+  assert.equal(ENDURANCE_FORMAT_OPTIONS[0]?.value, "plan_decides");
+
+  const normalizedPreferences = normalizeTrainingPreferences({
+    desiredTraining: "endurance",
+    preferredEnduranceFormat: "plan_decides",
+  });
+
+  assert.equal(
+    normalizedPreferences.enduranceTraining.preferredFormat,
+    "plan_decides"
+  );
+});
 
 test("hybrid plans default to separate power and endurance sessions", () => {
   const normalizedPreferences = normalizeTrainingPreferences({

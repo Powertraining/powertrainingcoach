@@ -4363,6 +4363,11 @@ Follow these domain rules:
 - In off-camp/off-season, endurance may build aerobic base, repeated-effort
   capacity, and weak links. In fight camp/in-camp, fit endurance around
   sparring, pads, grappling, weight management, and freshness.
+- If enduranceTraining.preferredFormat is "plan_decides", choose the appropriate
+  mix from the athlete's complete input instead of treating it as a training
+  format. Weigh sport, phase and event timeline, experience, combat and weekly
+  workload, recovery, injuries, equipment, modalities, and session constraints,
+  and adapt the mix across the plan as those needs change.
 - Available endurance modalities are running, sprinting, circuit_training,
   heavy_bag, swimming, assault_bike, rowing_ergometer, skiing_ergometer, and
   arm_crank_machine.
