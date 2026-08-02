@@ -47,6 +47,7 @@ import {
   getPrescribedSetCount,
 } from "../services/utils/exerciseSets.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../components/feedbackComponents/BugReportControl.jsx";
 import LoadedJumpGuideline from "../components/planComponents/LoadedJumpGuideline.jsx";
 import {
   formatBodyMassLoadRange,
@@ -2450,6 +2451,7 @@ export default function ActiveSessionView({
             </View>
           )}
         </ActiveSessionSlideIn>
+        <BugReportControl screen="active-session" />
       </ScrollView>
       <WhiteBottomMenu
         visible={isDescriptionMenuVisible}

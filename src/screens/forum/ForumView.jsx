@@ -19,6 +19,7 @@ import LockIcon from "../../components/LockIcon.jsx";
 import QuestionnaireShell from "../questionnaire/QuestionnaireShell.jsx";
 import SearchFiltersView from "./searchFiltersView.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../../components/feedbackComponents/BugReportControl.jsx";
 const COLORS = {
   gold: "#C9B259",
   panel: "#141414",
@@ -308,6 +309,7 @@ export default function ForumView({
               ))
             )}
           </View>
+          <BugReportControl screen="forum" />
         </ScrollView>
         {showPostButton ? (
           <Animated.View

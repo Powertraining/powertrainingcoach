@@ -178,7 +178,6 @@ const GLOBAL_HIDDEN_TAB_ROUTES = new Set([
   "/active-session",
   "/(tabs)/active-session",
 ]);
-
 function getTabBarBottomOffset(bottomInset) {
   return Math.max(Math.round(bottomInset / 2), 12);
 }

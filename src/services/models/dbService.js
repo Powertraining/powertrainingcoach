@@ -38,6 +38,7 @@ import { buildDefaultSimplePersistedFields } from "../utils/persistedFields.js";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
+const BUG_REPORTS_COLLECTION = "bugReports";
 const FORUM_POSTS_COLLECTION = "forumPosts";
 const FORUM_COMMENTS_SUBCOLLECTION = "comments";
 const FORUM_COMMENT_REPLIES_SUBCOLLECTION = "replies";
@@ -454,6 +455,31 @@ export async function saveFeedback(feedbackData) {
     return { success: true };
   } catch (error) {
     console.error("DB feedback error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function saveBugReport(reportData) {
+  try {
+    const sanitizedReportData = {
+      description: normalizeBoundedString(reportData?.description, 2000),
+      screen: normalizeBoundedString(reportData?.screen, 300),
+      userId: assertSafeFirestoreDocumentId(reportData?.userId, "userId"),
+      userEmail: normalizeBoundedString(reportData?.userEmail, 254),
+      timestamp:
+        typeof reportData?.timestamp === "string" ?
+          normalizeBoundedString(reportData.timestamp, 40) :
+          new Date().toISOString(),
+    };
+
+    if (!sanitizedReportData.description) {
+      throw new Error("Please describe the problem before sending the report.");
+    }
+
+    await addDoc(collection(db, BUG_REPORTS_COLLECTION), sanitizedReportData);
+    return { success: true };
+  } catch (error) {
+    console.error("DB bug report error:", error);
     return { success: false, error: error.message };
   }
 }

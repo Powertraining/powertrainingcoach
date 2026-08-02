@@ -20,6 +20,7 @@ import {
     getTrainingDayTypeLabel,
 } from "../../constants/trainingDayTypes.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../../components/feedbackComponents/BugReportControl.jsx";
 import {
     getCurrentTrainingWeek,
     getTrainingDayPreferredWeekday,
@@ -1220,6 +1221,7 @@ export default function StartView({
                             ) : null}
                         </>
                     ) : null}
+                    <BugReportControl screen="home" />
                 </ScrollView>
             </Dotted>
         </View>

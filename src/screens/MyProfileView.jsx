@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import SubscriptionCard from "../components/profileComponents/SubscriptionCard.jsx";
 import ProfileNavigationCard from "../components/profileComponents/ProfileNavigationCard.jsx";
@@ -27,6 +28,7 @@ import ProfilePlanAdjustmentsView from "./profile/ProfilePlanAdjustmentsView.jsx
 import RegisterEventView from "./profile/RegisterEventView.jsx";
 import ProfileReportInjuryView from "./profile/ProfileReportInjuryView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../components/feedbackComponents/BugReportControl.jsx";
 
 const FLOATING_ACTION_SLIDE_DISTANCE = 86;
 const HOME_BLUE = "#0A84FF";
@@ -295,13 +297,21 @@ export function MyProfileView(props) {
         ) : null}
 
         {isMainMode ? (
-          <TouchableOpacity
-            onPress={props.onLogout}
-            disabled={props.isSubmitting}
-            style={styles.logoutButton}
-          >
-            <IBMPlexText style={styles.logoutButtonText}>Log out</IBMPlexText>
-          </TouchableOpacity>
+          <View style={styles.accountFooterRow}>
+            <TouchableOpacity
+              onPress={props.onLogout}
+              disabled={props.isSubmitting}
+              style={styles.logoutButton}
+            >
+              <Ionicons
+                color="rgba(255, 255, 255, 0.3)"
+                name="log-out-outline"
+                size={17}
+              />
+              <IBMPlexText style={styles.logoutButtonText}>Log out</IBMPlexText>
+            </TouchableOpacity>
+            <BugReportControl screen="profile:main" />
+          </View>
         ) : null}
 
         {isPersonalDetailsMode ? (
@@ -424,6 +434,7 @@ export function MyProfileView(props) {
             </TouchableOpacity>
           </View>
         ) : null}
+        {!isMainMode ? <BugReportControl screen={`profile:${mode}`} /> : null}
       </ScrollView>
 
       {isPersonalDetailsMode && isUsernameEditing ? (
@@ -872,13 +883,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
+    flexDirection: "row",
+    gap: 7,
+    justifyContent: "center",
     minHeight: 48,
     minWidth: 92,
     alignSelf: "center",
   },
+  accountFooterRow: {
+    alignItems: "center",
+    alignSelf: "center",
+    flexDirection: "row",
+    gap: 12,
+  },
   logoutButtonText: {
-    color: "#fff",
-    opacity: 0.5,
+    color: "rgba(255, 255, 255, 0.3)",
     fontSize: 16, fontWeight: "600",
   },
   buttonDisabled: {

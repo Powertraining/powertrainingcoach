@@ -59,6 +59,7 @@ import {
 import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../components/feedbackComponents/BugReportControl.jsx";
 const WEEK_SCHEDULE_ITEM_WIDTH = 86;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
@@ -2154,6 +2155,7 @@ export default function ProgramOverviewView({
               </IBMPlexText>
             </TouchableOpacity>
           </View>
+          <BugReportControl screen="program-overview" />
         </View>
       </ScrollView>
       {showRescheduleInfoButton ? (

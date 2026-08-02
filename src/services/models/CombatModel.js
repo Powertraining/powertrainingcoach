@@ -28,6 +28,7 @@ import {
   getForumPosts,
   incrementForumPostLikes,
   incrementForumPostSaves,
+  saveBugReport,
   saveFeedback,
 } from "./dbService.js";
 import {
@@ -382,6 +383,20 @@ export const model = {
 
   async submitFeedback({ rating, comment } = {}) {
     return this.submitFeedBack(rating, comment);
+  },
+
+  async submitBugReport({ description, screen } = {}) {
+    const result = await saveBugReport({
+      description,
+      screen,
+      userId: this.user.uid,
+      userEmail: this.user.email,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (!result.success) {
+      throw new Error(result.error);
+    }
   },
 
   async updateProfile({ displayName, password, isGoogleUser, photoURL }) {
