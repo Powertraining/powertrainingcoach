@@ -19,7 +19,6 @@ import RepCountSelector from "./RepCountSelector.jsx";
 import TimeDurationSelector from "./TimeDurationSelector.jsx";
 import { fonts } from "../../theme/colors.js";
 import {
-  formatWeightFromKilograms,
   getDisplayWeightFromKilograms,
   getKilogramsFromDisplayWeight,
   getWeightUnit,
@@ -47,16 +46,8 @@ const FIELD_VISUALS = Object.freeze({
 });
 
 function getFieldSupportText(field, props) {
-  if (
-    field.id === "loadKg" &&
-    props.recommendedLoadKg !== "" &&
-    props.recommendedLoadKg != null &&
-    Number.isFinite(Number(props.recommendedLoadKg))
-  ) {
-    return `Suggested: ${formatWeightFromKilograms(
-      props.recommendedLoadKg,
-      props.unitSystem
-    )}`;
+  if (field.id === "loadKg") {
+    return null;
   }
 
   if (
@@ -363,6 +354,7 @@ export default function ActiveSessionSetLoggingInputPanel(props) {
           accent: "#CDBB58",
           icon: "options-outline",
         };
+        const supportText = getFieldSupportText(field, props);
 
         return (
           <View style={styles.fieldHeading}>
@@ -380,9 +372,11 @@ export default function ActiveSessionSetLoggingInputPanel(props) {
                   ? "Load used"
                   : field.label}
               </IBMPlexText>
-              <IBMPlexText style={styles.fieldSupport}>
-                {getFieldSupportText(field, props)}
-              </IBMPlexText>
+              {supportText ? (
+                <IBMPlexText style={styles.fieldSupport}>
+                  {supportText}
+                </IBMPlexText>
+              ) : null}
             </View>
           </View>
         );
