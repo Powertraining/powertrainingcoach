@@ -1,45 +1,56 @@
 import {
   useEffect,
   useRef,
+  useState,
 } from "react";
 import {
-  PERCENTAGE_REFERENCE_METHOD_OPTIONS,
+  PREFERRED_MAX_TEST_METHOD_OPTIONS,
 } from "../../constants/appLogicSettings.js";
 import {
   Animated,
   Easing,
-  ScrollView,
+  Pressable,
   StyleSheet,
   View,
   useWindowDimensions,
 } from "react-native";
-import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
-const PERCENTAGE_REFERENCE_BUTTONS = Object.freeze({
-  rpe_based_1rm: {
-    label: "Estimate from reps in reserve",
-    mediaText: "RIR",
-  },
+const MAX_TEST_META = Object.freeze({
   multi_rm: {
-    label: "Estimate from a hard set",
-    mediaText: "2–5RM",
+    title: "Estimate from a hard set",
+    markerValue: "2–5",
+    markerUnit: "RM",
+    description: "Use a heavy set of 2–5 clean reps to estimate your 1RM.",
+    accent: "#0A84FF",
+    accentMuted: "rgba(10, 132, 255, 0.14)",
   },
   true_1rm: {
-    label: "Use a tested maximum",
-    mediaText: "1RM",
+    title: "Use a tested maximum",
+    markerValue: "1",
+    markerUnit: "RM",
+    description: "Use a recently tested one-rep maximum performed with good technique.",
+    accent: "#FF9F0A",
+    accentMuted: "rgba(255, 159, 10, 0.14)",
   },
 });
 
 const PERCENTAGE_REFERENCE_DISPLAY_ORDER = Object.freeze([
-  "rpe_based_1rm",
   "multi_rm",
   "true_1rm",
 ]);
 
-const TITLE_BLOCK_HEIGHT = 196;
-const SECTION_TOP_PADDING = 52;
-const OPTIONS_BOTTOM_CLEARANCE = 132;
+const DESCRIPTION_COLLAPSE_END = 64;
+const HEADER_COLLAPSE_END = 142;
+const TITLE_COLLAPSE_START = 84;
+const TITLE_COLLAPSE_END = 116;
+const COLLAPSED_HEADER_HEIGHT = 64;
+const EXPANDED_TITLE_TOP = 58;
+const EXPANDED_TITLE_HEIGHT = 88;
+const EXPANDED_HEADER_HEIGHT = 252;
+const OPTIONS_TOP_GAP = 12;
+const BOTTOM_ACTION_CLEARANCE = 96;
 
 function FadeInOption({ children, delay = 0 }) {
   const enterProgress = useRef(new Animated.Value(0)).current;
@@ -74,96 +85,357 @@ function FadeInOption({ children, delay = 0 }) {
   );
 }
 
+function MaxTestOption({ option, selected, onPress }) {
+  const meta = MAX_TEST_META[option.value];
+
+  if (!meta) {
+    return null;
+  }
+
+  return (
+    <Pressable
+      accessibilityLabel={`${meta.title}. ${meta.description}`}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.option,
+        selected ? styles.optionSelected : null,
+        selected ? { borderColor: meta.accent } : null,
+        pressed ? styles.optionPressed : null,
+      ]}
+    >
+      <View
+        style={[
+          styles.markerContainer,
+          { backgroundColor: meta.accentMuted },
+        ]}
+      >
+        <IBMPlexText
+          defaultWhite
+          numberOfLines={1}
+          style={[styles.markerValue, { color: meta.accent }]}
+        >
+          {meta.markerValue}
+        </IBMPlexText>
+        <IBMPlexText
+          defaultWhite
+          numberOfLines={1}
+          style={[styles.markerUnit, { color: meta.accent }]}
+        >
+          {meta.markerUnit}
+        </IBMPlexText>
+      </View>
+
+      <View style={styles.optionCopy}>
+        <IBMPlexText defaultWhite style={styles.optionTitle}>
+          {meta.title}
+        </IBMPlexText>
+        <IBMPlexText style={styles.optionDescription}>
+          {meta.description}
+        </IBMPlexText>
+      </View>
+
+      <View
+        style={[
+          styles.radio,
+          selected ? { borderColor: meta.accent } : null,
+        ]}
+      >
+        {selected ? (
+          <View style={[styles.radioFill, { backgroundColor: meta.accent }]} />
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}
+
 export default function PercentageReferenceMethodView({
   value,
   onChange,
+  collapseTitleOnScroll = true,
 }) {
-  const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [optionsHeight, setOptionsHeight] = useState(0);
+  const expandedHeaderHeight = insets.top + EXPANDED_HEADER_HEIGHT;
+  const fixedTitleHeaderHeight =
+    insets.top + EXPANDED_TITLE_TOP + EXPANDED_TITLE_HEIGHT + 16;
+  const descriptionCollapsedHeaderHeight = collapseTitleOnScroll
+    ? expandedHeaderHeight - 70
+    : Math.max(expandedHeaderHeight - 70, fixedTitleHeaderHeight);
+  const collapsedHeaderHeight = collapseTitleOnScroll
+    ? COLLAPSED_HEADER_HEIGHT
+    : fixedTitleHeaderHeight;
+  const titleTravelX = Math.min(112, screenWidth * 0.28);
+  const titleTravelY = -(insets.top + 75);
+  const optionsBottom =
+    expandedHeaderHeight + OPTIONS_TOP_GAP + optionsHeight;
+  const requiredScrollRange = Math.max(
+    0,
+    optionsBottom - (screenHeight - BOTTOM_ACTION_CLEARANCE)
+  );
+  const needsScrolling = optionsHeight > 0 && requiredScrollRange > 0;
+  let scrollRange = needsScrolling
+    ? Math.max(
+        requiredScrollRange,
+        collapseTitleOnScroll
+          ? TITLE_COLLAPSE_END
+          : DESCRIPTION_COLLAPSE_END
+      )
+    : 0;
+
+  if (
+    collapseTitleOnScroll &&
+    scrollRange > TITLE_COLLAPSE_START &&
+    scrollRange < TITLE_COLLAPSE_END
+  ) {
+    scrollRange = TITLE_COLLAPSE_END;
+  }
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, DESCRIPTION_COLLAPSE_END, HEADER_COLLAPSE_END],
+    outputRange: [
+      expandedHeaderHeight,
+      descriptionCollapsedHeaderHeight,
+      collapsedHeaderHeight,
+    ],
+    extrapolate: "clamp",
+  });
+  const expandedTitleOpacity = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, 102, TITLE_COLLAPSE_END],
+    outputRange: [1, 0.8, 0],
+    extrapolate: "clamp",
+  });
+  const titleScale = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, TITLE_COLLAPSE_END],
+    outputRange: [1, 0.58],
+    extrapolate: "clamp",
+  });
+  const titleTranslateX = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, TITLE_COLLAPSE_END],
+    outputRange: [0, titleTravelX],
+    extrapolate: "clamp",
+  });
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, TITLE_COLLAPSE_END],
+    outputRange: [0, titleTravelY],
+    extrapolate: "clamp",
+  });
+  const compactTitleOpacity = scrollY.interpolate({
+    inputRange: [98, TITLE_COLLAPSE_END],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
 
   return (
-    <View style={[styles.section, { minHeight: screenHeight }]}>
-      <IBMPlexText titleBlock height={TITLE_BLOCK_HEIGHT}>
-        How would you like to determine your 1RM?
-      </IBMPlexText>
-      <ScrollView
-        style={styles.optionsScroll}
-        contentContainerStyle={styles.contentSlot}
-        showsVerticalScrollIndicator={false}
+    <View style={[styles.screen, { height: screenHeight }]}>
+      <Animated.ScrollView
         bounces={false}
+        contentContainerStyle={[
+          styles.container,
+          {
+            minHeight: screenHeight + scrollRange,
+            paddingTop: expandedHeaderHeight + OPTIONS_TOP_GAP,
+          },
+        ]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEnabled={needsScrolling}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
       >
-        {PERCENTAGE_REFERENCE_DISPLAY_ORDER.map((optionValue, index) => {
-          const option = PERCENTAGE_REFERENCE_METHOD_OPTIONS.find(
-            (referenceOption) => referenceOption.value === optionValue
-          );
-          if (!option) {
-            return null;
-          }
+        <View
+          accessibilityRole="radiogroup"
+          onLayout={(event) => {
+            const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+            setOptionsHeight((currentHeight) =>
+              currentHeight === nextHeight ? currentHeight : nextHeight
+            );
+          }}
+          style={styles.options}
+        >
+          {PERCENTAGE_REFERENCE_DISPLAY_ORDER.map((optionValue, index) => {
+            const option = PREFERRED_MAX_TEST_METHOD_OPTIONS.find(
+              (referenceOption) => referenceOption.value === optionValue
+            );
+            if (!option) {
+              return null;
+            }
 
-          const buttonContent = PERCENTAGE_REFERENCE_BUTTONS[option.value];
+            return (
+              <FadeInOption key={option.value} delay={index * 70}>
+                <MaxTestOption
+                  option={option}
+                  selected={value === option.value}
+                  onPress={() =>
+                    onChange?.(value === option.value ? null : option.value)
+                  }
+                />
+              </FadeInOption>
+            );
+          })}
+        </View>
+      </Animated.ScrollView>
 
-          return (
-            <FadeInOption key={option.value} delay={index * 70}>
-              <PreferenceOptionButton
-                isSelected={value === option.value}
-                label={buttonContent?.label ?? option.label}
-                mediaText={buttonContent?.mediaText}
-                buttonStyle={styles.optionButton}
-                selectedButtonStyle={styles.optionButtonSelected}
-                labelStyle={styles.optionLabel}
-                mediaTextStyle={styles.optionMediaText}
-                description={option.description}
-                onPress={() =>
-                  onChange?.(value === option.value ? null : option.value)
-                }
-              />
-            </FadeInOption>
-          );
-        })}
-      </ScrollView>
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.stickyHeader, { height: headerHeight }]}
+      >
+        <Animated.View
+          style={[
+            styles.expandedTitle,
+            {
+              opacity: collapseTitleOnScroll ? expandedTitleOpacity : 1,
+              top: insets.top + EXPANDED_TITLE_TOP,
+              transform: collapseTitleOnScroll
+                ? [
+                    { translateX: titleTranslateX },
+                    { translateY: titleTranslateY },
+                    { scale: titleScale },
+                  ]
+                : undefined,
+            },
+          ]}
+        >
+          <IBMPlexText titleBlock height={EXPANDED_TITLE_HEIGHT}>
+            How would you like to determine your 1RM?
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.compactTitle,
+            { opacity: collapseTitleOnScroll ? compactTitleOpacity : 0 },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.compactTitleText}>
+            1RM method
+          </IBMPlexText>
+        </Animated.View>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
-    justifyContent: "flex-start",
-    paddingTop: SECTION_TOP_PADDING,
+  screen: {
+    alignSelf: "stretch",
+    position: "relative",
   },
-  optionsScroll: {
+  scrollView: {
     alignSelf: "stretch",
     flex: 1,
   },
-  contentSlot: {
-    gap: 14,
-    justifyContent: "flex-start",
-    paddingBottom: OPTIONS_BOTTOM_CLEARANCE,
+  container: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  options: {
+    alignSelf: "stretch",
+    gap: 12,
+  },
+  stickyHeader: {
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 10,
+  },
+  expandedTitle: {
+    left: 0,
+    position: "absolute",
+    right: 0,
+  },
+  compactTitle: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    position: "absolute",
+    right: 24,
+    top: 17,
+  },
+  compactTitleText: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 20,
   },
   fadeInOption: {
     width: "100%",
   },
-  optionButton: {
-    backgroundColor: "#141414",
-    borderColor: "#1E1E1E",
-    borderRadius: 18,
-    borderStyle: "solid",
+  option: {
+    alignItems: "center",
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 14,
+    minHeight: 104,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  optionSelected: {
+    backgroundColor: "#171717",
     borderWidth: 2,
-    minHeight: 136,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
   },
-  optionButtonSelected: {
-    backgroundColor: "#181818",
-    borderColor: "#ffffff",
+  optionPressed: {
+    opacity: 0.76,
+    transform: [{ scale: 0.985 }],
   },
-  optionLabel: {
-    bottom: "auto",
-    color: "#A6A6A6",
-    fontSize: 13,
+  markerContainer: {
+    alignItems: "center",
+    borderRadius: 12,
+    height: 52,
+    justifyContent: "center",
+    width: 52,
+  },
+  markerValue: {
+    fontSize: 20,
     fontWeight: "800",
-    lineHeight: 16,
-    position: "relative",
-    textTransform: "uppercase",
+    lineHeight: 22,
   },
-  optionMediaText: {
-    fontSize: 26,
-    marginBottom: 8,
+  markerUnit: {
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.7,
+    lineHeight: 10,
+    marginTop: -1,
+  },
+  optionCopy: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
+  },
+  optionTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 22,
+  },
+  optionDescription: {
+    color: "#9A9AA2",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+  },
+  radio: {
+    alignItems: "center",
+    borderColor: "#56565F",
+    borderRadius: 12,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  radioFill: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
   },
 });

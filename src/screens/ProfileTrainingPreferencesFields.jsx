@@ -30,7 +30,7 @@ import {
   DELOAD_STRATEGY_OPTIONS,
   LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
-  PERCENTAGE_REFERENCE_METHOD_OPTIONS,
+  PREFERRED_MAX_TEST_METHOD_OPTIONS,
   TRAINING_PHASE_OPTIONS,
 } from "../constants/appLogicSettings.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
@@ -156,15 +156,13 @@ const LIFT_INTENSITY_PROFILE_OPTIONS = Object.freeze([
       LIFT_INTENSITY_METHOD_OPTIONS.find((option) => option.value === "rpe")
         ?.description ?? "Use Rate of Perceived Exertion to autoregulate lift intensity.",
   },
-  ...PERCENTAGE_REFERENCE_METHOD_OPTIONS.map((option) => ({
+  ...PREFERRED_MAX_TEST_METHOD_OPTIONS.map((option) => ({
     label:
       option.value === "true_1rm"
         ? "True 1RM tests"
         : option.value === "multi_rm"
           ? "2-5RM + Epley"
-          : option.value === "rpe_based_1rm"
-            ? "RPE-based 1RM"
-            : option.label,
+          : option.label,
     liftIntensityMethod: "percentage",
     percentageReferenceMethod: option.value,
     description: option.description,

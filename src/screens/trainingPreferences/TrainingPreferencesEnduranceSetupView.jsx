@@ -1316,8 +1316,8 @@ export default function TrainingPreferencesEnduranceSetupView({
             </IBMPlexText>
             <IBMPlexText defaultWhite style={styles.circuitFocusHelper} center>
               {isRegionStage
-                ? "Choose every area that fades first."
-                : "Choose what best matches how you fatigue during hard circuits."}
+                ? "To tailor your circuit training, choose every area that tends to fatigue first."
+                : "This follow-up helps tailor your circuit training. Choose what usually fatigues first during hard circuits."}
             </IBMPlexText>
           </View>
 

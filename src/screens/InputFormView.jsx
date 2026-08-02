@@ -16,6 +16,7 @@ import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
+import { PREFERRED_MAX_TEST_METHOD_OPTIONS } from "../constants/appLogicSettings.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 
@@ -96,11 +97,19 @@ export default function InputFormView({
                 formState,
                 "liftIntensityMethod"
             ),
-            percentageReferenceMethod: getNullableInitialValue(
-                initialValues,
-                formState,
-                "percentageReferenceMethod"
-            ),
+            percentageReferenceMethod: (() => {
+                const initialMethod = getNullableInitialValue(
+                    initialValues,
+                    formState,
+                    "percentageReferenceMethod"
+                );
+
+                return PREFERRED_MAX_TEST_METHOD_OPTIONS.some(
+                    (option) => option.value === initialMethod
+                )
+                    ? initialMethod
+                    : null;
+            })(),
             deloadStrategy: getNullableInitialValue(initialValues, formState, "deloadStrategy"),
             loadingStrategy:
                 getNullableInitialValue(initialValues, formState, "loadingStrategy") ??

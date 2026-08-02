@@ -116,6 +116,14 @@ export const LOADING_STRATEGY_OPTIONS = Object.freeze([
   },
 ]);
 
+// RPE-based 1RM estimation remains an internal missing-Program-Max bridge. It
+// is not a deliberate max-test preference that users can select.
+export const PREFERRED_MAX_TEST_METHOD_OPTIONS = Object.freeze(
+  PERCENTAGE_REFERENCE_METHOD_OPTIONS.filter(
+    (option) => option.value === "multi_rm" || option.value === "true_1rm"
+  )
+);
+
 export const APP_LOGIC_SETTINGS_DEFAULTS = Object.freeze({
   trainingPhase: "off_camp",
   competitionTimeline: "",
