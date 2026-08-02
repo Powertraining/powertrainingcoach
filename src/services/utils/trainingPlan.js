@@ -935,6 +935,68 @@ function applyPullUpChinUpRules(exercise = {}) {
   };
 }
 
+function getStrengthAssessmentTopSetReps(exercise = {}) {
+  const method = exercise?.strengthAssessment?.method;
+
+  if (method === "true_1rm") {
+    return "1";
+  }
+
+  const prescribedReps = normalizeString(exercise?.reps);
+  const leadingRepTarget = prescribedReps.match(/^\s*(\d+(?:\s*[-–]\s*\d+)?)/);
+
+  if (leadingRepTarget?.[1]) {
+    return leadingRepTarget[1].replace(/\s+/g, "");
+  }
+
+  return method === "multi_rm" ? "2-5" : "3-5";
+}
+
+function getStrengthAssessmentTopSetNotes(notes = "") {
+  const notesWithoutBackOffWork = normalizeString(notes)
+    .replace(
+      /\s*Work up to the prescribed top set only; do not perform back-off sets\.\s*/gi,
+      " "
+    )
+    .replace(
+      /\s*,?\s*(?:before|then|followed by|plus|and)\s+(?:the\s+)?(?:\d+\s+)?back[- ]off(?:\s+sets?|\s+work)?[^.]*\.?/gi,
+      "."
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return [
+    notesWithoutBackOffWork,
+    "Work up to the prescribed top set only; do not perform back-off sets.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function applyStrengthAssessmentTopSetOnly(exercise = {}) {
+  if (!exercise?.strengthAssessment) {
+    return exercise;
+  }
+
+  const reps = getStrengthAssessmentTopSetReps(exercise);
+
+  return {
+    ...exercise,
+    sets: "1 top set",
+    reps,
+    notes: getStrengthAssessmentTopSetNotes(exercise.notes),
+    percentagePrescription: null,
+    substitutionOptions: Array.isArray(exercise.substitutionOptions)
+      ? exercise.substitutionOptions.map((option) => ({
+          ...option,
+          sets: "1 top set",
+          reps,
+          notes: getStrengthAssessmentTopSetNotes(option.notes),
+        }))
+      : [],
+  };
+}
+
 export function normalizeExercise(exercise = {}) {
   const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
   const { videoUrl: _videoUrl, ...exerciseWithoutVideo } = safeExercise;
@@ -964,43 +1026,45 @@ export function normalizeExercise(exercise = {}) {
     normalizedOptions[0] ||
     normalizeExerciseOption(currentExercise);
 
-  const normalizedExercise = applyPullUpChinUpRules(omitUndefinedObjectFields({
-    ...exerciseWithoutVideo,
-    name: selectedOption.name,
-    sets: selectedOption.sets,
-    reps: selectedOption.reps,
-    notes: selectedOption.notes,
-    orderLabel: normalizeExerciseOrderLabel(
-      safeExercise.orderLabel || safeExercise.exerciseLabel
-    ) || undefined,
-    endurancePrescription: normalizeEndurancePrescription(
-      safeExercise.endurancePrescription
-    ),
-    circuitPrescription: normalizeCircuitPrescription(
-      safeExercise.circuitPrescription
-    ),
-    heavyBagPrescription: normalizeHeavyBagPrescription(
-      safeExercise.heavyBagPrescription
-    ),
-    sprintPrescription: normalizeSprintPrescription(
-      safeExercise.sprintPrescription
-    ),
-    performanceTarget: normalizePerformanceTarget(
-      safeExercise.performanceTarget,
-      selectedOption.name,
-      safeExercise
-    ),
-    percentagePrescription: normalizePercentagePrescription(
-      safeExercise.percentagePrescription,
-      selectedOption.name
-    ),
-    strengthAssessment: normalizeStrengthAssessmentConfig(
-      safeExercise.strengthAssessment,
-      selectedOption.name
-    ),
-    selectedSubstitutionId: selectedOption.id,
-    substitutionOptions: normalizedOptions,
-  }));
+  const normalizedExercise = applyStrengthAssessmentTopSetOnly(
+    applyPullUpChinUpRules(omitUndefinedObjectFields({
+      ...exerciseWithoutVideo,
+      name: selectedOption.name,
+      sets: selectedOption.sets,
+      reps: selectedOption.reps,
+      notes: selectedOption.notes,
+      orderLabel: normalizeExerciseOrderLabel(
+        safeExercise.orderLabel || safeExercise.exerciseLabel
+      ) || undefined,
+      endurancePrescription: normalizeEndurancePrescription(
+        safeExercise.endurancePrescription
+      ),
+      circuitPrescription: normalizeCircuitPrescription(
+        safeExercise.circuitPrescription
+      ),
+      heavyBagPrescription: normalizeHeavyBagPrescription(
+        safeExercise.heavyBagPrescription
+      ),
+      sprintPrescription: normalizeSprintPrescription(
+        safeExercise.sprintPrescription
+      ),
+      performanceTarget: normalizePerformanceTarget(
+        safeExercise.performanceTarget,
+        selectedOption.name,
+        safeExercise
+      ),
+      percentagePrescription: normalizePercentagePrescription(
+        safeExercise.percentagePrescription,
+        selectedOption.name
+      ),
+      strengthAssessment: normalizeStrengthAssessmentConfig(
+        safeExercise.strengthAssessment,
+        selectedOption.name
+      ),
+      selectedSubstitutionId: selectedOption.id,
+      substitutionOptions: normalizedOptions,
+    }))
+  );
 
   if (!isLoadedJumpExerciseName(normalizedExercise.name)) {
     return normalizedExercise;

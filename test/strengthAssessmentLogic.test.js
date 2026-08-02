@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 
 import { normalizeAppLogicSettings } from "../src/constants/appLogicSettings.js";
 import { parseGeneratedTrainingPlan } from "../src/services/utils/trainingPlan.js";
+import { getPrescribedSetCount } from "../src/services/utils/exerciseSets.js";
 import {
   createStrengthAssessmentEntry,
   getPendingProgramMaxAssessments,
+  getStrengthAssessmentPrescription,
   getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentSummary,
   resolveStrengthAssessmentReferenceOneRepMaxKg,
@@ -166,6 +168,34 @@ test("pending Program Max assessments exclude lifts with a saved max", () => {
   assert.equal(squatOnlyPending[0].minimumRpe, 8);
 });
 
+test("strength assessment prescriptions describe working up to one top set", () => {
+  assert.equal(
+    getStrengthAssessmentPrescription({
+      name: "Back Squat",
+      reps: "3-5",
+      notes: "Use RPE 8-9.",
+      strengthAssessment: { method: "rpe_based_1rm" },
+    }),
+    "Work up to a top set of 3–5 reps at RPE 8–9."
+  );
+  assert.equal(
+    getStrengthAssessmentPrescription({
+      name: "Back Squat",
+      reps: "2-5",
+      strengthAssessment: { method: "multi_rm" },
+    }),
+    "Work up to a top set of 2–5 reps at RPE 9–10."
+  );
+  assert.equal(
+    getStrengthAssessmentPrescription({
+      name: "Back Squat",
+      reps: "1",
+      strengthAssessment: { method: "true_1rm" },
+    }),
+    "Work up to a top set of 1 rep."
+  );
+});
+
 test("generated training plans preserve strength assessment metadata on exercises", () => {
   const normalizedPlan = parseGeneratedTrainingPlan({
     summary: "Use an RPE-based 1RM estimate before back-off work.",
@@ -196,6 +226,11 @@ test("generated training plans preserve strength assessment metadata on exercise
                 sets: "1 top set + 3 back-off sets",
                 reps: "3 + 3 x 3",
                 notes: "Work up to 3 reps @RPE 8 before the back-off work.",
+                percentagePrescription: {
+                  referenceLiftName: "Trap Bar Deadlift",
+                  loadingStrategy: "flat_loading",
+                  workingSets: [{ count: 3, reps: 3, percent1RM: 75 }],
+                },
                 strengthAssessment: {
                   method: "rpe_based_1rm",
                   liftName: "Trap Bar Deadlift",
@@ -210,12 +245,19 @@ test("generated training plans preserve strength assessment metadata on exercise
     ],
   });
 
-  const assessment =
-    normalizedPlan.weeks[0].days[0].exercises[0].strengthAssessment;
+  const exercise = normalizedPlan.weeks[0].days[0].exercises[0];
+  const assessment = exercise.strengthAssessment;
 
   assert.equal(assessment.method, "rpe_based_1rm");
   assert.equal(assessment.liftName, "Trap Bar Deadlift");
   assert.equal(assessment.prompt, "Log the load, reps, and RPE of the top set.");
+  assert.equal(exercise.sets, "1 top set");
+  assert.equal(exercise.reps, "3");
+  assert.equal(exercise.percentagePrescription, null);
+  assert.equal(getPrescribedSetCount(exercise), 1);
+  assert.doesNotMatch(exercise.notes, /before the back-off work/i);
+  assert.match(exercise.notes, /top set only/i);
+  assert.equal(exercise.substitutionOptions[0].sets, "1 top set");
 });
 
 test("close-grip bench press can estimate its reference max from bench press", () => {

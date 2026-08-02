@@ -168,6 +168,8 @@ test("true 1RM instruction blocks beginners and fights within 8 weeks", () => {
   assert.match(guidelines, /true_1rm.*rare|rare.*true_1rm/i);
   assert.match(guidelines, /never within 8 weeks of competition/i);
   assert.match(guidelines, /intermediate\/advanced/i);
+  assert.match(guidelines, /strengthAssessment.*top-set-only/i);
+  assert.match(guidelines, /Never add back-off sets/i);
 });
 
 test("session spacing rules include 48-hour recovery advisory", () => {

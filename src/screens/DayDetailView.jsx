@@ -44,6 +44,7 @@ import {
     getPendingProgramMaxAssessments,
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
+    getStrengthAssessmentPrescription,
     getStrengthAssessmentRequirements,
     getStrengthAssessmentReferenceOneRepMaxKg,
     resolveStrengthAssessmentReferenceOneRepMaxKg,
@@ -520,6 +521,12 @@ function formatPrescriptionWithSets(sets = "", prescription = "") {
 
 function getExercisePrescriptionDisplay(exercise = {}) {
     const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
+    const assessmentPrescription = getStrengthAssessmentPrescription(safeExercise);
+
+    if (assessmentPrescription) {
+        return assessmentPrescription;
+    }
+
     const endurancePrescription = safeExercise.endurancePrescription || {};
     if (endurancePrescription.work || endurancePrescription.rest) {
         return [endurancePrescription.work, endurancePrescription.rest]

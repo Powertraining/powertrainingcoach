@@ -35,6 +35,10 @@ test("training prompt embeds the key striking and percentage instruction rules",
     prompt,
     /missing-max bridge work.*"rpe_based_1rm".*scheduled RM tests.*"multi_rm" or "true_1rm"/i
   );
+  assert.match(
+    prompt,
+    /strengthAssessment.*top-set-only.*no.*back-off sets|strengthAssessment.*top-set-only.*Do not include back-off sets/is
+  );
 });
 
 test("regeneration feedback is bounded and subordinate to plan rules", () => {

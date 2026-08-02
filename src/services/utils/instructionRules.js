@@ -57,6 +57,7 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Once strengthAssessmentSummary contains a Program Max/trainingMaxKg for that lift, treat the max as known and switch that lift to percentage-based loading from the next generated exposure.
 - Known Program Max: if a Program Max is available for a primary lift, use percentage-based loading from the first generated exposure with no preamble or assessment session.
 - Only main primary lifts (back squat, front squat, bench press, deadlift, overhead press, and similar) need a Program Max. Accessories, isolation exercises, plyos, throws, and conditioning never require one.
+- Every exercise with strengthAssessment is top-set-only: prescribe sets as "1 top set", work up to that set, and stop. Never add back-off sets, follow-up working sets, or percentagePrescription workingSets to an assessment exercise.
 - multi_rm: prescribe a hard top set of 2–5 reps @RPE 9–10. Schedule every 4–6 weeks in off-season or early/mid camp. Block in the final 5 weeks before competition.
 - true_1rm: rare; only for intermediate/advanced athletes confirmed to be in an off-season or general strength phase; never within 8 weeks of competition; max one true 1RM test per week across all lifts.
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,

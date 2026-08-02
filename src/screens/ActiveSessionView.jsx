@@ -35,6 +35,7 @@ import {
   createStrengthAssessmentEntry,
   getStrengthAssessmentMinimumRpe,
   getStrengthAssessmentLiftKey,
+  getStrengthAssessmentPrescription,
   getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentRequirements,
   resolveStrengthAssessmentReferenceOneRepMaxKg,
@@ -262,6 +263,12 @@ function getExerciseText(exercise = {}) {
 }
 
 function getExercisePrescriptionDisplay(exercise = {}) {
+  const assessmentPrescription = getStrengthAssessmentPrescription(exercise);
+
+  if (assessmentPrescription) {
+    return assessmentPrescription;
+  }
+
   const sets = getExerciseSetDisplayValue(exercise);
   const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
   const hasSimpleSetCount = /^\d+$/.test(sets);
@@ -1431,6 +1438,7 @@ function ExerciseSessionStep({
   const programMaxIntensityMetric = isEstimatingProgramMax
     ? [performanceTargetRpe, programMaxStatusLabel].filter(Boolean).join("\n")
     : performanceTargetRpe;
+  const assessmentPrescription = getStrengthAssessmentPrescription(exercise);
   const exerciseRecommendationDetails = String(exerciseRecommendation.details || "")
     .split(/\s*\*\s*/)
     .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
@@ -1444,7 +1452,22 @@ function ExerciseSessionStep({
         exerciseRecommendation.primary ||
         exerciseRecommendationDetails[0]) ||
     "";
-  const planMetrics = [
+  const planMetrics = strengthAssessment
+    ? [
+        assessmentPrescription
+          ? {
+              label: "Prescription",
+              value: assessmentPrescription,
+            }
+          : null,
+        isEstimatingProgramMax
+          ? {
+              label: "Purpose",
+              value: programMaxStatusLabel,
+            }
+          : null,
+      ].filter(Boolean)
+    : [
     intensityMetric
       ? {
           label: "Intensity",
@@ -1459,7 +1482,7 @@ function ExerciseSessionStep({
           value: normalizeText(exercise?.reps),
         }
       : null,
-  ].filter(Boolean);
+      ].filter(Boolean);
   const additionalTargetMetrics = [
     ...exerciseRecommendationDetails.map((value) => ({
       label: /\b(?:1\s*RM|Program Max)\b/i.test(value)
@@ -1484,7 +1507,10 @@ function ExerciseSessionStep({
       ? { label: "Rest", value: endurancePrescription.rest }
       : null,
   ].filter(Boolean);
-  const targetMetrics = [...planMetrics, ...additionalTargetMetrics].filter(
+  const targetMetrics = [
+    ...planMetrics,
+    ...(strengthAssessment ? [] : additionalTargetMetrics),
+  ].filter(
     (metric, metricIndex, metrics) =>
       metric.value &&
       metrics.findIndex(({ value }) => value === metric.value) === metricIndex
@@ -1584,9 +1610,9 @@ function ExerciseSessionStep({
         <LoadedJumpGuideline compact={compact} />
       ) : null}
 
-      {showRpe ? (
+      {strengthAssessment ? (
         <IBMPlexText style={[styles.workingSetsNote, compact ? styles.compactWorkingSetsNote : null]}>
-          Do not include warm-up sets.
+          Warm up as needed; log only the top set.
         </IBMPlexText>
       ) : null}
 

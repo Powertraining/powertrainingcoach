@@ -136,6 +136,7 @@ Generator can choose the target based on profile:
 2–3RM → for athletes comfortable with heavy loads and stable technique.
 4–5RM → for those who prefer slightly higher reps / feel safer with them.
 All tests are programmed as a top set @RPE 9–10 (1 or 0 reps in reserve).
+Testing-session volume rule: every max-estimation or max-test exercise ends after the top set. Warm up progressively, perform the prescribed top set, and stop. Do not prescribe back-off sets or follow-up percentage work on that exercise.
 How the test is programmed in a session
 Warm-up progression (submax sets).
 Then generator prescribes:
