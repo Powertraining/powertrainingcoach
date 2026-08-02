@@ -16,6 +16,7 @@ import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
+import { PREFERRED_MAX_TEST_METHOD_OPTIONS } from "../constants/appLogicSettings.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 
@@ -49,6 +50,7 @@ export default function InputFormView({
     onClose,
     onDesiredTrainingContinue,
     onBackToFrequency,
+    unitSystem = "metric",
 }) {
     const [trainingPreferences, setTrainingPreferences] = useState(() => {
         const formState = getTrainingPreferencesFormState(initialValues);
@@ -95,16 +97,19 @@ export default function InputFormView({
                 formState,
                 "liftIntensityMethod"
             ),
-            percentageReferenceMethod: getNullableInitialValue(
-                initialValues,
-                formState,
-                "percentageReferenceMethod"
-            ),
-            programMaxSetup: getNullableInitialValue(
-                initialValues,
-                formState,
-                "programMaxSetup"
-            ),
+            percentageReferenceMethod: (() => {
+                const initialMethod = getNullableInitialValue(
+                    initialValues,
+                    formState,
+                    "percentageReferenceMethod"
+                );
+
+                return PREFERRED_MAX_TEST_METHOD_OPTIONS.some(
+                    (option) => option.value === initialMethod
+                )
+                    ? initialMethod
+                    : null;
+            })(),
             deloadStrategy: getNullableInitialValue(initialValues, formState, "deloadStrategy"),
             loadingStrategy:
                 getNullableInitialValue(initialValues, formState, "loadingStrategy") ??
@@ -167,13 +172,12 @@ export default function InputFormView({
         activeStepKey === "combatTrainingIntensity";
     const isLiftIntensityMethodStep = activeStepKey === "liftIntensityMethod";
     const isPercentageReferenceMethodStep = activeStepKey === "percentageReferenceMethod";
-    const isProgramMaxSetupStep = activeStepKey === "programMaxSetup";
     const isDeloadStrategyStep = activeStepKey === "deloadStrategy";
+    const isLoadingStrategyStep = activeStepKey === "loadingStrategy";
     const liftIntensityMethodStepSelected = Boolean(trainingPreferences.liftIntensityMethod);
     const percentageReferenceMethodStepSelected = Boolean(
         trainingPreferences.percentageReferenceMethod
     );
-    const programMaxSetupStepSelected = Boolean(trainingPreferences.programMaxSetup);
     const deloadStrategyStepSelected = Boolean(trainingPreferences.deloadStrategy);
     const eventDescriptionStepSelected = Boolean(
         getEventDescription(trainingPreferences.eventPreparation)
@@ -186,7 +190,6 @@ export default function InputFormView({
         isEventDescriptionStep ||
         isLiftIntensityMethodStep ||
         isPercentageReferenceMethodStep ||
-        isProgramMaxSetupStep ||
         isDeloadStrategyStep;
     const canContinue =
         activeConfidenceKey ? confidenceStepSelected :
@@ -196,7 +199,6 @@ export default function InputFormView({
                     isEventDescriptionStep ? eventDescriptionStepSelected :
                         isLiftIntensityMethodStep ? liftIntensityMethodStepSelected :
                             isPercentageReferenceMethodStep ? percentageReferenceMethodStepSelected :
-                                isProgramMaxSetupStep ? programMaxSetupStepSelected :
                                 isDeloadStrategyStep ? deloadStrategyStepSelected :
                                     undefined;
 
@@ -335,10 +337,12 @@ export default function InputFormView({
                 contentContainerStyle={[
                     styles.center,
                     isEnduranceStyleStep ||
+                    isEnduranceSprintingFocusStep ||
                     isEnduranceCircuitFocusStep ||
                     isLiftIntensityMethodStep ||
                     isPercentageReferenceMethodStep ||
-                    isDeloadStrategyStep
+                    isDeloadStrategyStep ||
+                    isLoadingStrategyStep
                         ? styles.centerFullHeight
                         : null,
                     isCombatTrainingIntensityStep
@@ -369,6 +373,7 @@ export default function InputFormView({
 
                         <TrainingPreferencesFields
                             values={trainingPreferences}
+                            unitSystem={unitSystem}
                             onChange={updateTrainingPreferences}
                             appLogicTitle="App Logic Settings"
                             appLogicDescription="Choose the strength-planning logic you want the app to use for this athlete profile."

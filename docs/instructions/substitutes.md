@@ -3,6 +3,9 @@ For somewhat complex or at times, inconvenient or inaccessible exercises, you sh
 -          	Don’t replace a bench press throw with just a speed push up, offer a ballistic push up.
 
 When returning structured JSON for the app, encode these substitute ideas directly on the exercise object in a `substitutionOptions` array so the UI can render them as exercise-replacement choices. Keep the same logic: substitutes must remain in the same movement category and preserve the main training emphasis. Examples:
-- High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat
+- Back Squat (High-Bar) -> Front Squat / Back Squat (Low-Bar) / Safety Bar Squat
 - Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips
 - Power Clean -> Power Snatch
+
+## Back Squat Bar Position
+Never program a bare, ambiguous "Back Squat". Always name it "Back Squat (High-Bar)" or "Back Squat (Low-Bar)" so the athlete and the app both know which variation is intended — high-bar keeps the torso more upright with more quad emphasis, while low-bar shifts more work to the hips and posterior chain and typically supports heavier loading. Pick the variation deliberately for the athlete's goal and sport, then keep using that exact name for every exposure of that lift across the cycle so Program Max and performance history stay attached to the same lift.

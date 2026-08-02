@@ -20,6 +20,7 @@ import {
     getTrainingDayTypeLabel,
 } from "../../constants/trainingDayTypes.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../../components/feedbackComponents/BugReportControl.jsx";
 import {
     getCurrentTrainingWeek,
     getTrainingDayPreferredWeekday,
@@ -1092,6 +1093,7 @@ export default function StartView({
     onMoveSession,
     onNavigateQuestionnaire,
     onResetUserProgress,
+    isAdmin = false,
 }) {
     const insets = useSafeAreaInsets();
     const { height: windowHeight } = useWindowDimensions();
@@ -1197,29 +1199,29 @@ export default function StartView({
                     </View>
                     {!isPhonePreview ? (
                         <>
-                            <TouchableOpacity style={styles.testButton} onPress={onStart}>
-                                <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
-                                    Test questionnaire
-                                </IBMPlexText>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.testButton, styles.navigateQuestionnaireButton]}
-                                onPress={onNavigateQuestionnaire}
-                            >
-                                <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
-                                    Navigate questionnaire
-                                </IBMPlexText>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.testButton, styles.resetUserButton]}
-                                onPress={onResetUserProgress}
-                            >
-                                <IBMPlexText defaultWhite style={styles.resetUserButtonText}>
-                                    Reset profile
-                                </IBMPlexText>
-                            </TouchableOpacity>
+                            {__DEV__ ? (
+                                <TouchableOpacity
+                                    style={styles.testButton}
+                                    onPress={onNavigateQuestionnaire}
+                                >
+                                    <IBMPlexText defaultWhite textColor="#000" fontSize={18}>
+                                        Navigate questionnaire
+                                    </IBMPlexText>
+                                </TouchableOpacity>
+                            ) : null}
+                            {isAdmin ? (
+                                <TouchableOpacity
+                                    style={[styles.testButton, styles.resetUserButton]}
+                                    onPress={onResetUserProgress}
+                                >
+                                    <IBMPlexText defaultWhite style={styles.resetUserButtonText}>
+                                        Reset profile
+                                    </IBMPlexText>
+                                </TouchableOpacity>
+                            ) : null}
                         </>
                     ) : null}
+                    <BugReportControl screen="home" />
                 </ScrollView>
             </Dotted>
         </View>
@@ -1267,9 +1269,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         alignItems: "center",
         justifyContent: "center",
-    },
-    navigateQuestionnaireButton: {
-        marginTop: 10,
     },
     resetUserButton: {
         backgroundColor: "#231f20",

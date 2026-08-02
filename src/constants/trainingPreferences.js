@@ -152,6 +152,10 @@ export const ENDURANCE_SESSION_COUNT_OPTIONS = Object.freeze(
 
 export const ENDURANCE_FORMAT_OPTIONS = Object.freeze([
   {
+    label: "Let the plan decide",
+    value: "plan_decides",
+  },
+  {
     label: "Low-intensity aerobic development",
     value: "low_intensity_aerobic",
   },
@@ -368,7 +372,7 @@ export const TRAINING_PREFERENCES_DEFAULTS = Object.freeze({
   trainingCapabilities: Object.freeze({}),
   preferredEnduranceModalities: Object.freeze([]),
   enduranceSessionsPerWeek: 1,
-  preferredEnduranceFormat: "low_intensity_aerobic",
+  preferredEnduranceFormat: "plan_decides",
   circuitTrainingGoalInput: "",
   circuitTrainingPrimaryPriority: "",
   circuitTrainingSecondaryPriorities: Object.freeze([]),

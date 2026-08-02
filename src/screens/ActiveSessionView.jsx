@@ -4,6 +4,7 @@ import {
   useRef,
   useState } from "react";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import {
   Animated,
   Dimensions,
@@ -14,7 +15,6 @@ import {
   View,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import PlanSetTabs from "../components/planComponents/PlanSetTabs.jsx";
 import ActiveSessionSetLoggingInputPanel from "../components/planComponents/ActiveSessionSetLoggingInputPanel.jsx";
 import WhiteBottomMenu from "../components/profileComponents/WhiteBottomMenu.jsx";
 import ActiveSessionSectionIntroView from "./ActiveSessionSectionIntroView.jsx";
@@ -35,6 +35,7 @@ import {
   createStrengthAssessmentEntry,
   getStrengthAssessmentMinimumRpe,
   getStrengthAssessmentLiftKey,
+  getStrengthAssessmentPrescription,
   getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentRequirements,
   resolveStrengthAssessmentReferenceOneRepMaxKg,
@@ -46,6 +47,16 @@ import {
   getPrescribedSetCount,
 } from "../services/utils/exerciseSets.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../components/feedbackComponents/BugReportControl.jsx";
+import LoadedJumpGuideline from "../components/planComponents/LoadedJumpGuideline.jsx";
+import {
+  formatBodyMassLoadRange,
+  getLoadedJumpPrescription,
+} from "../services/utils/loadedJumpPrescription.js";
+import {
+  formatMeasurementText,
+  formatWeightFromKilograms,
+} from "../services/utils/measurementUnits.js";
 const HEADER_PROGRESS_ANIMATION_DURATION_MS = 220;
 const HEADER_PROGRESS_POST_ANIMATION_BUFFER_MS = 30;
 const SESSION_CONTENT_SLIDE_DURATION_MS = 220;
@@ -54,6 +65,7 @@ const SESSION_EXERCISE_ADVANCE_DELAY_MS =
 const RESULTS_FADE_IN_DURATION_MS = 120;
 const RESULTS_FADE_IN_TRANSLATE_Y = 10;
 const SESSION_HORIZONTAL_PADDING = 24;
+const SET_OVERVIEW_ITEM_GAP = 4;
 const EXERCISE_RESULT_RING_SIZE = 65;
 const EXERCISE_RESULT_RING_CENTER = EXERCISE_RESULT_RING_SIZE / 2;
 const EXERCISE_RESULT_RING_RADIUS = 26;
@@ -232,6 +244,12 @@ function normalizeText(value, fallback = "") {
   return trimmedValue || fallback;
 }
 
+function formatTargetSections(value = "") {
+  return String(value)
+    .replace(/\s*[+*]\s*/g, "\n")
+    .trim();
+}
+
 function toFieldId(value, fallback = "field") {
   const normalizedValue = normalizeText(value)
     .toLowerCase()
@@ -246,6 +264,12 @@ function getExerciseText(exercise = {}) {
 }
 
 function getExercisePrescriptionDisplay(exercise = {}) {
+  const assessmentPrescription = getStrengthAssessmentPrescription(exercise);
+
+  if (assessmentPrescription) {
+    return assessmentPrescription;
+  }
+
   const sets = getExerciseSetDisplayValue(exercise);
   const reps = String(exercise.reps || "").trim().replace(/\s*\+\s*/g, " + ");
   const hasSimpleSetCount = /^\d+$/.test(sets);
@@ -408,12 +432,12 @@ function formatCompactNumberUnit(value, unit = "") {
   return `${String(value).replace(/\s+/g, "")}${unit}`;
 }
 
-function formatCompactKg(value) {
+function formatCompactKg(value, unitSystem = "metric") {
   if (!Number.isFinite(value)) {
     return "";
   }
 
-  return `${Math.round(value * 10) / 10}kg`;
+  return formatWeightFromKilograms(value, unitSystem, { compact: true });
 }
 
 function getPrimaryPercentageWorkingSet(percentagePrescription = {}) {
@@ -459,7 +483,11 @@ function getPercentRangeFromNotes(exercise = {}) {
   };
 }
 
-function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+function getEstimatedLoadFromNotesPercent(
+  exercise = {},
+  strengthReferenceOneRepMaxByLift = {},
+  unitSystem = "metric"
+) {
   const percentRange = getPercentRangeFromNotes(exercise);
 
   if (!percentRange) {
@@ -490,13 +518,19 @@ function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRep
       percentRange.endPercent
     );
 
-    return endLoad ? `${formatCompactKg(startLoad)}-${formatCompactKg(endLoad)}` : formatCompactKg(startLoad);
+    return endLoad
+      ? `${formatCompactKg(startLoad, unitSystem)}-${formatCompactKg(endLoad, unitSystem)}`
+      : formatCompactKg(startLoad, unitSystem);
   }
 
-  return formatCompactKg(startLoad);
+  return formatCompactKg(startLoad, unitSystem);
 }
 
-function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+function getExerciseRecommendationDisplay(
+  exercise = {},
+  strengthReferenceOneRepMaxByLift = {},
+  unitSystem = "metric"
+) {
   const percentagePrescription = getExercisePercentagePrescription(exercise);
   const primaryWorkingSet = getPrimaryPercentageWorkingSet(percentagePrescription);
   const notesDetails = getNotesIntensityDetails(exercise);
@@ -525,16 +559,22 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
     ].filter(Boolean);
 
     return {
-      primary: estimatedLoadKg ? formatCompactNumberUnit(estimatedLoadKg, "kg") : "",
-      details: detailParts.join(" * "),
+      primary: estimatedLoadKg
+        ? formatWeightFromKilograms(estimatedLoadKg, unitSystem, { compact: true })
+        : "",
+      details: formatMeasurementText(detailParts.join(" * "), unitSystem),
     };
   }
 
   return {
     primary:
-      getExplicitLoadOrSpeedValue(exercise) ||
-      getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
-    details: notesDetails,
+      formatMeasurementText(getExplicitLoadOrSpeedValue(exercise), unitSystem) ||
+      getEstimatedLoadFromNotesPercent(
+        exercise,
+        strengthReferenceOneRepMaxByLift,
+        unitSystem
+      ),
+    details: formatMeasurementText(notesDetails, unitSystem),
   };
 }
 
@@ -876,7 +916,6 @@ function getInitialSessionStep({
 
 function ActiveSessionHeader({
   title = "",
-  progressText = "",
   showHelp = false,
   compact = false,
   onHelp,
@@ -904,25 +943,28 @@ function ActiveSessionHeader({
           </IBMPlexText>
         ) : null}
       </View>
-      {showHelp ? (
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Show exercise guidance"
-          activeOpacity={0.7}
-          style={[styles.headerHelpButton, compact ? styles.compactHeaderHelpButton : null]}
-          onPress={onHelp}
-        >
-          <IBMPlexText style={[styles.headerHelpIcon, compact ? styles.compactHeaderHelpIcon : null]}>
-            ?
-          </IBMPlexText>
-        </TouchableOpacity>
-      ) : progressText ? (
-        <View style={styles.progressRow}>
-          <IBMPlexText style={[styles.progressText, compact ? styles.compactProgressText : null]}>
-            {progressText}
-          </IBMPlexText>
-        </View>
-      ) : null}
+      <View style={styles.headerTrailingActions}>
+        {showHelp ? (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Show exercise guidance"
+            activeOpacity={0.7}
+            style={[styles.headerHelpButton, compact ? styles.compactHeaderHelpButton : null]}
+            onPress={onHelp}
+          >
+            <IBMPlexText style={[styles.headerHelpIcon, compact ? styles.compactHeaderHelpIcon : null]}>
+              ?
+            </IBMPlexText>
+          </TouchableOpacity>
+        ) : (
+          <View
+            style={[
+              styles.headerActionSpacer,
+              compact ? styles.compactHeaderActionSpacer : null,
+            ]}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -1046,7 +1088,11 @@ function getAverageTrackedValue(values = []) {
   return formatAverageNumber(average);
 }
 
-function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex = 0) {
+function getReportedResultSummaryForExercise(
+  trackingDrafts = {},
+  exerciseIndex = 0,
+  unitSystem = "metric"
+) {
   const drafts = Object.values(trackingDrafts)
     .filter((draft) => draft?.exerciseIndex === exerciseIndex)
     .sort((left, right) => (left.setIndex || 0) - (right.setIndex || 0));
@@ -1070,7 +1116,7 @@ function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex 
   );
 
   if (averageLoadKg) {
-    parts.push(`${averageLoadKg} kg`);
+    parts.push(formatWeightFromKilograms(averageLoadKg, unitSystem));
   }
 
   if (averageReps) {
@@ -1093,8 +1139,11 @@ function getReportedResultSummaryForExercise(trackingDrafts = {}, exerciseIndex 
 
     if (averageValue) {
       parts.push(`${fieldId.replace(/_/g, " ")} ${averageValue}`);
-    } else if (fieldValues.length === 1) {
-      parts.push(`${fieldId.replace(/_/g, " ")} ${fieldValues[0]}`);
+    } else if (fieldValues.length > 0) {
+      const categoricalValues = Array.from(new Set(fieldValues));
+      parts.push(
+        `${fieldId.replace(/_/g, " ")} ${categoricalValues.join(" / ")}`
+      );
     }
   });
 
@@ -1105,6 +1154,7 @@ function ActiveSessionResultsList({
   sectionRuns = [],
   completedStepKeys,
   trackingDrafts = {},
+  unitSystem = "metric",
 }) {
   const router = useRouter();
   const fadeProgress = useRef(new Animated.Value(0)).current;
@@ -1174,7 +1224,11 @@ function ActiveSessionResultsList({
           <IBMPlexText style={styles.resultsSectionTitle}>{getSectionLabel(section)}</IBMPlexText>
           <View style={styles.resultsExerciseList}>
             {sectionExercises.map(({ exercise, exerciseIndex }) => {
-              const recommendation = getExerciseRecommendationDisplay(exercise);
+              const recommendation = getExerciseRecommendationDisplay(
+                exercise,
+                {},
+                unitSystem
+              );
               const prescription = getExercisePrescriptionDisplay(exercise);
               const totalSetCount = parsePrescribedSetCount(exercise);
               const completedSetCount = Array.from({ length: totalSetCount }).filter(
@@ -1182,7 +1236,8 @@ function ActiveSessionResultsList({
               ).length;
               const reportedResultSummary = getReportedResultSummaryForExercise(
                 trackingDrafts,
-                exerciseIndex
+                exerciseIndex,
+                unitSystem
               );
 
               return (
@@ -1256,7 +1311,9 @@ export function getSetLoggingConfig(exercise = {}) {
     .filter(Boolean);
   const inferredCustomFields =
     explicitCustomFields.length > 0 ? [] : inferCustomLoggingFields(exercise);
-  const customFields = [...explicitCustomFields, ...inferredCustomFields];
+  const customFields = [...explicitCustomFields, ...inferredCustomFields].filter(
+    (field) => field.id !== "set_quality"
+  );
   const isTimedEnduranceExercise = Boolean(exercise?.endurancePrescription);
 
   if (strengthAssessment) {
@@ -1307,17 +1364,16 @@ function ExerciseSessionStep({
   draft,
   prescribedSets,
   completedSetIndexes,
+  trackingDrafts,
   onSelectSet,
-  onNext,
-  onPrevious,
-  onSkip,
   onDraftChange,
-  canGoPrevious = false,
   strengthReferenceOneRepMaxByLift,
   compact = false,
   isEstimatingProgramMax = false,
   programMaxStatusLabel = "Estimating your max",
+  unitSystem = "metric",
 }) {
+  const [setOverviewWidth, setSetOverviewWidth] = useState(0);
   const {
     performanceTarget,
     strengthAssessment,
@@ -1351,10 +1407,10 @@ function ExerciseSessionStep({
       exercise.endurancePrescription.durationMinutes
     );
   }
-  const exercisePrescription = getExercisePrescriptionDisplay(exercise);
   const exerciseRecommendation = getExerciseRecommendationDisplay(
     exercise,
-    strengthReferenceOneRepMaxByLift
+    strengthReferenceOneRepMaxByLift,
+    unitSystem
   );
   const recommendedLoadKg = getRecommendedLoadKg(
     exercise,
@@ -1381,82 +1437,183 @@ function ExerciseSessionStep({
       }`
     : "";
   const programMaxIntensityMetric = isEstimatingProgramMax
-    ? [performanceTargetRpe, programMaxStatusLabel].filter(Boolean).join(" · ")
+    ? [performanceTargetRpe, programMaxStatusLabel].filter(Boolean).join("\n")
     : performanceTargetRpe;
+  const assessmentPrescription = getStrengthAssessmentPrescription(exercise);
   const exerciseRecommendationDetails = String(exerciseRecommendation.details || "")
     .split(/\s*\*\s*/)
     .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
   const endurancePrescription = exercise?.endurancePrescription || {};
   const setDisplayValue = getExerciseSetDisplayValue(exercise);
-  const setProgressLabel =
-    prescribedSets.length > 1 ? `Set ${setIndex + 1} of ${prescribedSets.length}` : "";
-  const exerciseRecommendationMetrics = Array.from(
-    new Set(
-      [
-        setProgressLabel,
-        setDisplayValue ? `${setDisplayValue} sets` : "",
-        exercisePrescription,
-        exerciseRecommendation.primary,
-        ...exerciseRecommendationDetails,
-        programMaxIntensityMetric,
-        endurancePrescription.work,
-        endurancePrescription.durationMinutes
-          ? `${endurancePrescription.durationMinutes} min total`
-          : "",
-        endurancePrescription.rounds
-          ? `${endurancePrescription.rounds} rounds`
-          : "",
-        endurancePrescription.rest
-          ? `Rest ${endurancePrescription.rest}`
-          : "",
+  const loadedJumpPrescription = getLoadedJumpPrescription(exercise);
+  const intensityMetric =
+    (loadedJumpPrescription
+      ? formatBodyMassLoadRange(loadedJumpPrescription)
+      : programMaxIntensityMetric ||
+        exerciseRecommendation.primary ||
+        exerciseRecommendationDetails[0]) ||
+    "";
+  const planMetrics = strengthAssessment
+    ? [
+        assessmentPrescription
+          ? {
+              label: "Prescription",
+              value: assessmentPrescription,
+            }
+          : null,
+        isEstimatingProgramMax
+          ? {
+              label: "Purpose",
+              value: programMaxStatusLabel,
+            }
+          : null,
       ].filter(Boolean)
-    )
+    : [
+    intensityMetric
+      ? {
+          label: "Intensity",
+          value: intensityMetric,
+          isProgramMaxEstimate: isEstimatingProgramMax,
+        }
+      : null,
+    setDisplayValue ? { label: "Sets", value: setDisplayValue } : null,
+    normalizeText(exercise?.reps)
+      ? {
+          label: showTime ? "Duration" : "Reps",
+          value: normalizeText(exercise?.reps),
+        }
+      : null,
+      ].filter(Boolean);
+  const additionalTargetMetrics = [
+    ...exerciseRecommendationDetails.map((value) => ({
+      label: /\b(?:1\s*RM|Program Max)\b/i.test(value)
+        ? "1RM target"
+        : /^RI\b/i.test(value)
+          ? "Relative intensity"
+          : /^Tempo\b/i.test(value)
+            ? "Tempo"
+            : "Target",
+      value,
+    })),
+    endurancePrescription.work
+      ? { label: "Work", value: endurancePrescription.work }
+      : null,
+    endurancePrescription.durationMinutes
+      ? { label: "Total", value: `${endurancePrescription.durationMinutes} min` }
+      : null,
+    endurancePrescription.rounds
+      ? { label: "Rounds", value: `${endurancePrescription.rounds}` }
+      : null,
+    endurancePrescription.rest
+      ? { label: "Rest", value: endurancePrescription.rest }
+      : null,
+  ].filter(Boolean);
+  const targetMetrics = [
+    ...planMetrics,
+    ...(strengthAssessment ? [] : additionalTargetMetrics),
+  ].filter(
+    (metric, metricIndex, metrics) =>
+      metric.value &&
+      metrics.findIndex(({ value }) => value === metric.value) === metricIndex
   );
+  const completedSetIndexSet = new Set(completedSetIndexes);
+  const setOverviewItems = prescribedSets.map(({ setIndex: overviewSetIndex }) => {
+    const setDraft = trackingDrafts?.[
+      getDraftKey(exerciseIndex, overviewSetIndex)
+    ] || {};
+    const setSummaryParts = [];
+
+    if (setDraft.loadKg) {
+      setSummaryParts.push(
+        formatWeightFromKilograms(setDraft.loadKg, unitSystem)
+      );
+    }
+
+    if (setDraft.reps) {
+      setSummaryParts.push(`${setDraft.reps} reps`);
+    }
+
+    if (setDraft.durationMinutes) {
+      setSummaryParts.push(`${setDraft.durationMinutes} min`);
+    }
+
+    if (setDraft.rpe) {
+      setSummaryParts.push(`RPE ${setDraft.rpe}`);
+    }
+
+    const isActive = overviewSetIndex === setIndex;
+    const isCompleted = completedSetIndexSet.has(overviewSetIndex);
+    const summary = setSummaryParts.join(" × ");
+
+    return {
+      setIndex: overviewSetIndex,
+      isActive,
+      isCompleted,
+      summary:
+        summary || (isCompleted ? "Completed" : isActive ? "Current set" : "Not logged"),
+    };
+  });
+  const visibleSetColumnCount = Math.max(
+    1,
+    Math.min(setOverviewItems.length, 3)
+  );
+  const setOverviewItemWidth = setOverviewWidth
+    ? (setOverviewWidth -
+        SET_OVERVIEW_ITEM_GAP * (visibleSetColumnCount - 1)) /
+      visibleSetColumnCount
+    : undefined;
   return (
     <View style={[styles.exerciseCard, compact ? styles.compactExerciseCard : null]}>
-      <View style={[styles.setTabsBlock, compact ? styles.compactSetTabsBlock : null]}>
-        <PlanSetTabs
-          prescribedSets={prescribedSets}
-          activeSetIndex={setIndex}
-          completedSetIndexes={completedSetIndexes}
-          compact={compact}
-          onSelectSet={onSelectSet}
-        />
+      <View
+        style={[
+          styles.activeExercisePlanCard,
+          compact ? styles.compactActiveExercisePlanCard : null,
+        ]}
+      >
+        <IBMPlexText style={styles.activeExerciseTargetsTitle}>
+          Targets
+        </IBMPlexText>
+        {targetMetrics.length > 0 ? (
+          <View style={styles.activeExerciseMetricsRow}>
+            {targetMetrics.map((metric, metricIndex) => (
+              <View
+                key={`${metric.label}-${metric.value}-${metricIndex}`}
+                style={styles.activeExerciseMetricColumn}
+              >
+                <IBMPlexText style={styles.activeExerciseMetricLabel}>
+                  {metric.label}
+                </IBMPlexText>
+                {metric.isProgramMaxEstimate ? (
+                  <View style={styles.programMaxIntensityChip}>
+                    <IBMPlexText
+                      numberOfLines={2}
+                      style={styles.programMaxIntensityMetric}
+                    >
+                      {formatTargetSections(
+                        formatMeasurementText(metric.value, unitSystem)
+                      )}
+                    </IBMPlexText>
+                  </View>
+                ) : (
+                  <IBMPlexText style={styles.activeExerciseMetricValue}>
+                    {formatTargetSections(
+                      formatMeasurementText(metric.value, unitSystem)
+                    )}
+                  </IBMPlexText>
+                )}
+              </View>
+            ))}
+          </View>
+        ) : null}
       </View>
 
-      {exerciseRecommendationMetrics.length > 0 ? (
-        <View style={[styles.exerciseMetricsRow, compact ? styles.compactExerciseMetricsRow : null]}>
-          {exerciseRecommendationMetrics.map((metric) =>
-            isEstimatingProgramMax && metric === programMaxIntensityMetric ? (
-              <View key={metric} style={styles.programMaxIntensityChip}>
-                <IBMPlexText
-                  style={[
-                    styles.exerciseMetricLabel,
-                    compact ? styles.compactExerciseMetricLabel : null,
-                    styles.programMaxIntensityMetric,
-                  ]}
-                >
-                  {metric}
-                </IBMPlexText>
-              </View>
-            ) : (
-              <IBMPlexText
-                key={metric}
-                style={[
-                  styles.exerciseMetricLabel,
-                  compact ? styles.compactExerciseMetricLabel : null,
-                ]}
-              >
-                {metric}
-              </IBMPlexText>
-            )
-          )}
-        </View>
+      {loadedJumpPrescription ? (
+        <LoadedJumpGuideline compact={compact} />
       ) : null}
 
-      {showRpe ? (
+      {strengthAssessment ? (
         <IBMPlexText style={[styles.workingSetsNote, compact ? styles.compactWorkingSetsNote : null]}>
-          Do not include warm-up sets.
+          Warm up as needed; log only the top set.
         </IBMPlexText>
       ) : null}
 
@@ -1474,51 +1631,89 @@ function ExerciseSessionStep({
             strengthRequirements={strengthRequirements}
             customFields={customFields}
             recommendedLoadKg={recommendedLoadKg}
+            recommendedRepCount={recommendedRepCount}
+            targetDurationMinutes={endurancePrescription.durationMinutes}
+            targetRpe={displayedTargetRpe}
+            unitSystem={unitSystem}
             onDraftChange={onDraftChange}
             compact={compact}
           />
         ) : null}
 
-        <View style={[styles.footerActions, compact ? styles.compactFooterActions : null]}>
-          <View style={[styles.navigationRow, compact ? styles.compactNavigationRow : null]}>
-            {!compact ? (
-              <TouchableOpacity
-                accessibilityState={{ disabled: !canGoPrevious }}
-                disabled={!canGoPrevious}
-                style={[
-                  styles.secondaryActionButton,
-                  !canGoPrevious ? styles.secondaryActionButtonDisabled : null,
-                ]}
-                onPress={onPrevious}
-              >
-                <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>
-                  Previous
-                </IBMPlexText>
-              </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity
-              style={[styles.stepActionButton, compact ? styles.compactStepActionButton : null]}
-              onPress={onNext}
-            >
-              <IBMPlexText
-                defaultWhite
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.82}
-                style={[styles.nextButtonText, compact ? styles.compactNextButtonText : null]}
-              >
-                Finish set
+        <View style={styles.sessionSetSection}>
+          <View style={styles.sessionSetSectionHeader}>
+            <View style={styles.sessionSetSectionIcon}>
+              <Ionicons color="#A1A1AA" name="albums-outline" size={19} />
+            </View>
+            <View style={styles.sessionSetSectionHeadingCopy}>
+              <IBMPlexText style={styles.sessionSetSectionEyebrow}>
+                Sets
               </IBMPlexText>
-            </TouchableOpacity>
-            {!compact ? (
-              <TouchableOpacity style={styles.secondaryActionButton} onPress={onSkip}>
-                <IBMPlexText defaultWhite style={styles.secondaryActionButtonText}>
-                  Skip
-                </IBMPlexText>
-              </TouchableOpacity>
-            ) : null}
+              <IBMPlexText style={styles.sessionSetCompletionText}>
+                {completedSetIndexes.length}/{prescribedSets.length || 1} complete
+              </IBMPlexText>
+            </View>
+          </View>
+
+          <View style={styles.sessionSetOverviewViewport}>
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.sessionSetOverviewRow}
+              onLayout={(event) => {
+                setSetOverviewWidth(event.nativeEvent.layout.width);
+              }}
+            >
+              {setOverviewItems.map((item) => (
+                <TouchableOpacity
+                  key={item.setIndex}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open set ${item.setIndex + 1}`}
+                  accessibilityState={{ selected: item.isActive }}
+                  activeOpacity={0.75}
+                  style={[
+                    styles.sessionSetOverviewItem,
+                    setOverviewItemWidth
+                      ? { width: setOverviewItemWidth }
+                      : null,
+                    item.isActive ? styles.sessionSetOverviewItemActive : null,
+                  ]}
+                  onPress={() => onSelectSet?.(item.setIndex)}
+                >
+                  <View style={styles.sessionSetOverviewItemHeader}>
+                    {item.isCompleted ? (
+                      <Ionicons
+                        color="#22C55E"
+                        name="checkmark-circle"
+                        size={15}
+                      />
+                    ) : null}
+                    <IBMPlexText
+                      style={[
+                        styles.sessionSetOverviewItemTitle,
+                        item.isActive
+                          ? styles.sessionSetOverviewItemTitleActive
+                          : null,
+                      ]}
+                    >
+                      Set {item.setIndex + 1}
+                    </IBMPlexText>
+                  </View>
+                  <IBMPlexText
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.78}
+                    style={styles.sessionSetOverviewItemSummary}
+                  >
+                    {item.summary}
+                  </IBMPlexText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
+
       </View>
     </View>
   );
@@ -1594,6 +1789,7 @@ export default function ActiveSessionView({
   onStrengthAssessmentSave,
   onBack,
   onFinish,
+  unitSystem = "metric",
 }) {
   const normalizedExercises = useMemo(
     () =>
@@ -1699,32 +1895,18 @@ export default function ActiveSessionView({
   const traversedExerciseCount = isSessionCompleteIntro
     ? normalizedExercises.length
     : displayedCompletedExerciseCount;
-  const safeTotalExerciseCount = Number.isFinite(normalizedExercises.length)
-    ? normalizedExercises.length
-    : 0;
-  const sessionProgressText = `${Math.min(
-    traversedExerciseCount,
-    safeTotalExerciseCount
-  )} of ${safeTotalExerciseCount}`;
   const headerTitle = isSessionCompleteIntro
     ? "Session results"
     : showSectionIntro
       ? activeSectionLabel
       : activeExercise
-        ? `${getExerciseOrderLabel(
-            activeExercise,
-            activeStep?.exerciseIndex || 0
-          )}  ${getExerciseDisplayName(activeExercise)}`
-        : "";
-  const headerProgressText = isSessionCompleteIntro
-    ? `${safeTotalExerciseCount} of ${safeTotalExerciseCount}`
-    : showSectionIntro
-      ? sessionProgressText
-      : activeStep
-        ? sessionProgressText
+        ? getExerciseDisplayName(activeExercise)
         : "";
   const activeExerciseGuidance = activeExercise
-    ? activeExercise.notes || "No additional guidance for this exercise."
+    ? formatMeasurementText(
+        activeExercise.notes || "No additional guidance for this exercise.",
+        unitSystem
+      )
     : "";
   const activeExerciseSetTabs = activeExercise
     ? Array.from({ length: activeStep.setCount }).map((_, setIndex) => ({
@@ -1735,6 +1917,14 @@ export default function ActiveSessionView({
     sessionScreenMode,
     activeStep?.exerciseIndex ?? "empty",
   ].join(":");
+  const sessionProgressRatio = isSessionCompleteIntro
+    ? 1
+    : normalizedExercises.length > 0
+      ? Math.min(
+          1,
+          displayedCompletedExerciseCount / normalizedExercises.length
+        )
+      : 0;
 
   useEffect(() => {
     const fallbackDrafts = buildTrackingDrafts(
@@ -2115,6 +2305,7 @@ export default function ActiveSessionView({
         contentContainerStyle={[
           styles.center,
           embedded ? styles.embeddedCenter : null,
+          showExerciseStep ? styles.centerWithSessionNavigation : null,
           contentContainerStyle,
         ]}
         keyboardDismissMode="interactive"
@@ -2127,7 +2318,6 @@ export default function ActiveSessionView({
       >
         <ActiveSessionHeader
           title={headerTitle}
-          progressText={headerProgressText}
           showHelp={showExerciseStep}
           compact={embedded}
           onHelp={() => setIsDescriptionMenuVisible(true)}
@@ -2139,7 +2329,11 @@ export default function ActiveSessionView({
             <IBMPlexText style={styles.newProgramMaxIcon}>✓</IBMPlexText>
             <View style={styles.newProgramMaxCopy}>
               <IBMPlexText style={styles.newProgramMaxTitle}>
-                New Program Max: {newProgramMax.trainingMaxKg} kg
+                New Program Max:{" "}
+                {formatWeightFromKilograms(
+                  newProgramMax.trainingMaxKg,
+                  unitSystem
+                )}
               </IBMPlexText>
               <IBMPlexText style={styles.newProgramMaxDescription}>
                 {newProgramMax.liftName} switches to % loading on its next exposure
@@ -2176,6 +2370,7 @@ export default function ActiveSessionView({
                 sectionRuns={sectionRuns}
                 completedStepKeys={completedStepKeys}
                 trackingDrafts={trackingDrafts}
+                unitSystem={unitSystem}
               />
             </ActiveSessionSectionIntroView>
           ) : showSectionIntro ? (
@@ -2236,18 +2431,16 @@ export default function ActiveSessionView({
                   )
                 )
                 .map(({ setIndex }) => setIndex)}
+              trackingDrafts={trackingDrafts}
               onSelectSet={(setIndex) => {
                 setActiveExerciseIndex(activeStep.exerciseIndex);
                 setActiveSetIndex(setIndex);
                 setSessionScreenMode(SESSION_SCREEN_MODES.EXERCISE);
               }}
-              onNext={handleCompleteCurrentSet}
-              onPrevious={handlePreviousSet}
-              onSkip={handleSkipExercise}
-              canGoPrevious={resolvedActiveStepIndex > 0}
               onDraftChange={updateTrackingDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
               compact={embedded}
+              unitSystem={unitSystem}
             />
           ) : (
             <View style={styles.emptyState}>
@@ -2258,6 +2451,7 @@ export default function ActiveSessionView({
             </View>
           )}
         </ActiveSessionSlideIn>
+        <BugReportControl screen="active-session" />
       </ScrollView>
       <WhiteBottomMenu
         visible={isDescriptionMenuVisible}
@@ -2269,19 +2463,123 @@ export default function ActiveSessionView({
       />
     </>
   );
+  const sessionProgressBar = (
+    <View pointerEvents="none" style={styles.sessionProgressLineTrack}>
+      <View
+        style={[
+          styles.sessionProgressLineFill,
+          { width: `${sessionProgressRatio * 100}%` },
+        ]}
+      />
+    </View>
+  );
+  const sessionNavigationBar = showExerciseStep ? (
+    <View
+      style={[
+        styles.floatingSessionNavigation,
+        embedded ? styles.compactFloatingSessionNavigation : null,
+      ]}
+    >
+      <View
+        style={[
+          styles.navigationRow,
+          styles.floatingNavigationRow,
+          embedded ? styles.compactNavigationRow : null,
+        ]}
+      >
+        <TouchableOpacity
+          accessibilityState={{ disabled: resolvedActiveStepIndex <= 0 }}
+          disabled={resolvedActiveStepIndex <= 0}
+          style={[
+            styles.secondaryActionButton,
+            embedded ? styles.compactSecondaryActionButton : null,
+            resolvedActiveStepIndex <= 0
+              ? styles.secondaryActionButtonDisabled
+              : null,
+          ]}
+          onPress={handlePreviousSet}
+        >
+          <IBMPlexText
+            defaultWhite
+            style={[
+              styles.secondaryActionButtonText,
+              embedded ? styles.compactSecondaryActionButtonText : null,
+            ]}
+          >
+            Previous
+          </IBMPlexText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.stepActionButton,
+            embedded ? styles.compactStepActionButton : null,
+          ]}
+          onPress={handleCompleteCurrentSet}
+        >
+          <IBMPlexText
+            defaultWhite
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.82}
+            style={[
+              styles.nextButtonText,
+              embedded ? styles.compactNextButtonText : null,
+            ]}
+          >
+            Finish set
+          </IBMPlexText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.secondaryActionButton,
+            embedded ? styles.compactSecondaryActionButton : null,
+          ]}
+          onPress={handleSkipExercise}
+        >
+          <IBMPlexText
+            defaultWhite
+            style={[
+              styles.secondaryActionButtonText,
+              embedded ? styles.compactSecondaryActionButtonText : null,
+            ]}
+          >
+            Skip
+          </IBMPlexText>
+        </TouchableOpacity>
+      </View>
+    </View>
+  ) : null;
 
   if (embedded) {
-    return <View style={styles.embeddedRoot}>{content}</View>;
+    return (
+      <View style={styles.embeddedRoot}>
+        {content}
+        {sessionNavigationBar}
+        {showExerciseStep || showAlreadyCompletedExercise
+          ? sessionProgressBar
+          : null}
+      </View>
+    );
   }
 
   return (
     <QuestionnaireShell hideTabBar={true}>
-      {content}
+      <View style={styles.sessionRoot}>
+        {content}
+        {sessionNavigationBar}
+        {showExerciseStep || showAlreadyCompletedExercise
+          ? sessionProgressBar
+          : null}
+      </View>
     </QuestionnaireShell>
   );
 }
 
 const styles = StyleSheet.create({
+  sessionRoot: {
+    flex: 1,
+    minHeight: 0,
+  },
   sessionScroll: {
     flex: 1,
   },
@@ -2292,11 +2590,27 @@ const styles = StyleSheet.create({
   embeddedSessionScroll: {
     backgroundColor: "#000",
   },
+  sessionProgressLineTrack: {
+    height: 2,
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 30,
+  },
+  sessionProgressLineFill: {
+    backgroundColor: "rgba(255, 255, 255, 0.86)",
+    height: "100%",
+  },
   center: {
     flexGrow: 1,
     padding: SESSION_HORIZONTAL_PADDING,
     paddingBottom: 48,
     gap: 18,
+  },
+  centerWithSessionNavigation: {
+    paddingBottom: 118,
   },
   embeddedCenter: {
     gap: 12,
@@ -2356,19 +2670,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 18,
   },
-  progressRow: {
+  headerTrailingActions: {
+    alignItems: "center",
+    flexDirection: "row",
     flexShrink: 0,
-    minWidth: 52,
-    alignItems: "flex-end",
+    gap: 2,
   },
-  progressText: {
-    color: "#fff",
-    fontSize: 13, fontWeight: "700",
-    textTransform: "uppercase",
+  headerActionSpacer: {
+    height: 36,
+    width: 48,
   },
-  compactProgressText: {
-    fontSize: 11,
-    lineHeight: 14,
+  compactHeaderActionSpacer: {
+    height: 30,
+    width: 36,
   },
   headerHelpButton: {
     width: 48,
@@ -2500,23 +2814,72 @@ const styles = StyleSheet.create({
   },
   exerciseCard: {
     flex: 1,
-    gap: 16,
-    paddingVertical: 16,
+    gap: 14,
+    paddingVertical: 10,
+  },
+  activeExercisePlanCard: {
+    alignItems: "center",
+    alignSelf: "stretch",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  compactActiveExercisePlanCard: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  activeExerciseTargetsTitle: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 16,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  activeExerciseMetricsRow: {
+    gap: 2,
+    width: "100%",
+  },
+  activeExerciseMetricColumn: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 42,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
+  activeExerciseMetricLabel: {
+    color: "#8B8B94",
+    fontSize: 11,
+    fontWeight: "600",
+    lineHeight: 14,
+  },
+  activeExerciseMetricValue: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "400",
+    lineHeight: 18,
+    maxWidth: "64%",
+    textAlign: "right",
   },
   programMaxIntensityMetric: {
-    color: "#F8E7A2",
+    color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "400",
     lineHeight: 15,
+    textAlign: "center",
   },
   programMaxIntensityChip: {
     alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(243, 208, 79, 0.14)",
-    borderColor: "rgba(243, 208, 79, 0.32)",
+    backgroundColor: "#0A0A0A",
+    borderColor: "#34343A",
     borderRadius: 999,
     borderWidth: 1,
-    flexDirection: "row",
+    flexShrink: 1,
+    marginLeft: 16,
+    maxWidth: "72%",
     paddingHorizontal: 11,
     paddingVertical: 7,
   },
@@ -2552,39 +2915,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   compactExerciseCard: {
-    gap: 10,
-    paddingVertical: 6,
-  },
-  setTabsBlock: {
-    marginTop: 16,
-  },
-  compactSetTabsBlock: {
-    marginTop: 2,
-  },
-  exerciseMetricsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "center",
-    columnGap: 20,
-    rowGap: 8,
-    paddingHorizontal: 8,
-  },
-  compactExerciseMetricsRow: {
-    columnGap: 12,
-    rowGap: 5,
-    paddingHorizontal: 2,
-  },
-  exerciseMetricLabel: {
-    color: "#C9B259",
-    fontSize: 17,
-    fontWeight: "600",
-    lineHeight: 21,
-    textAlign: "center",
-  },
-  compactExerciseMetricLabel: {
-    fontSize: 13,
-    lineHeight: 16,
+    gap: 9,
+    paddingVertical: 4,
   },
   workingSetsNote: {
     color: "#A1A1AA",
@@ -2605,6 +2937,95 @@ const styles = StyleSheet.create({
   },
   compactBottomControls: {
     gap: 4,
+  },
+  sessionSetSection: {
+    alignSelf: "stretch",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+    overflow: "hidden",
+    padding: 10,
+  },
+  sessionSetSectionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  sessionSetSectionIcon: {
+    alignItems: "center",
+    backgroundColor: "#0A0A0A",
+    borderColor: "#34343A",
+    borderRadius: 9,
+    borderWidth: 1,
+    height: 32,
+    justifyContent: "center",
+    width: 32,
+  },
+  sessionSetSectionHeadingCopy: {
+    gap: 2,
+  },
+  sessionSetSectionEyebrow: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 16,
+  },
+  sessionSetCompletionText: {
+    color: "#8B8B94",
+    fontSize: 10,
+    fontWeight: "600",
+    lineHeight: 12,
+  },
+  sessionSetOverviewViewport: {
+    minHeight: 60,
+    overflow: "hidden",
+  },
+  sessionSetOverviewRow: {
+    alignItems: "center",
+    gap: SET_OVERVIEW_ITEM_GAP,
+    minWidth: "100%",
+  },
+  sessionSetOverviewItem: {
+    alignItems: "center",
+    backgroundColor: "#0A0A0A",
+    borderColor: "#2A2A2A",
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 4,
+    height: 60,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 7,
+    width: 96,
+  },
+  sessionSetOverviewItemActive: {
+    backgroundColor: "#181818",
+    borderColor: "#34343A",
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  sessionSetOverviewItemHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 4,
+    justifyContent: "center",
+  },
+  sessionSetOverviewItemTitle: {
+    color: "#D4D4D8",
+    fontSize: 11,
+    fontWeight: "600",
+    lineHeight: 14,
+  },
+  sessionSetOverviewItemTitleActive: {
+    color: "#FFFFFF",
+  },
+  sessionSetOverviewItemSummary: {
+    color: "#8B8B94",
+    fontSize: 9,
+    fontWeight: "400",
+    lineHeight: 12,
+    textAlign: "center",
   },
   alreadyCompletedCard: {
     flex: 1,
@@ -2678,13 +3099,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textDecorationLine: "underline",
   },
-  footerActions: {
-    gap: 8,
-    alignItems: "center",
-  },
-  compactFooterActions: {
-    gap: 4,
-  },
   navigationRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -2695,7 +3109,23 @@ const styles = StyleSheet.create({
   },
   compactNavigationRow: {
     gap: 7,
-    paddingTop: 6,
+  },
+  floatingSessionNavigation: {
+    bottom: 12,
+    left: 12,
+    padding: 8,
+    position: "absolute",
+    right: 12,
+    zIndex: 40,
+  },
+  compactFloatingSessionNavigation: {
+    bottom: 6,
+    left: 4,
+    padding: 6,
+    right: 4,
+  },
+  floatingNavigationRow: {
+    paddingTop: 0,
   },
   secondaryActionButton: {
     height: 44,

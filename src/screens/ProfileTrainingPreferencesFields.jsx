@@ -30,13 +30,13 @@ import {
   DELOAD_STRATEGY_OPTIONS,
   LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
-  PERCENTAGE_REFERENCE_METHOD_OPTIONS,
-  PROGRAM_MAX_SETUP_OPTIONS,
+  PREFERRED_MAX_TEST_METHOD_OPTIONS,
   TRAINING_PHASE_OPTIONS,
 } from "../constants/appLogicSettings.js";
 import { WEEKDAY_OPTIONS } from "../constants/weekdays.js";
 import ProfileFrequencySelector from "../components/profileComponents/ProfileFrequencySelector.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import { formatMeasurementText } from "../services/utils/measurementUnits.js";
 const SESSION_DURATION_ITEM_WIDTH = 96;
 const SESSION_DURATION_ITEM_HEIGHT = 70;
 const LIFT_INTENSITY_CARD_WIDTH = 190;
@@ -156,15 +156,13 @@ const LIFT_INTENSITY_PROFILE_OPTIONS = Object.freeze([
       LIFT_INTENSITY_METHOD_OPTIONS.find((option) => option.value === "rpe")
         ?.description ?? "Use Rate of Perceived Exertion to autoregulate lift intensity.",
   },
-  ...PERCENTAGE_REFERENCE_METHOD_OPTIONS.map((option) => ({
+  ...PREFERRED_MAX_TEST_METHOD_OPTIONS.map((option) => ({
     label:
       option.value === "true_1rm"
         ? "True 1RM tests"
         : option.value === "multi_rm"
           ? "2-5RM + Epley"
-          : option.value === "rpe_based_1rm"
-            ? "RPE-based 1RM"
-            : option.label,
+          : option.label,
     liftIntensityMethod: "percentage",
     percentageReferenceMethod: option.value,
     description: option.description,
@@ -1095,7 +1093,12 @@ function ProfileLoadingBlock({ width, isSelected }) {
   );
 }
 
-export function ProfileDeloadStrategyOptions({ value, onChange, compact = false }) {
+export function ProfileDeloadStrategyOptions({
+  value,
+  onChange,
+  compact = false,
+  unitSystem = "metric",
+}) {
   const scrollRef = useRef(null);
   const isAdjustingRef = useRef(false);
   const { width: screenWidth } = useWindowDimensions();
@@ -1248,7 +1251,7 @@ export function ProfileDeloadStrategyOptions({ value, onChange, compact = false 
                         loadChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
-                      10kg
+                      {formatMeasurementText("10kg", unitSystem)}
                     </IBMPlexText>
                   </View>
                   <Image
@@ -1271,7 +1274,10 @@ export function ProfileDeloadStrategyOptions({ value, onChange, compact = false 
                         loadChange ? styles.deloadMetricChanged : null,
                       ]}
                     >
-                      {content?.afterWeight ?? "10kg"}
+                      {formatMeasurementText(
+                        content?.afterWeight ?? "10kg",
+                        unitSystem
+                      )}
                     </IBMPlexText>
                   </View>
                 </View>
@@ -1483,6 +1489,7 @@ export default function ProfileTrainingPreferencesFields({
   colorScheme = "dark",
   endurancePreferencesBare = false,
   endurancePreferencesLabel = "Endurance preferences",
+  unitSystem = "metric",
 }) {
   const safeValues = values && typeof values === "object" ? values : {};
   const resolvedValues = getTrainingPreferencesFormState(safeValues);
@@ -1820,22 +1827,6 @@ export default function ProfileTrainingPreferencesFields({
             </FieldPanel>
           ) : null}
 
-          {shouldShowPlanField("programMaxSetup") &&
-          resolvedValues.liftIntensityMethod === "percentage" ? (
-            <FieldPanel label="Program Max setup">
-              <HorizontalChoiceSlider
-                options={PROGRAM_MAX_SETUP_OPTIONS}
-                value={resolvedValues.programMaxSetup}
-                onChange={(value) => updateField("programMaxSetup", value)}
-                labelMap={{
-                  auto_estimate: "Estimate in Week 1",
-                  calibration_week: "Calibration week first",
-                }}
-                allowDeselect={allowDeselect}
-              />
-            </FieldPanel>
-          ) : null}
-
           {shouldShowPlanField("loadingStrategy") ? (
             <FieldPanel label="Loading scheme">
               <ProfileLoadingStrategyOptions
@@ -1849,6 +1840,7 @@ export default function ProfileTrainingPreferencesFields({
             <FieldPanel label="Deload strategy">
               <ProfileDeloadStrategyOptions
                 value={resolvedValues.deloadStrategy}
+                unitSystem={unitSystem}
                 onChange={(value) => updateField("deloadStrategy", value)}
               />
             </FieldPanel>

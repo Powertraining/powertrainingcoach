@@ -5,7 +5,7 @@ import {
 import { observer } from "mobx-react-lite";
 import { useLocalSearchParams,
   useRouter } from "expo-router";
-import { View, StyleSheet } from "react-native";
+import { Linking, View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { MyProfileView } from "../../src/screens/MyProfileView.jsx";
@@ -19,11 +19,17 @@ import {
 } from "../../src/constants/trainingPreferences.js";
 import { PRIMARY_COMBAT_SPORT_OPTIONS } from "../../src/constants/combatSports.js";
 import {
+  DELETE_ACCOUNT_REQUEST_URL,
+  FORUM_POLICY_URL,
+  PRIVACY_POLICY_URL,
+} from "../../src/services/config/apiConfig.js";
+import {
   pickProfileImage,
   uploadProfileImage,
 } from "../../src/services/utils/mediaUpload.js";
 import { getSafeReturnToPath } from "../../src/services/utils/navigation.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
+import { normalizeUnitSystem } from "../../src/services/utils/measurementUnits.js";
 
 function getSyncedTrainingPreferences(questionnaire = {}, sessionsPerWeek = 3) {
   const resolvedSessionsPerWeek = Number.parseInt(sessionsPerWeek, 10) || 3;
@@ -241,6 +247,10 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     );
   }
 
+  function changeUnitSystemACB(nextUnitSystem) {
+    model.unitSystem = normalizeUnitSystem(nextUnitSystem);
+  }
+
   function clearEventPreparationACB() {
     const nextTrainingPreferences = {
       ...trainingPreferences,
@@ -399,6 +409,32 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
     }
   }
 
+  async function requestAccountDeletionACB() {
+    try {
+      await Linking.openURL(DELETE_ACCOUNT_REQUEST_URL);
+    } catch (e) {
+      const message = e.message || "Could not open the account deletion page.";
+      setError(message);
+      model.showError?.(e, "Could not open the account deletion page.");
+    }
+  }
+
+  async function openPrivacyPolicyACB() {
+    try {
+      await Linking.openURL(PRIVACY_POLICY_URL);
+    } catch (e) {
+      model.showError?.(e, "Could not open the Privacy Policy.");
+    }
+  }
+
+  async function openForumPolicyACB() {
+    try {
+      await Linking.openURL(FORUM_POLICY_URL);
+    } catch (e) {
+      model.showError?.(e, "Could not open the Forum Policy.");
+    }
+  }
+
   async function changeProfilePhotoACB() {
     setError(null);
     setPasswordResetMessage(null);
@@ -451,16 +487,21 @@ export const ProfileScreen = observer(function ProfileScreen({ mode = "main" }) 
         combatSportOptions={PRIMARY_COMBAT_SPORT_OPTIONS}
         primaryCombatSport={primaryCombatSport}
         sessionsPerWeek={sessionsPerWeek}
+        unitSystem={model.unitSystem}
         planRegenerationsRemaining={model.getPlanRegenerationsRemaining?.() ?? 3}
         canRegeneratePlan={!model.isOnFreeTrial?.()}
         onUsernameChange={setUsername}
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
         onPasswordReset={sendPasswordResetACB}
+        onDeleteAccountRequest={requestAccountDeletionACB}
+        onOpenPrivacyPolicy={openPrivacyPolicyACB}
+        onOpenForumPolicy={openForumPolicyACB}
         onProfilePhotoChange={changeProfilePhotoACB}
         onTrainingPreferencesChange={setTrainingPreferences}
         onPrimaryCombatSportChange={setPrimaryCombatSport}
         onSessionsPerWeekChange={changeSessionsPerWeekACB}
+        onUnitSystemChange={changeUnitSystemACB}
         onRegeneratePlan={regeneratePlanACB}
         onClearEventPreparation={clearEventPreparationACB}
         onSave={saveACB}

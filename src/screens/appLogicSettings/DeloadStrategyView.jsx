@@ -8,6 +8,7 @@ import {
 
 import { DELOAD_STRATEGY_OPTIONS } from "../../constants/appLogicSettings.js";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
+import { formatMeasurementText } from "../../services/utils/measurementUnits.js";
 
 const DELOAD_OPTION_TEXT = Object.freeze({
   maintain_intensity_reduce_volume: {
@@ -33,7 +34,7 @@ function ExampleArrow({ color }) {
   );
 }
 
-export default function DeloadStrategyView({ value, onChange }) {
+export default function DeloadStrategyView({ value, onChange, unitSystem = "metric" }) {
   const { height: screenHeight } = useWindowDimensions();
 
   return (
@@ -116,7 +117,7 @@ export default function DeloadStrategyView({ value, onChange }) {
                         : null,
                     ]}
                   >
-                    10kg
+                    {formatMeasurementText("10kg", unitSystem)}
                   </IBMPlexText>
                 </View>
                 <ExampleArrow color={textColor} />
@@ -143,7 +144,7 @@ export default function DeloadStrategyView({ value, onChange }) {
                         : null,
                     ]}
                   >
-                    {content?.afterWeight ?? "10kg"}
+                    {formatMeasurementText(content?.afterWeight ?? "10kg", unitSystem)}
                   </IBMPlexText>
                 </View>
               </View>

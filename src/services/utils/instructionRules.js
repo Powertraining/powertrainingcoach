@@ -51,12 +51,13 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   rm_attempts: `# Strength-reference rules
 - Percentage-based plans must respect percentageReferenceMethod for deliberate max tests. multi_rm and true_1rm are scheduled assessments; rpe_based_1rm is used only as the temporary missing-Program-Max bridge.
 - Missing Program Max: if a required primary lift has no Program Max in the user input or strengthAssessmentSummary, do not block the program and do not invent percentage loading. In Week 1, prescribe normal RPE-based loading for that lift only (no percentagePrescription) and include strengthAssessment.method "rpe_based_1rm" so the app can collect load, reps, and RPE from the logged set.
-- Apply that automatic missing-max RPE bridge regardless of percentageReferenceMethod. percentageReferenceMethod controls deliberate calibration tests; it must not prevent a user from starting normal Week 1 training.
-- If programMaxSetup is "calibration_week", use Week 1 as the optional calibration week instead: schedule safe primary-lift assessments using percentageReferenceMethod, then begin percentage prescriptions on later exposures. Never schedule a true 1RM calibration for a beginner or within 8 weeks of competition; fall back to multi_rm or rpe_based_1rm.
-- Missing-max RPE estimate sets should use RPE 7–9 and 3–10 reps, with 3–5 reps preferred for main strength lifts. The app estimates 1RM by adding reps in reserve from RPE, then sets Program Max to 90% of estimated 1RM.
+- Apply that automatic missing-max RPE bridge regardless of percentageReferenceMethod; percentageReferenceMethod controls deliberate mid-program max tests only and must never prevent a user from starting normal Week 1 training.
+- Never schedule a dedicated 1RM calibration week. Missing Program Maxes are always estimated from logged Week 1 RPE data, never from a scheduled up-front test week.
+- Missing-max RPE estimate sets should use RPE 7–9 and 3–10 reps, with 3–5 reps preferred for main strength lifts. The app estimates 1RM by adding reps in reserve from RPE, then sets Program Max directly to that estimated 1RM.
 - Once strengthAssessmentSummary contains a Program Max/trainingMaxKg for that lift, treat the max as known and switch that lift to percentage-based loading from the next generated exposure.
 - Known Program Max: if a Program Max is available for a primary lift, use percentage-based loading from the first generated exposure with no preamble or assessment session.
 - Only main primary lifts (back squat, front squat, bench press, deadlift, overhead press, and similar) need a Program Max. Accessories, isolation exercises, plyos, throws, and conditioning never require one.
+- Every exercise with strengthAssessment is top-set-only: prescribe sets as "1 top set", work up to that set, and stop. Never add back-off sets, follow-up working sets, or percentagePrescription workingSets to an assessment exercise.
 - multi_rm: prescribe a hard top set of 2–5 reps @RPE 9–10. Schedule every 4–6 weeks in off-season or early/mid camp. Block in the final 5 weeks before competition.
 - true_1rm: rare; only for intermediate/advanced athletes confirmed to be in an off-season or general strength phase; never within 8 weeks of competition; max one true 1RM test per week across all lifts.
 - Use stored training-max history when available and keep all assessments on primary lifts only.`,
@@ -81,7 +82,10 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   compound_lifts: `# Compound-lift selection rules
 - Favor fundamental squat, hinge, push, pull, carry, and similar compound patterns.
 - For boxing, kickboxing, and Muay Thai, skip conventional deadlift-style main lifts unless the user clearly asked for them.
-- For striking sports, prefer trap-bar jumps, clean pulls, or clean high pulls as explosive hinge options, while RDLs stay fine as accessories.`,
+- For striking sports, prefer trap-bar jumps, clean pulls, or clean high pulls as explosive hinge options, while RDLs stay fine as accessories.
+- Never prescribe a bare, ambiguous "Back Squat". Always name it exactly "Back Squat (High-Bar)" or "Back Squat (Low-Bar)" so the athlete and the app both know which variation is programmed. High-bar keeps the torso more upright with more quad emphasis; low-bar shifts more work to the hips and posterior chain and typically supports heavier loading.
+- Choose the bar-position variation deliberately from the athlete's goal, sport, and any stated preference, then keep using that exact same exercise name for every exposure of that lift across the whole cycle. The app tracks Program Max and performance history by exercise name, so switching the label mid-cycle (e.g. from "Back Squat (High-Bar)" to "Back Squat (Low-Bar)") silently breaks that history. Only change the name when deliberately switching squat variation as a real program change, and call that switch out explicitly in the notes.
+- Front squat and safety-bar squat are separate lifts, not back-squat bar-position labels; do not add a "(High-Bar)"/"(Low-Bar)" suffix to those.`,
   accessory_exercises: `# Accessory exercise rules
 - Main horizontal pull slots should default to productive weighted rows such as barbell, chest-supported, cable, T-bar, or one-arm dumbbell rows.
 - Band rows, face pulls, and similar low-load pulls stay in accessory, prehab, or warm-up slots unless equipment is extremely limited or the athlete is in rehab.
@@ -89,6 +93,12 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Low-load motor-control drills such as dead bugs or bird dogs belong in warm-ups, rehab, or deload maintenance, not as the only real core work in a normal week.
 - Keep accessories practical: heavier secondary lifts use RPE, small isolation work uses RPE or feel, and rehab or activation drills use quality-based notes rather than fake percentage precision.
 - Use concrete exercise names for neck work rather than vague movement-pattern labels.`,
+  supplemental_exercise_intensity: `# Supplemental exercise intensity rules
+- For neck, wrist/forearm, abs/trunk, and grip/carry/hold work, prescribe intensity mainly through RPE rather than percentage-based loading, even when the athlete selected the percentage system.
+- Neck work: use RPE 5-8. Keep it especially controlled; never push toward the top of that range as a default.
+- Wrist and forearm work: use RPE 6-8, also kept especially controlled given how sensitive these joints are to overload.
+- Abs/trunk work: if the exercise is loadable, technically simple, and safe to load hard (e.g. weighted sit-ups, cable crunches, loaded carries used as core work), use RPE 7-9 and progress through added load or reps. If it is not loadable, or is more skill-dependent or unstable (e.g. rollouts, hanging leg raises, anti-rotation holds), use RPE 6-8 and progress through reps, hold time, or a harder variation instead of external load.
+- Grip, carry, and hold work: use RPE 7-9 and progress through added load, hold or carry time, or distance.`,
   coaching_language: `# Coaching language and exercise description rules
 - All exercise notes, coaching cues, and descriptions must be logical and specific to the exact exercise, rep scheme, intensity, and session purpose prescribed.
 - Before writing any instruction, check that it is consistent with the programmed volume. An instruction that only makes sense for higher-rep or open-ended work must not appear on a low-rep set where it is physically impossible to apply.
@@ -113,7 +123,8 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Every exercise needs a substitutionOptions array so the app can swap in comparable variations.
 - Add pragmatic substitutes for exercises that are technical, inconvenient, crowded, or equipment-sensitive.
 - Keep every substitute in the same movement family and preserve the same training emphasis.
-- If a substitute would change the quality too much, do not use it.`,
+- If a substitute would change the quality too much, do not use it.
+- Example: "Back Squat (High-Bar)" substitutes to Front Squat, "Back Squat (Low-Bar)", or Safety Bar Squat. Keep the "(High-Bar)"/"(Low-Bar)" label on any back-squat substitute option so the variation stays unambiguous.`,
   plyometrics_loading_jumps: `# Plyometric and loaded-jump rules
 - Start every athlete at the lowest impact tier allowed by experience, movement competency, recovery status, and program phase.
 - Progress impact one tier at a time: low, then medium, then high. Regress if landing quality, recovery, or pain says to.
@@ -122,7 +133,19 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Account for the empty implement: hex bars commonly weigh 20-25 kg and standard barbells about 20 kg. If the empty bar already exceeds the target load for a smaller athlete, prescribe a lighter bar or dumbbells and explicitly say so in the exercise notes.
 - Keep every loaded jump crisp and full-effort. Do not solve poor output by loading heavier; excess load reduces flight time and degrades mechanics.
 - When jump-height data from a contact mat/app or bar-velocity data from a linear position transducer (LPT) is available, use it to auto-regulate load and stop the set when output or mechanics drop. Without technology, use the athlete's feel and visible jump quality.
-- Rep ranges should match the drill: extensive stiffness work such as pogos or ankle jumps can use 10-20 reps, low-hurdle hops or low box jumps 5-10, jumps for height or distance 3-6, and depth/shock jumps or loaded jumps 3-5. Very rarely prescribe fewer than 3 reps for a jump.`,
+- Rep ranges should match the drill: extensive stiffness work such as pogos or ankle jumps can use 10-20 reps, low-hurdle hops or low box jumps 5-10, jumps for height or distance 3-6, and depth/shock jumps or loaded jumps 3-5. Very rarely prescribe fewer than 3 reps for a jump.
+- For jump and plyometric exercises performed with bodyweight only and no added external load (e.g. squat jumps, broad jumps, tuck jumps, split-squat jumps, pogos, ankle jumps, standard box jumps, line hops, bounds, skater jumps), state the intensity explicitly as "Bodyweight" in the exercise notes instead of leaving load blank or inventing a percentage or RPE value, so the app can display "Bodyweight" as the tracked intensity. This does not apply to loaded jumps (trap-bar jumps, weighted or dumbbell-loaded box jumps), which follow the external-load rule above, or to depth/drop jumps, which use the drop-height rule instead.`,
+  depth_drop_jump_height: `# Depth jump and drop jump height rules
+- For every depth jump or drop jump, prescribe the drop height in centimeters as the primary programmed value instead of external load, and state it explicitly in the exercise notes, for example "Drop height: 30 cm".
+- Set drop height by strength-and-conditioning experience (beginner is equivalent to "novice"):
+  - Beginner: drop jump 10-20 cm, depth jump 20-30 cm.
+  - Intermediate: drop jump 20-40 cm, depth jump 30-50 cm.
+  - Advanced: drop jump 40-60 cm, depth jump 50-75 cm.
+- If the athlete is advanced and their back-squat 1RM is at least 2.0x bodyweight, based on data available in the user input or strengthAssessmentSummary, the depth jump height can extend into the advanced-high range of 75-100 cm by default.
+- Do not use the advanced-high 75-100 cm depth jump range unless the athlete is advanced and the 2.0x-bodyweight squat threshold is confirmed by available data. If bodyweight or squat 1RM is missing or unconfirmed, stay within the standard advanced depth jump range of 50-75 cm.
+- These height ranges are still bounded by the plyometric impact-tier rules above: never prescribe a height that exceeds what the athlete's current impact tier, program phase, and landing competency allow, even if their experience level alone would qualify for a higher height.
+- Progress height gradually within the allowed range while landing mechanics, ground contact time, and reactive quality stay high. Regress height immediately, and drop back an impact tier if needed, when landing quality drops, contact time slows, or pain appears.
+- Give every depth jump and drop jump exercise an explicit "loggingFields" entry of type "height" (for example { "type": "height", "label": "Drop height", "placeholder": "e.g. 40 cm" }) so the app logs and displays height as the primary tracked value for that set instead of load.`,
   bilateral: `# Bilateral plyometric impact guide
 - Treat CMJs, squat jumps, pogos, box jumps, and simple line hops as low impact.
 - Broad jumps, tuck jumps, split-squat jumps, low-box drop jumps, and similar rebound drills are medium impact.
@@ -137,7 +160,8 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Medicine-ball throw reps should be pragmatic rather than ultra-low: usually 3-10 reps depending on the throw.
 - Chest passes can use the higher end, while rotational punches or hip throws usually sit around 3-5 per side.
 - Rarely prescribe fewer than 3 reps for a medicine-ball throw variation.
-- Include prescription about rebound - low-, moderate- or non-bouncing`,
+- Include prescription about rebound - low-, moderate- or non-bouncing
+- Medicine-ball load should sit within a practical 2-8 kg range for most fighters (roughly 4-18 lb): lighter balls of 2-4 kg suit rotational punches, hip throws, and other speed-biased throws, while heavier balls of 5-8 kg suit chest passes and slower, stability-biased throws. State the chosen ball weight explicitly in kg with its pound equivalent in the exercise notes, for example "4 kg medicine ball (9 lb)", so the app can display it as the tracked intensity.`,
   superset_complexes: `# Superset and complex rules
 - When weekly S&C frequency is low or session time is short, compress the session with low-interference supersets.
 - Favor pairings such as push plus pull, lower-body strength plus upper accessory, and core plus grip or neck.
@@ -213,6 +237,7 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
 - Arm crank machine is useful when lower-body loading should be avoided or when upper-body endurance is the target, especially for wrestlers, but it is usually targeted rather than the default modality.
 - VersaClimber is useful for low-impact full-body climbing intervals when the athlete can tolerate combined upper-body, trunk, and leg drive.
 - Sport-specific endurance is the match-prep alternative: use it when competition specificity matters most, and shape it around round length, density, technical quality, and the athlete's actual combat schedule.
+- If enduranceTraining.preferredFormat is "plan_decides", choose the appropriate mix from the athlete's complete questionnaire instead of treating it as a training format. Weigh their sport, phase and event timeline, experience, combat and weekly workload, recovery, injuries, equipment, modalities, and session constraints; continue adapting the mix across the plan as those needs change.
 - Non-circuit endurance must be classified as continuous_aerobic, aerobic_intervals, tempo_threshold, long_hiit, repeated_sprint_training, sprint_interval_training, recovery, or sport_specific_conditioning rather than generic conditioning.
 - Continuous aerobic work is mainly for base, active recovery, or low-cost conditioning. Use easy-to-moderate RPE/talk-test guidance, often 20-45 minutes, and progress duration before pace/power.
 - Aerobic intervals use longer controlled work bouts with incomplete easy recovery. Threshold/tempo work should use sustainable pace, split, speed, or power markers when available.
@@ -247,10 +272,12 @@ export const EMBEDDED_INSTRUCTION_ORDER = Object.freeze([
   "close_grip_bench_press",
   "compound_lifts",
   "accessory_exercises",
+  "supplemental_exercise_intensity",
   "coaching_language",
   "pull_ups_chin_ups",
   "substitutes",
   "plyometrics_loading_jumps",
+  "depth_drop_jump_height",
   "bilateral",
   "unilateral",
   "ballistic_training",
@@ -452,9 +479,11 @@ function buildSelectedInstructionKeys(userInput = {}, purpose = "plan") {
     "missed_rep",
     "compound_lifts",
     "accessory_exercises",
+    "supplemental_exercise_intensity",
     "pull_ups_chin_ups",
     "substitutes",
     "plyometrics_loading_jumps",
+    "depth_drop_jump_height",
     "bilateral",
     "unilateral",
     "ballistic_training",

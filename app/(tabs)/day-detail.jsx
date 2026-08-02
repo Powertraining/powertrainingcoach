@@ -229,6 +229,7 @@ const DayDetailScreen = observer(function DayDetailScreen() {
     <View style={styles.container}>
       <DayDetailView
         week={selectedDay.week}
+        unitSystem={model.unitSystem}
         day={selectedDay.dayData}
         exercises={selectedDay.exercises}
         preferredWeekday={selectedDay.preferredWeekday}

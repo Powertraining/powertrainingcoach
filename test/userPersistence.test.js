@@ -10,6 +10,23 @@ import {
   createUserProgressResetData,
   isSameAuthenticatedUser,
 } from "../src/services/utils/userPersistence.js";
+import { SIMPLE_PERSISTED_FIELD_KEYS } from "../src/services/utils/persistedFields.js";
+
+test("simple persisted field manifest never overlaps server-managed fields", () => {
+  const overlap = SIMPLE_PERSISTED_FIELD_KEYS.filter((key) =>
+    SERVER_MANAGED_USER_DATA_FIELDS.includes(key)
+  );
+
+  assert.deepEqual(overlap, []);
+});
+
+test("client persistence payload includes every simple persisted field", () => {
+  const payload = buildClientPersistableUserData({});
+
+  for (const key of SIMPLE_PERSISTED_FIELD_KEYS) {
+    assert.equal(Object.hasOwn(payload, key), true);
+  }
+});
 
 test("client persistence payload only includes user-owned training and questionnaire state", () => {
   const payload = buildClientPersistableUserData({

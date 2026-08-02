@@ -59,6 +59,22 @@ service cloud.firestore {
         && isString(request.resource.data.timestamp, 40);
     }
 
+    function isValidBugReportCreate() {
+      return isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          "description",
+          "screen",
+          "userId",
+          "userEmail",
+          "timestamp",
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && isNonEmptyString(request.resource.data.description, 2000)
+        && isString(request.resource.data.screen, 300)
+        && isString(request.resource.data.userEmail, 254)
+        && isString(request.resource.data.timestamp, 40);
+    }
+
     function isValidUserCreate(userId) {
       return isOwner(userId)
         && request.resource.data.keys().hasOnly([
@@ -359,6 +375,11 @@ service cloud.firestore {
 
     match /feedbacks/{feedbackId} {
       allow create: if isValidFeedbackCreate();
+      allow read, update, delete: if false;
+    }
+
+    match /bugReports/{bugReportId} {
+      allow create: if isValidBugReportCreate();
       allow read, update, delete: if false;
     }
 

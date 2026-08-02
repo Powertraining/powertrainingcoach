@@ -1,386 +1,485 @@
 import {
   Animated,
-  Easing,
-  Image,
-  ScrollView,
+  Pressable,
   StyleSheet,
   View,
   useWindowDimensions,
 } from "react-native";
-import { useEffect, useMemo, useRef } from "react";
+import { useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   APP_LOGIC_SETTINGS_DEFAULTS,
   LOADING_STRATEGY_OPTIONS,
 } from "../../constants/appLogicSettings.js";
-import PressedShadowButton from "../../components/questionnaireComponents/PressedShadowButton.jsx";
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 
-const ARROW_IMAGE = require("../../assets/icons/arrow.png");
-const LOADING_VISUAL_HEIGHT = 132;
-const LOADING_VISUAL_WIDTH = 214;
-const OPTION_LABEL_HEIGHT = 28;
+const RECOMMENDED_ACCENT = "#F3D04F";
 const MAIN_DESCRIPTION =
-  "Choose how the weight changes across your working sets. This affects fatigue, technique quality, and how heavy the session feels.";
-const DESCRIPTION_HEIGHT = 72;
-const LOADING_VISUAL_ANIMATION_MS = 260;
+  "Flat loading suits most beginners and intermediate athletes. Ascending and descending loading add variation for advanced athletes comfortable managing changing loads.";
+const DESCRIPTION_COLLAPSE_END = 64;
+const HEADER_COLLAPSE_END = 142;
+const TITLE_COLLAPSE_START = 84;
+const TITLE_COLLAPSE_END = 116;
+const COLLAPSED_HEADER_HEIGHT = 64;
+const EXPANDED_TITLE_TOP = 58;
+const EXPANDED_TITLE_HEIGHT = 88;
+const EXPANDED_DESCRIPTION_TOP = 138;
+const EXPANDED_HEADER_HEIGHT = 252;
+const OPTIONS_TOP_GAP = 12;
+const BOTTOM_ACTION_CLEARANCE = 96;
 
-function getActiveIndex(value) {
-  const foundIndex = LOADING_STRATEGY_OPTIONS.findIndex(
-    (option) => option.value === value
-  );
+const SCHEME_BAR_HEIGHTS = Object.freeze({
+  flat_loading: Object.freeze([22, 22, 22, 22]),
+  ascending_pyramid: Object.freeze([12, 18, 24, 30]),
+  descending_pyramid: Object.freeze([30, 24, 18, 12]),
+  double_pyramid: Object.freeze([14, 24, 30, 18]),
+});
 
-  if (foundIndex >= 0) {
-    return foundIndex;
-  }
+const LOADING_SCHEME_META = Object.freeze({
+  flat_loading: Object.freeze({
+    accent: "#0A84FF",
+    accentMuted: "rgba(10, 132, 255, 0.14)",
+  }),
+  ascending_pyramid: Object.freeze({
+    accent: "#34C759",
+    accentMuted: "rgba(52, 199, 89, 0.14)",
+  }),
+  descending_pyramid: Object.freeze({
+    accent: "#FF9F0A",
+    accentMuted: "rgba(255, 159, 10, 0.14)",
+  }),
+});
 
-  const defaultIndex = LOADING_STRATEGY_OPTIONS.findIndex(
-    (option) => option.value === APP_LOGIC_SETTINGS_DEFAULTS.loadingStrategy
-  );
-
-  return defaultIndex >= 0 ? defaultIndex : 0;
+function getSelectedValue(value) {
+  return LOADING_STRATEGY_OPTIONS.some((option) => option.value === value)
+    ? value
+    : APP_LOGIC_SETTINGS_DEFAULTS.loadingStrategy;
 }
 
-function getLoadingBarWidths(value) {
-  if (!value) {
-    return ["0%", "0%", "0%"];
-  }
-
-  if (value === "flat_loading") {
-    return ["76%", "76%", "76%"];
-  }
-
-  if (value === "descending_pyramid") {
-    return ["100%", "76%", "52%"];
-  }
-
-  if (value === "ascending_pyramid") {
-    return ["52%", "76%", "100%"];
-  }
-
-  if (value === "double_pyramid") {
-    return ["60%", "100%", "60%"];
-  }
-
-  return ["100%", "100%", "100%"];
-}
-
-function getLabelsFromWidths(widths) {
-  const labels = Array(widths.length).fill("");
-
-  widths.forEach((width, index) => {
-    if (parseFloat(width) > 0) {
-      labels[index] = `Set ${index + 1}`;
-    }
-  });
-
-  return labels;
-}
-
-function getWidthRatio(width) {
-  const parsedWidth = parseFloat(width);
-
-  return Number.isFinite(parsedWidth) ? parsedWidth / 100 : 0;
-}
-
-function LoadingBlock({ width, label }) {
-  const isHidden = parseFloat(width) <= 0;
-  const targetWidth = getWidthRatio(width) * LOADING_VISUAL_WIDTH;
-  const animatedWidth = useRef(new Animated.Value(targetWidth)).current;
-  const animatedOpacity = useRef(new Animated.Value(isHidden ? 0 : 1)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(animatedWidth, {
-        toValue: targetWidth,
-        duration: LOADING_VISUAL_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-      Animated.timing(animatedOpacity, {
-        toValue: isHidden ? 0 : 1,
-        duration: LOADING_VISUAL_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [animatedOpacity, animatedWidth, isHidden, targetWidth]);
+function LoadingSchemeIcon({ value, accent }) {
+  const heights =
+    SCHEME_BAR_HEIGHTS[value] || SCHEME_BAR_HEIGHTS.flat_loading;
 
   return (
-    <View style={styles.loadingBlockSlot}>
-      <Animated.View
-        style={[
-          styles.loadingBlock,
-          {
-            opacity: animatedOpacity,
-            width: animatedWidth,
-          },
-        ]}
-      >
-        <View pointerEvents="none" style={styles.loadingBlockShadow} />
-        <View style={styles.loadingBlockFace}>
-          <IBMPlexText defaultWhite
-            lines={1}
-            style={styles.blockText}
-            textColor="#000000"
-            center
-          >
-            {label}
-          </IBMPlexText>
-        </View>
-      </Animated.View>
-    </View>
-  );
-}
-
-function LoadingVisual({ value }) {
-  const barWidths = useMemo(() => getLoadingBarWidths(value), [value]);
-  const labels = useMemo(() => getLabelsFromWidths(barWidths), [barWidths]);
-
-  return (
-    <View style={styles.loadingVisual}>
-      {barWidths.map((barWidth, index) => (
-        <LoadingBlock
-          key={`loading-block-${index}`}
-          width={barWidth}
-          label={labels[index]}
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+      style={[
+        styles.schemeIcon,
+        value === "flat_loading" ? styles.schemeIconFlat : null,
+      ]}
+    >
+      {heights.map((height, index) => (
+        <View
+          key={`${value}-bar-${index}`}
+          style={[styles.schemeBar, { backgroundColor: accent, height }]}
         />
       ))}
     </View>
   );
 }
 
-export default function LoadingStrategyView({ value, onChange }) {
-  const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
-  const activeIndex = getActiveIndex(value);
-  const activeOption = activeIndex >= 0 ? LOADING_STRATEGY_OPTIONS[activeIndex] : null;
-
-  function moveSelection(direction) {
-    if (!LOADING_STRATEGY_OPTIONS.length) {
-      return;
-    }
-
-    const nextIndex =
-      (activeIndex + direction + LOADING_STRATEGY_OPTIONS.length) %
-      LOADING_STRATEGY_OPTIONS.length;
-
-    onChange?.(LOADING_STRATEGY_OPTIONS[nextIndex]?.value);
-  }
+function LoadingSchemeOption({ option, selected, onPress }) {
+  const recommended = option.value === "flat_loading";
+  const meta = LOADING_SCHEME_META[option.value] || LOADING_SCHEME_META.flat_loading;
 
   return (
-    <View style={[styles.scrollHost, { minHeight: screenHeight }]}>
-      <ScrollView
+    <Pressable
+      accessibilityLabel={`${option.label}.${recommended ? " Recommended." : ""} ${option.description} Example: ${option.example}`}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.option,
+        selected ? styles.optionSelected : null,
+        selected ? { borderColor: meta.accent } : null,
+        pressed ? styles.optionPressed : null,
+      ]}
+    >
+      <View
+        style={[
+          styles.iconContainer,
+          { backgroundColor: meta.accentMuted },
+        ]}
+      >
+        <LoadingSchemeIcon accent={meta.accent} value={option.value} />
+      </View>
+
+      <View style={styles.optionCopy}>
+        <View style={styles.optionTitleRow}>
+          <IBMPlexText defaultWhite style={styles.optionTitle}>
+            {option.label}
+          </IBMPlexText>
+          {recommended ? (
+            <View style={styles.recommendedBanner}>
+              <IBMPlexText style={styles.recommendedBannerText}>
+                RECOMMENDED
+              </IBMPlexText>
+            </View>
+          ) : null}
+        </View>
+        <IBMPlexText style={styles.optionDescription}>
+          {option.description}
+        </IBMPlexText>
+        <IBMPlexText
+          adjustsFontSizeToFit
+          defaultWhite
+          minimumFontScale={0.72}
+          numberOfLines={1}
+          style={[styles.optionExample, { color: meta.accent }]}
+        >
+          Example: {option.example}
+        </IBMPlexText>
+      </View>
+
+      <View
+        style={[
+          styles.radio,
+          selected ? { borderColor: meta.accent } : null,
+        ]}
+      >
+        {selected ? (
+          <View style={[styles.radioFill, { backgroundColor: meta.accent }]} />
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}
+
+export default function LoadingStrategyView({
+  value,
+  onChange,
+  collapseTitleOnScroll = false,
+}) {
+  const insets = useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const selectedValue = getSelectedValue(value);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [optionsHeight, setOptionsHeight] = useState(0);
+  const expandedHeaderHeight = insets.top + EXPANDED_HEADER_HEIGHT;
+  const fixedTitleHeaderHeight =
+    insets.top + EXPANDED_TITLE_TOP + EXPANDED_TITLE_HEIGHT + 16;
+  const descriptionCollapsedHeaderHeight = collapseTitleOnScroll
+    ? expandedHeaderHeight - 70
+    : Math.max(expandedHeaderHeight - 70, fixedTitleHeaderHeight);
+  const collapsedHeaderHeight = collapseTitleOnScroll
+    ? COLLAPSED_HEADER_HEIGHT
+    : fixedTitleHeaderHeight;
+  const titleTravelX = Math.min(112, screenWidth * 0.28);
+  const titleTravelY = -(insets.top + 75);
+  const optionsBottom =
+    expandedHeaderHeight + OPTIONS_TOP_GAP + optionsHeight;
+  const requiredScrollRange = Math.max(
+    0,
+    optionsBottom - (screenHeight - BOTTOM_ACTION_CLEARANCE)
+  );
+  const needsScrolling = optionsHeight > 0 && requiredScrollRange > 0;
+  let scrollRange = needsScrolling
+    ? Math.max(requiredScrollRange, DESCRIPTION_COLLAPSE_END)
+    : 0;
+
+  if (
+    collapseTitleOnScroll &&
+    scrollRange > TITLE_COLLAPSE_START &&
+    scrollRange < TITLE_COLLAPSE_END
+  ) {
+    scrollRange = TITLE_COLLAPSE_END;
+  }
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, DESCRIPTION_COLLAPSE_END, HEADER_COLLAPSE_END],
+    outputRange: [
+      expandedHeaderHeight,
+      descriptionCollapsedHeaderHeight,
+      collapsedHeaderHeight,
+    ],
+    extrapolate: "clamp",
+  });
+  const descriptionOpacity = scrollY.interpolate({
+    inputRange: [0, 38, DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.7, 0],
+    extrapolate: "clamp",
+  });
+  const descriptionScale = scrollY.interpolate({
+    inputRange: [0, DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.78],
+    extrapolate: "clamp",
+  });
+  const expandedTitleOpacity = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, 102, TITLE_COLLAPSE_END],
+    outputRange: [1, 0.8, 0],
+    extrapolate: "clamp",
+  });
+  const titleScale = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, TITLE_COLLAPSE_END],
+    outputRange: [1, 0.58],
+    extrapolate: "clamp",
+  });
+  const titleTranslateX = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, TITLE_COLLAPSE_END],
+    outputRange: [0, titleTravelX],
+    extrapolate: "clamp",
+  });
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [TITLE_COLLAPSE_START, TITLE_COLLAPSE_END],
+    outputRange: [0, titleTravelY],
+    extrapolate: "clamp",
+  });
+  const compactTitleOpacity = scrollY.interpolate({
+    inputRange: [98, TITLE_COLLAPSE_END],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  return (
+    <View style={[styles.screen, { height: screenHeight }]}>
+      <Animated.ScrollView
         bounces={false}
         contentContainerStyle={[
           styles.container,
           {
-            minHeight: screenHeight,
-            paddingTop: insets.top + 24,
+            minHeight: screenHeight + scrollRange,
+            paddingTop: expandedHeaderHeight + OPTIONS_TOP_GAP,
           },
         ]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+        scrollEnabled={needsScrolling}
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
       >
-        <IBMPlexText titleBlock style={styles.titleText} height={130}>
-          Loading scheme
-        </IBMPlexText>
-
-        <IBMPlexText defaultWhite style={styles.mainDescriptionText} textColor="#9ca3af" center>
-          {MAIN_DESCRIPTION}
-        </IBMPlexText>
-
-        <View style={styles.selectionArea}>
-          <LoadingVisual value={activeOption?.value} />
-
-          <IBMPlexText defaultWhite style={styles.optionText} textColor="#ffffff" center>
-            {activeOption?.label}
-          </IBMPlexText>
-
-          <IBMPlexText defaultWhite style={styles.exampleText} textColor="#C9B259" center>
-            {activeOption?.example ? `Example: ${activeOption.example}` : ""}
-          </IBMPlexText>
-
-          <IBMPlexText defaultWhite style={styles.descriptionText} textColor="#A6A6A6" center>
-            {activeOption?.description}
-          </IBMPlexText>
-        </View>
-
-        <View style={styles.buttonsRow}>
-          <PressedShadowButton
-            accessibilityLabel="Previous loading scheme"
-            faceStyle={styles.arrowWrap}
-            onPress={() => moveSelection(-1)}
-            pressedTranslateX={-5}
-            pressedTranslateY={-5}
-            shadowStyle={styles.arrowShadow}
-            style={styles.button}
-          >
-            <Image
-              source={ARROW_IMAGE}
-              style={[
-                styles.arrowImage,
-                styles.arrowImageLeft,
-                styles.arrowImageLeftOffset,
-              ]}
-              resizeMode="contain"
+        <View
+          accessibilityRole="radiogroup"
+          onLayout={(event) => {
+            const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+            setOptionsHeight((currentHeight) =>
+              currentHeight === nextHeight ? currentHeight : nextHeight
+            );
+          }}
+          style={styles.options}
+        >
+          {LOADING_STRATEGY_OPTIONS.map((option) => (
+            <LoadingSchemeOption
+              key={option.value}
+              onPress={() => onChange?.(option.value)}
+              option={option}
+              selected={selectedValue === option.value}
             />
-          </PressedShadowButton>
-
-          <PressedShadowButton
-            accessibilityLabel="Next loading scheme"
-            faceStyle={styles.arrowWrap}
-            onPress={() => moveSelection(1)}
-            pressedTranslateX={-5}
-            pressedTranslateY={-5}
-            shadowStyle={styles.arrowShadow}
-            style={styles.button}
-          >
-            <Image
-              source={ARROW_IMAGE}
-              style={[styles.arrowImage, styles.arrowImageRightOffset]}
-              resizeMode="contain"
-            />
-          </PressedShadowButton>
+          ))}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.stickyHeader, { height: headerHeight }]}
+      >
+        <Animated.View
+          style={[
+            styles.expandedTitle,
+            {
+              opacity: collapseTitleOnScroll ? expandedTitleOpacity : 1,
+              top: insets.top + EXPANDED_TITLE_TOP,
+              transform: collapseTitleOnScroll
+                ? [
+                    { translateX: titleTranslateX },
+                    { translateY: titleTranslateY },
+                    { scale: titleScale },
+                  ]
+                : undefined,
+            },
+          ]}
+        >
+          <IBMPlexText titleBlock height={EXPANDED_TITLE_HEIGHT}>
+            Loading scheme
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.description,
+            {
+              opacity: descriptionOpacity,
+              top: insets.top + EXPANDED_DESCRIPTION_TOP,
+              transform: [{ scale: descriptionScale }],
+            },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.helperText} center>
+            {MAIN_DESCRIPTION}
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.compactTitle,
+            {
+              opacity: collapseTitleOnScroll ? compactTitleOpacity : 0,
+            },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.compactTitleText}>
+            Loading scheme
+          </IBMPlexText>
+        </Animated.View>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollHost: {
+  screen: {
     alignSelf: "stretch",
+    position: "relative",
   },
   scrollView: {
     alignSelf: "stretch",
+    flex: 1,
   },
   container: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingBottom: 24,
+    paddingHorizontal: 24,
   },
-  titleText: {
-    color: "#ffffff",
-    transform: [{ translateY: 24 }],
-  },
-  loadingVisual: {
-    alignItems: "center",
-    gap: 10,
-    height: LOADING_VISUAL_HEIGHT,
-    marginTop: 132,
-    width: LOADING_VISUAL_WIDTH,
-  },
-  mainDescriptionText: {
-    alignSelf: "center",
-    lineHeight: 19,
-    marginTop: -12,
-    maxWidth: 330,
-    paddingHorizontal: 22,
-    width: "100%",
-  },
-  selectionArea: {
-    alignItems: "center",
-  },
-  loadingBlockSlot: {
-    alignItems: "center",
-    height: 34,
-    width: "100%",
-  },
-  loadingBlock: {
-    height: 34,
-    overflow: "visible",
-    position: "relative",
-  },
-  loadingBlockShadow: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#E1E1E1",
-    borderRadius: 8,
-    transform: [{ translateX: -6 }, { translateY: -5 }],
-    zIndex: 0,
-  },
-  loadingBlockFace: {
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderRadius: 8,
-    bottom: 0,
-    justifyContent: "center",
+  stickyHeader: {
     left: 0,
+    overflow: "hidden",
     position: "absolute",
     right: 0,
     top: 0,
-    zIndex: 1,
+    zIndex: 10,
   },
-  blockText: {
-    fontSize: 12,
-    paddingHorizontal: 6,
+  expandedTitle: {
+    left: 0,
+    position: "absolute",
+    right: 0,
   },
-  optionText: {
-    fontSize: 20,
-    height: OPTION_LABEL_HEIGHT,
-    lineHeight: 24,
-    marginTop: 28,
-    textAlignVertical: "center",
+  description: {
+    left: 24,
+    position: "absolute",
+    right: 24,
   },
-  descriptionText: {
-    alignSelf: "center",
-    height: DESCRIPTION_HEIGHT,
+  compactTitle: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    position: "absolute",
+    right: 24,
+    top: 17,
+  },
+  compactTitleText: {
+    fontSize: 16,
+    fontWeight: "800",
     lineHeight: 20,
-    marginTop: 4,
-    maxWidth: 320,
-    paddingHorizontal: 24,
-    textAlignVertical: "center",
   },
-  exampleText: {
+  helperText: {
+    alignSelf: "center",
+    color: "#9A9AA2",
     fontSize: 15,
     lineHeight: 20,
-    marginBottom: 0,
-    marginTop: 0,
-    minHeight: 22,
-    paddingHorizontal: 20,
+    maxWidth: 330,
+    width: "88%",
   },
-  buttonsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 22,
+  options: {
+    alignSelf: "stretch",
+    gap: 12,
   },
-  button: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    position: "relative",
-  },
-  arrowShadow: {
-    backgroundColor: "#E1E1E1",
-    borderRadius: 12,
-    height: 64,
-    left: 3,
-    position: "absolute",
-    top: 3,
-    width: 64,
-    zIndex: 0,
-  },
-  arrowWrap: {
+  option: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 14,
+    minHeight: 116,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  optionSelected: {
+    backgroundColor: "#171717",
+    borderWidth: 2,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+  },
+  optionPressed: {
+    opacity: 0.76,
+    transform: [{ scale: 0.985 }],
+  },
+  iconContainer: {
+    alignItems: "center",
+    backgroundColor: "rgba(142, 142, 150, 0.12)",
     borderRadius: 12,
-    height: 64,
+    height: 52,
     justifyContent: "center",
-    position: "relative",
-    width: 64,
-    zIndex: 1,
+    width: 52,
   },
-  arrowImage: {
-    height: 34,
-    width: 34,
+  schemeIcon: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    gap: 3,
+    height: 32,
   },
-  arrowImageLeft: {
-    transform: [{ rotate: "180deg" }],
+  schemeIconFlat: {
+    alignItems: "center",
   },
-  arrowImageLeftOffset: {
-    marginLeft: -6,
+  schemeBar: {
+    borderRadius: 2,
+    width: 6,
   },
-  arrowImageRightOffset: {
-    marginLeft: 6,
+  optionCopy: {
+    flex: 1,
+    gap: 3,
+    minWidth: 0,
+  },
+  optionTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 22,
+  },
+  optionTitleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  recommendedBanner: {
+    backgroundColor: RECOMMENDED_ACCENT,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  recommendedBannerText: {
+    color: "#111111",
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+    lineHeight: 11,
+  },
+  optionDescription: {
+    color: "#9A9AA2",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+  },
+  optionExample: {
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  radio: {
+    alignItems: "center",
+    borderColor: "#56565F",
+    borderRadius: 12,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  radioFill: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
   },
 });

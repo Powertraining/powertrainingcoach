@@ -166,7 +166,10 @@ function calculateEstimatedOneRepMax(method, { loadKg, reps, rpe }) {
 }
 
 function calculateTrainingMax(method, estimatedOneRepMaxKg, previousTrainingMaxKg = null) {
-  const baseTrainingMax = estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER;
+  const baseTrainingMax =
+    method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
+      ? estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER
+      : estimatedOneRepMaxKg;
 
   if (!Number.isFinite(previousTrainingMaxKg) || previousTrainingMaxKg <= 0) {
     return roundToTenth(baseTrainingMax);
@@ -344,6 +347,40 @@ export function getStrengthAssessmentMinimumRpe(exercise = {}) {
     parseRpeLowerBound(exercise?.notes) ||
     parseRpeLowerBound(assessment.prompt) ||
     7;
+}
+
+export function getStrengthAssessmentPrescription(exercise = {}) {
+  const assessment = normalizeStrengthAssessmentConfig(
+    exercise?.strengthAssessment,
+    exercise?.name
+  );
+
+  if (!assessment) {
+    return "";
+  }
+
+  const method = assessment.method;
+  const rawReps = normalizeString(exercise?.reps);
+  const leadingRepTarget = rawReps.match(/^\s*(\d+(?:\s*[–-]\s*\d+)?)/)?.[1];
+  const repTarget = leadingRepTarget
+    ? leadingRepTarget.replace(/\s*[–-]\s*/g, "–")
+    : method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
+      ? "1"
+      : method === STRENGTH_ASSESSMENT_METHODS.MULTI_RM
+        ? "2–5"
+        : "3–5";
+  const repLabel = repTarget === "1" ? "rep" : "reps";
+
+  if (method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM) {
+    const minimumRpe = getStrengthAssessmentMinimumRpe(exercise);
+    return `Work up to a top set of ${repTarget} ${repLabel} at RPE ${minimumRpe}–9.`;
+  }
+
+  if (method === STRENGTH_ASSESSMENT_METHODS.MULTI_RM) {
+    return `Work up to a top set of ${repTarget} ${repLabel} at RPE 9–10.`;
+  }
+
+  return `Work up to a top set of ${repTarget} ${repLabel}.`;
 }
 
 export function getPendingProgramMaxAssessments(

@@ -9,6 +9,10 @@ import {
   View,
 } from "react-native";
 import IBMPlexText from "../textComponents/IBMPlexText.jsx";
+import {
+  formatMeasurementText,
+  getWeightUnit,
+} from "../../services/utils/measurementUnits.js";
 
 const NEXT_INPUT_KEYBOARD_GAP = 36;
 const INPUT_PANEL_ANIMATION_DURATION = 90;
@@ -34,11 +38,15 @@ export default function SetLoggingInputPanel({
   renderField,
   fieldOrder,
   rowStyle,
+  fieldStyle,
+  separatorStyle,
   showFieldSeparators = false,
   formatLabel,
+  renderLabel,
   anchorStyle,
   contentHorizontalInset = 14,
   expansionHorizontalOffset = SESSION_HORIZONTAL_PADDING,
+  unitSystem = "metric",
 }) {
   const focusedScrollTargetKeyRef = useRef(null);
   const inputFieldLayoutsRef = useRef({});
@@ -204,10 +212,12 @@ export default function SetLoggingInputPanel({
   const fields = [
     showLoad && {
       id: "loadKg",
-      label: strengthRequirements?.loadLabel || "Load used (kg)",
+      label: strengthRequirements?.loadLabel
+        ? strengthRequirements.loadLabel.replace(/\((?:kg|lb)\)/i, `(${getWeightUnit(unitSystem)})`)
+        : `Load used (${getWeightUnit(unitSystem)})`,
       value: draft.loadKg,
       keyboardType: "decimal-pad",
-      placeholder: "e.g. 150",
+      placeholder: unitSystem === "imperial" ? "e.g. 330" : "e.g. 150",
     },
     showReps && {
       id: "reps",
@@ -233,8 +243,12 @@ export default function SetLoggingInputPanel({
     },
     ...customFields.map((field) => ({
       ...field,
+      label: formatMeasurementText(field.label, unitSystem),
       value: draft.customValues?.[field.id] || "",
-      placeholder: field.placeholder || `Enter ${field.label.toLowerCase()}`,
+      placeholder: formatMeasurementText(
+        field.placeholder || `Enter ${field.label.toLowerCase()}`,
+        unitSystem
+      ),
       isCustom: true,
     })),
   ]
@@ -267,18 +281,22 @@ export default function SetLoggingInputPanel({
           {fields.map((field, fieldIndex) => (
             <Animated.View
               key={field.id}
-              style={[styles.inputField, paddedFieldStyle]}
+              style={[styles.inputField, paddedFieldStyle, fieldStyle]}
               onLayout={(event) => {
                 inputFieldLayoutsRef.current[field.id] = event.nativeEvent.layout;
               }}
             >
-              <IBMPlexText style={[styles.inputLabel, labelStyle]}>
-                {formatLabel?.(field.label, field) ?? field.label}
-              </IBMPlexText>
+              {renderLabel?.({ field }) ?? (
+                <IBMPlexText style={[styles.inputLabel, labelStyle]}>
+                  {formatLabel?.(field.label, field) ?? field.label}
+                </IBMPlexText>
+              )}
               {renderField?.({
                 field,
                 onChange: (value) =>
                   onDraftChange(exerciseIndex, setIndex, field.id, value, field.isCustom),
+                onFocus: () => handleInputFocus(field.id),
+                onBlur: handleInputBlur,
               }) ?? (
                 <TextInput
                   value={field.value}
@@ -294,7 +312,10 @@ export default function SetLoggingInputPanel({
                 />
               )}
               {showFieldSeparators && fieldIndex < fields.length - 1 ? (
-                <View pointerEvents="none" style={styles.inputFieldSeparator} />
+                <View
+                  pointerEvents="none"
+                  style={[styles.inputFieldSeparator, separatorStyle]}
+                />
               ) : null}
             </Animated.View>
           ))}

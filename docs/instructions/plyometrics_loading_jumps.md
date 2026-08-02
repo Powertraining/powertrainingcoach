@@ -168,3 +168,16 @@ Jumps for height/distance (CMJ, box jump, broad jump): 3–6 reps
 Depth/shock jumps: 3–5 reps
 Loaded jumps (trap-bar/back-squat jumps): 3–5 reps
 Progression knobs: Volume (contacts/sets) → Intensity (height/load/approach speed) → Complexity (depth → rebound → hurdle series). You can even progress complexity in the form of complexes, such as start from knees, to jump up, to broad jump for instance. Combining that is. Or Single-leg variations depending on the context and the athlete and their sport.
+
+## Depth Jump and Drop Jump Height
+For depth jumps and drop jumps, show height (drop height, in cm) as the primary programmed and logged value instead of load.
+
+Set drop height by strength-and-conditioning experience:
+- Novice/Beginner: drop jump height 10–20 cm, depth jump height 20–30 cm
+- Intermediate: drop jump height 20–40 cm, depth jump height 30–50 cm
+- Advanced: drop jump height 40–60 cm, depth jump height 50–75 cm
+
+If the athlete is advanced AND can squat ≥ 2.0× bodyweight:
+- Depth Jump: 75–100 cm default advanced-high range
+
+As with all plyometric progression, these height ranges are still gated by the impact-tier rules above (experience, competency, phase, readiness) — never jump straight to a higher height tier than the athlete's current impact tier and landing quality support.

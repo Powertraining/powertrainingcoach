@@ -7,21 +7,22 @@ import {
 import {
   createDefaultForumComposer,
   createDefaultForumFilters,
-  normalizeForumProfile,
 } from "./forumModel";
 import {
   parseGeneratedTrainingPlan,
   sanitizeTrainingPlanForQuestionnaire,
 } from "../utils/trainingPlan.js";
-import { normalizeTrainingPerformanceState } from "../utils/trainingPerformance.js";
-import { normalizeStrengthAssessmentState } from "../utils/strengthAssessment.js";
-import { normalizeTrainingCheckInState } from "../utils/trainingCheckIn.js";
 import { requiresEmailVerification } from "../utils/emailVerification.js";
 import { reload } from "../config/firebaseSdk";
 import {
   buildClientPersistableUserData,
   isSameAuthenticatedUser,
 } from "../utils/userPersistence.js";
+import {
+  applySimplePersistedFields,
+  getSimplePersistedFieldValues,
+  resetSimplePersistedFields,
+} from "../utils/persistedFields.js";
 import { hasActiveSubscriptionEntitlement } from "../utils/subscriptionState.js";
 
 // To subscribe to the login/logout event
@@ -89,8 +90,6 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     } else {
       model.questionnaire = persistedData.questionnaire ?? {};
     }
-    model.primaryCombatSport = persistedData.primaryCombatSport ?? "";
-    model.sessionsPerWeek = persistedData.sessionsPerWeek ?? 3;
     if (persistedData.trainingPlan) {
       try {
         model.trainingPlan = parseGeneratedTrainingPlan(
@@ -114,9 +113,6 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       persistedData.trainingPlanHistory,
       model.questionnaire
     );
-    model.completedDays = persistedData.completedDays ?? [];
-    model.trainingPlanBatch = persistedData.trainingPlanBatch ?? 1;
-    model.completedWeeks = persistedData.completedWeeks ?? 0;
     model.planRegenerationUsage = persistedData.planRegenerationUsage ?? null;
     model.subscription = hasActiveSubscription;
     model.subscriptionEndDate = normalizedSubscriptionEndDate;
@@ -128,26 +124,12 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.getSubscriptionType?.() ||
       (hasActiveSubscription ? "pro" : "");
     model.subscriptionType = hasActiveSubscription ? persistedSubscriptionType : "";
-    model.trainingPerformanceState = normalizeTrainingPerformanceState(
-      persistedData.trainingPerformanceState
-    );
-    model.strengthAssessmentState = normalizeStrengthAssessmentState(
-      persistedData.strengthAssessmentState
-    );
-    model.trainingCheckInState = normalizeTrainingCheckInState(
-      persistedData.trainingCheckInState
-    );
-    model.activeSessionProgressByKey =
-      persistedData.activeSessionProgressByKey &&
-      typeof persistedData.activeSessionProgressByKey === "object"
-        ? persistedData.activeSessionProgressByKey
-        : {};
-    model.completedSessionProgressByKey =
-      persistedData.completedSessionProgressByKey &&
-      typeof persistedData.completedSessionProgressByKey === "object"
-        ? persistedData.completedSessionProgressByKey
-        : {};
-    model.forumProfile = normalizeForumProfile(persistedData.forumProfile);
+
+    // Every other client-owned field (see SIMPLE_PERSISTED_FIELDS) is hydrated
+    // here in one pass, so adding a new one of those fields doesn't require
+    // touching this function at all.
+    applySimplePersistedFields(model, persistedData);
+
     if (typeof model.resetForumRuntimeState === "function") {
       model.resetForumRuntimeState();
     } else {
@@ -166,8 +148,6 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     // already handled by onAuthStateChangedACB
     const data = [
       model.questionnaire,
-      model.primaryCombatSport,
-      model.sessionsPerWeek,
       model.subscription,
       model.subscriptionEndDate,
       model.subscriptionStartDate,
@@ -175,15 +155,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.stripePriceLookupKey,
       model.trainingPlan,
       model.trainingPlanHistory,
-      model.completedDays,
-      model.trainingPlanBatch,
-      model.completedWeeks,
-      model.trainingPerformanceState,
-      model.strengthAssessmentState,
-      model.trainingCheckInState,
-      model.activeSessionProgressByKey,
-      model.completedSessionProgressByKey,
-      model.forumProfile,
+      ...getSimplePersistedFieldValues(model),
     ];
     return data;
   }
@@ -346,23 +318,13 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
       model.questionnaire = null;
       model.trainingPlan = null;
       model.trainingPlanHistory = [];
-      model.completedDays = [];
-      model.trainingPlanBatch = 1;
-      model.completedWeeks = 0;
       // Reset subscription data on logout to prevent it from persisting to next user
       model.subscription = false;
       model.subscriptionEndDate = null;
       model.subscriptionStartDate = null;
       model.subscriptionType = "";
       model.stripePriceLookupKey = "";
-      model.primaryCombatSport = "";
-      model.sessionsPerWeek = 3;
-      model.trainingPerformanceState = normalizeTrainingPerformanceState();
-      model.strengthAssessmentState = normalizeStrengthAssessmentState();
-      model.trainingCheckInState = normalizeTrainingCheckInState();
-      model.activeSessionProgressByKey = {};
-      model.completedSessionProgressByKey = {};
-      model.forumProfile = normalizeForumProfile();
+      resetSimplePersistedFields(model);
       if (typeof model.resetForumRuntimeState === "function") {
         model.resetForumRuntimeState();
       } else {

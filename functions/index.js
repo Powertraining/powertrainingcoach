@@ -3645,6 +3645,68 @@ function sanitizeStrengthAssessment(strengthAssessment, fallbackLiftName = "") {
   };
 }
 
+function getStrengthAssessmentTopSetReps(exercise = {}) {
+  const method = exercise?.strengthAssessment?.method;
+
+  if (method === "true_1rm") {
+    return "1";
+  }
+
+  const prescribedReps = normalizeStringValue(exercise?.reps);
+  const leadingRepTarget = prescribedReps.match(
+      /^\s*(\d+(?:\s*[-–]\s*\d+)?)/,
+  );
+
+  if (leadingRepTarget?.[1]) {
+    return leadingRepTarget[1].replace(/\s+/g, "");
+  }
+
+  return method === "multi_rm" ? "2-5" : "3-5";
+}
+
+function getStrengthAssessmentTopSetNotes(notes = "") {
+  const notesWithoutBackOffWork = normalizeStringValue(notes)
+      .replace(
+          /\s*Work up to the prescribed top set only; do not perform back-off sets\.\s*/gi,
+          " ",
+      )
+      .replace(
+          /\s*,?\s*(?:before|then|followed by|plus|and)\s+(?:the\s+)?(?:\d+\s+)?back[- ]off(?:\s+sets?|\s+work)?[^.]*\.?/gi,
+          ".",
+      )
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+  return [
+    notesWithoutBackOffWork,
+    "Work up to the prescribed top set only; do not perform back-off sets.",
+  ].filter(Boolean).join(" ");
+}
+
+function applyStrengthAssessmentTopSetOnly(exercise = {}) {
+  if (!exercise?.strengthAssessment) {
+    return exercise;
+  }
+
+  const reps = getStrengthAssessmentTopSetReps(exercise);
+
+  return {
+    ...exercise,
+    sets: "1 top set",
+    reps,
+    notes: getStrengthAssessmentTopSetNotes(exercise.notes),
+    percentagePrescription: null,
+    substitutionOptions: Array.isArray(exercise.substitutionOptions) ?
+      exercise.substitutionOptions.map((option) => ({
+        ...option,
+        sets: "1 top set",
+        reps,
+        notes: getStrengthAssessmentTopSetNotes(option.notes),
+      })) :
+      [],
+  };
+}
+
 function sanitizePerformanceTarget(performanceTarget, fallbackLiftName = "") {
   if (performanceTarget == null) {
     return null;
@@ -3860,29 +3922,33 @@ function sanitizeExercise(exercise, exerciseIndex) {
     notes: normalizeStringValue(exercise.notes),
   };
 
-  return applyPullUpChinUpRules({
-    ...fallbackExercise,
-    endurancePrescription: sanitizeEndurancePrescription(
-        exercise.endurancePrescription,
-    ),
-    performanceTarget: sanitizePerformanceTarget(
-        exercise.performanceTarget,
-        fallbackExercise.name,
-    ),
-    percentagePrescription: sanitizePercentagePrescription(
-        exercise.percentagePrescription,
-        fallbackExercise.name,
-    ),
-    strengthAssessment: sanitizeStrengthAssessment(
-        exercise.strengthAssessment,
-        fallbackExercise.name,
-    ),
-    substitutionOptions: getStrictSubstitutionSource(exercise).map(
-        (option, optionIndex) =>
-          sanitizeExerciseOption(option, optionIndex, fallbackExercise),
-    ),
-    selectedSubstitutionId: normalizeStringValue(exercise.selectedSubstitutionId),
-  });
+  return applyStrengthAssessmentTopSetOnly(
+      applyPullUpChinUpRules({
+        ...fallbackExercise,
+        endurancePrescription: sanitizeEndurancePrescription(
+            exercise.endurancePrescription,
+        ),
+        performanceTarget: sanitizePerformanceTarget(
+            exercise.performanceTarget,
+            fallbackExercise.name,
+        ),
+        percentagePrescription: sanitizePercentagePrescription(
+            exercise.percentagePrescription,
+            fallbackExercise.name,
+        ),
+        strengthAssessment: sanitizeStrengthAssessment(
+            exercise.strengthAssessment,
+            fallbackExercise.name,
+        ),
+        substitutionOptions: getStrictSubstitutionSource(exercise).map(
+            (option, optionIndex) =>
+              sanitizeExerciseOption(option, optionIndex, fallbackExercise),
+        ),
+        selectedSubstitutionId: normalizeStringValue(
+            exercise.selectedSubstitutionId,
+        ),
+      }),
+  );
 }
 
 function sanitizeTrainingDay(day, dayIndex) {
@@ -4297,6 +4363,11 @@ Follow these domain rules:
 - In off-camp/off-season, endurance may build aerobic base, repeated-effort
   capacity, and weak links. In fight camp/in-camp, fit endurance around
   sparring, pads, grappling, weight management, and freshness.
+- If enduranceTraining.preferredFormat is "plan_decides", choose the appropriate
+  mix from the athlete's complete input instead of treating it as a training
+  format. Weigh sport, phase and event timeline, experience, combat and weekly
+  workload, recovery, injuries, equipment, modalities, and session constraints,
+  and adapt the mix across the plan as those needs change.
 - Available endurance modalities are running, sprinting, circuit_training,
   heavy_bag, swimming, assault_bike, rowing_ergometer, skiing_ergometer, and
   arm_crank_machine.
@@ -4327,8 +4398,14 @@ Follow these domain rules:
   inaccessible, include 2-5 pragmatic substitute options.
 - Keep every substitute in the same movement category and training emphasis.
   Never swap to an unrelated pattern.
+- Never prescribe a bare, ambiguous "Back Squat". Always name it exactly
+  "Back Squat (High-Bar)" or "Back Squat (Low-Bar)" so the athlete and the
+  app both know which variation is programmed. Choose the variation
+  deliberately based on the athlete's goal and sport, then keep using that
+  exact name for every exposure of that lift across the cycle so Program
+  Max and performance history stay attached to the same lift.
 - Good examples:
-  - High Back Squat -> Front Squat / Low Bar Back Squat / Safety Bar Squat
+  - Back Squat (High-Bar) -> Front Squat / Back Squat (Low-Bar) / Safety Bar Squat
   - Bench Press -> DB Bench Press / Narrow Grip Bench Press / Weighted Dips
   - Power Clean -> Power Snatch
 - Pull-ups, chin-ups, assisted pull-ups, band-assisted pull-ups, eccentric
@@ -4339,6 +4416,9 @@ Follow these domain rules:
   "e1rm", "best_set", or "fixed_rpe".
 - If strengthAssessment is included, its method must be exactly one of
   "rpe_based_1rm", "multi_rm", or "true_1rm".
+- Every exercise with strengthAssessment is top-set-only. Set sets to
+  "1 top set", work up to that top set, and stop. Never prescribe back-off
+  sets, follow-up working sets, or percentagePrescription on that exercise.
 - If max clean pull-up reps are not provided, do not assume the athlete
   qualifies for weighted pull-ups. Use trainingCapabilities.pullingWork
   conservatively: "no" means assisted pull-ups or lat pulldowns, "somewhat"

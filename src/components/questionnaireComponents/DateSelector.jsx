@@ -37,6 +37,8 @@ export function WheelColumn({
   selectedIndex = 0,
   onSelect,
   columnStyle,
+  textStyle,
+  selectedTextStyle,
   variant = "dark",
   useMomentumSnap = false,
   itemHeight = ITEM_HEIGHT,
@@ -133,10 +135,12 @@ export function WheelColumn({
               style={[
                 styles.itemText,
                 variant === "light" ? styles.itemTextLight : null,
+                textStyle,
                 index === displayedIndex && styles.itemTextSelected,
                 variant === "light" && index === displayedIndex
                   ? styles.itemTextSelectedLight
                   : null,
+                index === displayedIndex ? selectedTextStyle : null,
               ]}
             >
               {value}

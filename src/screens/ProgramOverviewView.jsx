@@ -64,6 +64,7 @@ import {
 import { reactiveModel } from "../services/models/mobxReactiveModel.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import BugReportControl from "../components/feedbackComponents/BugReportControl.jsx";
 const WEEK_SCHEDULE_ITEM_WIDTH = 86;
 const WEEK_SCHEDULE_TODAY_OFFSET =
   PROGRAM_OVERVIEW_LOOKBACK_DAYS * WEEK_SCHEDULE_ITEM_WIDTH;
@@ -462,6 +463,7 @@ function ExerciseLogSheetContent({
   draft,
   onDraftChange,
   strengthReferenceOneRepMaxByLift,
+  unitSystem = "metric",
 }) {
   const {
     strengthAssessment,
@@ -492,6 +494,7 @@ function ExerciseLogSheetContent({
         strengthRequirements={strengthRequirements}
         customFields={customFields}
         recommendedLoadKg={recommendedLoadKg}
+        unitSystem={unitSystem}
         onDraftChange={onDraftChange}
       />
     </View>
@@ -802,6 +805,7 @@ function ProgramOverviewSkeleton() {
 
 export default function ProgramOverviewView({
   plan,
+  unitSystem = "metric",
   trainingPlanHistory = [],
   onSelectDay,
   completedDays,
@@ -1693,6 +1697,7 @@ export default function ProgramOverviewView({
 
     return (
       <ActiveSessionView
+        unitSystem={unitSystem}
         day={activeSessionDay.dayData}
         exercises={activeSessionDay.exercises}
         initialPerformanceResults={selectedDayPerformanceResults}
@@ -2106,6 +2111,7 @@ export default function ProgramOverviewView({
             >
               <DayDetailView
                 week={detailSelectedDay.week}
+                unitSystem={unitSystem}
                 day={detailSelectedDay.dayData}
                 exercises={detailSelectedDay.exercises}
                 preferredWeekday={detailSelectedDay.preferredWeekday}
@@ -2173,6 +2179,7 @@ export default function ProgramOverviewView({
               </IBMPlexText>
             </TouchableOpacity>
           </View>
+          <BugReportControl screen="program-overview" />
         </View>
       </ScrollView>
       {showRescheduleInfoButton ? (
@@ -2227,6 +2234,7 @@ export default function ProgramOverviewView({
               draft={exerciseLogDraft}
               onDraftChange={updateExerciseLogDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
+              unitSystem={unitSystem}
             />
           ) : null
         }

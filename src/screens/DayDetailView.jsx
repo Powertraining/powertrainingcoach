@@ -44,6 +44,7 @@ import {
     getPendingProgramMaxAssessments,
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
+    getStrengthAssessmentPrescription,
     getStrengthAssessmentRequirements,
     getStrengthAssessmentReferenceOneRepMaxKg,
     resolveStrengthAssessmentReferenceOneRepMaxKg,
@@ -60,6 +61,14 @@ import {
 } from "../services/utils/exerciseSets.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import {
+    formatDistanceFromMeters,
+    formatMeasurementText,
+    formatWeightFromKilograms,
+    getDisplayWeightFromKilograms,
+    getKilogramsFromDisplayWeight,
+    getWeightUnit,
+} from "../services/utils/measurementUnits.js";
 function buildTrackingDrafts(
     exercises = [],
     initialPerformanceResults = [],
@@ -235,7 +244,7 @@ function ExerciseCardActionIcon({ color = "#B8B8C2", size = 16 }) {
     );
 }
 
-function formatReportedResult(result = {}) {
+function formatReportedResult(result = {}, unitSystem = "metric") {
     if (result.missedRep) {
         return result.missedRepReasonLabel || "Missed rep logged";
     }
@@ -243,7 +252,7 @@ function formatReportedResult(result = {}) {
     const parts = [];
 
     if (result.loadKg != null && result.loadKg !== "") {
-        parts.push(`${result.loadKg} kg`);
+        parts.push(formatWeightFromKilograms(result.loadKg, unitSystem));
     }
 
     if (result.reps != null && result.reps !== "") {
@@ -265,7 +274,7 @@ function formatReportedResult(result = {}) {
     return parts.join(" · ");
 }
 
-function buildReportedResultsByExercise(...resultGroups) {
+function buildReportedResultsByExercise(unitSystem, ...resultGroups) {
     const resultsByExercise = new Map();
 
     resultGroups.flat().forEach((result) => {
@@ -273,7 +282,7 @@ function buildReportedResultsByExercise(...resultGroups) {
             return;
         }
 
-        const formattedResult = formatReportedResult(result);
+        const formattedResult = formatReportedResult(result, unitSystem);
 
         if (!formattedResult) {
             return;
@@ -296,11 +305,11 @@ function buildReportedResultsByExercise(...resultGroups) {
     return resultsByExercise;
 }
 
-function formatReportedDraft(draft = {}) {
+function formatReportedDraft(draft = {}, unitSystem = "metric") {
     const parts = [];
 
     if (draft.loadKg) {
-        parts.push(`${draft.loadKg} kg`);
+        parts.push(formatWeightFromKilograms(draft.loadKg, unitSystem));
     }
 
     if (draft.reps) {
@@ -322,7 +331,7 @@ function formatReportedDraft(draft = {}) {
     return parts.join(" · ");
 }
 
-function buildReportedDraftsByExercise(trackingDrafts = {}) {
+function buildReportedDraftsByExercise(trackingDrafts = {}, unitSystem = "metric") {
     const resultsByExercise = new Map();
 
     Object.values(trackingDrafts || {}).forEach((draft) => {
@@ -330,7 +339,7 @@ function buildReportedDraftsByExercise(trackingDrafts = {}) {
             return;
         }
 
-        const formattedResult = formatReportedDraft(draft);
+        const formattedResult = formatReportedDraft(draft, unitSystem);
 
         if (!formattedResult) {
             return;
@@ -512,6 +521,12 @@ function formatPrescriptionWithSets(sets = "", prescription = "") {
 
 function getExercisePrescriptionDisplay(exercise = {}) {
     const safeExercise = exercise && typeof exercise === "object" ? exercise : {};
+    const assessmentPrescription = getStrengthAssessmentPrescription(safeExercise);
+
+    if (assessmentPrescription) {
+        return assessmentPrescription;
+    }
+
     const endurancePrescription = safeExercise.endurancePrescription || {};
     if (endurancePrescription.work || endurancePrescription.rest) {
         return [endurancePrescription.work, endurancePrescription.rest]
@@ -566,12 +581,10 @@ function formatCompactNumberUnit(value, unit = "") {
     return `${String(value).replace(/\s+/g, "")}${unit}`;
 }
 
-function formatCompactKg(value) {
-    if (!Number.isFinite(value)) {
-        return "";
-    }
-
-    return `${Math.round(value * 10) / 10}kg`;
+function formatCompactWeight(value, unitSystem = "metric") {
+    return Number.isFinite(value)
+        ? formatWeightFromKilograms(value, unitSystem, { compact: true })
+        : "";
 }
 
 function getPrimaryPercentageWorkingSet(percentagePrescription = {}) {
@@ -617,7 +630,11 @@ function getPercentRangeFromNotes(exercise = {}) {
     };
 }
 
-function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+function getEstimatedLoadFromNotesPercent(
+    exercise = {},
+    strengthReferenceOneRepMaxByLift = {},
+    unitSystem = "metric"
+) {
     const percentRange = getPercentRangeFromNotes(exercise);
 
     if (!percentRange) {
@@ -648,26 +665,31 @@ function getEstimatedLoadFromNotesPercent(exercise = {}, strengthReferenceOneRep
             percentRange.endPercent
         );
 
-        return endLoad ? `${formatCompactKg(startLoad)}-${formatCompactKg(endLoad)}` : formatCompactKg(startLoad);
+        return endLoad
+            ? `${formatCompactWeight(startLoad, unitSystem)}-${formatCompactWeight(endLoad, unitSystem)}`
+            : formatCompactWeight(startLoad, unitSystem);
     }
 
-    return formatCompactKg(startLoad);
+    return formatCompactWeight(startLoad, unitSystem);
 }
 
-function getExplicitLoadOrSpeedValue(exercise = {}) {
+function getExplicitLoadOrSpeedValue(exercise = {}, unitSystem = "metric") {
     const exerciseText = `${exercise.notes || ""} ${exercise.reps || ""}`;
     const speedMatch = exerciseText.match(/\b\d+(?:[.,]\d+)?\s*(?:km\/h|kmh|mph|m\/s)\b/i);
 
     if (speedMatch) {
-        return speedMatch[0].replace(/\s+/g, "").replace(/kmh/i, "kmh");
+        return formatMeasurementText(
+            speedMatch[0].replace(/\s+/g, "").replace(/kmh/i, "km/h"),
+            unitSystem
+        );
     }
 
     const loadMatch = exerciseText.match(/\b\d+(?:[.,]\d+)?\s*(?:kg|kgs|kilogram|kilograms)\b/i);
 
     if (loadMatch) {
-        return loadMatch[0]
+        return formatMeasurementText(loadMatch[0]
             .replace(/\s+/g, "")
-            .replace(/kgs?|kilograms?/i, "kg");
+            .replace(/kgs?|kilograms?/i, "kg"), unitSystem);
     }
 
     return "";
@@ -721,7 +743,11 @@ function getNotesIntensityDetails(exercise = {}) {
     return detailParts.join(" * ");
 }
 
-function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+function getExerciseRecommendationDisplay(
+    exercise = {},
+    strengthReferenceOneRepMaxByLift = {},
+    unitSystem = "metric"
+) {
     const percentagePrescription = getExercisePercentagePrescription(exercise);
     const primaryWorkingSet = getPrimaryPercentageWorkingSet(percentagePrescription);
     const notesDetails = getNotesIntensityDetails(exercise);
@@ -750,23 +776,91 @@ function getExerciseRecommendationDisplay(exercise = {}, strengthReferenceOneRep
         ].filter(Boolean);
 
         return {
-            primary: estimatedLoadKg ? formatCompactNumberUnit(estimatedLoadKg, "kg") : "",
-            details: detailParts.join(" * "),
+            primary: estimatedLoadKg
+                ? formatWeightFromKilograms(estimatedLoadKg, unitSystem, { compact: true })
+                : "",
+            details: formatMeasurementText(detailParts.join(" * "), unitSystem),
         };
     }
 
     return {
         primary:
-            getExplicitLoadOrSpeedValue(exercise) ||
-            getEstimatedLoadFromNotesPercent(exercise, strengthReferenceOneRepMaxByLift),
-        details: notesDetails,
+            getExplicitLoadOrSpeedValue(exercise, unitSystem) ||
+            getEstimatedLoadFromNotesPercent(
+                exercise,
+                strengthReferenceOneRepMaxByLift,
+                unitSystem
+            ),
+        details: formatMeasurementText(notesDetails, unitSystem),
     };
 }
 
-function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMaxByLift = {}) {
+function isMedicineBallExercise(exercise = {}) {
+    const exerciseText = `${exercise?.name || ""} ${exercise?.notes || ""}`.toLowerCase();
+    return /\bmed(?:icine)?[\s-]?ball\b/.test(exerciseText);
+}
+
+function getMedicineBallIntensity(exercise = {}, unitSystem = "metric") {
+    if (!isMedicineBallExercise(exercise)) {
+        return "";
+    }
+
+    const exerciseText = `${exercise?.notes || ""} ${exercise?.reps || ""}`;
+    const kgMatch = exerciseText.match(
+        /\b(\d+(?:[.,]\d+)?)(?:\s*[-–]\s*(\d+(?:[.,]\d+)?))?\s*kgs?\b/i
+    );
+    const startKg = kgMatch ? Number.parseFloat(kgMatch[1].replace(",", ".")) : 2;
+    const endKg = kgMatch
+        ? (kgMatch[2] ? Number.parseFloat(kgMatch[2].replace(",", ".")) : null)
+        : 8;
+    const start = formatWeightFromKilograms(startKg, unitSystem);
+    const end = endKg != null
+        ? formatWeightFromKilograms(endKg, unitSystem).replace(` ${getWeightUnit(unitSystem)}`, "")
+        : null;
+
+    return end ? `${start.replace(` ${getWeightUnit(unitSystem)}`, "")}-${end} ${getWeightUnit(unitSystem)}` : start;
+}
+
+function isBodyweightOnlyPlyoExercise(exercise = {}) {
+    const exerciseText = `${exercise?.name || ""} ${exercise?.notes || ""}`.toLowerCase();
+
+    if (!/\b(?:jump|plyo|pogo|hop|bound)/.test(exerciseText)) {
+        return false;
+    }
+
+    if (
+        /\b(?:trap[\s-]?bar|loaded|weighted|dumbbell|barbell|kettlebell|kgs?|kilograms?|depth jump|drop jump|drop height)\b/.test(
+            exerciseText
+        )
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
+function getCompactExerciseCardMetrics(
+    exercise = {},
+    strengthReferenceOneRepMaxByLift = {},
+    unitSystem = "metric"
+) {
+    const strengthAssessmentPrescription =
+        getStrengthAssessmentPrescription(exercise);
+
+    if (strengthAssessmentPrescription) {
+        return [
+            {
+                label: "Prescription",
+                value: strengthAssessmentPrescription,
+                isStrengthAssessmentPrescription: true,
+            },
+        ];
+    }
+
     const recommendation = getExerciseRecommendationDisplay(
         exercise,
-        strengthReferenceOneRepMaxByLift
+        strengthReferenceOneRepMaxByLift,
+        unitSystem
     );
     const performanceTarget = getExercisePerformanceTarget(exercise);
     const endurancePrescription = exercise?.endurancePrescription || {};
@@ -813,9 +907,16 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
         recommendationDetails.find((detail) => /%|BPM|zone/i.test(detail)) ||
         recommendationDetails[0] ||
         "";
-    const intensity = formatIntensityDisplay(displayedTargetRpe
-        ? `RPE ${displayedTargetRpe}`
-        : endurancePrescription.intensity || intensityFromDetails);
+    const medicineBallIntensity = getMedicineBallIntensity(exercise, unitSystem);
+    const bodyweightOnlyPlyoIntensity =
+        !medicineBallIntensity && isBodyweightOnlyPlyoExercise(exercise) ? "Bodyweight" : "";
+    const intensity = formatIntensityDisplay(
+        medicineBallIntensity ||
+        bodyweightOnlyPlyoIntensity ||
+        (displayedTargetRpe
+            ? `RPE ${displayedTargetRpe}`
+            : endurancePrescription.intensity || intensityFromDetails)
+    );
     const exerciseSetCount = getExerciseSetDisplayValue(exercise);
     const sets = String(exerciseSetCount || sprintPrescription.sets || "").trim();
     const formatRepDisplay = (value = "") =>
@@ -858,7 +959,11 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
             return "";
         }
 
-        return /[a-z]/i.test(normalizedValue) ? normalizedValue : `${normalizedValue}m`;
+        if (!/[a-z]/i.test(normalizedValue)) {
+            return formatDistanceFromMeters(normalizedValue, unitSystem, { compact: true });
+        }
+
+        return formatMeasurementText(normalizedValue, unitSystem);
     };
     const addMetric = (label, value) => {
         const normalizedValue = String(value || "").replace(/\s+/g, " ").trim();
@@ -924,6 +1029,7 @@ function getCompactExerciseCardMetrics(exercise = {}, strengthReferenceOneRepMax
 export default function DayDetailView({
     week,
     day,
+    unitSystem = "metric",
     preferredWeekday,
     sessionLabel,
     status = "pending",
@@ -1082,11 +1188,13 @@ export default function DayDetailView({
     const reportedResultsByExercise = useMemo(
         () => {
             const savedResults = buildReportedResultsByExercise(
+                unitSystem,
                 Array.isArray(initialPerformanceResults) ? initialPerformanceResults : [],
                 Array.isArray(initialAssessmentResults) ? initialAssessmentResults : []
             );
             const draftResults = buildReportedDraftsByExercise(
-                completedSessionProgress?.trackingDrafts
+                completedSessionProgress?.trackingDrafts,
+                unitSystem
             );
 
             draftResults.forEach((results, exerciseIndex) => {
@@ -1095,7 +1203,7 @@ export default function DayDetailView({
 
             return savedResults;
         },
-        [completedSessionProgress, initialAssessmentResults, initialPerformanceResults]
+        [completedSessionProgress, initialAssessmentResults, initialPerformanceResults, unitSystem]
     );
     const completedSessionStepKeys = useMemo(
         () =>
@@ -1231,7 +1339,7 @@ export default function DayDetailView({
                                             numberOfLines={3}
                                             style={styles.swapCurrentExerciseDescription}
                                         >
-                                            {swapExercise.notes}
+                                            {formatMeasurementText(swapExercise.notes, unitSystem)}
                                         </IBMPlexText>
                                     ) : null}
                                 </View>
@@ -1269,7 +1377,7 @@ export default function DayDetailView({
                                                 </View>
                                                 {option.notes ? (
                                                     <IBMPlexText lines={2} style={styles.swapOptionNotes}>
-                                                        {option.notes}
+                                                        {formatMeasurementText(option.notes, unitSystem)}
                                                     </IBMPlexText>
                                                 ) : null}
                                             </View>
@@ -1315,7 +1423,9 @@ export default function DayDetailView({
                         style={styles.tipsScroller}
                         contentContainerStyle={styles.tipsContent}
                     >
-                        <IBMPlexText style={styles.tipsText}>{tipsExercise?.notes}</IBMPlexText>
+                        <IBMPlexText style={styles.tipsText}>
+                            {formatMeasurementText(tipsExercise?.notes, unitSystem)}
+                        </IBMPlexText>
                     </ScrollView>
                 }
             />
@@ -1403,7 +1513,8 @@ export default function DayDetailView({
                                                 : "";
                                             const exerciseCardMetrics = getCompactExerciseCardMetrics(
                                                 ex,
-                                                strengthReferenceOneRepMaxByLift
+                                                strengthReferenceOneRepMaxByLift,
+                                                unitSystem
                                             ).map((metric) =>
                                                 programMaxStatusLabel && metric.label === "Intensity"
                                                     ? {
@@ -1415,6 +1526,19 @@ export default function DayDetailView({
                                                     }
                                                     : metric
                                             );
+                                            if (
+                                                programMaxStatusLabel &&
+                                                exerciseCardMetrics.some(
+                                                    (metric) =>
+                                                        metric.isStrengthAssessmentPrescription
+                                                )
+                                            ) {
+                                                exerciseCardMetrics.push({
+                                                    label: "Purpose",
+                                                    value: programMaxStatusLabel,
+                                                    isProgramMaxEstimate: true,
+                                                });
+                                            }
                                             const isHighlighted =
                                                 exerciseIndex === highlightedExerciseIndex;
                                             const exerciseSubstitutionOptions =
@@ -1503,7 +1627,12 @@ export default function DayDetailView({
                                                                         {exerciseCardMetrics.map((metric) => (
                                                                             <View
                                                                                 key={metric.label}
-                                                                                style={styles.tabButtonMetricColumn}
+                                                                                style={[
+                                                                                    styles.tabButtonMetricColumn,
+                                                                                    metric.isStrengthAssessmentPrescription
+                                                                                        ? styles.strengthAssessmentPrescriptionMetric
+                                                                                        : null,
+                                                                                ]}
                                                                             >
                                                                                 <IBMPlexText
                                                                                     style={styles.tabButtonMetricLabel}
@@ -1737,31 +1866,48 @@ export default function DayDetailView({
                                         </View>
                                         {performanceTarget?.prompt ? (
                                             <IBMPlexText style={styles.assessmentPrompt}>
-                                                {performanceTarget.prompt}
+                                                {formatMeasurementText(performanceTarget.prompt, unitSystem)}
                                             </IBMPlexText>
                                         ) : null}
                                         {strengthAssessment?.prompt &&
                                         strengthAssessment.prompt !== performanceTarget?.prompt ? (
                                             <IBMPlexText style={styles.assessmentPromptSecondary}>
-                                                {strengthAssessment.prompt}
+                                                {formatMeasurementText(strengthAssessment.prompt, unitSystem)}
                                             </IBMPlexText>
                                         ) : null}
                                         <View style={styles.assessmentInputRow}>
                                             <View style={styles.assessmentField}>
                                                 <IBMPlexText style={styles.assessmentFieldLabel}>
-                                                    {strengthRequirements?.loadLabel || "Load used (kg)"}
+                                                    {formatMeasurementText(
+                                                        strengthRequirements?.loadLabel || "Load used (kg)",
+                                                        unitSystem
+                                                    )}
                                                 </IBMPlexText>
                                                 <TextInput
-                                                    value={draft.loadKg}
+                                                    value={draft.loadKg === ""
+                                                        ? ""
+                                                        : String(
+                                                            getDisplayWeightFromKilograms(
+                                                                draft.loadKg,
+                                                                unitSystem
+                                                            ) ?? ""
+                                                        )}
                                                     onChangeText={(value) =>
                                                         updateTrackingDraft(
                                                             exerciseIndex,
                                                             "loadKg",
-                                                            value
+                                                            value === ""
+                                                                ? ""
+                                                                : String(
+                                                                    getKilogramsFromDisplayWeight(
+                                                                        value,
+                                                                        unitSystem
+                                                                    ) ?? ""
+                                                                )
                                                         )
                                                     }
                                                     keyboardType="decimal-pad"
-                                                    placeholder="e.g. 150"
+                                                    placeholder={unitSystem === "imperial" ? "e.g. 330" : "e.g. 150"}
                                                     style={styles.assessmentInput}
                                                 />
                                             </View>
@@ -1894,11 +2040,11 @@ export default function DayDetailView({
                                             <IBMPlexText style={styles.assessmentSaved}>
                                                 {savedPerformanceResult.missedRep ?
                                                     `Saved missed rep: ${savedPerformanceResult.missedRepReasonLabel || "Logged"}` :
-                                                    `Saved performance: ${savedPerformanceResult.loadKg} kg x ${savedPerformanceResult.reps}`
+                                                    `Saved performance: ${formatWeightFromKilograms(savedPerformanceResult.loadKg, unitSystem)} x ${savedPerformanceResult.reps}`
                                                 }
                                                 {!savedPerformanceResult.missedRep && savedPerformanceResult.rpe ? ` @RPE ${savedPerformanceResult.rpe}` : ""}
                                                 {savedPerformanceResult.estimatedOneRepMaxKg ?
-                                                    ` | e1RM ${savedPerformanceResult.estimatedOneRepMaxKg} kg` :
+                                                    ` | e1RM ${formatWeightFromKilograms(savedPerformanceResult.estimatedOneRepMaxKg, unitSystem)}` :
                                                     ""
                                                 }
                                                 {savedPerformanceResult.rpeDrift != null ?
@@ -1909,7 +2055,7 @@ export default function DayDetailView({
                                         ) : null}
                                         {savedResult ? (
                                             <IBMPlexText style={styles.assessmentSaved}>
-                                                Saved estimate: {savedResult.estimatedOneRepMaxKg} kg 1RM, {savedResult.trainingMaxKg} kg training max.
+                                                Saved estimate: {formatWeightFromKilograms(savedResult.estimatedOneRepMaxKg, unitSystem)} 1RM, {formatWeightFromKilograms(savedResult.trainingMaxKg, unitSystem)} training max.
                                             </IBMPlexText>
                                         ) : null}
                                         {!savedResult && !savedPerformanceResult ? (
@@ -2536,6 +2682,10 @@ const styles = StyleSheet.create({
         flexShrink: 1,
         gap: 5,
         minWidth: 52,
+    },
+    strengthAssessmentPrescriptionMetric: {
+        flexBasis: "100%",
+        width: "100%",
     },
     tabButtonMetricLabel: {
         color: '#8B8B94',

@@ -19,9 +19,11 @@ import {
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import { saveUserData } from "../../src/services/models/dbService.js";
+import { isUserAdmin } from "../../src/services/models/authService.js";
 
 import StartView from "../../src/screens/home/StartView.jsx";
 import QuestionnaireSportView from "../../src/screens/questionnaire/QuestionnaireSportView.jsx";
+import QuestionnaireMeasurementSystemView from "../../src/screens/questionnaire/QuestionnaireMeasurementSystemView.jsx";
 import QuestionnaireFrequencyView from "../../src/screens/questionnaire/QuestionnaireFrequencyView.jsx";
 import InputFormView from "../../src/screens/InputFormView.jsx";
 import {
@@ -51,6 +53,7 @@ import { QUESTIONNAIRE_CHECKOUT_RETURN_TO } from "../../src/services/utils/check
 const STEPS = Object.freeze({
   START: "start",
   Q_SPORT: "questionnaireSport",
+  Q_UNITS: "questionnaireMeasurementSystem",
   Q_FREQ: "questionnaireFrequency",
   INPUT: "input",
 });
@@ -126,17 +129,40 @@ const HomeScreen = observer(function HomeScreen() {
   const [questionnaireNavigatorVisible, setQuestionnaireNavigatorVisible] =
     useState(false);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const subscriptionRefreshAttemptedRef = useRef("");
 
   useEffect(() => {
     model.restoreRemovedManualSessionMerges?.();
   }, [model, model.trainingPlan]);
 
+  useEffect(() => {
+    const uid = model.user?.uid;
+
+    if (!uid) {
+      setIsAdmin(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    isUserAdmin(uid).then((admin) => {
+      if (!cancelled) {
+        setIsAdmin(admin);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [model.user?.uid]);
+
   function getSafeResumeStep() {
     const resume = getParamValue(params.resume);
     const allowedSteps = new Set([
       STEPS.START,
       STEPS.Q_SPORT,
+      STEPS.Q_UNITS,
       STEPS.Q_FREQ,
       STEPS.INPUT,
     ]);
@@ -232,7 +258,11 @@ const HomeScreen = observer(function HomeScreen() {
       return;
     }
 
-    if (step === STEPS.Q_SPORT || step === STEPS.Q_FREQ) {
+    if (
+      step === STEPS.Q_SPORT ||
+      step === STEPS.Q_UNITS ||
+      step === STEPS.Q_FREQ
+    ) {
       goBack();
       return;
     }
@@ -263,12 +293,15 @@ const HomeScreen = observer(function HomeScreen() {
       case STEPS.Q_SPORT:
         setStep(STEPS.START);
         break;
+      case STEPS.Q_UNITS:
+        setQuestionnaireStep(STEPS.Q_SPORT);
+        break;
       case STEPS.Q_FREQ:
         setInputActiveStep(1);
         setQuestionnaireStep(STEPS.INPUT);
         break;
       case STEPS.INPUT:
-        setQuestionnaireStep(STEPS.Q_SPORT);
+        setQuestionnaireStep(STEPS.Q_UNITS);
         break;
       default:
         setStep(STEPS.START);
@@ -279,19 +312,31 @@ const HomeScreen = observer(function HomeScreen() {
     setStep(STEPS.START);
   }
 
-  function getQuestionnaireNavigatorItems() {
-    const inputValues = {
+  function getQuestionnaireNavigationValues() {
+    return {
+      ...(model.questionnaire || {}),
       ...questionnaireDraft,
       primaryCombatSport:
-        questionnaireDraft?.primaryCombatSport || model.primaryCombatSport,
+        questionnaireDraft?.primaryCombatSport ||
+        model.primaryCombatSport ||
+        model.questionnaire?.primaryCombatSport,
       sessionsPerWeek:
-        questionnaireDraft?.sessionsPerWeek || model.sessionsPerWeek || 1,
+        questionnaireDraft?.sessionsPerWeek ||
+        model.questionnaire?.sessionsPerWeek ||
+        model.sessionsPerWeek ||
+        1,
       daysPerWeek:
         questionnaireDraft?.daysPerWeek ||
         questionnaireDraft?.sessionsPerWeek ||
+        model.questionnaire?.daysPerWeek ||
+        model.questionnaire?.sessionsPerWeek ||
         model.sessionsPerWeek ||
         1,
     };
+  }
+
+  function getQuestionnaireNavigatorItems() {
+    const inputValues = getQuestionnaireNavigationValues();
 
     return [
       {
@@ -300,15 +345,21 @@ const HomeScreen = observer(function HomeScreen() {
         step: STEPS.Q_SPORT,
       },
       {
-        label: "Training frequency",
+        label: "Measurement system",
         detail: "Question 2",
+        step: STEPS.Q_UNITS,
+      },
+      {
+        label: "Training frequency",
+        detail: "Question 3",
         step: STEPS.Q_FREQ,
       },
       ...getTrainingPreferencesStepKeys(inputValues).map((stepKey, index) => ({
         label: getTrainingPreferencesStepLabel(stepKey),
-        detail: `Question ${index + 3}`,
+        detail: `Question ${index + 4}`,
         step: STEPS.INPUT,
         inputStep: index,
+        inputStepKey: stepKey,
       })),
     ];
   }
@@ -356,7 +407,19 @@ const HomeScreen = observer(function HomeScreen() {
   function navigateToQuestionnaireItem(item) {
     closeQuestionnaireNavigator();
 
-    if (typeof item.inputStep === "number") {
+    if (item.step === STEPS.INPUT && item.inputStepKey) {
+      const navigationValues = getQuestionnaireNavigationValues();
+      const targetStep = getTrainingPreferencesStepKeys(navigationValues).indexOf(
+        item.inputStepKey
+      );
+
+      if (targetStep < 0) {
+        return;
+      }
+
+      setQuestionnaireDraft(navigationValues);
+      setInputActiveStep(targetStep);
+    } else if (typeof item.inputStep === "number") {
       setInputActiveStep(item.inputStep);
     }
 
@@ -691,6 +754,7 @@ const HomeScreen = observer(function HomeScreen() {
         completedDays={model.completedDays}
         activeSessionProgressByKey={model.activeSessionProgressByKey}
         completedSessionProgressByKey={model.completedSessionProgressByKey}
+        isAdmin={isAdmin}
         onStart={() => setQuestionnaireStep(questionnaireResumeStep)}
         onNavigateQuestionnaire={openQuestionnaireNavigator}
         onStartSession={openTrainingSession}
@@ -713,6 +777,22 @@ const HomeScreen = observer(function HomeScreen() {
           setQuestionnaireDraft((currentDraft) => ({
             ...currentDraft,
             primaryCombatSport: sport,
+          }));
+        }}
+        onBack={goBack}
+        onClose={closeQuestionnaire}
+        onContinue={() => setQuestionnaireStep(STEPS.Q_UNITS)}
+      />
+    ),
+
+    [STEPS.Q_UNITS]: () => (
+      <QuestionnaireMeasurementSystemView
+        value={model.unitSystem}
+        onChange={(unitSystem) => {
+          model.unitSystem = unitSystem;
+          setQuestionnaireDraft((currentDraft) => ({
+            ...currentDraft,
+            unitSystem,
           }));
         }}
         onBack={goBack}
@@ -754,6 +834,7 @@ const HomeScreen = observer(function HomeScreen() {
 
     [STEPS.INPUT]: () => (
       <InputFormView
+        unitSystem={model.unitSystem}
         onSubmit={handleQuestionnaireSubmit}
         onBack={goBack}
         initialValues={{

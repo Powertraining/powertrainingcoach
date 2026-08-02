@@ -28,6 +28,7 @@ import {
   getForumPosts,
   incrementForumPostLikes,
   incrementForumPostSaves,
+  saveBugReport,
   saveFeedback,
 } from "./dbService.js";
 import {
@@ -229,6 +230,7 @@ export const model = {
 
   // Questionnaire responses (persistent across sessions)
   questionnaire: null,
+  unitSystem: "metric",
   primaryCombatSport: "", // Combat sport selection from questionnaire
   sessionsPerWeek: 3, // Number of sessions per week from questionnaire
   
@@ -255,6 +257,7 @@ export const model = {
   planRegenerationUsage: null,
 
   forumProfile: createDefaultForumProfile(),
+  forumPolicyAcceptedAt: null,
   forumFilters: createDefaultForumFilters(),
   forumComposer: createDefaultForumComposer(),
   forumFeed: [],
@@ -380,6 +383,20 @@ export const model = {
 
   async submitFeedback({ rating, comment } = {}) {
     return this.submitFeedBack(rating, comment);
+  },
+
+  async submitBugReport({ description, screen } = {}) {
+    const result = await saveBugReport({
+      description,
+      screen,
+      userId: this.user.uid,
+      userEmail: this.user.email,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (!result.success) {
+      throw new Error(result.error);
+    }
   },
 
   async updateProfile({ displayName, password, isGoogleUser, photoURL }) {
@@ -1510,6 +1527,7 @@ export const model = {
     return {
       ...source,
       ...normalizedAppLogicSettings,
+      unitSystem: this.unitSystem === "imperial" ? "imperial" : "metric",
       sportLoadMultiplier: getSportLoadMultiplier(
         normalizedAppLogicSettings.sportLoadLevel
       ),
@@ -1811,6 +1829,14 @@ export const model = {
       active: this.subscription,
       endDate: this.subscriptionEndDate,
     });
+  },
+
+  hasAcceptedForumPolicy() {
+    return Boolean(this.forumPolicyAcceptedAt);
+  },
+
+  acceptForumPolicy() {
+    this.forumPolicyAcceptedAt = new Date().toISOString();
   },
 
   isOnFreeTrial() {

@@ -6,6 +6,8 @@ node_modules/
 dist/*
 !dist/checkout_redirect/
 !dist/checkout_redirect/*.html
+!dist/delete-account/
+!dist/delete-account/*.html
 web-build/
 pages-dist/
 build/

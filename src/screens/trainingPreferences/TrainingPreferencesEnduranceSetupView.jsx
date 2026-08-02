@@ -18,7 +18,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import PreferenceOptionButton from "../../components/questionnaireComponents/PreferenceOptionButton.jsx";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import QuestionnaireBottomActionButton from "../../components/questionnaireComponents/QuestionnaireBottomActionButton.jsx";
 import {
   CIRCUIT_GOAL_EXAMPLES,
@@ -34,14 +34,43 @@ import {
 import IBMPlexText from "../../components/textComponents/IBMPlexText.jsx";
 import QuestionnaireChatMessage from "../../components/questionnaireComponents/QuestionnaireChatMessage.jsx";
 const ENDURANCE_FORMAT_DETAILS = Object.freeze({
+  plan_decides:
+    "The plan selects the right mix based on your sport, training phase, experience, weekly workload, and the rest of your answers.",
   low_intensity_aerobic:
-    "Sustained low-intensity work used to develop aerobic capacity, improve efficiency, and support recovery between harder sessions.\nBest for: Base phases, beginners, recovery support, and athletes with high sport-training load.",
+    "Steady, low-intensity work to build aerobic capacity, improve efficiency, and support recovery.",
   aerobic_intervals:
-    "Structured submaximal intervals used to improve aerobic power, pacing, and repeatable output with controlled fatigue.\nBest for: Athletes who need more conditioning stimulus than steady work, without excessive intensity.",
+    "Controlled intervals designed to improve aerobic power, pacing, and your ability to repeat longer efforts.",
   high_intensity_intervals:
-    "High-output intervals used to improve repeated bursts and fatigue tolerance. Applied selectively when overall training load allows.\nBest for: Intermediate to advanced athletes, pre-competition phases, and sports with repeated explosive efforts.",
+    "Hard intervals designed to improve repeated bursts and maintain output as fatigue builds.",
   sport_specific_conditioning:
-    "Conditioning matched to the sport’s movement demands, work-rest structure, round length, and competitive context.\nBest for: Competition preparation, combat sports, field sports, and athletes who need direct transfer to performance.",
+    "Conditioning matched to your sport’s round length, work-rest structure, and movement demands.",
+});
+const ENDURANCE_FORMAT_META = Object.freeze({
+  plan_decides: Object.freeze({
+    icon: "scale-balance",
+    accent: "#F3C33C",
+    accentMuted: "rgba(243, 195, 60, 0.14)",
+  }),
+  low_intensity_aerobic: Object.freeze({
+    icon: "heart-outline",
+    accent: "#30D158",
+    accentMuted: "rgba(48, 209, 88, 0.14)",
+  }),
+  aerobic_intervals: Object.freeze({
+    icon: "pulse",
+    accent: "#0A84FF",
+    accentMuted: "rgba(10, 132, 255, 0.14)",
+  }),
+  high_intensity_intervals: Object.freeze({
+    icon: "lightning-bolt",
+    accent: "#FF9F0A",
+    accentMuted: "rgba(255, 159, 10, 0.14)",
+  }),
+  sport_specific_conditioning: Object.freeze({
+    icon: "target",
+    accent: "#FF453A",
+    accentMuted: "rgba(255, 69, 58, 0.14)",
+  }),
 });
 
 const MIN_ENDURANCE_DAYS = 1;
@@ -139,11 +168,53 @@ const CIRCUIT_REGION_SHADOW_SCALE =
 const CIRCUIT_REGION_GRID_GAP = 15;
 const CIRCUIT_REGION_GRID_WIDTH =
   CIRCUIT_REGION_OPTION_WIDTH * 2 + CIRCUIT_REGION_GRID_GAP;
-const SPRINTING_TARGET_ICONS = Object.freeze({
-  speed_explosiveness: "run-fast",
-  repeat_bursts: "repeat",
-  hard_conditioning: "fire",
+const SPRINTING_TARGET_META = Object.freeze({
+  speed_explosiveness: Object.freeze({
+    icon: "run-fast",
+    accent: "#0A84FF",
+    accentMuted: "rgba(10, 132, 255, 0.14)",
+  }),
+  repeat_bursts: Object.freeze({
+    icon: "repeat",
+    accent: "#F3D04F",
+    accentMuted: "rgba(243, 208, 79, 0.14)",
+  }),
+  hard_conditioning: Object.freeze({
+    icon: "fire",
+    accent: "#FF9F0A",
+    accentMuted: "rgba(255, 159, 10, 0.14)",
+  }),
 });
+const SPRINTING_TARGET_DETAILS = Object.freeze({
+  speed_explosiveness:
+    "Max-effort sprints with plenty of rest. Built to improve acceleration and top-end speed.\nUse when: Speed and explosiveness are the priority.",
+  repeat_bursts:
+    "Short sprints repeated with incomplete rest. Built to maintain speed across several hard efforts.\nUse when: You need repeated high-intensity output with less drop-off.",
+  hard_conditioning:
+    "Hard sprint intervals with limited recovery. Built to improve conditioning and your ability to keep working under fatigue.\nUse when: Conditioning and competition readiness are the priority.",
+});
+const SPRINTING_DESCRIPTION_COLLAPSE_END = 64;
+const SPRINTING_HEADER_COLLAPSE_END = 142;
+const SPRINTING_TITLE_COLLAPSE_START = 84;
+const SPRINTING_TITLE_COLLAPSE_END = 116;
+const SPRINTING_COLLAPSED_HEADER_HEIGHT = 64;
+const SPRINTING_EXPANDED_TITLE_TOP = 58;
+const SPRINTING_EXPANDED_TITLE_HEIGHT = 88;
+const SPRINTING_EXPANDED_DESCRIPTION_TOP = 138;
+const SPRINTING_EXPANDED_HEADER_HEIGHT = 252;
+const SPRINTING_OPTIONS_TOP_GAP = 12;
+const SPRINTING_BOTTOM_ACTION_CLEARANCE = 96;
+const CONDITIONING_DESCRIPTION_COLLAPSE_END = 64;
+const CONDITIONING_HEADER_COLLAPSE_END = 142;
+const CONDITIONING_TITLE_COLLAPSE_START = 84;
+const CONDITIONING_TITLE_COLLAPSE_END = 116;
+const CONDITIONING_COLLAPSED_HEADER_HEIGHT = 64;
+const CONDITIONING_EXPANDED_TITLE_TOP = 58;
+const CONDITIONING_EXPANDED_TITLE_HEIGHT = 88;
+const CONDITIONING_EXPANDED_DESCRIPTION_TOP = 132;
+const CONDITIONING_EXPANDED_HEADER_HEIGHT = 236;
+const CONDITIONING_OPTIONS_TOP_GAP = 12;
+const CONDITIONING_BOTTOM_ACTION_CLEARANCE = 96;
 const GOLD_RAY_ANGLES = Object.freeze([0, 45, 90, 135, 180, 225, 270, 315]);
 const HEAVY_BAG_TARGET_ICONS = Object.freeze({
   aerobic_bag_work: "heart-pulse",
@@ -154,12 +225,14 @@ const HEAVY_BAG_TARGET_ICONS = Object.freeze({
 });
 
 function EnduranceStyleOptionButton({
+  value,
   index,
   isSelected,
   label,
   description,
   onPress,
 }) {
+  const meta = ENDURANCE_FORMAT_META[value];
   const entranceProgress = useRef(new Animated.Value(0)).current;
   const pressProgress = useRef(new Animated.Value(0)).current;
   const animatedStyle = {
@@ -198,43 +271,276 @@ function EnduranceStyleOptionButton({
   }
 
   return (
-    <Animated.View style={animatedStyle}>
-      <PreferenceOptionButton
-        isSelected={isSelected}
-        label={label}
-        description={description}
-        buttonStyle={styles.styleOptionButton}
-        selectedButtonStyle={styles.styleOptionButtonSelected}
-        labelStyle={styles.styleOptionLabel}
-        descriptionStyle={styles.styleOptionDescription}
+    <Animated.View style={[styles.styleOptionWrap, animatedStyle]}>
+      <Pressable
+        accessibilityLabel={[label, description].join(". ")}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: isSelected }}
         onPress={onPress}
         onPressIn={() => animatePress(1)}
         onPressOut={() => animatePress(0)}
-      />
+        style={({ pressed }) => [
+          styles.styleOptionButton,
+          isSelected ? styles.styleOptionButtonSelected : null,
+          isSelected ? { borderColor: meta.accent } : null,
+          pressed ? styles.styleOptionPressed : null,
+        ]}
+      >
+        <View style={[styles.styleOptionIcon, { backgroundColor: meta.accentMuted }]}>
+          <MaterialCommunityIcons name={meta.icon} size={29} color={meta.accent} />
+        </View>
+
+        <View style={styles.styleOptionCopy}>
+          <View style={styles.styleOptionTitleRow}>
+            <IBMPlexText defaultWhite style={styles.styleOptionLabel}>
+              {label}
+            </IBMPlexText>
+            {value === "plan_decides" ? (
+              <View style={styles.recommendedBadge}>
+                <IBMPlexText style={styles.recommendedBadgeText}>
+                  Recommended
+                </IBMPlexText>
+              </View>
+            ) : null}
+          </View>
+          <IBMPlexText style={styles.styleOptionDescription}>
+            {description}
+          </IBMPlexText>
+          {value === "sport_specific_conditioning" ? (
+            <View style={styles.sportSpecificNote}>
+              <MaterialCommunityIcons name="alert-outline" size={16} color={meta.accent} />
+              <IBMPlexText style={styles.sportSpecificNoteText}>
+                Best when preparing for competition. You can change this later.
+              </IBMPlexText>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={[styles.styleOptionRadio, isSelected ? { borderColor: meta.accent } : null]}>
+          {isSelected ? (
+            <View style={[styles.styleOptionRadioFill, { backgroundColor: meta.accent }]} />
+          ) : null}
+        </View>
+      </Pressable>
     </Animated.View>
   );
 }
 
+function ConditioningFocusView({ values, onChange }) {
+  const insets = useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [contentHeight, setContentHeight] = useState(0);
+  const expandedHeaderHeight = insets.top + CONDITIONING_EXPANDED_HEADER_HEIGHT;
+  const contentBottom =
+    expandedHeaderHeight + CONDITIONING_OPTIONS_TOP_GAP + contentHeight;
+  const requiredScrollRange = Math.max(
+    0,
+    contentBottom - (screenHeight - CONDITIONING_BOTTOM_ACTION_CLEARANCE)
+  );
+  const needsScrolling = contentHeight > 0 && requiredScrollRange > 0;
+  let scrollRange = needsScrolling
+    ? Math.max(requiredScrollRange, CONDITIONING_TITLE_COLLAPSE_END)
+    : 0;
+
+  if (
+    scrollRange > CONDITIONING_TITLE_COLLAPSE_START &&
+    scrollRange < CONDITIONING_TITLE_COLLAPSE_END
+  ) {
+    scrollRange = CONDITIONING_TITLE_COLLAPSE_END;
+  }
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [
+      0,
+      CONDITIONING_DESCRIPTION_COLLAPSE_END,
+      CONDITIONING_HEADER_COLLAPSE_END,
+    ],
+    outputRange: [
+      expandedHeaderHeight,
+      expandedHeaderHeight - 70,
+      CONDITIONING_COLLAPSED_HEADER_HEIGHT,
+    ],
+    extrapolate: "clamp",
+  });
+  const descriptionOpacity = scrollY.interpolate({
+    inputRange: [0, 38, CONDITIONING_DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.7, 0],
+    extrapolate: "clamp",
+  });
+  const descriptionScale = scrollY.interpolate({
+    inputRange: [0, CONDITIONING_DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.78],
+    extrapolate: "clamp",
+  });
+  const expandedTitleOpacity = scrollY.interpolate({
+    inputRange: [
+      CONDITIONING_TITLE_COLLAPSE_START,
+      102,
+      CONDITIONING_TITLE_COLLAPSE_END,
+    ],
+    outputRange: [1, 0.8, 0],
+    extrapolate: "clamp",
+  });
+  const titleScale = scrollY.interpolate({
+    inputRange: [CONDITIONING_TITLE_COLLAPSE_START, CONDITIONING_TITLE_COLLAPSE_END],
+    outputRange: [1, 0.58],
+    extrapolate: "clamp",
+  });
+  const titleTranslateX = scrollY.interpolate({
+    inputRange: [CONDITIONING_TITLE_COLLAPSE_START, CONDITIONING_TITLE_COLLAPSE_END],
+    outputRange: [0, Math.min(112, screenWidth * 0.28)],
+    extrapolate: "clamp",
+  });
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [CONDITIONING_TITLE_COLLAPSE_START, CONDITIONING_TITLE_COLLAPSE_END],
+    outputRange: [0, -(insets.top + 75)],
+    extrapolate: "clamp",
+  });
+  const compactTitleOpacity = scrollY.interpolate({
+    inputRange: [98, CONDITIONING_TITLE_COLLAPSE_END],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <View style={[styles.conditioningScreen, { height: screenHeight }]}>
+      <Animated.ScrollView
+        bounces={false}
+        contentContainerStyle={[
+          styles.conditioningScrollContent,
+          {
+            minHeight: screenHeight + scrollRange,
+            paddingTop: expandedHeaderHeight + CONDITIONING_OPTIONS_TOP_GAP,
+          },
+        ]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEnabled={needsScrolling}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        style={styles.conditioningScroll}
+      >
+        <View
+          accessibilityRole="radiogroup"
+          onLayout={(event) => {
+            const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+            setContentHeight((currentHeight) =>
+              currentHeight === nextHeight ? currentHeight : nextHeight
+            );
+          }}
+          style={styles.conditioningContent}
+        >
+          <View style={styles.styleOptions}>
+            {ENDURANCE_FORMAT_OPTIONS.map((option, index) => (
+              <EnduranceStyleOptionButton
+                key={option.value}
+                value={option.value}
+                index={index}
+                isSelected={values?.preferredEnduranceFormat === option.value}
+                label={option.label}
+                description={ENDURANCE_FORMAT_DETAILS[option.value]}
+                onPress={() =>
+                  onChange?.({
+                    ...values,
+                    preferredEnduranceFormat:
+                      values?.preferredEnduranceFormat === option.value
+                        ? null
+                        : option.value,
+                  })
+                }
+              />
+            ))}
+          </View>
+
+          <View style={styles.styleReassurance}>
+            <Ionicons name="information-circle-outline" size={22} color="#9A9AA2" />
+            <IBMPlexText style={styles.styleReassuranceText}>
+              You can change this later. Your plan will adapt as your progress and needs change.
+            </IBMPlexText>
+          </View>
+        </View>
+      </Animated.ScrollView>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.conditioningStickyHeader, { height: headerHeight }]}
+      >
+        <Animated.View
+          style={[
+            styles.conditioningExpandedTitle,
+            {
+              opacity: expandedTitleOpacity,
+              top: insets.top + CONDITIONING_EXPANDED_TITLE_TOP,
+              transform: [
+                { translateX: titleTranslateX },
+                { translateY: titleTranslateY },
+                { scale: titleScale },
+              ],
+            },
+          ]}
+        >
+          <IBMPlexText titleBlock height={CONDITIONING_EXPANDED_TITLE_HEIGHT}>
+            Conditioning focus
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.conditioningDescription,
+            {
+              opacity: descriptionOpacity,
+              top: insets.top + CONDITIONING_EXPANDED_DESCRIPTION_TOP,
+              transform: [{ scale: descriptionScale }],
+            },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.conditioningHelperText} center>
+            Pick what you want the plan to favor when it makes sense.
+            {"\n"}Other methods will still be used.
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[styles.conditioningCompactTitle, { opacity: compactTitleOpacity }]}
+        >
+          <IBMPlexText defaultWhite style={styles.conditioningCompactTitleText}>
+            Conditioning focus
+          </IBMPlexText>
+        </Animated.View>
+      </Animated.View>
+    </View>
+  );
+}
+
 function SprintingFocusOptionButton({
-  iconName,
+  description,
+  index,
   isSelected,
   label,
+  meta,
   onPress,
 }) {
-  const selectedProgress = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
+  const entranceProgress = useRef(new Animated.Value(0)).current;
   const pressProgress = useRef(new Animated.Value(0)).current;
   const burstProgress = useRef(new Animated.Value(0)).current;
+  const optionShellRef = useRef(null);
   const wasSelectedRef = useRef(isSelected);
   const [burstOrigin, setBurstOrigin] = useState({ x: "50%", y: "50%" });
 
   useEffect(() => {
-    Animated.timing(selectedProgress, {
-      toValue: isSelected ? 1 : 0,
-      duration: isSelected ? 160 : 120,
+    Animated.timing(entranceProgress, {
+      toValue: 1,
+      duration: 360,
+      delay: index * 70,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
+  }, [entranceProgress, index]);
 
+  useEffect(() => {
     if (isSelected && !wasSelectedRef.current) {
       burstProgress.setValue(0);
       Animated.timing(burstProgress, {
@@ -246,14 +552,35 @@ function SprintingFocusOptionButton({
     }
 
     wasSelectedRef.current = isSelected;
-  }, [burstProgress, isSelected, selectedProgress]);
+  }, [burstProgress, isSelected]);
 
   function animatePress(toValue, event) {
     if (event?.nativeEvent) {
-      setBurstOrigin({
-        x: event.nativeEvent.locationX,
-        y: event.nativeEvent.locationY,
-      });
+      const {
+        locationX,
+        locationY,
+        pageX,
+        pageY,
+      } = event.nativeEvent;
+
+      if (Number.isFinite(locationX) && Number.isFinite(locationY)) {
+        setBurstOrigin({ x: locationX, y: locationY });
+      }
+
+      if (
+        Number.isFinite(pageX) &&
+        Number.isFinite(pageY) &&
+        optionShellRef.current?.measure
+      ) {
+        optionShellRef.current.measure(
+          (_x, _y, shellWidth, shellHeight, shellPageX, shellPageY) => {
+            setBurstOrigin({
+              x: Math.min(Math.max(pageX - shellPageX, 0), shellWidth),
+              y: Math.min(Math.max(pageY - shellPageY, 0), shellHeight),
+            });
+          }
+        );
+      }
     }
 
     Animated.timing(pressProgress, {
@@ -265,21 +592,24 @@ function SprintingFocusOptionButton({
   }
 
   const optionAnimatedStyle = {
-    opacity: pressProgress.interpolate({
-      inputRange: [0, 1],
-      outputRange: [1, 0.78],
-    }),
+    opacity: Animated.multiply(
+      entranceProgress,
+      pressProgress.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 0.76],
+      })
+    ),
     transform: [
       {
-        translateY: selectedProgress.interpolate({
+        translateY: entranceProgress.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -7],
+          outputRange: [24, 0],
         }),
       },
       {
-        scale: selectedProgress.interpolate({
+        scale: pressProgress.interpolate({
           inputRange: [0, 1],
-          outputRange: [1, 1.025],
+          outputRange: [1, 0.985],
         }),
       },
     ],
@@ -301,25 +631,62 @@ function SprintingFocusOptionButton({
 
   return (
     <View style={styles.sprintingOptionWrap}>
-      <Animated.View style={[styles.sprintingOptionShell, optionAnimatedStyle]}>
-        <PreferenceOptionButton
-          isSelected={isSelected}
-          label={label}
-          icon={
-            <MaterialCommunityIcons
-              name={iconName}
-              size={34}
-              color={isSelected ? "#ffffff" : "#C9B259"}
-            />
-          }
-          stacked
-          buttonStyle={styles.sprintingOptionButton}
-          selectedButtonStyle={styles.sprintingOptionButtonSelected}
-          labelStyle={styles.sprintingOptionLabel}
+      <Animated.View
+        ref={optionShellRef}
+        style={[styles.sprintingOptionShell, optionAnimatedStyle]}
+      >
+        <Pressable
+          accessibilityLabel={`${label}. ${description}`}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: isSelected }}
           onPress={onPress}
           onPressIn={(event) => animatePress(1, event)}
           onPressOut={() => animatePress(0)}
-        />
+          style={[
+            styles.sprintingOptionButton,
+            isSelected ? styles.sprintingOptionButtonSelected : null,
+            isSelected ? { borderColor: meta.accent } : null,
+          ]}
+        >
+          <View style={styles.sprintingOptionHeader}>
+            <View
+              style={[
+                styles.sprintingOptionIcon,
+                { backgroundColor: meta.accentMuted },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name={meta.icon}
+                size={29}
+                color={meta.accent}
+              />
+            </View>
+
+            <IBMPlexText defaultWhite style={styles.sprintingOptionLabel}>
+              {label}
+            </IBMPlexText>
+
+            <View
+              style={[
+                styles.sprintingOptionRadio,
+                isSelected ? { borderColor: meta.accent } : null,
+              ]}
+            >
+              {isSelected ? (
+                <View
+                  style={[
+                    styles.sprintingOptionRadioFill,
+                    { backgroundColor: meta.accent },
+                  ]}
+                />
+              ) : null}
+            </View>
+          </View>
+
+          <IBMPlexText style={styles.sprintingOptionDescription}>
+            {description}
+          </IBMPlexText>
+        </Pressable>
         <Animated.View
           pointerEvents="none"
           style={[
@@ -336,10 +703,191 @@ function SprintingFocusOptionButton({
               key={`sprinting-gold-ray-${angle}`}
               style={[
                 styles.sprintingGoldRay,
+                { backgroundColor: meta.accent },
                 { transform: [{ rotate: `${angle}deg` }, { translateY: -54 }] },
               ]}
             />
           ))}
+        </Animated.View>
+      </Animated.View>
+    </View>
+  );
+}
+
+function SprintingFocusView({ values, onChange }) {
+  const insets = useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [optionsHeight, setOptionsHeight] = useState(0);
+  const expandedHeaderHeight = insets.top + SPRINTING_EXPANDED_HEADER_HEIGHT;
+  const collapsedHeaderHeight = SPRINTING_COLLAPSED_HEADER_HEIGHT;
+  const optionsBottom =
+    expandedHeaderHeight + SPRINTING_OPTIONS_TOP_GAP + optionsHeight;
+  const requiredScrollRange = Math.max(
+    0,
+    optionsBottom - (screenHeight - SPRINTING_BOTTOM_ACTION_CLEARANCE)
+  );
+  const needsScrolling = optionsHeight > 0 && requiredScrollRange > 0;
+  let scrollRange = needsScrolling
+    ? Math.max(requiredScrollRange, SPRINTING_TITLE_COLLAPSE_END)
+    : 0;
+
+  if (
+    scrollRange > SPRINTING_TITLE_COLLAPSE_START &&
+    scrollRange < SPRINTING_TITLE_COLLAPSE_END
+  ) {
+    scrollRange = SPRINTING_TITLE_COLLAPSE_END;
+  }
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [
+      0,
+      SPRINTING_DESCRIPTION_COLLAPSE_END,
+      SPRINTING_HEADER_COLLAPSE_END,
+    ],
+    outputRange: [
+      expandedHeaderHeight,
+      expandedHeaderHeight - 70,
+      collapsedHeaderHeight,
+    ],
+    extrapolate: "clamp",
+  });
+  const descriptionOpacity = scrollY.interpolate({
+    inputRange: [0, 38, SPRINTING_DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.7, 0],
+    extrapolate: "clamp",
+  });
+  const descriptionScale = scrollY.interpolate({
+    inputRange: [0, SPRINTING_DESCRIPTION_COLLAPSE_END],
+    outputRange: [1, 0.78],
+    extrapolate: "clamp",
+  });
+  const expandedTitleOpacity = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, 102, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [1, 0.8, 0],
+    extrapolate: "clamp",
+  });
+  const titleScale = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [1, 0.58],
+    extrapolate: "clamp",
+  });
+  const titleTranslateX = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [0, Math.min(112, screenWidth * 0.28)],
+    extrapolate: "clamp",
+  });
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [SPRINTING_TITLE_COLLAPSE_START, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [0, -(insets.top + 75)],
+    extrapolate: "clamp",
+  });
+  const compactTitleOpacity = scrollY.interpolate({
+    inputRange: [98, SPRINTING_TITLE_COLLAPSE_END],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <View style={[styles.sprintingScreen, { height: screenHeight }]}>
+      <Animated.ScrollView
+        bounces={false}
+        contentContainerStyle={[
+          styles.sprintingScrollContent,
+          {
+            minHeight: screenHeight + scrollRange,
+            paddingTop: expandedHeaderHeight + SPRINTING_OPTIONS_TOP_GAP,
+          },
+        ]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEnabled={needsScrolling}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        style={styles.sprintingScroll}
+      >
+        <View
+          accessibilityRole="radiogroup"
+          onLayout={(event) => {
+            const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+            setOptionsHeight((currentHeight) =>
+              currentHeight === nextHeight ? currentHeight : nextHeight
+            );
+          }}
+          style={styles.sprintingOptions}
+        >
+          {SPRINTING_TARGET_OPTIONS.map((option, index) => {
+            const isSelected = values?.sprintingTarget === option.value;
+
+            return (
+              <SprintingFocusOptionButton
+                key={option.value}
+                index={index}
+                isSelected={isSelected}
+                label={option.label}
+                description={SPRINTING_TARGET_DETAILS[option.value]}
+                meta={SPRINTING_TARGET_META[option.value]}
+                onPress={() =>
+                  onChange?.({
+                    ...values,
+                    sprintingTarget: isSelected ? null : option.value,
+                  })
+                }
+              />
+            );
+          })}
+        </View>
+      </Animated.ScrollView>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.sprintingStickyHeader, { height: headerHeight }]}
+      >
+        <Animated.View
+          style={[
+            styles.sprintingExpandedTitle,
+            {
+              opacity: expandedTitleOpacity,
+              top: insets.top + SPRINTING_EXPANDED_TITLE_TOP,
+              transform: [
+                { translateX: titleTranslateX },
+                { translateY: titleTranslateY },
+                { scale: titleScale },
+              ],
+            },
+          ]}
+        >
+          <IBMPlexText titleBlock height={SPRINTING_EXPANDED_TITLE_HEIGHT}>
+            Sprinting focus
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.sprintingDescription,
+            {
+              opacity: descriptionOpacity,
+              top: insets.top + SPRINTING_EXPANDED_DESCRIPTION_TOP,
+              transform: [{ scale: descriptionScale }],
+            },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.sprintingHelperText} center>
+            Pick what sprint sessions should mainly train.
+          </IBMPlexText>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.sprintingCompactTitle,
+            { opacity: compactTitleOpacity },
+          ]}
+        >
+          <IBMPlexText defaultWhite style={styles.sprintingCompactTitleText}>
+            Sprinting focus
+          </IBMPlexText>
         </Animated.View>
       </Animated.View>
     </View>
@@ -1316,8 +1864,8 @@ export default function TrainingPreferencesEnduranceSetupView({
             </IBMPlexText>
             <IBMPlexText defaultWhite style={styles.circuitFocusHelper} center>
               {isRegionStage
-                ? "Choose every area that fades first."
-                : "Choose what best matches how you fatigue during hard circuits."}
+                ? "To tailor your circuit training, choose every area that tends to fatigue first."
+                : "This follow-up helps tailor your circuit training. Choose what usually fatigues first during hard circuits."}
             </IBMPlexText>
           </View>
 
@@ -1387,67 +1935,10 @@ export default function TrainingPreferencesEnduranceSetupView({
   }
 
   if (mode === "sprintingFocus") {
-    return (
-      <View style={[styles.section, { minHeight: screenHeight }]}>
-        <IBMPlexText titleBlock height={130}>Sprinting focus</IBMPlexText>
-        <IBMPlexText defaultWhite style={styles.helperText} center>
-          Pick what sprint sessions should mainly train.
-        </IBMPlexText>
-        <View style={styles.sprintingOptions}>
-          {SPRINTING_TARGET_OPTIONS.map((option) => {
-            const isSelected = values?.sprintingTarget === option.value;
-
-            return (
-              <SprintingFocusOptionButton
-                key={option.value}
-                isSelected={isSelected}
-                label={option.label}
-                iconName={SPRINTING_TARGET_ICONS[option.value]}
-                onPress={() =>
-                  updateField("sprintingTarget", isSelected ? null : option.value)
-                }
-              />
-            );
-          })}
-        </View>
-      </View>
-    );
+    return <SprintingFocusView values={values} onChange={onChange} />;
   }
 
-  return (
-    <View style={[styles.section, { minHeight: screenHeight }]}>
-      <IBMPlexText titleBlock height={130}>Endurance style</IBMPlexText>
-      <IBMPlexText defaultWhite style={styles.helperText} textColor="#C9B259" center>
-        Pick the type of endurance work you want the plan to favor when possible.
-      </IBMPlexText>
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.styleOptions}>
-          {ENDURANCE_FORMAT_OPTIONS.map((option, index) => (
-            <EnduranceStyleOptionButton
-              key={option.value}
-              index={index}
-              isSelected={values?.preferredEnduranceFormat === option.value}
-              label={option.label}
-              description={ENDURANCE_FORMAT_DETAILS[option.value]}
-              onPress={() =>
-                updateField(
-                  "preferredEnduranceFormat",
-                  values?.preferredEnduranceFormat === option.value
-                    ? null
-                    : option.value
-                )
-              }
-            />
-          ))}
-        </View>
-      </ScrollView>
-    </View>
-  );
+  return <ConditioningFocusView values={values} onChange={onChange} />;
 }
 
 const styles = StyleSheet.create({
@@ -1781,40 +2272,196 @@ const styles = StyleSheet.create({
     width: ENDURANCE_THUMB_SIZE,
     zIndex: 1,
   },
-  styleOptions: {
-    gap: 16,
-  },
-  styleOptionButton: {
-    borderRadius: 20,
-    minHeight: 124,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  styleOptionButtonSelected: {
-    borderColor: "#ffffff",
-    borderStyle: "solid",
-  },
-  styleOptionLabel: {
-    bottom: "auto",
-    fontSize: 14,
-    lineHeight: 18,
+  conditioningScreen: {
+    alignSelf: "stretch",
     position: "relative",
   },
+  conditioningScroll: {
+    alignSelf: "stretch",
+    flex: 1,
+  },
+  conditioningScrollContent: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  conditioningContent: {
+    alignSelf: "stretch",
+    gap: 14,
+  },
+  conditioningStickyHeader: {
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 10,
+  },
+  conditioningExpandedTitle: {
+    left: 0,
+    position: "absolute",
+    right: 0,
+  },
+  conditioningDescription: {
+    left: 24,
+    position: "absolute",
+    right: 24,
+  },
+  conditioningHelperText: {
+    alignSelf: "center",
+    color: "#9A9AA2",
+    fontSize: 15,
+    lineHeight: 20,
+    maxWidth: 340,
+    width: "92%",
+  },
+  conditioningCompactTitle: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    position: "absolute",
+    right: 24,
+    top: 17,
+  },
+  conditioningCompactTitleText: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 20,
+  },
+  styleOptions: {
+    gap: 12,
+  },
+  styleOptionWrap: {
+    width: "100%",
+  },
+  styleOptionButton: {
+    alignItems: "center",
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 14,
+    minHeight: 112,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  styleOptionButtonSelected: {
+    backgroundColor: "#171717",
+    borderWidth: 2,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+  },
+  styleOptionPressed: {
+    opacity: 0.76,
+  },
+  styleOptionIcon: {
+    alignItems: "center",
+    borderRadius: 999,
+    height: 54,
+    justifyContent: "center",
+    width: 54,
+  },
+  styleOptionCopy: {
+    flex: 1,
+    gap: 5,
+    minWidth: 0,
+  },
+  styleOptionTitleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 7,
+  },
+  styleOptionLabel: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 21,
+  },
   styleOptionDescription: {
-    color: "#8E8E8E",
+    color: "#9A9AA2",
     fontSize: 12,
+    fontWeight: "600",
     lineHeight: 16,
-    marginTop: 6,
+  },
+  recommendedBadge: {
+    backgroundColor: "#F3C33C",
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  recommendedBadgeText: {
+    color: "#111111",
+    fontSize: 9,
+    fontWeight: "800",
+    lineHeight: 12,
+    textTransform: "uppercase",
+  },
+  styleOptionRadio: {
+    alignItems: "center",
+    borderColor: "#56565F",
+    borderRadius: 12,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  styleOptionRadioFill: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
+  },
+  sportSpecificNote: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 5,
+    marginTop: 3,
+  },
+  sportSpecificNoteText: {
+    color: "#FF665E",
+    flex: 1,
+    fontSize: 10,
+    fontWeight: "700",
+    lineHeight: 14,
+    textTransform: "uppercase",
+  },
+  styleReassurance: {
+    alignItems: "center",
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 2,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  styleReassuranceText: {
+    color: "#9A9AA2",
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 17,
   },
   sprintingOptions: {
-    gap: 16,
-    marginTop: 56,
+    alignSelf: "stretch",
+    gap: 12,
+  },
+  sprintingScreen: {
+    alignSelf: "stretch",
+    position: "relative",
+  },
+  sprintingScroll: {
+    alignSelf: "stretch",
+    flex: 1,
+  },
+  sprintingScrollContent: {
+    alignItems: "center",
+    paddingHorizontal: 24,
   },
   sprintingOptionWrap: {
     alignSelf: "center",
     overflow: "visible",
     position: "relative",
-    width: "75%",
+    width: "100%",
   },
   sprintingOptionShell: {
     overflow: "visible",
@@ -1822,23 +2469,100 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sprintingOptionButton: {
-    minHeight: 118,
-    paddingHorizontal: 14,
+    backgroundColor: "#111111",
+    borderColor: "#252525",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+    minHeight: 154,
+    paddingHorizontal: 16,
     paddingVertical: 14,
     width: "100%",
   },
   sprintingOptionButtonSelected: {
-    borderColor: "#ffffff",
-    shadowColor: "#ffffff",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.24,
-    shadowRadius: 14,
-    elevation: 8,
+    backgroundColor: "#171717",
+    borderWidth: 2,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+  },
+  sprintingOptionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+  },
+  sprintingOptionIcon: {
+    alignItems: "center",
+    borderRadius: 12,
+    height: 52,
+    justifyContent: "center",
+    width: 52,
   },
   sprintingOptionLabel: {
     color: "#ffffff",
-    fontSize: 14,
-    lineHeight: 18,
+    flex: 1,
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 22,
+    minWidth: 0,
+  },
+  sprintingOptionDescription: {
+    color: "#9A9AA2",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+    textAlign: "left",
+  },
+  sprintingOptionRadio: {
+    alignItems: "center",
+    borderColor: "#56565F",
+    borderRadius: 12,
+    borderWidth: 2,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  sprintingOptionRadioFill: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
+  },
+  sprintingStickyHeader: {
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 10,
+  },
+  sprintingExpandedTitle: {
+    left: 0,
+    position: "absolute",
+    right: 0,
+  },
+  sprintingDescription: {
+    left: 24,
+    position: "absolute",
+    right: 24,
+  },
+  sprintingHelperText: {
+    alignSelf: "center",
+    color: "#9A9AA2",
+    fontSize: 15,
+    lineHeight: 20,
+    maxWidth: 330,
+    width: "88%",
+  },
+  sprintingCompactTitle: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    position: "absolute",
+    right: 24,
+    top: 17,
+  },
+  sprintingCompactTitleText: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 20,
   },
   sprintingGoldBurst: {
     alignItems: "center",
@@ -1850,7 +2574,6 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   sprintingGoldRay: {
-    backgroundColor: "#ffffff",
     borderRadius: 2,
     height: 34,
     left: "50%",

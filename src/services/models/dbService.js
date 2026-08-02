@@ -23,7 +23,6 @@ import {
   setDoc,
 } from "../config/firebaseSdk";
 import {
-  createDefaultForumProfile,
   DEFAULT_FORUM_COMMENT_LIMIT,
   DEFAULT_FORUM_FEED_LIMIT,
   MAX_FORUM_COMMENT_REPLY_DEPTH,
@@ -35,12 +34,11 @@ import {
   normalizeBoundedString,
   normalizeInteger,
 } from "../utils/inputValidation.js";
-import { createDefaultTrainingPerformanceState } from "../utils/trainingPerformance.js";
-import { createDefaultStrengthAssessmentState } from "../utils/strengthAssessment.js";
-import { createDefaultTrainingCheckInState } from "../utils/trainingCheckIn.js";
+import { buildDefaultSimplePersistedFields } from "../utils/persistedFields.js";
 
 const COLLECTION_NAME = "combatModel";
 const FEEDBACK_COLLECTION = "feedbacks";
+const BUG_REPORTS_COLLECTION = "bugReports";
 const FORUM_POSTS_COLLECTION = "forumPosts";
 const FORUM_COMMENTS_SUBCOLLECTION = "comments";
 const FORUM_COMMENT_REPLIES_SUBCOLLECTION = "replies";
@@ -305,13 +303,8 @@ async function saveUserDataViaRest(uid, dataToSave) {
 export function createDefaultUserData() {
   return {
     questionnaire: normalizeAppLogicSettings({}),
-    primaryCombatSport: "",
-    sessionsPerWeek: 3,
     trainingPlan: null,
     trainingPlanHistory: [],
-    completedDays: [],
-    trainingPlanBatch: 1,
-    completedWeeks: 0,
     subscription: false,
     subscriptionEndDate: null,
     subscriptionStartDate: null,
@@ -319,12 +312,7 @@ export function createDefaultUserData() {
     subscriptionStatus: "",
     stripePriceLookupKey: "",
     planRegenerationUsage: null,
-    trainingPerformanceState: createDefaultTrainingPerformanceState(),
-    strengthAssessmentState: createDefaultStrengthAssessmentState(),
-    trainingCheckInState: createDefaultTrainingCheckInState(),
-    activeSessionProgressByKey: {},
-    completedSessionProgressByKey: {},
-    forumProfile: createDefaultForumProfile(),
+    ...buildDefaultSimplePersistedFields(),
   };
 }
 
@@ -467,6 +455,31 @@ export async function saveFeedback(feedbackData) {
     return { success: true };
   } catch (error) {
     console.error("DB feedback error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function saveBugReport(reportData) {
+  try {
+    const sanitizedReportData = {
+      description: normalizeBoundedString(reportData?.description, 2000),
+      screen: normalizeBoundedString(reportData?.screen, 300),
+      userId: assertSafeFirestoreDocumentId(reportData?.userId, "userId"),
+      userEmail: normalizeBoundedString(reportData?.userEmail, 254),
+      timestamp:
+        typeof reportData?.timestamp === "string" ?
+          normalizeBoundedString(reportData.timestamp, 40) :
+          new Date().toISOString(),
+    };
+
+    if (!sanitizedReportData.description) {
+      throw new Error("Please describe the problem before sending the report.");
+    }
+
+    await addDoc(collection(db, BUG_REPORTS_COLLECTION), sanitizedReportData);
+    return { success: true };
+  } catch (error) {
+    console.error("DB bug report error:", error);
     return { success: false, error: error.message };
   }
 }
