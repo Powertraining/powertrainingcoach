@@ -2120,6 +2120,7 @@ export default function ActiveSessionView({
           minimumRpe: getStrengthAssessmentMinimumRpe(activeExercise),
         },
         result,
+        unitSystem,
         exerciseIndex: activeStep.exerciseIndex,
         setIndex: activeStep.setIndex,
         sourceExerciseName: activeExercise?.name,

@@ -1,3 +1,8 @@
+import {
+  kilogramsToPounds,
+  poundsToKilograms,
+} from "./measurementUnits.js";
+
 const STRENGTH_ASSESSMENT_METHODS = Object.freeze({
   TRUE_1RM: "true_1rm",
   MULTI_RM: "multi_rm",
@@ -14,6 +19,8 @@ const LEGACY_STRENGTH_ASSESSMENT_METHODS = Object.freeze({
 const DEFAULT_STRENGTH_ASSESSMENT_METHOD =
   STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM;
 const DEFAULT_TRAINING_MAX_BUFFER = 0.9;
+const METRIC_PROGRAM_MAX_INCREMENT_KG = 2.5;
+const IMPERIAL_PROGRAM_MAX_INCREMENT_LB = 5;
 const RECENT_ASSESSMENT_LIMIT = 8;
 const CLOSE_GRIP_BENCH_PRESS_REFERENCE_FACTOR = 0.95;
 const BENCH_PRESS_LIFT_KEYS = Object.freeze([
@@ -71,6 +78,26 @@ function parseExerciseIndex(value) {
 
 function roundToTenth(value) {
   return Number.isFinite(value) ? Math.round(value * 10) / 10 : null;
+}
+
+function roundAutoEstimatedProgramMax(valueKg, unitSystem = "metric") {
+  if (!Number.isFinite(valueKg)) {
+    return null;
+  }
+
+  if (unitSystem === "imperial") {
+    const valueLb = kilogramsToPounds(valueKg);
+    const roundedValueLb =
+      Math.round(valueLb / IMPERIAL_PROGRAM_MAX_INCREMENT_LB) *
+      IMPERIAL_PROGRAM_MAX_INCREMENT_LB;
+
+    return roundToTenth(poundsToKilograms(roundedValueLb));
+  }
+
+  return (
+    Math.round(valueKg / METRIC_PROGRAM_MAX_INCREMENT_KG) *
+    METRIC_PROGRAM_MAX_INCREMENT_KG
+  );
 }
 
 function sortAssessmentEntries(left = {}, right = {}) {
@@ -165,22 +192,31 @@ function calculateEstimatedOneRepMax(method, { loadKg, reps, rpe }) {
   }
 }
 
-function calculateTrainingMax(method, estimatedOneRepMaxKg, previousTrainingMaxKg = null) {
+function calculateTrainingMax(
+  method,
+  estimatedOneRepMaxKg,
+  previousTrainingMaxKg = null,
+  unitSystem = "metric"
+) {
   const baseTrainingMax =
     method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
       ? estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER
       : estimatedOneRepMaxKg;
+  const finalizeTrainingMax = (valueKg) =>
+    method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
+      ? roundToTenth(valueKg)
+      : roundAutoEstimatedProgramMax(valueKg, unitSystem);
 
   if (!Number.isFinite(previousTrainingMaxKg) || previousTrainingMaxKg <= 0) {
-    return roundToTenth(baseTrainingMax);
+    return finalizeTrainingMax(baseTrainingMax);
   }
 
   if (method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM) {
-    return roundToTenth(baseTrainingMax);
+    return finalizeTrainingMax(baseTrainingMax);
   }
 
   if (method === STRENGTH_ASSESSMENT_METHODS.MULTI_RM) {
-    return roundToTenth(
+    return finalizeTrainingMax(
       clampRelativeChange(baseTrainingMax, previousTrainingMaxKg, 7.5)
     );
   }
@@ -190,16 +226,16 @@ function calculateTrainingMax(method, estimatedOneRepMaxKg, previousTrainingMaxK
   const absoluteDifferencePercent = Math.abs(differencePercent);
 
   if (absoluteDifferencePercent <= 2.5) {
-    return roundToTenth(baseTrainingMax);
+    return finalizeTrainingMax(baseTrainingMax);
   }
 
   if (absoluteDifferencePercent <= 7.5) {
-    return roundToTenth(
+    return finalizeTrainingMax(
       clampRelativeChange(baseTrainingMax, previousTrainingMaxKg, 5)
     );
   }
 
-  return roundToTenth(
+  return finalizeTrainingMax(
     clampRelativeChange(baseTrainingMax, previousTrainingMaxKg, 7.5)
   );
 }
@@ -465,9 +501,15 @@ export function getStrengthAssessmentReferenceOneRepMaxKg(entry = {}) {
   }
 
   const estimatedOneRepMaxKg = parsePositiveNumber(entry?.estimatedOneRepMaxKg);
+  const method = normalizeStrengthAssessmentMethod(entry?.method);
 
   return estimatedOneRepMaxKg
-    ? roundToTenth(estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER)
+    ? roundToTenth(
+        estimatedOneRepMaxKg *
+          (method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
+            ? DEFAULT_TRAINING_MAX_BUFFER
+            : 1)
+      )
     : null;
 }
 
@@ -525,6 +567,7 @@ export function createDefaultStrengthAssessmentState() {
 export function createStrengthAssessmentEntry({
   metadata,
   result,
+  unitSystem = "metric",
   previousTrainingMaxKg = null,
   sessionKey = "",
   weekNumber = null,
@@ -619,7 +662,8 @@ export function createStrengthAssessmentEntry({
     trainingMaxKg: calculateTrainingMax(
       normalizedMetadata.method,
       estimatedOneRepMaxKg,
-      parsePositiveNumber(previousTrainingMaxKg)
+      parsePositiveNumber(previousTrainingMaxKg),
+      unitSystem
     ),
     performedAt: normalizeString(performedAt, new Date().toISOString()),
     prompt: normalizedMetadata.prompt,
