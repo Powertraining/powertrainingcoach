@@ -61,6 +61,7 @@ import {
 } from "../services/utils/exerciseSets.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import { getExerciseGuide } from "../constants/exerciseGuides.js";
 import {
     formatDistanceFromMeters,
     formatMeasurementText,
@@ -1102,6 +1103,9 @@ export default function DayDetailView({
     const tipsExercise = Number.isInteger(tipsExerciseIndex)
         ? normalizedExercises[tipsExerciseIndex]
         : null;
+    const tipsExerciseGuide = tipsExercise
+        ? getExerciseGuide(getExerciseDisplayName(tipsExercise))
+        : null;
     const swapExerciseOptions = swapExercise
         ? getExerciseSubstitutionOptions(swapExercise)
         : [];
@@ -1408,7 +1412,7 @@ export default function DayDetailView({
                 ) : null}
             </Modal>
             <WhiteBottomMenu
-                visible={Boolean(tipsExercise?.notes)}
+                visible={Boolean(tipsExercise?.notes) || Boolean(tipsExerciseGuide)}
                 onDismiss={closeTips}
                 title="Tips"
                 description={tipsExercise ? getExerciseDisplayName(tipsExercise) : ""}
@@ -1423,9 +1427,29 @@ export default function DayDetailView({
                         style={styles.tipsScroller}
                         contentContainerStyle={styles.tipsContent}
                     >
-                        <IBMPlexText style={styles.tipsText}>
+                        {tipsExerciseGuide ? (
+                            <View style={styles.tipsGuideBlock}>
+                                <IBMPlexText style={styles.tipsText}>
+                                    {tipsExerciseGuide.description}
+                                </IBMPlexText>
+                                <View style={styles.tipsGuideRow}>
+                                    <IBMPlexText style={styles.tipsGuideLabel}>Focus: </IBMPlexText>
+                                    <IBMPlexText style={styles.tipsGuideValue}>
+                                        {tipsExerciseGuide.focus}
+                                    </IBMPlexText>
+                                </View>
+                                <View style={styles.tipsGuideRow}>
+                                    <IBMPlexText style={styles.tipsGuideLabel}>Avoid: </IBMPlexText>
+                                    <IBMPlexText style={styles.tipsGuideValue}>
+                                        {tipsExerciseGuide.avoid}
+                                    </IBMPlexText>
+                                </View>
+                            </View>
+                        ) : tipsExercise?.notes ? (
+                            <IBMPlexText style={styles.tipsText}>
                             {formatMeasurementText(tipsExercise?.notes, unitSystem)}
                         </IBMPlexText>
+                        ) : null}
                     </ScrollView>
                 }
             />
@@ -1546,7 +1570,9 @@ export default function DayDetailView({
                                             const canSwapExercise =
                                                 exerciseSubstitutionOptions.length > 1 &&
                                                 onReplaceExercise;
-                                            const hasExerciseTips = Boolean(ex.notes);
+                                            const hasExerciseTips =
+                                                Boolean(ex.notes) ||
+                                                Boolean(getExerciseGuide(getExerciseDisplayName(ex)));
                                             const totalSetCount = parsePrescribedSetCount(ex);
                                             const completedSetCount =
                                                 completedSessionStepKeys.size > 0
@@ -2362,6 +2388,25 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9fafb',
     },
     tipsText: {
+        fontSize: 15,
+        lineHeight: 22,
+        color: '#1f2937',
+    },
+    tipsGuideBlock: {
+        gap: 10,
+    },
+    tipsGuideRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    tipsGuideLabel: {
+        fontSize: 15,
+        lineHeight: 22,
+        fontWeight: '700',
+        color: '#1f2937',
+    },
+    tipsGuideValue: {
+        flex: 1,
         fontSize: 15,
         lineHeight: 22,
         color: '#1f2937',
