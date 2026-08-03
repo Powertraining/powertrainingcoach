@@ -1318,7 +1318,6 @@ export const model = {
                 minimumRpe: getStrengthAssessmentMinimumRpe(exercise),
               },
               result,
-              unitSystem: this.unitSystem,
               previousTrainingMaxKg,
               sessionKey,
               weekNumber,

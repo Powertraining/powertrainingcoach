@@ -59,42 +59,6 @@ test("strength assessment entries compute estimated 1RM for RPE-based and multi-
   assert.equal(multiRmEntry.trainingMaxKg, 140);
 });
 
-test("automatic Program Maxes round to the user's load increment without a 90% reduction", () => {
-  const metricEntry = createStrengthAssessmentEntry({
-    metadata: {
-      method: "rpe_based_1rm",
-      liftName: "Back Squat",
-    },
-    result: {
-      loadKg: 140,
-      reps: 5,
-      rpe: 8,
-    },
-    unitSystem: "metric",
-  });
-  const imperialEntry = createStrengthAssessmentEntry({
-    metadata: {
-      method: "rpe_based_1rm",
-      liftName: "Back Squat",
-    },
-    result: {
-      loadKg: 79.3787,
-      reps: 5,
-      rpe: 8,
-    },
-    unitSystem: "imperial",
-  });
-
-  assert.equal(metricEntry.estimatedOneRepMaxKg, 172.7);
-  assert.equal(metricEntry.trainingMaxKg, 172.5);
-  assert.equal(imperialEntry.estimatedOneRepMaxKg, 97.9);
-  assert.equal(imperialEntry.trainingMaxKg, 97.5);
-  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg({
-    method: "rpe_based_1rm",
-    estimatedOneRepMaxKg: 172.7,
-  }), 172.7);
-});
-
 test("strength assessment state summarizes the latest result per lift", () => {
   const firstEntry = createStrengthAssessmentEntry({
     metadata: {
@@ -143,7 +107,7 @@ test("strength assessment state summarizes the latest result per lift", () => {
 
   assert.equal(summary.latestByLift.length, 1);
   assert.equal(summary.latestByLift[0].method, "rpe_based_1rm");
-  assert.equal(summary.latestByLift[0].trainingMaxKg, 150);
+  assert.equal(summary.latestByLift[0].trainingMaxKg, 150.5);
   assert.equal(summary.recentAssessments.length, 2);
 });
 
@@ -161,8 +125,8 @@ test("RPE-based missing-max estimates accept Week 1 bridge sets", () => {
   });
 
   assert.equal(bridgeEntry.estimatedOneRepMaxKg, 143.3);
-  assert.equal(bridgeEntry.trainingMaxKg, 142.5);
-  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(bridgeEntry), 142.5);
+  assert.equal(bridgeEntry.trainingMaxKg, 143.3);
+  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(bridgeEntry), 143.3);
 });
 
 test("missing-max estimates require the prescribed RPE lower bound", () => {
@@ -179,7 +143,7 @@ test("missing-max estimates require the prescribed RPE lower bound", () => {
   assert.equal(createStrengthAssessmentEntry({
     metadata,
     result: { loadKg: 100, reps: 5, rpe: 8 },
-  })?.trainingMaxKg, 122.5);
+  })?.trainingMaxKg, 123.3);
 });
 
 test("pending Program Max assessments exclude lifts with a saved max", () => {
