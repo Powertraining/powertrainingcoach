@@ -29,6 +29,7 @@
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/app-icon-black-gradient.png",
         "backgroundColor": "#000000"

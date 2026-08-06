@@ -163,6 +163,8 @@ const PROFILE_SECONDARY_ROUTES = new Set([
 const FULL_SCREEN_ROUTES = new Set([
   "/subscription",
   "/(tabs)/subscription",
+  "/program-max-setup",
+  "/(tabs)/program-max-setup",
 ]);
 const GLOBAL_HIDDEN_TAB_ROUTES = new Set([
   "/",
@@ -904,6 +906,12 @@ const TabsLayout = observer(function TabsLayout() {
           name="subscription"
           options={{
             href: null, // Hide from tab bar, accessible via navigation
+          }}
+        />
+        <Tabs.Screen
+          name="program-max-setup"
+          options={{
+            href: null,
           }}
         />
         <Tabs.Screen

@@ -1,6 +1,9 @@
 import { View, StyleSheet } from "react-native";
 
-import { getAppLogicSettingsFormState } from "../constants/appLogicSettings.js";
+import {
+  getAppLogicSettingsFormState,
+  getSportLoadLevelFromCombatTrainingIntensity,
+} from "../constants/appLogicSettings.js";
 import CombatTrainingIntensityView from "./appLogicSettings/CombatTrainingIntensityView.jsx";
 import LiftIntensityMethodView from "./appLogicSettings/LiftIntensityMethodView.jsx";
 import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenceMethodView.jsx";
@@ -65,7 +68,10 @@ export default function AppLogicSettingsFields({
       <CombatTrainingIntensityView
         value={resolvedValues.combatTrainingIntensity}
         onChange={(sectionValue) =>
-          updateField("combatTrainingIntensity", sectionValue)
+          updateFields({
+            combatTrainingIntensity: sectionValue,
+            sportLoadLevel: getSportLoadLevelFromCombatTrainingIntensity(sectionValue),
+          })
         }
       />
       <LiftIntensityMethodView

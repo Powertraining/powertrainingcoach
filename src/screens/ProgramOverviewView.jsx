@@ -829,8 +829,10 @@ export default function ProgramOverviewView({
   onCompletedSessionProgressSave,
   getCompletedSessionProgress,
   onTestSession,
+  onTestProgramMaxSetup,
   updatingPlan = false,
   initialScrollToTopKey = "",
+  programMaxSetupPending = false,
 }) {
   const pathname = usePathname();
   const [detailsVisible, setDetailsVisible] = useState(false);
@@ -1005,7 +1007,7 @@ export default function ProgramOverviewView({
   const shouldHideTabBarForCheckIn =
     Boolean(pendingTrainingCheckIn) || Boolean(launchGatePromptKey);
   const shouldHideTabBar =
-    swapEditorVisible || shouldHideTabBarForCheckIn;
+    programMaxSetupPending || swapEditorVisible || shouldHideTabBarForCheckIn;
   const archivedPlanContexts = Array.isArray(trainingPlanHistory)
     ? trainingPlanHistory
         .map((entry = {}) => ({
@@ -2170,6 +2172,17 @@ export default function ProgramOverviewView({
                   </TouchableOpacity>
                 ))
               : null}
+            {__DEV__ && onTestProgramMaxSetup ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={styles.testSessionButton}
+                onPress={onTestProgramMaxSetup}
+              >
+                <IBMPlexText defaultWhite lines={1} style={styles.testSessionButtonText}>
+                  Test Program Max setup
+                </IBMPlexText>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
               style={styles.programDetailsFooterLink}
               onPress={() => setDetailsVisible(true)}

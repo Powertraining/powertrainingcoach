@@ -164,12 +164,17 @@ export default function SubscriptionCard({
         )}
 
         {showActions ? (
-          <View style={[styles.actionRow, !showDetailsButton ? styles.actionRowCentered : null]}>
+          <View style={[styles.actionRow, !showDetailsButton ? styles.singleActionRow : null]}>
             <TouchableOpacity
               activeOpacity={0.82}
               onPress={handleUpgradePress}
               disabled={isSubmitting}
-              style={[styles.actionButton, styles.primaryButton, isSubmitting ? styles.buttonDisabled : null]}
+              style={[
+                styles.actionButton,
+                styles.primaryButton,
+                !showDetailsButton ? styles.singleActionButton : null,
+                isSubmitting ? styles.buttonDisabled : null,
+              ]}
             >
               <GoldGradient />
               <IBMPlexText style={styles.actionButtonText}>{primaryActionText}</IBMPlexText>
@@ -286,8 +291,9 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 16,
   },
-  actionRowCentered: {
-    justifyContent: "center",
+  singleActionRow: {
+    alignSelf: "stretch",
+    gap: 0,
   },
   actionButton: {
     alignItems: "center",
@@ -302,6 +308,11 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: GOLD,
+  },
+  singleActionButton: {
+    flex: 1,
+    minWidth: 0,
+    width: "100%",
   },
   actionButtonText: {
     color: "#111111",

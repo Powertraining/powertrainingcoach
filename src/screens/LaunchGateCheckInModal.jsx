@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import AnimatedPromptCardFrame from "../components/feedbackComponents/AnimatedPromptCardFrame.jsx";
 import { TRAINING_CHECK_IN_FIELD_OPTIONS } from "../services/utils/trainingCheckIn.js";
 
 const CHOICE_BASE_HEIGHT = 82;
@@ -518,87 +519,6 @@ export default function LaunchGateCheckInModal({
   const questionEntranceStyle = buildEntranceStyle(questionEntranceProgress);
   const answersEntranceStyle = buildEntranceStyle(answersEntranceProgress);
 
-  const animatedBorderTopWidth =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0, 0.25],
-        outputRange: ["100%", "0%"],
-        extrapolate: "clamp",
-      }) :
-      borderAnimationProgress.interpolate({
-        inputRange: [0, 0.25],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      });
-  const animatedBorderTopLeft =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0, 0.25],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      }) :
-      "0%";
-  const animatedBorderRightHeight =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0, 0.25, 0.5],
-        outputRange: ["100%", "100%", "0%"],
-        extrapolate: "clamp",
-      }) :
-      borderAnimationProgress.interpolate({
-        inputRange: [0.25, 0.5],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      });
-  const animatedBorderRightTop =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0.25, 0.5],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      }) :
-      "0%";
-  const animatedBorderBottomWidth =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0, 0.5, 0.75],
-        outputRange: ["100%", "100%", "0%"],
-        extrapolate: "clamp",
-      }) :
-      borderAnimationProgress.interpolate({
-        inputRange: [0.5, 0.75],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      });
-  const animatedBorderBottomRight =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0.5, 0.75],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      }) :
-      "0%";
-  const animatedBorderLeftHeight =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0, 0.75, 1],
-        outputRange: ["100%", "100%", "0%"],
-        extrapolate: "clamp",
-      }) :
-      borderAnimationProgress.interpolate({
-        inputRange: [0.75, 1],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      });
-  const animatedBorderLeftBottom =
-    borderAnimationMode === "erase" ?
-      borderAnimationProgress.interpolate({
-        inputRange: [0.75, 1],
-        outputRange: ["0%", "100%"],
-        extrapolate: "clamp",
-      }) :
-      "0%";
-
   function moveToNextQuestion() {
     playExitAnimation(() => {
       if (!isMountedRef.current) {
@@ -682,33 +602,11 @@ export default function LaunchGateCheckInModal({
           onPress={onClose}
           style={styles.backdrop}
         />
-        <View style={styles.card}>
-          <View pointerEvents="none" style={styles.animatedBorderLayer}>
-            <Animated.View
-              style={[
-                styles.animatedBorderTop,
-                { left: animatedBorderTopLeft, width: animatedBorderTopWidth },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.animatedBorderRight,
-                { height: animatedBorderRightHeight, top: animatedBorderRightTop },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.animatedBorderBottom,
-                { right: animatedBorderBottomRight, width: animatedBorderBottomWidth },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.animatedBorderLeft,
-                { bottom: animatedBorderLeftBottom, height: animatedBorderLeftHeight },
-              ]}
-            />
-          </View>
+        <AnimatedPromptCardFrame
+          animationMode={borderAnimationMode}
+          animationProgress={borderAnimationProgress}
+          style={styles.card}
+        >
           <Animated.View style={titleEntranceStyle}>
             <IBMPlexText style={styles.title}>{prompt?.title || ""}</IBMPlexText>
           </Animated.View>
@@ -802,7 +700,7 @@ export default function LaunchGateCheckInModal({
               </Pressable>
             </Animated.View>
           ) : null}
-        </View>
+        </AnimatedPromptCardFrame>
       </View>
     </Modal>
   );
@@ -832,43 +730,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.24,
     shadowRadius: 28,
-  },
-  animatedBorderLayer: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 28,
-    overflow: "hidden",
-  },
-  animatedBorderTop: {
-    borderColor: "#141414",
-    borderStyle: "dashed",
-    borderTopWidth: 2,
-    left: 0,
-    position: "absolute",
-    top: 0,
-  },
-  animatedBorderRight: {
-    borderColor: "#141414",
-    borderRightWidth: 2,
-    borderStyle: "dashed",
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
-  animatedBorderBottom: {
-    borderBottomWidth: 2,
-    borderColor: "#141414",
-    borderStyle: "dashed",
-    bottom: 0,
-    position: "absolute",
-    right: 0,
-  },
-  animatedBorderLeft: {
-    borderColor: "#141414",
-    borderLeftWidth: 2,
-    borderStyle: "dashed",
-    bottom: 0,
-    left: 0,
-    position: "absolute",
   },
   title: {
     color: "#141414",

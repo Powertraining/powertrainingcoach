@@ -4360,6 +4360,10 @@ Follow these domain rules:
 - Endurance must account for combat sport, trainingPhase, sportLoadLevel,
   combatTrainingIntensity, S&C frequency, preferred weekdays, sessionDuration,
   injuries, equipment, and selected modality.
+- Interpret combatTrainingIntensity as four ordered levels: light, moderate, high,
+  and very_high. very_high means near-maximal, fight-like, or intensive competition
+  preparation that heavily affects recovery. Reduce optional S&C and endurance
+  fatigue progressively as this value rises.
 - In off-camp/off-season, endurance may build aerobic base, repeated-effort
   capacity, and weak links. In fight camp/in-camp, fit endurance around
   sparring, pads, grappling, weight management, and freshness.
@@ -4492,6 +4496,9 @@ ${JSON.stringify(userInput, null, 2)}
 - **IMPORTANT: Every exercise MUST include a substitutionOptions array.**
 - **IMPORTANT: Each substitution option must be a full exercise object with**
   **name, sets, reps, notes, and videoUrl.**
+- Keep set count and rep count in their own fields. For 4 sets of 4, use
+  "sets": "4" and "reps": "4", never "reps": "4 x 4". For unilateral work,
+  spell out both sides, for example "reps": "4 left + 4 right".
 - **IMPORTANT: Dedicated endurance exercises should include an**
   **endurancePrescription object.**
 

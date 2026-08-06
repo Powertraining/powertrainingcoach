@@ -46,3 +46,45 @@ export function getExerciseSetDisplayValue(exercise = {}) {
 
   return parsePositiveInteger(sprintSets) ? sprintSets : "";
 }
+
+function normalizeRepPart(value = "") {
+  return String(value).replace(/\s+/g, "").replace(/–/g, "-");
+}
+
+export function getExerciseRepsDisplayValue(exercise = {}) {
+  const reps = String(exercise?.reps || "").replace(/\s+/g, " ").trim();
+
+  if (!reps) {
+    return "";
+  }
+
+  const perSideMatch = reps.match(
+    /^(\d+(?:\s*[-–]\s*\d+)?)\s*\+\s*(\d+(?:\s*[-–]\s*\d+)?)$/
+  );
+
+  if (
+    perSideMatch &&
+    normalizeRepPart(perSideMatch[1]) === normalizeRepPart(perSideMatch[2])
+  ) {
+    const sideReps = normalizeRepPart(perSideMatch[1]);
+    return `${sideReps} left / ${sideReps} right`;
+  }
+
+  const setsAndRepsMatch = reps.match(
+    /^(\d+)\s*(?:x|×|\*)\s*(\d+(?:\s*[-–]\s*\d+)?)$/i
+  );
+  const setDisplayValue = String(getExerciseSetDisplayValue(exercise)).trim();
+
+  if (
+    setsAndRepsMatch &&
+    /^\d+$/.test(setDisplayValue) &&
+    Number.parseInt(setsAndRepsMatch[1], 10) ===
+      Number.parseInt(setDisplayValue, 10)
+  ) {
+    return normalizeRepPart(setsAndRepsMatch[2]);
+  }
+
+  return reps
+    .replace(/\s*(?:x|×|\*)\s*/gi, " × ")
+    .replace(/\s*\+\s*/g, " + ");
+}

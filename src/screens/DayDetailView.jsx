@@ -42,6 +42,7 @@ import {
 } from "../services/utils/exerciseSupersets.js";
 import {
     getPendingProgramMaxAssessments,
+    getStrengthAssessmentCurrentOneRepMaxKg,
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
     getStrengthAssessmentPrescription,
@@ -56,11 +57,13 @@ import {
     parseRpeFromText,
 } from "../services/utils/trainingPerformance.js";
 import {
+    getExerciseRepsDisplayValue,
     getExerciseSetDisplayValue,
     getPrescribedSetCount,
 } from "../services/utils/exerciseSets.js";
 import { fonts } from "../theme/colors.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import { getExerciseGuide } from "../constants/exerciseGuides.js";
 import {
     formatDistanceFromMeters,
     formatMeasurementText,
@@ -765,13 +768,12 @@ function getExerciseRecommendationDisplay(
             : null;
         const percentageNotesDetails = notesDetails
             .split(/\s*\*\s*/)
-            .filter((detail) => !/^(?:RPE|RIR)\b/i.test(detail))
+            .filter((detail) => !/^(?:RPE|RIR|RI)\b/i.test(detail))
             .join(" * ");
         const detailParts = [
             primaryWorkingSet.percent1RM
                 ? `${primaryWorkingSet.percent1RM}% Program Max`
                 : "",
-            primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
             percentageNotesDetails,
         ].filter(Boolean);
 
@@ -842,6 +844,7 @@ function isBodyweightOnlyPlyoExercise(exercise = {}) {
 function getCompactExerciseCardMetrics(
     exercise = {},
     strengthReferenceOneRepMaxByLift = {},
+    currentOneRepMaxByLift = {},
     unitSystem = "metric"
 ) {
     const strengthAssessmentPrescription =
@@ -870,7 +873,7 @@ function getCompactExerciseCardMetrics(
     const recommendationDetails = String(recommendation.details || "")
         .split(/\s*\*\s*/)
         .map((detail) => detail.trim())
-        .filter(Boolean);
+        .filter((detail) => detail && !/^RI\b/i.test(detail));
     const displayedTargetRpe =
         performanceTarget?.targetRpe || parseRpeFromText(exercise?.notes);
     const formatRangeMidpoint = (startValue, endValue) => {
@@ -903,32 +906,45 @@ function getCompactExerciseCardMetrics(
         return normalizedValue;
     };
     const intensityFromDetails =
-        recommendationDetails.find((detail) => /^(?:RPE|RIR|RI\b)/i.test(detail)) ||
-        recommendationDetails.find((detail) => /%|BPM|zone/i.test(detail)) ||
+        recommendationDetails.find((detail) => /%\s*(?:Program Max|1RM)?/i.test(detail)) ||
+        recommendationDetails.find((detail) => /^(?:RPE|RIR)\b/i.test(detail)) ||
+        recommendationDetails.find((detail) => /BPM|zone/i.test(detail)) ||
         recommendationDetails[0] ||
         "";
+    const percentagePrescription = getExercisePercentagePrescription(exercise);
+    const currentOneRepMaxDetails = percentagePrescription
+        ? resolveStrengthAssessmentReferenceOneRepMaxKg(
+            percentagePrescription.referenceLiftName || exercise.name || "",
+            currentOneRepMaxByLift
+        )
+        : { oneRepMaxKg: null };
+    const currentOneRepMax = currentOneRepMaxDetails.oneRepMaxKg
+        ? formatWeightFromKilograms(currentOneRepMaxDetails.oneRepMaxKg, unitSystem, {
+            compact: true,
+        })
+        : "";
+    const primaryPercentageWorkingSet = getPrimaryPercentageWorkingSet(
+        percentagePrescription
+    );
+    const absolutePercentageIntensity = primaryPercentageWorkingSet?.percent1RM
+        ? `${primaryPercentageWorkingSet.percent1RM}%`
+        : "";
     const medicineBallIntensity = getMedicineBallIntensity(exercise, unitSystem);
     const bodyweightOnlyPlyoIntensity =
         !medicineBallIntensity && isBodyweightOnlyPlyoExercise(exercise) ? "Bodyweight" : "";
     const intensity = formatIntensityDisplay(
         medicineBallIntensity ||
         bodyweightOnlyPlyoIntensity ||
+        absolutePercentageIntensity ||
         (displayedTargetRpe
             ? `RPE ${displayedTargetRpe}`
             : endurancePrescription.intensity || intensityFromDetails)
     );
     const exerciseSetCount = getExerciseSetDisplayValue(exercise);
     const sets = String(exerciseSetCount || sprintPrescription.sets || "").trim();
-    const formatRepDisplay = (value = "") =>
-        String(value || "")
-            .trim()
-            .replace(/^\s*(\d+(?:[.,]\d+)?)\s*\+\s*\1\s*$/i, "$1 / side")
-            .replace(/\s*\+\s*/g, " + ");
-    const reps = formatRepDisplay(
-        exercise?.reps ||
-        sprintPrescription.repsPerSet ||
-        ""
-    );
+    const reps = exercise?.reps
+        ? getExerciseRepsDisplayValue(exercise)
+        : String(sprintPrescription.repsPerSet || "").trim();
     const getDefaultPrescriptionMetric = (value = "") => {
         const normalizedValue = String(value || "").replace(/\s+/g, " ").trim();
 
@@ -1018,7 +1034,10 @@ function getCompactExerciseCardMetrics(
         return metrics.slice(0, 4);
     }
 
-    addMetric("Intensity", intensity);
+    addMetric(percentagePrescription ? "Program Max" : "Intensity", intensity);
+    if (percentagePrescription) {
+        addMetric("Current 1RM", currentOneRepMax);
+    }
     addMetric("Sets", sets);
     const prescriptionMetric = getDefaultPrescriptionMetric(reps);
     addMetric(prescriptionMetric?.label, prescriptionMetric?.value);
@@ -1101,6 +1120,9 @@ export default function DayDetailView({
         : null;
     const tipsExercise = Number.isInteger(tipsExerciseIndex)
         ? normalizedExercises[tipsExerciseIndex]
+        : null;
+    const tipsExerciseGuide = tipsExercise
+        ? getExerciseGuide(getExerciseDisplayName(tipsExercise))
         : null;
     const swapExerciseOptions = swapExercise
         ? getExerciseSubstitutionOptions(swapExercise)
@@ -1226,6 +1248,24 @@ export default function DayDetailView({
 
                 if (liftKey && referenceOneRepMaxKg) {
                     accumulator[liftKey] = referenceOneRepMaxKg;
+                }
+
+                return accumulator;
+            }, {}),
+        [strengthAssessmentSummary]
+    );
+    const currentOneRepMaxByLift = useMemo(
+        () =>
+            (Array.isArray(strengthAssessmentSummary?.latestByLift) ?
+                strengthAssessmentSummary.latestByLift :
+                []
+            ).reduce((accumulator, entry) => {
+                const liftKey = getStrengthAssessmentLiftKey(entry?.liftName || "");
+                const currentOneRepMaxKg =
+                    getStrengthAssessmentCurrentOneRepMaxKg(entry);
+
+                if (liftKey && currentOneRepMaxKg) {
+                    accumulator[liftKey] = currentOneRepMaxKg;
                 }
 
                 return accumulator;
@@ -1408,9 +1448,9 @@ export default function DayDetailView({
                 ) : null}
             </Modal>
             <WhiteBottomMenu
-                visible={Boolean(tipsExercise?.notes)}
+                visible={Boolean(tipsExercise?.notes) || Boolean(tipsExerciseGuide)}
                 onDismiss={closeTips}
-                title="Tips"
+                title="Details"
                 description={tipsExercise ? getExerciseDisplayName(tipsExercise) : ""}
                 buttonText="Close"
                 onButtonPress={closeTips}
@@ -1423,9 +1463,29 @@ export default function DayDetailView({
                         style={styles.tipsScroller}
                         contentContainerStyle={styles.tipsContent}
                     >
-                        <IBMPlexText style={styles.tipsText}>
+                        {tipsExerciseGuide ? (
+                            <View style={styles.tipsGuideBlock}>
+                                <IBMPlexText style={styles.tipsText}>
+                                    {tipsExerciseGuide.description}
+                                </IBMPlexText>
+                                <View style={styles.tipsGuideRow}>
+                                    <IBMPlexText style={styles.tipsGuideLabel}>Focus: </IBMPlexText>
+                                    <IBMPlexText style={styles.tipsGuideValue}>
+                                        {tipsExerciseGuide.focus}
+                                    </IBMPlexText>
+                                </View>
+                                <View style={styles.tipsGuideRow}>
+                                    <IBMPlexText style={styles.tipsGuideLabel}>Avoid: </IBMPlexText>
+                                    <IBMPlexText style={styles.tipsGuideValue}>
+                                        {tipsExerciseGuide.avoid}
+                                    </IBMPlexText>
+                                </View>
+                            </View>
+                        ) : tipsExercise?.notes ? (
+                            <IBMPlexText style={styles.tipsText}>
                             {formatMeasurementText(tipsExercise?.notes, unitSystem)}
                         </IBMPlexText>
+                        ) : null}
                     </ScrollView>
                 }
             />
@@ -1514,9 +1574,11 @@ export default function DayDetailView({
                                             const exerciseCardMetrics = getCompactExerciseCardMetrics(
                                                 ex,
                                                 strengthReferenceOneRepMaxByLift,
+                                                currentOneRepMaxByLift,
                                                 unitSystem
                                             ).map((metric) =>
-                                                programMaxStatusLabel && metric.label === "Intensity"
+                                                programMaxStatusLabel &&
+                                                (metric.label === "Intensity" || metric.label === "Program Max")
                                                     ? {
                                                         ...metric,
                                                         value: [metric.value, programMaxStatusLabel]
@@ -1546,7 +1608,9 @@ export default function DayDetailView({
                                             const canSwapExercise =
                                                 exerciseSubstitutionOptions.length > 1 &&
                                                 onReplaceExercise;
-                                            const hasExerciseTips = Boolean(ex.notes);
+                                            const hasExerciseTips =
+                                                Boolean(ex.notes) ||
+                                                Boolean(getExerciseGuide(getExerciseDisplayName(ex)));
                                             const totalSetCount = parsePrescribedSetCount(ex);
                                             const completedSetCount =
                                                 completedSessionStepKeys.size > 0
@@ -1728,7 +1792,7 @@ export default function DayDetailView({
                                                                             {hasExerciseTips ? (
                                                                                 <TouchableOpacity
                                                                                     accessibilityRole="button"
-                                                                                    accessibilityLabel={`Show tips for ${getExerciseDisplayName(ex)}`}
+                                                                                    accessibilityLabel={`Show details for ${getExerciseDisplayName(ex)}`}
                                                                                     style={styles.tabButtonActionButton}
                                                                                     onPress={(event) => {
                                                                                         event.stopPropagation?.();
@@ -1748,7 +1812,7 @@ export default function DayDetailView({
                                                                                             styles.tabButtonTipsActionLabel,
                                                                                         ]}
                                                                                     >
-                                                                                        Tips
+                                                                                        Details
                                                                                     </IBMPlexText>
                                                                                 </TouchableOpacity>
                                                                             ) : null}
@@ -2362,6 +2426,25 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9fafb',
     },
     tipsText: {
+        fontSize: 15,
+        lineHeight: 22,
+        color: '#1f2937',
+    },
+    tipsGuideBlock: {
+        gap: 10,
+    },
+    tipsGuideRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    tipsGuideLabel: {
+        fontSize: 15,
+        lineHeight: 22,
+        fontWeight: '700',
+        color: '#1f2937',
+    },
+    tipsGuideValue: {
+        flex: 1,
         fontSize: 15,
         lineHeight: 22,
         color: '#1f2937',
