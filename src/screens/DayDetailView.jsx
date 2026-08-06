@@ -56,6 +56,7 @@ import {
     parseRpeFromText,
 } from "../services/utils/trainingPerformance.js";
 import {
+    getExerciseRepsDisplayValue,
     getExerciseSetDisplayValue,
     getPrescribedSetCount,
 } from "../services/utils/exerciseSets.js";
@@ -928,16 +929,9 @@ function getCompactExerciseCardMetrics(
     );
     const exerciseSetCount = getExerciseSetDisplayValue(exercise);
     const sets = String(exerciseSetCount || sprintPrescription.sets || "").trim();
-    const formatRepDisplay = (value = "") =>
-        String(value || "")
-            .trim()
-            .replace(/^\s*(\d+(?:[.,]\d+)?)\s*\+\s*\1\s*$/i, "$1 / side")
-            .replace(/\s*\+\s*/g, " + ");
-    const reps = formatRepDisplay(
-        exercise?.reps ||
-        sprintPrescription.repsPerSet ||
-        ""
-    );
+    const reps = exercise?.reps
+        ? getExerciseRepsDisplayValue(exercise)
+        : String(sprintPrescription.repsPerSet || "").trim();
     const getDefaultPrescriptionMetric = (value = "") => {
         const normalizedValue = String(value || "").replace(/\s+/g, " ").trim();
 
@@ -1422,7 +1416,7 @@ export default function DayDetailView({
             <WhiteBottomMenu
                 visible={Boolean(tipsExercise?.notes) || Boolean(tipsExerciseGuide)}
                 onDismiss={closeTips}
-                title="Tips"
+                title="Details"
                 description={tipsExercise ? getExerciseDisplayName(tipsExercise) : ""}
                 buttonText="Close"
                 onButtonPress={closeTips}
@@ -1762,7 +1756,7 @@ export default function DayDetailView({
                                                                             {hasExerciseTips ? (
                                                                                 <TouchableOpacity
                                                                                     accessibilityRole="button"
-                                                                                    accessibilityLabel={`Show tips for ${getExerciseDisplayName(ex)}`}
+                                                                                    accessibilityLabel={`Show details for ${getExerciseDisplayName(ex)}`}
                                                                                     style={styles.tabButtonActionButton}
                                                                                     onPress={(event) => {
                                                                                         event.stopPropagation?.();
@@ -1782,7 +1776,7 @@ export default function DayDetailView({
                                                                                             styles.tabButtonTipsActionLabel,
                                                                                         ]}
                                                                                     >
-                                                                                        Tips
+                                                                                        Details
                                                                                     </IBMPlexText>
                                                                                 </TouchableOpacity>
                                                                             ) : null}

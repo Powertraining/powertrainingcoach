@@ -154,7 +154,7 @@ const EMBEDDED_INSTRUCTION_RULES = Object.freeze({
   unilateral: `# Unilateral plyometric impact guide
 - Single-leg pogos, hop-to-stick drills, skater hops, and low single-leg box jumps start around medium impact.
 - Repeated same-leg hops, bounds, single-leg broad jumps, single-leg hurdle hops, step-off rebounds, and single-leg depth jumps count as high impact.
-- Unilateral prescriptions must clearly show both sides, for example 3 x 5+5 rather than 3 x 5.`,
+- Keep sets and reps in their own fields. For unilateral work, use sets "3" and reps "5 left + 5 right" so both sides are explicit; never encode the set count again inside reps.`,
   ballistic_training: `# Ballistic and medicine-ball rules
 - Keep ballistic work explosive, high quality, and well rested.
 - Medicine-ball throw reps should be pragmatic rather than ultra-low: usually 3-10 reps depending on the throw.

@@ -4496,6 +4496,9 @@ ${JSON.stringify(userInput, null, 2)}
 - **IMPORTANT: Every exercise MUST include a substitutionOptions array.**
 - **IMPORTANT: Each substitution option must be a full exercise object with**
   **name, sets, reps, notes, and videoUrl.**
+- Keep set count and rep count in their own fields. For 4 sets of 4, use
+  "sets": "4" and "reps": "4", never "reps": "4 x 4". For unilateral work,
+  spell out both sides, for example "reps": "4 left + 4 right".
 - **IMPORTANT: Dedicated endurance exercises should include an**
   **endurancePrescription object.**
 

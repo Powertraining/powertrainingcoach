@@ -22,7 +22,7 @@ test("training prompt embeds the key striking and percentage instruction rules",
   assert.match(prompt, /95% of the normal bench press 1RM/i);
   assert.match(prompt, /weighted rows/i);
   assert.match(prompt, /medicine-ball throws and plyometrics/i);
-  assert.match(prompt, /3 x 5\+5/i);
+  assert.match(prompt, /5 left \+ 5 right/i);
   assert.match(prompt, /bar plus plates.*30-60% of body mass/i);
   assert.match(prompt, /empty bar already exceeds the target load/i);
   assert.match(prompt, /loaded jumps 3-5/i);

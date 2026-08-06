@@ -225,6 +225,7 @@ function buildPlanSchemaInstructions(userInput = {}) {
   - "qualities": one or more of "force", "power", "fatigue", "speed", "hypertrophy", "recovery"
   - "stressLevel": "low", "moderate", or "high"
 - Every exercise must include "orderLabel", "name", "sets", "reps", and "notes", except exercises with an "endurancePrescription": those must include "orderLabel", "name", and "notes" but must omit "sets" and "reps" — all prescription details belong in "endurancePrescription".
+- Keep set count and rep count in their own fields. For 4 sets of 4, use "sets": "4" and "reps": "4", never "reps": "4 x 4". For unilateral work, spell out both sides in reps, for example "reps": "4 left + 4 right".
 - Use plain numeric "orderLabel" values for standalone exercises ("1", "2", "3"). Use matching number-letter values for supersets ("1a", "1b", then "2a", "2b"). Never put the order label inside "name".
 - Add "substitutionOptions" only when there are useful comparable replacements. Omit it when no substitute is needed; the app will create the default option array.
 - Add "performanceTarget" only on main monitored lifts where the app should track repeated top-set performance over time.

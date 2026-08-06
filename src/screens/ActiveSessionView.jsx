@@ -43,6 +43,7 @@ import {
 import { calculateTargetLoadFromPercentOneRepMax } from "../services/utils/percentagePrescription.js";
 import { parseRpeFromText } from "../services/utils/trainingPerformance.js";
 import {
+  getExerciseRepsDisplayValue,
   getExerciseSetDisplayValue,
   getPrescribedSetCount,
 } from "../services/utils/exerciseSets.js";
@@ -947,7 +948,7 @@ function ActiveSessionHeader({
         {showHelp ? (
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Show exercise guidance"
+            accessibilityLabel="Show exercise details"
             activeOpacity={0.7}
             style={[styles.headerHelpButton, compact ? styles.compactHeaderHelpButton : null]}
             onPress={onHelp}
@@ -1445,6 +1446,7 @@ function ExerciseSessionStep({
     .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
   const endurancePrescription = exercise?.endurancePrescription || {};
   const setDisplayValue = getExerciseSetDisplayValue(exercise);
+  const repsDisplayValue = getExerciseRepsDisplayValue(exercise);
   const loadedJumpPrescription = getLoadedJumpPrescription(exercise);
   const intensityMetric =
     (loadedJumpPrescription
@@ -1477,10 +1479,10 @@ function ExerciseSessionStep({
         }
       : null,
     setDisplayValue ? { label: "Sets", value: setDisplayValue } : null,
-    normalizeText(exercise?.reps)
+    repsDisplayValue
       ? {
           label: showTime ? "Duration" : "Reps",
-          value: normalizeText(exercise?.reps),
+          value: repsDisplayValue,
         }
       : null,
       ].filter(Boolean);
@@ -1596,15 +1598,22 @@ function ExerciseSessionStep({
                   </View>
                 ) : (
                   <IBMPlexText style={styles.activeExerciseMetricValue}>
-                    {formatTargetSections(
-                      formatMeasurementText(metric.value, unitSystem)
-                    )}
+                    {metric.label === "Reps"
+                      ? formatMeasurementText(metric.value, unitSystem)
+                      : formatTargetSections(
+                          formatMeasurementText(metric.value, unitSystem)
+                        )}
                   </IBMPlexText>
                 )}
               </View>
             ))}
           </View>
-        ) : null}
+        ) : (
+          <IBMPlexText style={styles.activeExerciseTargetsEmptyText}>
+            No specific load, rep, or intensity target was set for this exercise.
+            Follow the session guidance and log what you complete.
+          </IBMPlexText>
+        )}
       </View>
 
       {loadedJumpPrescription ? (
@@ -2473,7 +2482,7 @@ export default function ActiveSessionView({
       <WhiteBottomMenu
         visible={isDescriptionMenuVisible}
         onDismiss={() => setIsDescriptionMenuVisible(false)}
-        title="Exercise guidance"
+        title="Details"
         description={activeExerciseGuidance}
         buttonText="Got it"
         onButtonPress={() => setIsDescriptionMenuVisible(false)}
@@ -2853,6 +2862,15 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     lineHeight: 16,
     marginBottom: 6,
+    textAlign: "center",
+  },
+  activeExerciseTargetsEmptyText: {
+    color: "#8B8B94",
+    fontSize: 11,
+    lineHeight: 16,
+    maxWidth: 300,
+    paddingBottom: 5,
+    paddingHorizontal: 10,
     textAlign: "center",
   },
   activeExerciseMetricsRow: {
