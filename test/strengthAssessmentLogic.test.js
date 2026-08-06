@@ -18,6 +18,7 @@ import {
   getPendingProgramMaxAssessments,
   getProgramMaxLiftStatus,
   getStrengthAssessmentPrescription,
+  getStrengthAssessmentCurrentOneRepMaxKg,
   getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentSummary,
   resolveStrengthAssessmentReferenceOneRepMaxKg,
@@ -102,6 +103,8 @@ test("automatic Program Maxes keep the raw estimate and round the active max", (
   assert.equal(metricEntry.estimatedOneRepMaxKg, 172.7);
   assert.ok(Math.abs(metricEntry.rawEstimatedOneRepMaxKg - 172.6666666667) < 0.000001);
   assert.equal(metricEntry.trainingMaxKg, 172.5);
+  assert.equal(getStrengthAssessmentCurrentOneRepMaxKg(metricEntry), 172.7);
+  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(metricEntry), 172.5);
   assert.equal(imperialEntry.estimatedOneRepMaxKg, 97.9);
   assert.equal(imperialEntry.trainingMaxKg, 97.5);
 });
@@ -131,6 +134,8 @@ test("manual Program Max setup applies the selected confidence adjustment", () =
   assert.equal(entry.enteredOneRepMaxKg, 150);
   assert.equal(entry.confidence, "somewhat_confident");
   assert.equal(entry.trainingMaxKg, 135);
+  assert.equal(getStrengthAssessmentCurrentOneRepMaxKg(entry), 150);
+  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(entry), 135);
 
   const state = upsertStrengthAssessmentSessionResults(
     {},

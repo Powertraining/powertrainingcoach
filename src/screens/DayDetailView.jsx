@@ -42,6 +42,7 @@ import {
 } from "../services/utils/exerciseSupersets.js";
 import {
     getPendingProgramMaxAssessments,
+    getStrengthAssessmentCurrentOneRepMaxKg,
     getStrengthAssessmentLiftKey,
     getStrengthAssessmentMethodLabel,
     getStrengthAssessmentPrescription,
@@ -767,7 +768,7 @@ function getExerciseRecommendationDisplay(
             : null;
         const percentageNotesDetails = notesDetails
             .split(/\s*\*\s*/)
-            .filter((detail) => !/^(?:RPE|RIR)\b/i.test(detail))
+            .filter((detail) => !/^(?:RPE|RIR|RI)\b/i.test(detail))
             .join(" * ");
         const detailParts = [
             primaryWorkingSet.percent1RM
@@ -843,6 +844,7 @@ function isBodyweightOnlyPlyoExercise(exercise = {}) {
 function getCompactExerciseCardMetrics(
     exercise = {},
     strengthReferenceOneRepMaxByLift = {},
+    currentOneRepMaxByLift = {},
     unitSystem = "metric"
 ) {
     const strengthAssessmentPrescription =
@@ -871,7 +873,7 @@ function getCompactExerciseCardMetrics(
     const recommendationDetails = String(recommendation.details || "")
         .split(/\s*\*\s*/)
         .map((detail) => detail.trim())
-        .filter(Boolean);
+        .filter((detail) => detail && !/^RI\b/i.test(detail));
     const displayedTargetRpe =
         performanceTarget?.targetRpe || parseRpeFromText(exercise?.notes);
     const formatRangeMidpoint = (startValue, endValue) => {
@@ -910,6 +912,17 @@ function getCompactExerciseCardMetrics(
         recommendationDetails[0] ||
         "";
     const percentagePrescription = getExercisePercentagePrescription(exercise);
+    const currentOneRepMaxDetails = percentagePrescription
+        ? resolveStrengthAssessmentReferenceOneRepMaxKg(
+            percentagePrescription.referenceLiftName || exercise.name || "",
+            currentOneRepMaxByLift
+        )
+        : { oneRepMaxKg: null };
+    const currentOneRepMax = currentOneRepMaxDetails.oneRepMaxKg
+        ? formatWeightFromKilograms(currentOneRepMaxDetails.oneRepMaxKg, unitSystem, {
+            compact: true,
+        })
+        : "";
     const primaryPercentageWorkingSet = getPrimaryPercentageWorkingSet(
         percentagePrescription
     );
@@ -1021,7 +1034,10 @@ function getCompactExerciseCardMetrics(
         return metrics.slice(0, 4);
     }
 
-    addMetric("Intensity", intensity);
+    addMetric(percentagePrescription ? "Program Max" : "Intensity", intensity);
+    if (percentagePrescription) {
+        addMetric("Current 1RM", currentOneRepMax);
+    }
     addMetric("Sets", sets);
     const prescriptionMetric = getDefaultPrescriptionMetric(reps);
     addMetric(prescriptionMetric?.label, prescriptionMetric?.value);
@@ -1232,6 +1248,24 @@ export default function DayDetailView({
 
                 if (liftKey && referenceOneRepMaxKg) {
                     accumulator[liftKey] = referenceOneRepMaxKg;
+                }
+
+                return accumulator;
+            }, {}),
+        [strengthAssessmentSummary]
+    );
+    const currentOneRepMaxByLift = useMemo(
+        () =>
+            (Array.isArray(strengthAssessmentSummary?.latestByLift) ?
+                strengthAssessmentSummary.latestByLift :
+                []
+            ).reduce((accumulator, entry) => {
+                const liftKey = getStrengthAssessmentLiftKey(entry?.liftName || "");
+                const currentOneRepMaxKg =
+                    getStrengthAssessmentCurrentOneRepMaxKg(entry);
+
+                if (liftKey && currentOneRepMaxKg) {
+                    accumulator[liftKey] = currentOneRepMaxKg;
                 }
 
                 return accumulator;
@@ -1540,9 +1574,11 @@ export default function DayDetailView({
                                             const exerciseCardMetrics = getCompactExerciseCardMetrics(
                                                 ex,
                                                 strengthReferenceOneRepMaxByLift,
+                                                currentOneRepMaxByLift,
                                                 unitSystem
                                             ).map((metric) =>
-                                                programMaxStatusLabel && metric.label === "Intensity"
+                                                programMaxStatusLabel &&
+                                                (metric.label === "Intensity" || metric.label === "Program Max")
                                                     ? {
                                                         ...metric,
                                                         value: [metric.value, programMaxStatusLabel]

@@ -33,6 +33,7 @@ import {
 } from "../services/utils/exerciseSupersets.js";
 import {
   createStrengthAssessmentEntry,
+  getStrengthAssessmentCurrentOneRepMaxKg,
   getStrengthAssessmentMinimumRpe,
   getStrengthAssessmentLiftKey,
   getStrengthAssessmentPrescription,
@@ -66,7 +67,6 @@ const SESSION_EXERCISE_ADVANCE_DELAY_MS =
 const RESULTS_FADE_IN_DURATION_MS = 120;
 const RESULTS_FADE_IN_TRANSLATE_Y = 10;
 const SESSION_HORIZONTAL_PADDING = 24;
-const SET_OVERVIEW_ITEM_GAP = 4;
 const EXERCISE_RESULT_RING_SIZE = 65;
 const EXERCISE_RESULT_RING_CENTER = EXERCISE_RESULT_RING_SIZE / 2;
 const EXERCISE_RESULT_RING_RADIUS = 26;
@@ -461,6 +461,22 @@ function getPrimaryPercentageWorkingSet(percentagePrescription = {}) {
   }, null);
 }
 
+function getPercentageWorkingSetForIndex(
+  percentagePrescription = {},
+  setIndex = 0
+) {
+  const workingSets = Array.isArray(percentagePrescription?.workingSets)
+    ? percentagePrescription.workingSets.flatMap((workingSet) =>
+        Array.from(
+          { length: Math.max(1, Number.parseInt(workingSet?.count, 10) || 1) },
+          () => workingSet
+        )
+      )
+    : [];
+
+  return workingSets[setIndex] || getPrimaryPercentageWorkingSet(percentagePrescription);
+}
+
 function getPercentRangeFromNotes(exercise = {}) {
   const exerciseText = `${exercise.notes || ""} ${exercise.reps || ""}`;
   const percentMatch = exerciseText.match(/\b(\d+(?:[.,]\d+)?)(?:\s*[-\u2013]\s*(\d+(?:[.,]\d+)?))?\s*%\s*(?:1\s*rm|1rm)?\b/i);
@@ -549,13 +565,12 @@ function getExerciseRecommendationDisplay(
       : null;
     const percentageNotesDetails = notesDetails
       .split(/\s*\*\s*/)
-      .filter((detail) => !/^(?:RPE|RIR)\b/i.test(detail))
+      .filter((detail) => !/^(?:RPE|RIR|RI)\b/i.test(detail))
       .join(" * ");
     const detailParts = [
       primaryWorkingSet.percent1RM
         ? `${primaryWorkingSet.percent1RM}% Program Max`
         : "",
-      primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
       percentageNotesDetails,
     ].filter(Boolean);
 
@@ -917,6 +932,7 @@ function getInitialSessionStep({
 
 function ActiveSessionHeader({
   title = "",
+  subtitle = "",
   showHelp = false,
   compact = false,
   onHelp,
@@ -936,12 +952,25 @@ function ActiveSessionHeader({
       </TouchableOpacity>
       <View style={styles.headerTitleWrap}>
         {title ? (
-          <IBMPlexText
-            style={[styles.headerTitle, compact ? styles.compactHeaderTitle : null]}
-            numberOfLines={1}
-          >
-            {title}
-          </IBMPlexText>
+          <>
+            <IBMPlexText
+              style={[styles.headerTitle, compact ? styles.compactHeaderTitle : null]}
+              numberOfLines={1}
+            >
+              {title}
+            </IBMPlexText>
+            {subtitle ? (
+              <IBMPlexText
+                style={[
+                  styles.headerSubtitle,
+                  compact ? styles.compactHeaderSubtitle : null,
+                ]}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </IBMPlexText>
+            ) : null}
+          </>
         ) : null}
       </View>
       <View style={styles.headerTrailingActions}>
@@ -1365,16 +1394,15 @@ function ExerciseSessionStep({
   draft,
   prescribedSets,
   completedSetIndexes,
-  trackingDrafts,
   onSelectSet,
   onDraftChange,
   strengthReferenceOneRepMaxByLift,
+  currentOneRepMaxByLift,
   compact = false,
   isEstimatingProgramMax = false,
   programMaxStatusLabel = "Estimating your max",
   unitSystem = "metric",
 }) {
-  const [setOverviewWidth, setSetOverviewWidth] = useState(0);
   const {
     performanceTarget,
     strengthAssessment,
@@ -1443,10 +1471,38 @@ function ExerciseSessionStep({
   const assessmentPrescription = getStrengthAssessmentPrescription(exercise);
   const exerciseRecommendationDetails = String(exerciseRecommendation.details || "")
     .split(/\s*\*\s*/)
+    .filter((detail) => !/^RI\b/i.test(detail))
     .filter((detail) => !performanceTargetRpe || !/^RPE\b/i.test(detail));
   const endurancePrescription = exercise?.endurancePrescription || {};
   const setDisplayValue = getExerciseSetDisplayValue(exercise);
   const repsDisplayValue = getExerciseRepsDisplayValue(exercise);
+  const percentagePrescription = getExercisePercentagePrescription(exercise);
+  const activePercentageWorkingSet = getPercentageWorkingSetForIndex(
+    percentagePrescription,
+    setIndex
+  );
+  const currentOneRepMaxDetails = percentagePrescription
+    ? resolveStrengthAssessmentReferenceOneRepMaxKg(
+        percentagePrescription.referenceLiftName || exercise.name || "",
+        currentOneRepMaxByLift
+      )
+    : { oneRepMaxKg: null };
+  const currentOneRepMaxText = currentOneRepMaxDetails.oneRepMaxKg
+    ? formatWeightFromKilograms(currentOneRepMaxDetails.oneRepMaxKg, unitSystem, {
+        compact: true,
+      })
+    : "";
+  const recommendedLoadText = recommendedLoadKg
+    ? formatWeightFromKilograms(recommendedLoadKg, unitSystem, { compact: true })
+    : "";
+  const activeSetReps = Number.parseInt(activePercentageWorkingSet?.reps, 10) ||
+    recommendedRepCount;
+  const activeSetRepText = activeSetReps
+    ? `${activeSetReps} ${activeSetReps === 1 ? "rep" : "reps"}`
+    : repsDisplayValue;
+  const activeSetTargetText = [recommendedLoadText, activeSetRepText]
+    .filter(Boolean)
+    .join(" × ");
   const loadedJumpPrescription = getLoadedJumpPrescription(exercise);
   const intensityMetric =
     (loadedJumpPrescription
@@ -1490,11 +1546,9 @@ function ExerciseSessionStep({
     ...exerciseRecommendationDetails.map((value) => ({
       label: /\b(?:1\s*RM|Program Max)\b/i.test(value)
         ? "1RM target"
-        : /^RI\b/i.test(value)
-          ? "Relative intensity"
-          : /^Tempo\b/i.test(value)
-            ? "Tempo"
-            : "Target",
+        : /^Tempo\b/i.test(value)
+          ? "Tempo"
+          : "Target",
       value,
     })),
     endurancePrescription.work
@@ -1518,66 +1572,115 @@ function ExerciseSessionStep({
       metric.value &&
       metrics.findIndex(({ value }) => value === metric.value) === metricIndex
   );
+  const supportingTargetMetrics = targetMetrics.filter(
+    (metric) =>
+      metric.label !== "Sets" &&
+      metric.label !== "Reps" &&
+      !(
+        percentagePrescription &&
+        (metric.label === "Intensity" || metric.label === "1RM target")
+      )
+  );
   const completedSetIndexSet = new Set(completedSetIndexes);
   const setOverviewItems = prescribedSets.map(({ setIndex: overviewSetIndex }) => {
-    const setDraft = trackingDrafts?.[
-      getDraftKey(exerciseIndex, overviewSetIndex)
-    ] || {};
-    const setSummaryParts = [];
-
-    if (setDraft.loadKg) {
-      setSummaryParts.push(
-        formatWeightFromKilograms(setDraft.loadKg, unitSystem)
-      );
-    }
-
-    if (setDraft.reps) {
-      setSummaryParts.push(`${setDraft.reps} reps`);
-    }
-
-    if (setDraft.durationMinutes) {
-      setSummaryParts.push(`${setDraft.durationMinutes} min`);
-    }
-
-    if (setDraft.rpe) {
-      setSummaryParts.push(`RPE ${setDraft.rpe}`);
-    }
-
     const isActive = overviewSetIndex === setIndex;
     const isCompleted = completedSetIndexSet.has(overviewSetIndex);
-    const summary = setSummaryParts.join(" × ");
 
     return {
       setIndex: overviewSetIndex,
       isActive,
       isCompleted,
-      summary:
-        summary || (isCompleted ? "Completed" : isActive ? "Current set" : "Not logged"),
     };
   });
-  const visibleSetColumnCount = Math.max(
-    1,
-    Math.min(setOverviewItems.length, 3)
+  const setSelector = (
+    <View style={styles.sessionSetSection}>
+      <View style={styles.sessionSetOverviewRow}>
+        {setOverviewItems.map((item) => (
+          <TouchableOpacity
+            key={item.setIndex}
+            accessibilityRole="button"
+            accessibilityLabel={`Open set ${item.setIndex + 1}`}
+            accessibilityState={{ selected: item.isActive }}
+            activeOpacity={0.75}
+            style={[
+              styles.sessionSetOverviewItem,
+              item.isCompleted
+                ? styles.sessionSetOverviewItemCompleted
+                : null,
+              item.isActive ? styles.sessionSetOverviewItemActive : null,
+            ]}
+            onPress={() => onSelectSet?.(item.setIndex)}
+          >
+            <IBMPlexText
+              style={[
+                styles.sessionSetOverviewItemTitle,
+                item.isCompleted
+                  ? styles.sessionSetOverviewItemTitleCompleted
+                  : null,
+                item.isActive && !item.isCompleted
+                  ? styles.sessionSetOverviewItemTitleActive
+                  : null,
+              ]}
+            >
+              {item.setIndex + 1}
+            </IBMPlexText>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
   );
-  const setOverviewItemWidth = setOverviewWidth
-    ? (setOverviewWidth -
-        SET_OVERVIEW_ITEM_GAP * (visibleSetColumnCount - 1)) /
-      visibleSetColumnCount
-    : undefined;
   return (
     <View style={[styles.exerciseCard, compact ? styles.compactExerciseCard : null]}>
+      {setSelector}
       <View
         style={[
           styles.activeExercisePlanCard,
           compact ? styles.compactActiveExercisePlanCard : null,
         ]}
       >
-        <IBMPlexText style={styles.activeExerciseTargetsTitle}>
-          Targets
-        </IBMPlexText>
-        {targetMetrics.length > 0 ? (
-          <View style={styles.activeExerciseMetricsRow}>
-            {targetMetrics.map((metric, metricIndex) => (
+        <View style={styles.activeExerciseTargetTopGap} />
+        {activeSetTargetText ? (
+          <IBMPlexText
+            style={[
+              styles.activeSetTargetValue,
+              compact ? styles.compactActiveSetTargetValue : null,
+            ]}
+          >
+            {activeSetTargetText}
+          </IBMPlexText>
+        ) : null}
+        {percentagePrescription ? (
+          <View style={styles.maxReferenceRow}>
+            <View style={styles.maxReferenceCard}>
+              <IBMPlexText style={styles.maxReferenceLabel}>
+                Program Max
+              </IBMPlexText>
+              <IBMPlexText style={styles.maxReferenceValue}>
+                {activePercentageWorkingSet?.percent1RM
+                  ? `${activePercentageWorkingSet.percent1RM}%`
+                  : "—"}
+              </IBMPlexText>
+            </View>
+            <View style={styles.maxReferenceCard}>
+              <IBMPlexText style={styles.maxReferenceLabel}>
+                Current 1RM
+              </IBMPlexText>
+              <IBMPlexText style={styles.maxReferenceValue}>
+                {currentOneRepMaxText || "—"}
+              </IBMPlexText>
+            </View>
+          </View>
+        ) : null}
+        {supportingTargetMetrics.length > 0 ? (
+          <View
+            style={[
+              styles.activeExerciseMetricsRow,
+              percentagePrescription
+                ? styles.percentageSupportingTargetMetrics
+                : null,
+            ]}
+          >
+            {supportingTargetMetrics.map((metric, metricIndex) => (
               <View
                 key={`${metric.label}-${metric.value}-${metricIndex}`}
                 style={styles.activeExerciseMetricColumn}
@@ -1608,12 +1711,12 @@ function ExerciseSessionStep({
               </View>
             ))}
           </View>
-        ) : (
+        ) : !percentagePrescription && !activeSetTargetText ? (
           <IBMPlexText style={styles.activeExerciseTargetsEmptyText}>
             No specific load, rep, or intensity target was set for this exercise.
             Follow the session guidance and log what you complete.
           </IBMPlexText>
-        )}
+        ) : null}
       </View>
 
       {loadedJumpPrescription ? (
@@ -1648,80 +1751,6 @@ function ExerciseSessionStep({
             compact={compact}
           />
         ) : null}
-
-        <View style={styles.sessionSetSection}>
-          <View style={styles.sessionSetSectionHeader}>
-            <View style={styles.sessionSetSectionIcon}>
-              <Ionicons color="#A1A1AA" name="albums-outline" size={19} />
-            </View>
-            <View style={styles.sessionSetSectionHeadingCopy}>
-              <IBMPlexText style={styles.sessionSetSectionEyebrow}>
-                Sets
-              </IBMPlexText>
-              <IBMPlexText style={styles.sessionSetCompletionText}>
-                {completedSetIndexes.length}/{prescribedSets.length || 1} complete
-              </IBMPlexText>
-            </View>
-          </View>
-
-          <View style={styles.sessionSetOverviewViewport}>
-            <ScrollView
-              horizontal
-              nestedScrollEnabled
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.sessionSetOverviewRow}
-              onLayout={(event) => {
-                setSetOverviewWidth(event.nativeEvent.layout.width);
-              }}
-            >
-              {setOverviewItems.map((item) => (
-                <TouchableOpacity
-                  key={item.setIndex}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Open set ${item.setIndex + 1}`}
-                  accessibilityState={{ selected: item.isActive }}
-                  activeOpacity={0.75}
-                  style={[
-                    styles.sessionSetOverviewItem,
-                    setOverviewItemWidth
-                      ? { width: setOverviewItemWidth }
-                      : null,
-                    item.isActive ? styles.sessionSetOverviewItemActive : null,
-                  ]}
-                  onPress={() => onSelectSet?.(item.setIndex)}
-                >
-                  <View style={styles.sessionSetOverviewItemHeader}>
-                    {item.isCompleted ? (
-                      <Ionicons
-                        color="#22C55E"
-                        name="checkmark-circle"
-                        size={15}
-                      />
-                    ) : null}
-                    <IBMPlexText
-                      style={[
-                        styles.sessionSetOverviewItemTitle,
-                        item.isActive
-                          ? styles.sessionSetOverviewItemTitleActive
-                          : null,
-                      ]}
-                    >
-                      Set {item.setIndex + 1}
-                    </IBMPlexText>
-                  </View>
-                  <IBMPlexText
-                    numberOfLines={2}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.78}
-                    style={styles.sessionSetOverviewItemSummary}
-                  >
-                    {item.summary}
-                  </IBMPlexText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
 
       </View>
     </View>
@@ -1818,6 +1847,24 @@ export default function ActiveSessionView({
 
         if (liftKey && referenceOneRepMaxKg) {
           accumulator[liftKey] = referenceOneRepMaxKg;
+        }
+
+        return accumulator;
+      }, {}),
+    [strengthAssessmentSummary]
+  );
+  const currentOneRepMaxByLift = useMemo(
+    () =>
+      (Array.isArray(strengthAssessmentSummary?.latestByLift)
+        ? strengthAssessmentSummary.latestByLift
+        : []
+      ).reduce((accumulator, entry) => {
+        const liftKey = getStrengthAssessmentLiftKey(entry?.liftName || "");
+        const currentOneRepMaxKg =
+          getStrengthAssessmentCurrentOneRepMaxKg(entry);
+
+        if (liftKey && currentOneRepMaxKg) {
+          accumulator[liftKey] = currentOneRepMaxKg;
         }
 
         return accumulator;
@@ -2339,6 +2386,11 @@ export default function ActiveSessionView({
       >
         <ActiveSessionHeader
           title={headerTitle}
+          subtitle={
+            showExerciseStep
+              ? `Exercise ${(activeStep?.exerciseIndex || 0) + 1} of ${normalizedExercises.length}`
+              : ""
+          }
           showHelp={showExerciseStep}
           compact={embedded}
           onHelp={() => setIsDescriptionMenuVisible(true)}
@@ -2457,7 +2509,6 @@ export default function ActiveSessionView({
                   )
                 )
                 .map(({ setIndex }) => setIndex)}
-              trackingDrafts={trackingDrafts}
               onSelectSet={(setIndex) => {
                 setActiveExerciseIndex(activeStep.exerciseIndex);
                 setActiveSetIndex(setIndex);
@@ -2465,6 +2516,7 @@ export default function ActiveSessionView({
               }}
               onDraftChange={updateTrackingDraft}
               strengthReferenceOneRepMaxByLift={strengthReferenceOneRepMaxByLift}
+              currentOneRepMaxByLift={currentOneRepMaxByLift}
               compact={embedded}
               unitSystem={unitSystem}
             />
@@ -2692,9 +2744,22 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: "center",
   },
+  headerSubtitle: {
+    color: "#7F7F87",
+    fontSize: 10,
+    fontWeight: "600",
+    lineHeight: 13,
+    marginTop: 2,
+    textAlign: "center",
+  },
   compactHeaderTitle: {
     fontSize: 15,
     lineHeight: 18,
+  },
+  compactHeaderSubtitle: {
+    fontSize: 9,
+    lineHeight: 11,
+    marginTop: 1,
   },
   headerTrailingActions: {
     alignItems: "center",
@@ -2846,22 +2911,59 @@ const styles = StyleSheet.create({
   activeExercisePlanCard: {
     alignItems: "center",
     alignSelf: "stretch",
-    borderColor: "#252525",
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: 0,
+    paddingVertical: 2,
   },
   compactActiveExercisePlanCard: {
+    paddingHorizontal: 0,
+    paddingVertical: 2,
+  },
+  activeExerciseTargetTopGap: {
+    height: 23,
+  },
+  activeSetTargetValue: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "800",
+    lineHeight: 34,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  compactActiveSetTargetValue: {
+    fontSize: 22,
+    lineHeight: 27,
+    marginBottom: 7,
+  },
+  maxReferenceRow: {
+    flexDirection: "row",
+    gap: 8,
+    width: "100%",
+  },
+  maxReferenceCard: {
+    alignItems: "center",
+    backgroundColor: "#0A0A0A",
+    borderColor: "#29292D",
+    borderRadius: 13,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 72,
     paddingHorizontal: 10,
     paddingVertical: 10,
   },
-  activeExerciseTargetsTitle: {
+  maxReferenceLabel: {
+    color: "#8B8B94",
+    fontSize: 10,
+    fontWeight: "600",
+    lineHeight: 13,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  maxReferenceValue: {
     color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: 18,
     fontWeight: "800",
-    lineHeight: 16,
-    marginBottom: 6,
+    lineHeight: 22,
     textAlign: "center",
   },
   activeExerciseTargetsEmptyText: {
@@ -2876,6 +2978,9 @@ const styles = StyleSheet.create({
   activeExerciseMetricsRow: {
     gap: 2,
     width: "100%",
+  },
+  percentageSupportingTargetMetrics: {
+    marginTop: 8,
   },
   activeExerciseMetricColumn: {
     alignItems: "center",
@@ -2982,93 +3087,46 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sessionSetSection: {
-    alignSelf: "stretch",
-    borderColor: "#252525",
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 10,
-    overflow: "hidden",
-    padding: 10,
-  },
-  sessionSetSectionHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-  },
-  sessionSetSectionIcon: {
-    alignItems: "center",
-    backgroundColor: "#0A0A0A",
-    borderColor: "#34343A",
-    borderRadius: 9,
-    borderWidth: 1,
-    height: 32,
-    justifyContent: "center",
-    width: 32,
-  },
-  sessionSetSectionHeadingCopy: {
-    gap: 2,
-  },
-  sessionSetSectionEyebrow: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "800",
-    lineHeight: 16,
-  },
-  sessionSetCompletionText: {
-    color: "#8B8B94",
-    fontSize: 10,
-    fontWeight: "600",
-    lineHeight: 12,
-  },
-  sessionSetOverviewViewport: {
-    minHeight: 60,
-    overflow: "hidden",
+    alignSelf: "center",
+    maxWidth: 300,
+    width: "72%",
   },
   sessionSetOverviewRow: {
-    alignItems: "center",
-    gap: SET_OVERVIEW_ITEM_GAP,
-    minWidth: "100%",
+    alignItems: "stretch",
+    flexDirection: "row",
+    gap: 6,
+    width: "100%",
   },
   sessionSetOverviewItem: {
     alignItems: "center",
-    backgroundColor: "#0A0A0A",
-    borderColor: "#2A2A2A",
-    borderRadius: 12,
+    backgroundColor: "transparent",
+    borderColor: "#34343A",
+    borderRadius: 10,
     borderWidth: 1,
-    gap: 4,
-    height: 60,
+    flex: 1,
+    height: 42,
     justifyContent: "center",
+    minWidth: 0,
     paddingHorizontal: 8,
-    paddingVertical: 7,
-    width: 96,
   },
   sessionSetOverviewItemActive: {
-    backgroundColor: "#181818",
-    borderColor: "#34343A",
-    borderRadius: 12,
-    borderWidth: 1,
+    borderColor: "#FFFFFF",
+    borderWidth: 2,
   },
-  sessionSetOverviewItemHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 4,
-    justifyContent: "center",
+  sessionSetOverviewItemCompleted: {
+    backgroundColor: "#34343A",
   },
   sessionSetOverviewItemTitle: {
-    color: "#D4D4D8",
-    fontSize: 11,
-    fontWeight: "600",
-    lineHeight: 14,
+    color: "#8B8B94",
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 18,
   },
   sessionSetOverviewItemTitleActive: {
     color: "#FFFFFF",
   },
-  sessionSetOverviewItemSummary: {
-    color: "#8B8B94",
-    fontSize: 9,
-    fontWeight: "400",
-    lineHeight: 12,
-    textAlign: "center",
+  sessionSetOverviewItemTitleCompleted: {
+    color: "#FFFFFF",
   },
   alreadyCompletedCard: {
     flex: 1,

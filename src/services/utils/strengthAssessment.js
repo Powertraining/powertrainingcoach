@@ -581,6 +581,23 @@ export function getStrengthAssessmentReferenceOneRepMaxKg(entry = {}) {
     : null;
 }
 
+export function getStrengthAssessmentCurrentOneRepMaxKg(entry = {}) {
+  const estimatedOneRepMaxKg = parsePositiveNumber(entry?.estimatedOneRepMaxKg);
+
+  if (estimatedOneRepMaxKg) {
+    return roundToTenth(estimatedOneRepMaxKg);
+  }
+
+  const enteredOneRepMaxKg = parsePositiveNumber(entry?.enteredOneRepMaxKg);
+
+  if (enteredOneRepMaxKg) {
+    return roundToTenth(enteredOneRepMaxKg);
+  }
+
+  const trainingMaxKg = parsePositiveNumber(entry?.trainingMaxKg);
+  return trainingMaxKg ? roundToTenth(trainingMaxKg) : null;
+}
+
 export function getProgramMaxLiftStatus(entry = {}, currentWeekNumber = 1) {
   if (!parsePositiveNumber(entry?.trainingMaxKg)) {
     return "missing";
