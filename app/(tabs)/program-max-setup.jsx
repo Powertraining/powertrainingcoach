@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
+import { persistModelImmediately } from "../../src/services/models/firebaseModel.js";
 import ProgramMaxSetupFlowView from "../../src/screens/ProgramMaxSetupFlowView.jsx";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
 import { getParamValue } from "../../src/services/utils/navigation.js";
@@ -60,6 +61,8 @@ const ProgramMaxSetupScreen = observer(function ProgramMaxSetupScreen() {
     setSubmitting(true);
     setErrorMessage("");
     try {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
       if (developerPreview) {
         if (router.canGoBack()) {
           router.back();
@@ -70,6 +73,7 @@ const ProgramMaxSetupScreen = observer(function ProgramMaxSetupScreen() {
       }
 
       await Promise.resolve(model.saveProgramMaxSetup?.(payload));
+      await persistModelImmediately(model);
       const currentTrainingDay =
         getClosestActiveTrainingDay(model.trainingPlan, model.completedDays) ||
         model.getCurrentTrainingDay?.(model.completedDays);

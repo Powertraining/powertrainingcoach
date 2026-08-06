@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Easing,
   Image,
@@ -604,6 +605,7 @@ export default function ProgramMaxSetupFlowView({
         >
           <Pressable
             accessibilityRole="button"
+            accessibilityState={{ busy: submitting, disabled: submitting }}
             disabled={submitting}
             onPress={handleSubmit}
             style={({ pressed }) => [
@@ -612,13 +614,20 @@ export default function ProgramMaxSetupFlowView({
               submitting ? styles.primaryButtonDisabled : null,
             ]}
           >
-            <IBMPlexText style={styles.primaryButtonText}>
-              {submitting
-                ? "Saving…"
-                : developerPreview
+            {submitting ? (
+              <View style={styles.primaryButtonLoadingContent}>
+                <ActivityIndicator color="#09090B" size="small" />
+                <IBMPlexText style={styles.primaryButtonText}>
+                  Finishing…
+                </IBMPlexText>
+              </View>
+            ) : (
+              <IBMPlexText style={styles.primaryButtonText}>
+                {developerPreview
                   ? reviewing ? "Finish preview" : "Review Week 1"
                   : reviewing ? "Start Week 1" : "Review Week 1"}
-            </IBMPlexText>
+              </IBMPlexText>
+            )}
           </Pressable>
         </View>
       </Animated.View>
@@ -686,5 +695,6 @@ const styles = StyleSheet.create({
   primaryButton: { alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 999, elevation: 8, justifyContent: "center", minHeight: 52, paddingHorizontal: 20, shadowColor: "#000000", shadowOffset: { height: 5, width: 0 }, shadowOpacity: 0.28, shadowRadius: 10 },
   primaryButtonPressed: { opacity: 0.78, transform: [{ scale: 0.985 }] },
   primaryButtonDisabled: { opacity: 0.45 },
+  primaryButtonLoadingContent: { alignItems: "center", flexDirection: "row", gap: 9 },
   primaryButtonText: { color: "#09090B", fontSize: 14, fontWeight: "900", letterSpacing: 0.3 },
 });

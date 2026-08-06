@@ -28,6 +28,7 @@ import {
 } from "../constants/circuitFocus.js";
 import {
   DELOAD_STRATEGY_OPTIONS,
+  getSportLoadLevelFromCombatTrainingIntensity,
   LIFT_INTENSITY_METHOD_OPTIONS,
   LOADING_STRATEGY_OPTIONS,
   PREFERRED_MAX_TEST_METHOD_OPTIONS,
@@ -43,7 +44,7 @@ const LIFT_INTENSITY_CARD_WIDTH = 190;
 const LIFT_INTENSITY_CARD_HEIGHT = 124;
 const PROFILE_PILL_HEIGHT = 72;
 const COMBAT_INTENSITY_METER_HEIGHT = 48;
-const COMBAT_INTENSITY_VALUES = ["light", "moderate", "intense"];
+const COMBAT_INTENSITY_VALUES = ["light", "moderate", "high", "very_high"];
 const ARROW_IMAGE = require("../assets/icons/arrow.png");
 
 const DESIRED_TRAINING_IMAGES = Object.freeze({
@@ -129,7 +130,8 @@ const SPRINTING_TARGET_LABELS = Object.freeze({
 const COMBAT_INTENSITY_LABELS = Object.freeze({
   light: "Light",
   moderate: "Moderate",
-  intense: "Intense",
+  high: "High",
+  very_high: "Competition prep",
 });
 
 const DELOAD_OPTION_TEXT = Object.freeze({
@@ -258,19 +260,23 @@ function getMinuteLabelParts(label) {
 
 function getCombatIntensityFillRatioFromValue(value) {
   const index = COMBAT_INTENSITY_VALUES.indexOf(value);
-  return index >= 0 ? 0.3 + index * 0.3 : 0.6;
+  return index >= 0 ? 0.2 + index * 0.25 : 0.45;
 }
 
 function getCombatIntensityValueFromFillRatio(fillRatio) {
-  if (fillRatio < 0.45) {
+  if (fillRatio < 0.325) {
     return "light";
   }
 
-  if (fillRatio < 0.75) {
+  if (fillRatio < 0.575) {
     return "moderate";
   }
 
-  return "intense";
+  if (fillRatio < 0.825) {
+    return "high";
+  }
+
+  return "very_high";
 }
 
 export function ProfileSessionDurationSelector({
@@ -724,6 +730,7 @@ export function CombatTrainingIntensityMeter({ value, onChange, onDragChange }) 
       >
         <View pointerEvents="none" style={styles.combatIntensityTickLow} />
         <View pointerEvents="none" style={styles.combatIntensityTickMid} />
+        <View pointerEvents="none" style={styles.combatIntensityTickHigh} />
         <View style={styles.combatIntensityFillClip} pointerEvents="none">
           <Animated.View
             style={[
@@ -1810,7 +1817,10 @@ export default function ProfileTrainingPreferencesFields({
             <FieldPanel label="Combat training intensity">
               <CombatTrainingIntensityMeter
                 value={resolvedValues.combatTrainingIntensity}
-                onChange={(value) => updateField("combatTrainingIntensity", value)}
+                onChange={(value) => updateFields({
+                  combatTrainingIntensity: value,
+                  sportLoadLevel: getSportLoadLevelFromCombatTrainingIntensity(value),
+                })}
                 onDragChange={onCombatIntensityDragChange}
               />
             </FieldPanel>
@@ -2516,7 +2526,7 @@ const styles = StyleSheet.create({
   combatIntensityTickLow: {
     backgroundColor: "#6B6B6B",
     bottom: 0,
-    left: "33.3333%",
+    left: "25%",
     position: "absolute",
     top: 0,
     width: 1,
@@ -2525,7 +2535,16 @@ const styles = StyleSheet.create({
   combatIntensityTickMid: {
     backgroundColor: "#6B6B6B",
     bottom: 0,
-    left: "66.6667%",
+    left: "50%",
+    position: "absolute",
+    top: 0,
+    width: 1,
+    zIndex: 2,
+  },
+  combatIntensityTickHigh: {
+    backgroundColor: "#6B6B6B",
+    bottom: 0,
+    left: "75%",
     position: "absolute",
     top: 0,
     width: 1,

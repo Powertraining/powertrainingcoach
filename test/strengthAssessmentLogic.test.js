@@ -1,8 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { normalizeAppLogicSettings } from "../src/constants/appLogicSettings.js";
-import { parseGeneratedTrainingPlan } from "../src/services/utils/trainingPlan.js";
+import {
+  getSportLoadLevelFromCombatTrainingIntensity,
+  normalizeAppLogicSettings,
+} from "../src/constants/appLogicSettings.js";
+import {
+  parseGeneratedTrainingPlan,
+  parsePersistedTrainingPlan,
+} from "../src/services/utils/trainingPlan.js";
 import { getPrescribedSetCount } from "../src/services/utils/exerciseSets.js";
 import {
   calculateManualProgramMaxKg,
@@ -62,6 +68,23 @@ test("strength assessment entries compute estimated 1RM for RPE-based and multi-
   assert.equal(rpeBasedEntry.trainingMaxKg, 175);
   assert.equal(multiRmEntry.estimatedOneRepMaxKg, 140);
   assert.equal(multiRmEntry.trainingMaxKg, 140);
+});
+
+test("sport-training intensity supports four levels and migrates the old intense value", () => {
+  assert.equal(
+    normalizeAppLogicSettings({ combatTrainingIntensity: "very_high" })
+      .combatTrainingIntensity,
+    "very_high"
+  );
+  assert.equal(
+    normalizeAppLogicSettings({ combatTrainingIntensity: "intense" })
+      .combatTrainingIntensity,
+    "high"
+  );
+  assert.equal(getSportLoadLevelFromCombatTrainingIntensity("light"), 1);
+  assert.equal(getSportLoadLevelFromCombatTrainingIntensity("moderate"), 2);
+  assert.equal(getSportLoadLevelFromCombatTrainingIntensity("high"), 3);
+  assert.equal(getSportLoadLevelFromCombatTrainingIntensity("very_high"), 4);
 });
 
 test("automatic Program Maxes keep the raw estimate and round the active max", () => {
@@ -161,6 +184,19 @@ test("Program Max setup derives required lifts from the generated plan", () => {
   }), true);
   assert.equal(shouldRequireProgramMaxSetup({
     plan: { ...plan, programMaxSetupCompletedAt: "2026-08-03T00:00:00.000Z" },
+    liftIntensityMethod: "percentage",
+    strengthAssessmentSummary: summary,
+  }), false);
+  const persistedPlan = parsePersistedTrainingPlan({
+    ...plan,
+    programMaxSetupCompletedAt: "2026-08-03T00:00:00.000Z",
+  });
+  assert.equal(
+    persistedPlan.programMaxSetupCompletedAt,
+    "2026-08-03T00:00:00.000Z"
+  );
+  assert.equal(shouldRequireProgramMaxSetup({
+    plan: persistedPlan,
     liftIntensityMethod: "percentage",
     strengthAssessmentSummary: summary,
   }), false);

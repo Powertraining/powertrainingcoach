@@ -34,6 +34,7 @@ import PercentageReferenceMethodView from "./appLogicSettings/PercentageReferenc
 import DeloadStrategyView from "./appLogicSettings/DeloadStrategyView.jsx";
 import LoadingStrategyView from "./appLogicSettings/LoadingStrategyView.jsx";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
+import { getSportLoadLevelFromCombatTrainingIntensity } from "../constants/appLogicSettings.js";
 const BASE_TRAINING_PREFERENCES_SECTION_COUNT = 17;
 const APP_LOGIC_SECTION_COUNT = 4;
 export const DESIRED_TRAINING_STEP_INDEX = 1;
@@ -710,7 +711,10 @@ export default function TrainingPreferencesFields({
       <CombatTrainingIntensityView
         value={resolvedValues.combatTrainingIntensity}
         onChange={(sectionValue) =>
-          updateField("combatTrainingIntensity", sectionValue)
+          updateFields({
+            combatTrainingIntensity: sectionValue,
+            sportLoadLevel: getSportLoadLevelFromCombatTrainingIntensity(sectionValue),
+          })
         }
       />
     ),

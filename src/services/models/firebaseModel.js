@@ -10,6 +10,7 @@ import {
 } from "./forumModel";
 import {
   parseGeneratedTrainingPlan,
+  parsePersistedTrainingPlan,
   sanitizeTrainingPlanForQuestionnaire,
 } from "../utils/trainingPlan.js";
 import { requiresEmailVerification } from "../utils/emailVerification.js";
@@ -92,7 +93,7 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
     }
     if (persistedData.trainingPlan) {
       try {
-        model.trainingPlan = parseGeneratedTrainingPlan(
+        model.trainingPlan = parsePersistedTrainingPlan(
           persistedData.trainingPlan
         );
         model.trainingPlan = sanitizeTrainingPlanForQuestionnaire(
@@ -340,4 +341,31 @@ export function connectToPersistance(model, sideEffectWatcherFunction) {
 
   // We get the data only when the user connects
   subscribeToAuthChanges(onAuthStateChangedACB);
+}
+
+export async function persistModelImmediately(model) {
+  const saveUid = model?.user?.uid || "";
+
+  if (!saveUid || !model?.ready) {
+    throw new Error("Your Program Maxes could not be saved before leaving this screen.");
+  }
+
+  if (!isSameAuthenticatedUser(model, saveUid)) {
+    throw new Error("The signed-in user changed before the Program Maxes were saved.");
+  }
+
+  const saveResult = await saveUserData(
+    saveUid,
+    buildClientPersistableUserData(model)
+  );
+
+  if (!saveResult?.success) {
+    throw saveResult?.error || new Error("Could not save your Program Maxes.");
+  }
+
+  if (!isSameAuthenticatedUser(model, saveUid)) {
+    throw new Error("The signed-in user changed while the Program Maxes were saving.");
+  }
+
+  return saveResult;
 }

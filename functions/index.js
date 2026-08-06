@@ -4360,6 +4360,10 @@ Follow these domain rules:
 - Endurance must account for combat sport, trainingPhase, sportLoadLevel,
   combatTrainingIntensity, S&C frequency, preferred weekdays, sessionDuration,
   injuries, equipment, and selected modality.
+- Interpret combatTrainingIntensity as four ordered levels: light, moderate, high,
+  and very_high. very_high means near-maximal, fight-like, or intensive competition
+  preparation that heavily affects recovery. Reduce optional S&C and endurance
+  fatigue progressively as this value rises.
 - In off-camp/off-season, endurance may build aerobic base, repeated-effort
   capacity, and weak links. In fight camp/in-camp, fit endurance around
   sparring, pads, grappling, weight management, and freshness.

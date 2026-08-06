@@ -14,7 +14,8 @@ export const TRAINING_PHASE_OPTIONS = Object.freeze([
 export const COMBAT_TRAINING_INTENSITY_OPTIONS = Object.freeze([
   { label: "Light", value: "light" },
   { label: "Moderate", value: "moderate" },
-  { label: "Intense", value: "intense" },
+  { label: "High", value: "high" },
+  { label: "Competition Prep", value: "very_high" },
 ]);
 
 export const SPORT_LOAD_LEVEL_OPTIONS = Object.freeze([
@@ -139,6 +140,23 @@ function isAllowedValue(value, options) {
   return options.some((option) => option.value === value);
 }
 
+export function normalizeCombatTrainingIntensity(value) {
+  const migratedValue = value === "intense" ? "high" : value;
+  return isAllowedValue(migratedValue, COMBAT_TRAINING_INTENSITY_OPTIONS)
+    ? migratedValue
+    : APP_LOGIC_SETTINGS_DEFAULTS.combatTrainingIntensity;
+}
+
+export function getSportLoadLevelFromCombatTrainingIntensity(value) {
+  const normalizedValue = normalizeCombatTrainingIntensity(value);
+  return Math.max(
+    1,
+    COMBAT_TRAINING_INTENSITY_OPTIONS.findIndex(
+      (option) => option.value === normalizedValue
+    ) + 1
+  );
+}
+
 function normalizePercentageReferenceMethod(value) {
   if (value === "heavy_single") {
     return "rpe_based_1rm";
@@ -201,12 +219,9 @@ function coerceAppLogicSettings(source = {}, { preserveCompetitionTimeline = fal
       preserveCompetitionTimeline || inferredTrainingPhase === "in_camp"
         ? competitionTimeline
         : "",
-    combatTrainingIntensity: isAllowedValue(
-      safeSource.combatTrainingIntensity,
-      COMBAT_TRAINING_INTENSITY_OPTIONS
-    )
-      ? safeSource.combatTrainingIntensity
-      : APP_LOGIC_SETTINGS_DEFAULTS.combatTrainingIntensity,
+    combatTrainingIntensity: normalizeCombatTrainingIntensity(
+      safeSource.combatTrainingIntensity
+    ),
     sportLoadLevel: normalizeSportLoadLevel(safeSource.sportLoadLevel),
     liftIntensityMethod: isAllowedValue(
       safeSource.liftIntensityMethod,

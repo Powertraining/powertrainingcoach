@@ -16,7 +16,10 @@ import {
     getTrainingPreferencesFormState,
     normalizeTrainingPreferences,
 } from "../constants/trainingPreferences.js";
-import { PREFERRED_MAX_TEST_METHOD_OPTIONS } from "../constants/appLogicSettings.js";
+import {
+    getSportLoadLevelFromCombatTrainingIntensity,
+    PREFERRED_MAX_TEST_METHOD_OPTIONS,
+} from "../constants/appLogicSettings.js";
 import { useAndroidBackHandler } from "../services/utils/useAndroidBackHandler.js";
 import IBMPlexText from "../components/textComponents/IBMPlexText.jsx";
 
@@ -92,6 +95,13 @@ export default function InputFormView({
                 formState,
                 "combatTrainingIntensity"
             ) ?? "light",
+            sportLoadLevel: getSportLoadLevelFromCombatTrainingIntensity(
+                getNullableInitialValue(
+                    initialValues,
+                    formState,
+                    "combatTrainingIntensity"
+                ) ?? "light"
+            ),
             liftIntensityMethod: getNullableInitialValue(
                 initialValues,
                 formState,

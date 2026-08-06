@@ -2068,6 +2068,17 @@ export function parseGeneratedTrainingPlan(plan = {}) {
   return normalizedPlan;
 }
 
+export function parsePersistedTrainingPlan(plan = {}) {
+  const normalizedPlan = parseGeneratedTrainingPlan(plan);
+  const programMaxSetupCompletedAt = normalizeString(
+    plan?.programMaxSetupCompletedAt
+  );
+
+  return programMaxSetupCompletedAt
+    ? { ...normalizedPlan, programMaxSetupCompletedAt }
+    : normalizedPlan;
+}
+
 function weekContainsRemovedManualMerge(week = {}) {
   const adjustmentState =
     week?.adjustmentState && typeof week.adjustmentState === "object"
