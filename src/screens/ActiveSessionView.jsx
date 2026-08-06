@@ -1632,23 +1632,36 @@ function ExerciseSessionStep({
   return (
     <View style={[styles.exerciseCard, compact ? styles.compactExerciseCard : null]}>
       {setSelector}
+
+      {loadedJumpPrescription ? (
+        <LoadedJumpGuideline compact={compact} />
+      ) : null}
+
+      {strengthAssessment ? (
+        <IBMPlexText style={[styles.workingSetsNote, compact ? styles.compactWorkingSetsNote : null]}>
+          Warm up as needed; log only the top set.
+        </IBMPlexText>
+      ) : null}
+
       <View
         style={[
           styles.activeExercisePlanCard,
           compact ? styles.compactActiveExercisePlanCard : null,
         ]}
       >
-        <View style={styles.activeExerciseTargetTopGap} />
-        {activeSetTargetText ? (
-          <IBMPlexText
-            style={[
-              styles.activeSetTargetValue,
-              compact ? styles.compactActiveSetTargetValue : null,
-            ]}
-          >
-            {activeSetTargetText}
-          </IBMPlexText>
-        ) : null}
+        <View style={styles.activeExerciseMainTargetArea}>
+          {activeSetTargetText ? (
+            <IBMPlexText
+              style={[
+                styles.activeSetTargetValue,
+                compact ? styles.compactActiveSetTargetValue : null,
+              ]}
+            >
+              {activeSetTargetText}
+            </IBMPlexText>
+          ) : null}
+        </View>
+        <View style={styles.activeExerciseSupportingTargets}>
         {percentagePrescription ? (
           <View style={styles.maxReferenceRow}>
             <View style={styles.maxReferenceCard}>
@@ -1717,17 +1730,8 @@ function ExerciseSessionStep({
             Follow the session guidance and log what you complete.
           </IBMPlexText>
         ) : null}
+        </View>
       </View>
-
-      {loadedJumpPrescription ? (
-        <LoadedJumpGuideline compact={compact} />
-      ) : null}
-
-      {strengthAssessment ? (
-        <IBMPlexText style={[styles.workingSetsNote, compact ? styles.compactWorkingSetsNote : null]}>
-          Warm up as needed; log only the top set.
-        </IBMPlexText>
-      ) : null}
 
       <View style={[styles.bottomControls, compact ? styles.compactBottomControls : null]}>
         {showInputs || customFields.length > 0 ? (
@@ -2911,6 +2915,8 @@ const styles = StyleSheet.create({
   activeExercisePlanCard: {
     alignItems: "center",
     alignSelf: "stretch",
+    flex: 1,
+    minHeight: 0,
     paddingHorizontal: 0,
     paddingVertical: 2,
   },
@@ -2918,21 +2924,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 2,
   },
-  activeExerciseTargetTopGap: {
-    height: 23,
+  activeExerciseMainTargetArea: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 54,
+    width: "100%",
+  },
+  activeExerciseSupportingTargets: {
+    alignItems: "center",
+    width: "100%",
   },
   activeSetTargetValue: {
     color: "#FFFFFF",
     fontSize: 28,
     fontWeight: "800",
     lineHeight: 34,
-    marginBottom: 10,
     textAlign: "center",
   },
   compactActiveSetTargetValue: {
     fontSize: 22,
     lineHeight: 27,
-    marginBottom: 7,
   },
   maxReferenceRow: {
     flexDirection: "row",
@@ -3080,7 +3092,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   bottomControls: {
-    marginTop: "auto",
     gap: 8,
   },
   compactBottomControls: {
