@@ -772,7 +772,6 @@ function getExerciseRecommendationDisplay(
             primaryWorkingSet.percent1RM
                 ? `${primaryWorkingSet.percent1RM}% Program Max`
                 : "",
-            primaryWorkingSet.relativeIntensity ? `RI ${primaryWorkingSet.relativeIntensity}%` : "",
             percentageNotesDetails,
         ].filter(Boolean);
 
@@ -904,16 +903,25 @@ function getCompactExerciseCardMetrics(
         return normalizedValue;
     };
     const intensityFromDetails =
-        recommendationDetails.find((detail) => /^(?:RPE|RIR|RI\b)/i.test(detail)) ||
-        recommendationDetails.find((detail) => /%|BPM|zone/i.test(detail)) ||
+        recommendationDetails.find((detail) => /%\s*(?:Program Max|1RM)?/i.test(detail)) ||
+        recommendationDetails.find((detail) => /^(?:RPE|RIR)\b/i.test(detail)) ||
+        recommendationDetails.find((detail) => /BPM|zone/i.test(detail)) ||
         recommendationDetails[0] ||
         "";
+    const percentagePrescription = getExercisePercentagePrescription(exercise);
+    const primaryPercentageWorkingSet = getPrimaryPercentageWorkingSet(
+        percentagePrescription
+    );
+    const absolutePercentageIntensity = primaryPercentageWorkingSet?.percent1RM
+        ? `${primaryPercentageWorkingSet.percent1RM}%`
+        : "";
     const medicineBallIntensity = getMedicineBallIntensity(exercise, unitSystem);
     const bodyweightOnlyPlyoIntensity =
         !medicineBallIntensity && isBodyweightOnlyPlyoExercise(exercise) ? "Bodyweight" : "";
     const intensity = formatIntensityDisplay(
         medicineBallIntensity ||
         bodyweightOnlyPlyoIntensity ||
+        absolutePercentageIntensity ||
         (displayedTargetRpe
             ? `RPE ${displayedTargetRpe}`
             : endurancePrescription.intensity || intensityFromDetails)
