@@ -72,11 +72,13 @@ import {
 } from "../utils/trainingPlan.js";
 import {
   createDefaultStrengthAssessmentState,
+  createManualProgramMaxEntry,
   createStrengthAssessmentEntry,
   getStrengthAssessmentMinimumRpe,
   getStrengthAssessmentLiftKey,
   getStrengthAssessmentSessionResults,
   getStrengthAssessmentSummary,
+  getRequiredProgramMaxLifts,
   normalizeStrengthAssessmentConfig,
   normalizeStrengthAssessmentState,
   upsertStrengthAssessmentSessionResults,
@@ -1075,6 +1077,65 @@ export const model = {
     return getStrengthAssessmentSummary(this.strengthAssessmentState);
   },
 
+  saveProgramMaxSetup({ manualMaxes = [] } = {}) {
+    if (!this.trainingPlan) {
+      throw new Error("A generated training plan is required before setting Program Maxes.");
+    }
+
+    const performedAt = new Date().toISOString();
+    const sessionKey = `program-max-setup-${this.trainingPlanBatch || 1}`;
+    const requiredLiftKeys = new Set(
+      getRequiredProgramMaxLifts(
+        this.trainingPlan,
+        this.getStrengthAssessmentSummary()
+      ).map((lift) => lift.liftKey)
+    );
+    const entries = (Array.isArray(manualMaxes) ? manualMaxes : [])
+      .map((manualMax) =>
+        createManualProgramMaxEntry({
+          ...manualMax,
+          unitSystem: this.unitSystem,
+          sessionKey,
+          performedAt,
+        })
+      )
+      .filter(
+        (entry) =>
+          entry && requiredLiftKeys.has(getStrengthAssessmentLiftKey(entry.liftName, ""))
+      );
+
+    this.strengthAssessmentState = upsertStrengthAssessmentSessionResults(
+      this.strengthAssessmentState,
+      sessionKey,
+      entries
+    );
+
+    const planWithKnownMaxes = entries.reduce(
+      (nextPlan, entry) =>
+        applyProgramMaxToFutureExposures(nextPlan, {
+          liftName: entry.liftName,
+          afterWeekNumber: 0,
+          afterDayNumber: 0,
+          loadingStrategy: this.questionnaire?.loadingStrategy,
+        }),
+      this.trainingPlan
+    );
+
+    this.trainingPlan = {
+      ...sanitizeTrainingPlanForQuestionnaire(
+        planWithKnownMaxes,
+        this.questionnaire
+      ),
+      programMaxSetupCompletedAt: performedAt,
+    };
+
+    return {
+      entries,
+      plan: this.trainingPlan,
+      strengthAssessmentState: this.strengthAssessmentState,
+    };
+  },
+
   getTrainingPerformanceSessionResults(weekNumber, dayNumber) {
     return getTrainingPerformanceSessionResults(
       this.trainingPerformanceState,
@@ -1318,6 +1379,7 @@ export const model = {
                 minimumRpe: getStrengthAssessmentMinimumRpe(exercise),
               },
               result,
+              unitSystem: this.unitSystem,
               previousTrainingMaxKg,
               sessionKey,
               weekNumber,
@@ -1344,7 +1406,10 @@ export const model = {
             applyProgramMaxToFutureExposures(nextPlan, {
               liftName: entry.liftName,
               afterWeekNumber: entry.weekNumber,
-              afterDayNumber: entry.dayNumber,
+              afterDayNumber:
+                entry.method === "rpe_based_1rm"
+                  ? Number.MAX_SAFE_INTEGER
+                  : entry.dayNumber,
               loadingStrategy: this.questionnaire?.loadingStrategy,
             }),
           this.trainingPlan

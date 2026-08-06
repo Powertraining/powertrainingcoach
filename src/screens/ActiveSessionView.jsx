@@ -1845,6 +1845,7 @@ export default function ActiveSessionView({
   );
   const [isDescriptionMenuVisible, setIsDescriptionMenuVisible] = useState(false);
   const [newProgramMax, setNewProgramMax] = useState(null);
+  const [assessmentInputError, setAssessmentInputError] = useState("");
   const advanceTimeoutRef = useRef(null);
   const [completedStepKeys, setCompletedStepKeys] = useState(() =>
     getSavedCompletedStepKeys(initialSessionProgress?.completedStepKeys)
@@ -2014,6 +2015,10 @@ export default function ActiveSessionView({
   function updateTrackingDraft(exerciseIndex, setIndex, field, value, isCustomField = false) {
     const draftKey = getDraftKey(exerciseIndex, setIndex);
 
+    if (assessmentInputError) {
+      setAssessmentInputError("");
+    }
+
     setTrackingDrafts((currentDrafts) => ({
       ...currentDrafts,
       [draftKey]: {
@@ -2120,15 +2125,22 @@ export default function ActiveSessionView({
           minimumRpe: getStrengthAssessmentMinimumRpe(activeExercise),
         },
         result,
+        unitSystem,
         exerciseIndex: activeStep.exerciseIndex,
         setIndex: activeStep.setIndex,
         sourceExerciseName: activeExercise?.name,
       });
 
-      if (entry) {
-        setNewProgramMax(entry);
-        onStrengthAssessmentSave?.(getTrackedResultsFromDrafts(trackingDrafts));
+      if (!entry) {
+        setAssessmentInputError(
+          "Enter the working-set load, 3–5 completed reps, and an RPE from 8–10."
+        );
+        return;
       }
+
+      setAssessmentInputError("");
+      setNewProgramMax(entry);
+      onStrengthAssessmentSave?.(getTrackedResultsFromDrafts(trackingDrafts));
     }
 
     setCompletedStepKeys((currentCompletedStepKeys) => {
@@ -2329,17 +2341,22 @@ export default function ActiveSessionView({
             <IBMPlexText style={styles.newProgramMaxIcon}>✓</IBMPlexText>
             <View style={styles.newProgramMaxCopy}>
               <IBMPlexText style={styles.newProgramMaxTitle}>
-                New Program Max:{" "}
-                {formatWeightFromKilograms(
-                  newProgramMax.trainingMaxKg,
-                  unitSystem
-                )}
+                Suitable estimation set captured
               </IBMPlexText>
               <IBMPlexText style={styles.newProgramMaxDescription}>
-                {newProgramMax.liftName} switches to % loading on its next exposure
+                Estimated Program Max {formatWeightFromKilograms(
+                  newProgramMax.trainingMaxKg,
+                  unitSystem
+                )}. It will be applied from Week 2.
               </IBMPlexText>
             </View>
           </View>
+        ) : null}
+
+        {assessmentInputError ? (
+          <IBMPlexText accessibilityRole="alert" style={styles.assessmentInputError}>
+            {assessmentInputError}
+          </IBMPlexText>
         ) : null}
 
         <ActiveSessionSlideIn key={activeSessionSlideKey}>
@@ -2913,6 +2930,14 @@ const styles = StyleSheet.create({
     color: "#B7DCC1",
     fontSize: 12,
     marginTop: 2,
+  },
+  assessmentInputError: {
+    color: "#E3262E",
+    fontSize: 12,
+    lineHeight: 17,
+    marginHorizontal: SESSION_HORIZONTAL_PADDING,
+    marginTop: 10,
+    textAlign: "center",
   },
   compactExerciseCard: {
     gap: 9,

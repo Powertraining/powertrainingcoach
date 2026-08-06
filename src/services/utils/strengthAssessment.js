@@ -1,7 +1,13 @@
+import {
+  kilogramsToPounds,
+  poundsToKilograms,
+} from "./measurementUnits.js";
+
 const STRENGTH_ASSESSMENT_METHODS = Object.freeze({
   TRUE_1RM: "true_1rm",
   MULTI_RM: "multi_rm",
   RPE_BASED_1RM: "rpe_based_1rm",
+  MANUAL_1RM: "manual_1rm",
 });
 
 const VALID_STRENGTH_ASSESSMENT_METHODS = new Set(
@@ -14,6 +20,8 @@ const LEGACY_STRENGTH_ASSESSMENT_METHODS = Object.freeze({
 const DEFAULT_STRENGTH_ASSESSMENT_METHOD =
   STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM;
 const DEFAULT_TRAINING_MAX_BUFFER = 0.9;
+const METRIC_PROGRAM_MAX_INCREMENT_KG = 2.5;
+const IMPERIAL_PROGRAM_MAX_INCREMENT_LB = 5;
 const RECENT_ASSESSMENT_LIMIT = 8;
 const CLOSE_GRIP_BENCH_PRESS_REFERENCE_FACTOR = 0.95;
 const BENCH_PRESS_LIFT_KEYS = Object.freeze([
@@ -71,6 +79,70 @@ function parseExerciseIndex(value) {
 
 function roundToTenth(value) {
   return Number.isFinite(value) ? Math.round(value * 10) / 10 : null;
+}
+
+export const MANUAL_MAX_CONFIDENCE_OPTIONS = Object.freeze([
+  Object.freeze({
+    value: "very_confident",
+    label: "Very",
+    description: "Tested recently, usually within the last 4–8 weeks.",
+    multiplier: 1,
+  }),
+  Object.freeze({
+    value: "somewhat_confident",
+    label: "Somewhat",
+    description: "Tested around 8–16 weeks ago.",
+    multiplier: 0.9,
+  }),
+  Object.freeze({
+    value: "not_confident",
+    label: "Not",
+    description: "Older than roughly 16 weeks or clearly uncertain.",
+    multiplier: 0.8,
+  }),
+]);
+
+function normalizeManualMaxConfidence(value) {
+  return MANUAL_MAX_CONFIDENCE_OPTIONS.some((option) => option.value === value)
+    ? value
+    : "";
+}
+
+export function roundProgramMaxKg(valueKg, unitSystem = "metric") {
+  if (!Number.isFinite(valueKg) || valueKg <= 0) {
+    return null;
+  }
+
+  if (unitSystem === "imperial") {
+    const valueLb = kilogramsToPounds(valueKg);
+    const roundedValueLb =
+      Math.round(valueLb / IMPERIAL_PROGRAM_MAX_INCREMENT_LB) *
+      IMPERIAL_PROGRAM_MAX_INCREMENT_LB;
+
+    return roundToTenth(poundsToKilograms(roundedValueLb));
+  }
+
+  return (
+    Math.round(valueKg / METRIC_PROGRAM_MAX_INCREMENT_KG) *
+    METRIC_PROGRAM_MAX_INCREMENT_KG
+  );
+}
+
+export function calculateManualProgramMaxKg({
+  enteredOneRepMaxKg,
+  confidence,
+  unitSystem = "metric",
+} = {}) {
+  const enteredMaxKg = parsePositiveNumber(enteredOneRepMaxKg);
+  const confidenceOption = MANUAL_MAX_CONFIDENCE_OPTIONS.find(
+    (option) => option.value === normalizeManualMaxConfidence(confidence)
+  );
+
+  if (!enteredMaxKg || !confidenceOption) {
+    return null;
+  }
+
+  return roundProgramMaxKg(enteredMaxKg * confidenceOption.multiplier, unitSystem);
 }
 
 function sortAssessmentEntries(left = {}, right = {}) {
@@ -165,22 +237,36 @@ function calculateEstimatedOneRepMax(method, { loadKg, reps, rpe }) {
   }
 }
 
-function calculateTrainingMax(method, estimatedOneRepMaxKg, previousTrainingMaxKg = null) {
+function calculateTrainingMax(
+  method,
+  estimatedOneRepMaxKg,
+  previousTrainingMaxKg = null,
+  unitSystem = "metric"
+) {
   const baseTrainingMax =
     method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
       ? estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER
       : estimatedOneRepMaxKg;
 
+  const finalizeTrainingMax = (valueKg) =>
+    method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
+      ? roundToTenth(valueKg)
+      : roundProgramMaxKg(valueKg, unitSystem);
+
   if (!Number.isFinite(previousTrainingMaxKg) || previousTrainingMaxKg <= 0) {
-    return roundToTenth(baseTrainingMax);
+    return finalizeTrainingMax(baseTrainingMax);
+  }
+
+  if (method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM) {
+    return finalizeTrainingMax(baseTrainingMax);
   }
 
   if (method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM) {
-    return roundToTenth(baseTrainingMax);
+    return finalizeTrainingMax(baseTrainingMax);
   }
 
   if (method === STRENGTH_ASSESSMENT_METHODS.MULTI_RM) {
-    return roundToTenth(
+    return finalizeTrainingMax(
       clampRelativeChange(baseTrainingMax, previousTrainingMaxKg, 7.5)
     );
   }
@@ -190,16 +276,16 @@ function calculateTrainingMax(method, estimatedOneRepMaxKg, previousTrainingMaxK
   const absoluteDifferencePercent = Math.abs(differencePercent);
 
   if (absoluteDifferencePercent <= 2.5) {
-    return roundToTenth(baseTrainingMax);
+    return finalizeTrainingMax(baseTrainingMax);
   }
 
   if (absoluteDifferencePercent <= 7.5) {
-    return roundToTenth(
+    return finalizeTrainingMax(
       clampRelativeChange(baseTrainingMax, previousTrainingMaxKg, 5)
     );
   }
 
-  return roundToTenth(
+  return finalizeTrainingMax(
     clampRelativeChange(baseTrainingMax, previousTrainingMaxKg, 7.5)
   );
 }
@@ -237,7 +323,23 @@ function normalizeStrengthAssessmentEntry(source = {}) {
     reps: parsePositiveInteger(safeSource.reps),
     rpe: parsePositiveNumber(safeSource.rpe),
     estimatedOneRepMaxKg: roundToTenth(estimatedOneRepMaxKg),
+    ...(parsePositiveNumber(safeSource.rawEstimatedOneRepMaxKg)
+      ? { rawEstimatedOneRepMaxKg: parsePositiveNumber(safeSource.rawEstimatedOneRepMaxKg) }
+      : {}),
     trainingMaxKg: roundToTenth(trainingMaxKg),
+    ...(normalizeString(safeSource.source)
+      ? { source: normalizeString(safeSource.source) }
+      : {}),
+    ...(normalizeManualMaxConfidence(safeSource.confidence)
+      ? { confidence: normalizeManualMaxConfidence(safeSource.confidence) }
+      : {}),
+    ...(parsePositiveNumber(safeSource.enteredOneRepMaxKg)
+      ? {
+          enteredOneRepMaxKg: roundToTenth(
+            parsePositiveNumber(safeSource.enteredOneRepMaxKg)
+          ),
+        }
+      : {}),
     performedAt: normalizeString(safeSource.performedAt),
     prompt: normalizeString(safeSource.prompt),
   };
@@ -295,6 +397,8 @@ export function getStrengthAssessmentMethodLabel(method) {
   switch (normalizeStrengthAssessmentMethod(method)) {
     case STRENGTH_ASSESSMENT_METHODS.TRUE_1RM:
       return "True 1RM test";
+    case STRENGTH_ASSESSMENT_METHODS.MANUAL_1RM:
+      return "Manually entered 1RM";
     case STRENGTH_ASSESSMENT_METHODS.MULTI_RM:
       return "2-5RM + Epley";
     case STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM:
@@ -465,10 +569,143 @@ export function getStrengthAssessmentReferenceOneRepMaxKg(entry = {}) {
   }
 
   const estimatedOneRepMaxKg = parsePositiveNumber(entry?.estimatedOneRepMaxKg);
+  const method = normalizeStrengthAssessmentMethod(entry?.method);
 
   return estimatedOneRepMaxKg
-    ? roundToTenth(estimatedOneRepMaxKg * DEFAULT_TRAINING_MAX_BUFFER)
+    ? roundToTenth(
+        estimatedOneRepMaxKg *
+          (method === STRENGTH_ASSESSMENT_METHODS.TRUE_1RM
+            ? DEFAULT_TRAINING_MAX_BUFFER
+            : 1)
+      )
     : null;
+}
+
+export function getProgramMaxLiftStatus(entry = {}, currentWeekNumber = 1) {
+  if (!parsePositiveNumber(entry?.trainingMaxKg)) {
+    return "missing";
+  }
+
+  if (entry?.method !== STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM) {
+    return "active";
+  }
+
+  const capturedWeek = parsePositiveInteger(entry?.weekNumber);
+  const currentWeek = parsePositiveInteger(currentWeekNumber) || 1;
+  return capturedWeek && currentWeek <= capturedWeek
+    ? "provisional_ready"
+    : "active";
+}
+
+export function createManualProgramMaxEntry({
+  liftName,
+  enteredOneRepMaxKg,
+  confidence,
+  unitSystem = "metric",
+  sessionKey = "program-max-setup",
+  performedAt = new Date().toISOString(),
+} = {}) {
+  const normalizedLiftName = normalizeString(liftName);
+  const enteredMaxKg = parsePositiveNumber(enteredOneRepMaxKg);
+  const normalizedConfidence = normalizeManualMaxConfidence(confidence);
+  const trainingMaxKg = calculateManualProgramMaxKg({
+    enteredOneRepMaxKg: enteredMaxKg,
+    confidence: normalizedConfidence,
+    unitSystem,
+  });
+
+  if (!normalizedLiftName || !enteredMaxKg || !normalizedConfidence || !trainingMaxKg) {
+    return null;
+  }
+
+  return {
+    sessionKey: normalizeString(sessionKey, "program-max-setup"),
+    weekNumber: null,
+    dayNumber: null,
+    exerciseIndex: null,
+    setIndex: null,
+    liftKey: toLiftKey(normalizedLiftName),
+    liftName: normalizedLiftName,
+    sourceExerciseName: normalizedLiftName,
+    method: STRENGTH_ASSESSMENT_METHODS.MANUAL_1RM,
+    source: "manual_entry",
+    confidence: normalizedConfidence,
+    enteredOneRepMaxKg: roundToTenth(enteredMaxKg),
+    loadKg: roundToTenth(enteredMaxKg),
+    reps: 1,
+    rpe: null,
+    estimatedOneRepMaxKg: roundToTenth(enteredMaxKg),
+    trainingMaxKg,
+    performedAt: normalizeString(performedAt, new Date().toISOString()),
+    prompt: "Entered during Program Max setup.",
+  };
+}
+
+export function getRequiredProgramMaxLifts(plan = {}, strengthAssessmentSummary = {}) {
+  const knownByLiftKey = new Map(
+    (Array.isArray(strengthAssessmentSummary?.latestByLift)
+      ? strengthAssessmentSummary.latestByLift
+      : []
+    )
+      .filter((entry) => parsePositiveNumber(entry?.trainingMaxKg))
+      .map((entry) => [getStrengthAssessmentLiftKey(entry?.liftName, ""), entry])
+      .filter(([liftKey]) => Boolean(liftKey))
+  );
+  const requiredByLiftKey = new Map();
+
+  (Array.isArray(plan?.weeks) ? plan.weeks : []).forEach((week) => {
+    (Array.isArray(week?.days) ? week.days : []).forEach((day) => {
+      (Array.isArray(day?.exercises) ? day.exercises : []).forEach((exercise) => {
+        const assessment = normalizeStrengthAssessmentConfig(
+          exercise?.strengthAssessment,
+          exercise?.name
+        );
+        const liftName = normalizeString(
+          assessment?.liftName || exercise?.percentagePrescription?.referenceLiftName
+        );
+        const liftKey = getStrengthAssessmentLiftKey(liftName, "");
+
+        if (!liftKey || requiredByLiftKey.has(liftKey)) {
+          return;
+        }
+
+        const knownEntry = knownByLiftKey.get(liftKey) || null;
+        requiredByLiftKey.set(liftKey, {
+          liftKey,
+          liftName,
+          programMaxKg: parsePositiveNumber(knownEntry?.trainingMaxKg),
+          knownEntry,
+        });
+      });
+    });
+  });
+
+  return Array.from(requiredByLiftKey.values());
+}
+
+export function shouldRequireProgramMaxSetup({
+  plan = {},
+  liftIntensityMethod = "",
+  strengthAssessmentSummary = {},
+  completedDays = [],
+} = {}) {
+  const completedDayCount = Array.isArray(completedDays)
+    ? completedDays.length
+    : completedDays instanceof Set
+      ? completedDays.size
+      : 0;
+
+  if (
+    liftIntensityMethod !== "percentage" ||
+    plan?.programMaxSetupCompletedAt ||
+    completedDayCount > 0
+  ) {
+    return false;
+  }
+
+  return getRequiredProgramMaxLifts(plan, strengthAssessmentSummary).some(
+    (lift) => !lift.programMaxKg
+  );
 }
 
 export function resolveStrengthAssessmentReferenceOneRepMaxKg(
@@ -525,6 +762,7 @@ export function createDefaultStrengthAssessmentState() {
 export function createStrengthAssessmentEntry({
   metadata,
   result,
+  unitSystem = "metric",
   previousTrainingMaxKg = null,
   sessionKey = "",
   weekNumber = null,
@@ -568,7 +806,7 @@ export function createStrengthAssessmentEntry({
 
   if (
     normalizedMetadata.method === STRENGTH_ASSESSMENT_METHODS.RPE_BASED_1RM &&
-    (!reps || reps < 3 || reps > 10)
+    (!reps || reps < 3 || reps > 5)
   ) {
     return null;
   }
@@ -587,13 +825,11 @@ export function createStrengthAssessmentEntry({
     return null;
   }
 
-  const estimatedOneRepMaxKg = roundToTenth(
-    calculateEstimatedOneRepMax(normalizedMetadata.method, {
-      loadKg,
-      reps,
-      rpe,
-    })
+  const rawEstimatedOneRepMaxKg = calculateEstimatedOneRepMax(
+    normalizedMetadata.method,
+    { loadKg, reps, rpe }
   );
+  const estimatedOneRepMaxKg = roundToTenth(rawEstimatedOneRepMaxKg);
 
   if (!estimatedOneRepMaxKg) {
     return null;
@@ -616,10 +852,12 @@ export function createStrengthAssessmentEntry({
     reps,
     rpe: rpe ? roundToTenth(rpe) : null,
     estimatedOneRepMaxKg,
+    rawEstimatedOneRepMaxKg,
     trainingMaxKg: calculateTrainingMax(
       normalizedMetadata.method,
       estimatedOneRepMaxKg,
-      parsePositiveNumber(previousTrainingMaxKg)
+      parsePositiveNumber(previousTrainingMaxKg),
+      unitSystem
     ),
     performedAt: normalizeString(performedAt, new Date().toISOString()),
     prompt: normalizedMetadata.prompt,

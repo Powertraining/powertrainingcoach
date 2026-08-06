@@ -4,12 +4,15 @@ import {
   useMemo,
   useRef } from "react";
 import { observer } from "mobx-react-lite";
+import { useIsFocused } from "@react-navigation/native";
 import { useLocalSearchParams,
   useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
 import ProgramOverviewView from "../../src/screens/ProgramOverviewView.jsx";
+import WhiteBottomMenu from "../../src/components/profileComponents/WhiteBottomMenu.jsx";
+import IBMPlexText from "../../src/components/textComponents/IBMPlexText.jsx";
 import AuthGateView from "../../src/screens/auth/AuthGateView.jsx";
 import LoadingView from "../../src/screens/LoadingView.jsx";
 import { getWeekdayNameFromIndex } from "../../src/constants/weekdays.js";
@@ -20,18 +23,32 @@ import {
 } from "../../src/services/utils/trainingPlan.js";
 import { getProgramOverviewToday } from "../../src/services/utils/programOverview.js";
 import { useAndroidBackHandler } from "../../src/services/utils/useAndroidBackHandler.js";
+import {
+  getRequiredProgramMaxLifts,
+  shouldRequireProgramMaxSetup,
+} from "../../src/services/utils/strengthAssessment.js";
+import { formatWeightFromKilograms } from "../../src/services/utils/measurementUnits.js";
+
+const LOCKED_GATE_PAN_HANDLERS = Object.freeze({});
 
 const OverviewScreen = observer(function OverviewScreen() {
   const model = reactiveModel;
   const router = useRouter();
   const params = useLocalSearchParams();
+  const isFocused = useIsFocused();
 
   const plan = model.trainingPlan;
+  const strengthAssessmentSummary = useMemo(
+    () => model.getStrengthAssessmentSummary?.() || null,
+    [model, model.strengthAssessmentState]
+  );
   const [completedDays, setCompletedDays] = useState(new Set());
   const [trainingCheckInSubmitting, setTrainingCheckInSubmitting] = useState(false);
   const [selectedDayPointer, setSelectedDayPointer] = useState(null);
   const [selectionDismissed, setSelectionDismissed] = useState(false);
   const [updatingPlan, setUpdatingPlan] = useState(false);
+  const [programMaxGateVisible, setProgramMaxGateVisible] = useState(false);
+  const [activationNoticeDismissed, setActivationNoticeDismissed] = useState(false);
   const lastResolvedSelectedDayRef = useRef(null);
   const lastRouteSelectedDayRef = useRef("");
   const suppressAutoSelectRef = useRef(false);
@@ -69,6 +86,57 @@ const OverviewScreen = observer(function OverviewScreen() {
     () => model.getPendingTrainingCheckIn?.() || null,
     [completedDays, model, model.completedDays, model.questionnaire, model.strengthAssessmentState, model.trainingCheckInState, plan]
   );
+  const requiresProgramMaxSetup = shouldRequireProgramMaxSetup({
+    plan,
+    liftIntensityMethod: model.questionnaire?.liftIntensityMethod,
+    strengthAssessmentSummary,
+    completedDays: model.completedDays,
+  });
+  const currentTrainingWeek = getCurrentTrainingWeek(
+    plan,
+    Array.from(completedDays)
+  );
+  const estimatedProgramMaxes = (
+    Array.isArray(strengthAssessmentSummary?.latestByLift)
+      ? strengthAssessmentSummary.latestByLift
+      : []
+  ).filter((entry) => entry?.method === "rpe_based_1rm" && entry?.trainingMaxKg);
+  const requiredProgramMaxLifts = getRequiredProgramMaxLifts(
+    plan,
+    strengthAssessmentSummary
+  );
+  const unresolvedProgramMaxLifts = requiredProgramMaxLifts.filter(
+    (lift) => !lift.programMaxKg
+  );
+  const showActivationNotice = Boolean(
+    isFocused &&
+    !programMaxGateVisible &&
+    !activationNoticeDismissed &&
+    Number(currentTrainingWeek?.week) >= 2 &&
+    (estimatedProgramMaxes.length > 0 || unresolvedProgramMaxLifts.length > 0)
+  );
+
+  useEffect(() => {
+    if (!isFocused || !model.ready || !model.user || !requiresProgramMaxSetup) {
+      setProgramMaxGateVisible(false);
+      return undefined;
+    }
+
+    model.setForumTabBarHidden?.(true);
+    const revealTimer = setTimeout(() => setProgramMaxGateVisible(true), 420);
+
+    return () => {
+      clearTimeout(revealTimer);
+      setProgramMaxGateVisible(false);
+      model.setForumTabBarHidden?.(false);
+    };
+  }, [
+    isFocused,
+    model,
+    model.ready,
+    model.user,
+    requiresProgramMaxSetup,
+  ]);
   const routeWeekNumber = Number.parseInt(getParamValue(params.week), 10);
   const routeDayNumber = Number.parseInt(getParamValue(params.day), 10);
   const initialScrollToTopKey =
@@ -203,22 +271,22 @@ const OverviewScreen = observer(function OverviewScreen() {
         : [],
     [model, model.trainingPerformanceState, selectedDay]
   );
-  const strengthAssessmentSummary = useMemo(
-    () => model.getStrengthAssessmentSummary?.() || null,
-    [model, model.strengthAssessmentState]
-  );
   const totalDays = useMemo(() => {
     return model.getTrackableTrainingDayCount?.() || 0;
   }, [model, plan]);
 
   useAndroidBackHandler(() => {
+    if (requiresProgramMaxSetup) {
+      return true;
+    }
+
     if (selectedDayPointer) {
       handleClearSelectedDay();
       return;
     }
 
     return false;
-  }, [selectedDayPointer]);
+  }, [requiresProgramMaxSetup, selectedDayPointer]);
 
   if (!model.ready) {
     return (
@@ -281,6 +349,29 @@ const OverviewScreen = observer(function OverviewScreen() {
         returnTo: "/(tabs)/overview",
       },
     });
+  }
+
+  function handleTestProgramMaxSetup() {
+    router.push({
+      pathname: "/(tabs)/program-max-setup",
+      params: { developerPreview: "1" },
+    });
+  }
+
+  function openProgramMaxSetup() {
+    setProgramMaxGateVisible(false);
+    router.push("/(tabs)/program-max-setup");
+  }
+
+  function handleProgramMaxGateBack() {
+    setProgramMaxGateVisible(false);
+
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/(tabs)");
   }
 
   function getActiveSessionProgress(sessionKey) {
@@ -489,8 +580,53 @@ const OverviewScreen = observer(function OverviewScreen() {
         getCompletedSessionProgress={getCompletedSessionProgress}
         onCompletedSessionProgressSave={handleCompletedSessionProgressSave}
         onTestSession={handleTestSession}
+        onTestProgramMaxSetup={handleTestProgramMaxSetup}
         updatingPlan={updatingPlan}
         initialScrollToTopKey={initialScrollToTopKey}
+      />
+      <WhiteBottomMenu
+        buttonText="Set up Program Maxes"
+        description="Before you start your program, add the current maxes you already know. Any lift you leave blank will begin with RPE."
+        onButtonPress={openProgramMaxSetup}
+        onDismiss={() => {}}
+        panHandlers={LOCKED_GATE_PAN_HANDLERS}
+        secondaryButtonText="Go back"
+        onSecondaryButtonPress={handleProgramMaxGateBack}
+        title="Complete Program Max setup"
+        visible={programMaxGateVisible}
+      />
+      <WhiteBottomMenu
+        buttonText="Continue to Week 2"
+        description="Week 1 estimates are now applied automatically. Any lift without a suitable top set stays RPE-based until enough data is available."
+        onButtonPress={() => setActivationNoticeDismissed(true)}
+        onDismiss={() => setActivationNoticeDismissed(true)}
+        title="Percentage loading is now active"
+        visible={showActivationNotice}
+        content={(
+          <View style={styles.activationList}>
+            {estimatedProgramMaxes.map((entry) => (
+              <View key={entry.liftKey || entry.liftName} style={styles.activationRow}>
+                <View style={styles.activationCopy}>
+                  <IBMPlexText style={styles.activationLift}>{entry.liftName}</IBMPlexText>
+                  <IBMPlexText style={styles.activationSource}>
+                    {formatWeightFromKilograms(entry.loadKg, model.unitSystem)} × {entry.reps} @ RPE {entry.rpe} · estimated {formatWeightFromKilograms(entry.estimatedOneRepMaxKg, model.unitSystem)}
+                  </IBMPlexText>
+                </View>
+                <IBMPlexText style={styles.activationMax}>
+                  {formatWeightFromKilograms(entry.trainingMaxKg, model.unitSystem)}
+                </IBMPlexText>
+              </View>
+            ))}
+            {unresolvedProgramMaxLifts.map((lift) => (
+              <View key={lift.liftKey} style={styles.activationRow}>
+                <View style={styles.activationCopy}>
+                  <IBMPlexText style={styles.activationLift}>{lift.liftName}</IBMPlexText>
+                  <IBMPlexText style={styles.moreDataText}>More data needed · stays RPE-based</IBMPlexText>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       />
     </View>
   );
@@ -502,4 +638,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  activationList: { gap: 8 },
+  activationRow: { alignItems: "center", backgroundColor: "#F3F3F3", borderRadius: 14, flexDirection: "row", minHeight: 62, paddingHorizontal: 14, paddingVertical: 10 },
+  activationCopy: { flex: 1 },
+  activationLift: { color: "#111111", fontSize: 13, fontWeight: "800" },
+  activationSource: { color: "#717171", fontSize: 11, marginTop: 3 },
+  activationMax: { color: "#111111", fontSize: 15, fontWeight: "900" },
+  moreDataText: { color: "#A45A00", fontSize: 11, marginTop: 3 },
 });

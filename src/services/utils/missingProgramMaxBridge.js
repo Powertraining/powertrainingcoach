@@ -39,17 +39,21 @@ function parseRpeTarget(exercise = {}) {
 function ensureRpeBridgeNotes(notes = "", targetRpe = 8) {
   const normalizedNotes = normalizeString(notes);
   if (/(?:@\s*)?RPE\s*\d/i.test(normalizedNotes)) {
-    return normalizedNotes;
+    return normalizedNotes.replace(
+      /(?:@\s*)?RPE\s*\d+(?:\.\d+)?(?:\s*[–-]\s*\d+(?:\.\d+)?)?/i,
+      "RPE 8-10"
+    );
   }
 
-  return [normalizedNotes, `Use RPE 7-9 (target ${targetRpe}).`]
+  return [normalizedNotes, `Use RPE 8-10 (target ${Math.max(8, targetRpe)}).`]
     .filter(Boolean)
     .join(" ");
 }
 
-function getRpeBridgeReps(reps) {
-  const parsedReps = parsePositiveInteger(reps);
-  return parsedReps >= 3 && parsedReps <= 10 ? reps : "3-5";
+function removeRpeBridgeNotes(notes = "") {
+  return normalizeString(notes)
+    .replace(/\s*Use RPE (?:7-9|8-10) \(target \d+(?:\.\d+)?\)\.?/gi, "")
+    .trim();
 }
 
 function isLikelyMainLift(exercise = {}) {
@@ -85,9 +89,6 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
   }
 
   const weeks = Array.isArray(plan?.weeks) ? plan.weeks : [];
-  const firstWeekNumber = Math.min(
-    ...weeks.map((week) => Number.parseInt(week?.week, 10)).filter(Number.isFinite)
-  );
   const knownLiftKeys = getKnownProgramMaxLiftKeys(
     userInput?.strengthAssessmentSummary
   );
@@ -106,7 +107,8 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
           const isRequiredLift =
             liftKey &&
             !exercise?.endurancePrescription &&
-            isLikelyMainLift(exercise);
+            isLikelyMainLift(exercise) &&
+            Boolean(exercise?.percentagePrescription || exercise?.strengthAssessment);
 
           if (isRequiredLift && knownLiftKeys.has(liftKey)) {
             const {
@@ -117,6 +119,7 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
 
             return {
               ...exerciseWithoutAssessment,
+              notes: removeRpeBridgeNotes(exercise?.notes),
               ...(performanceTarget?.strategy === "fixed_rpe"
                 ? {}
                 : { performanceTarget }),
@@ -130,7 +133,6 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
           }
 
           if (
-            Number.parseInt(week?.week, 10) === firstWeekNumber &&
             isRequiredLift &&
             bridgedLiftKeys.has(liftKey)
           ) {
@@ -147,7 +149,6 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
           }
 
           const shouldBridge =
-            Number.parseInt(week?.week, 10) === firstWeekNumber &&
             isRequiredLift &&
             !bridgedLiftKeys.has(liftKey);
 
@@ -159,12 +160,13 @@ export function applyMissingProgramMaxBridges(plan = {}, userInput = {}) {
           return {
             ...exercise,
             notes: ensureRpeBridgeNotes(exercise?.notes, targetRpe),
-            reps: getRpeBridgeReps(exercise?.reps),
+            sets: "1",
+            reps: "3-5",
             percentagePrescription: null,
             strengthAssessment: {
               method: "rpe_based_1rm",
               liftName,
-              minimumRpe: targetRpe,
+              minimumRpe: Math.max(8, targetRpe),
               prompt: `Log the load, reps, and RPE for ${liftName} so the app can estimate your Program Max.`,
             },
           };
@@ -274,6 +276,7 @@ export function applyProgramMaxToFutureExposures(
 
             return {
               ...exerciseWithoutAssessment,
+              notes: removeRpeBridgeNotes(exercise?.notes),
               ...(performanceTarget?.strategy === "fixed_rpe"
                 ? {}
                 : { performanceTarget }),

@@ -5,12 +5,17 @@ import { normalizeAppLogicSettings } from "../src/constants/appLogicSettings.js"
 import { parseGeneratedTrainingPlan } from "../src/services/utils/trainingPlan.js";
 import { getPrescribedSetCount } from "../src/services/utils/exerciseSets.js";
 import {
+  calculateManualProgramMaxKg,
+  createManualProgramMaxEntry,
   createStrengthAssessmentEntry,
+  getRequiredProgramMaxLifts,
   getPendingProgramMaxAssessments,
+  getProgramMaxLiftStatus,
   getStrengthAssessmentPrescription,
   getStrengthAssessmentReferenceOneRepMaxKg,
   getStrengthAssessmentSummary,
   resolveStrengthAssessmentReferenceOneRepMaxKg,
+  shouldRequireProgramMaxSetup,
   upsertStrengthAssessmentSessionResults,
 } from "../src/services/utils/strengthAssessment.js";
 
@@ -57,6 +62,114 @@ test("strength assessment entries compute estimated 1RM for RPE-based and multi-
   assert.equal(rpeBasedEntry.trainingMaxKg, 175);
   assert.equal(multiRmEntry.estimatedOneRepMaxKg, 140);
   assert.equal(multiRmEntry.trainingMaxKg, 140);
+});
+
+test("automatic Program Maxes keep the raw estimate and round the active max", () => {
+  const metricEntry = createStrengthAssessmentEntry({
+    metadata: { method: "rpe_based_1rm", liftName: "Back Squat" },
+    result: { loadKg: 140, reps: 5, rpe: 8 },
+    unitSystem: "metric",
+  });
+  const imperialEntry = createStrengthAssessmentEntry({
+    metadata: { method: "rpe_based_1rm", liftName: "Back Squat" },
+    result: { loadKg: 79.3787, reps: 5, rpe: 8 },
+    unitSystem: "imperial",
+  });
+
+  assert.equal(metricEntry.estimatedOneRepMaxKg, 172.7);
+  assert.ok(Math.abs(metricEntry.rawEstimatedOneRepMaxKg - 172.6666666667) < 0.000001);
+  assert.equal(metricEntry.trainingMaxKg, 172.5);
+  assert.equal(imperialEntry.estimatedOneRepMaxKg, 97.9);
+  assert.equal(imperialEntry.trainingMaxKg, 97.5);
+});
+
+test("manual Program Max setup applies the selected confidence adjustment", () => {
+  assert.equal(calculateManualProgramMaxKg({
+    enteredOneRepMaxKg: 150,
+    confidence: "very_confident",
+  }), 150);
+  assert.equal(calculateManualProgramMaxKg({
+    enteredOneRepMaxKg: 150,
+    confidence: "somewhat_confident",
+  }), 135);
+  assert.equal(calculateManualProgramMaxKg({
+    enteredOneRepMaxKg: 150,
+    confidence: "not_confident",
+  }), 120);
+
+  const entry = createManualProgramMaxEntry({
+    liftName: "Back Squat",
+    enteredOneRepMaxKg: 150,
+    confidence: "somewhat_confident",
+  });
+
+  assert.equal(entry.source, "manual_entry");
+  assert.equal(entry.method, "manual_1rm");
+  assert.equal(entry.enteredOneRepMaxKg, 150);
+  assert.equal(entry.confidence, "somewhat_confident");
+  assert.equal(entry.trainingMaxKg, 135);
+
+  const state = upsertStrengthAssessmentSessionResults(
+    {},
+    "program-max-setup-1",
+    [entry]
+  );
+  const savedEntry = getStrengthAssessmentSummary(state).latestByLift[0];
+  assert.equal(savedEntry.source, "manual_entry");
+  assert.equal(savedEntry.confidence, "somewhat_confident");
+  assert.equal(savedEntry.trainingMaxKg, 135);
+});
+
+test("Program Max setup derives required lifts from the generated plan", () => {
+  const plan = {
+    weeks: [{
+      week: 1,
+      days: [{
+        day: 1,
+        exercises: [
+          {
+            name: "Back Squat",
+            strengthAssessment: {
+              method: "rpe_based_1rm",
+              liftName: "Back Squat",
+            },
+          },
+          {
+            name: "Bench Press",
+            percentagePrescription: { referenceLiftName: "Bench Press" },
+          },
+          { name: "Biceps Curl", notes: "RPE 8" },
+        ],
+      }],
+    }],
+  };
+  const summary = {
+    latestByLift: [{ liftName: "Bench Press", trainingMaxKg: 115 }],
+  };
+  const requiredLifts = getRequiredProgramMaxLifts(plan, summary);
+
+  assert.deepEqual(requiredLifts.map((lift) => lift.liftName), [
+    "Back Squat",
+    "Bench Press",
+  ]);
+  assert.equal(requiredLifts[0].programMaxKg, null);
+  assert.equal(requiredLifts[1].programMaxKg, 115);
+  assert.equal(shouldRequireProgramMaxSetup({
+    plan,
+    liftIntensityMethod: "percentage",
+    strengthAssessmentSummary: summary,
+  }), true);
+  assert.equal(shouldRequireProgramMaxSetup({
+    plan: { ...plan, programMaxSetupCompletedAt: "2026-08-03T00:00:00.000Z" },
+    liftIntensityMethod: "percentage",
+    strengthAssessmentSummary: summary,
+  }), false);
+  assert.equal(shouldRequireProgramMaxSetup({
+    plan,
+    liftIntensityMethod: "percentage",
+    strengthAssessmentSummary: summary,
+    completedDays: ["1-1"],
+  }), false);
 });
 
 test("strength assessment state summarizes the latest result per lift", () => {
@@ -107,11 +220,11 @@ test("strength assessment state summarizes the latest result per lift", () => {
 
   assert.equal(summary.latestByLift.length, 1);
   assert.equal(summary.latestByLift[0].method, "rpe_based_1rm");
-  assert.equal(summary.latestByLift[0].trainingMaxKg, 150.5);
+  assert.equal(summary.latestByLift[0].trainingMaxKg, 160);
   assert.equal(summary.recentAssessments.length, 2);
 });
 
-test("RPE-based missing-max estimates accept Week 1 bridge sets", () => {
+test("RPE-based missing-max estimates accept suitable Week 1 top sets", () => {
   const bridgeEntry = createStrengthAssessmentEntry({
     metadata: {
       method: "rpe_based_1rm",
@@ -119,14 +232,26 @@ test("RPE-based missing-max estimates accept Week 1 bridge sets", () => {
     },
     result: {
       loadKg: 100,
-      reps: 10,
-      rpe: 7,
+      reps: 5,
+      rpe: 8,
     },
   });
 
-  assert.equal(bridgeEntry.estimatedOneRepMaxKg, 143.3);
-  assert.equal(bridgeEntry.trainingMaxKg, 143.3);
-  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(bridgeEntry), 143.3);
+  assert.equal(bridgeEntry.estimatedOneRepMaxKg, 123.3);
+  assert.equal(bridgeEntry.trainingMaxKg, 122.5);
+  assert.equal(getStrengthAssessmentReferenceOneRepMaxKg(bridgeEntry), 122.5);
+});
+
+test("an automatic Program Max is provisional in its capture week and active afterward", () => {
+  const entry = createStrengthAssessmentEntry({
+    metadata: { method: "rpe_based_1rm", liftName: "Back Squat" },
+    result: { loadKg: 100, reps: 5, rpe: 8 },
+    weekNumber: 1,
+  });
+
+  assert.equal(getProgramMaxLiftStatus(entry, 1), "provisional_ready");
+  assert.equal(getProgramMaxLiftStatus(entry, 2), "active");
+  assert.equal(getProgramMaxLiftStatus({}, 2), "missing");
 });
 
 test("missing-max estimates require the prescribed RPE lower bound", () => {
@@ -143,7 +268,7 @@ test("missing-max estimates require the prescribed RPE lower bound", () => {
   assert.equal(createStrengthAssessmentEntry({
     metadata,
     result: { loadKg: 100, reps: 5, rpe: 8 },
-  })?.trainingMaxKg, 123.3);
+  })?.trainingMaxKg, 122.5);
 });
 
 test("pending Program Max assessments exclude lifts with a saved max", () => {
