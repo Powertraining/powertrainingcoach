@@ -110,6 +110,7 @@ const OverviewScreen = observer(function OverviewScreen() {
   );
   const showActivationNotice = Boolean(
     isFocused &&
+    !requiresProgramMaxSetup &&
     !programMaxGateVisible &&
     !activationNoticeDismissed &&
     Number(currentTrainingWeek?.week) >= 2 &&
@@ -189,6 +190,7 @@ const OverviewScreen = observer(function OverviewScreen() {
 
     if (
       !plan ||
+      requiresProgramMaxSetup ||
       !Number.isFinite(routeWeekNumber) ||
       !Number.isFinite(routeDayNumber) ||
       lastRouteSelectedDayRef.current === routeDayKey
@@ -210,10 +212,15 @@ const OverviewScreen = observer(function OverviewScreen() {
     lastRouteSelectedDayRef.current = routeDayKey;
     setSelectionDismissed(false);
     setSelectedDayPointer({ week: routeWeekNumber, day: routeDayNumber });
-  }, [plan, routeDayNumber, routeWeekNumber]);
+  }, [plan, requiresProgramMaxSetup, routeDayNumber, routeWeekNumber]);
 
   useEffect(() => {
-    if (!plan || selectedDayPointer || selectionDismissed) {
+    if (
+      !plan ||
+      requiresProgramMaxSetup ||
+      selectedDayPointer ||
+      selectionDismissed
+    ) {
       return;
     }
 
@@ -254,6 +261,7 @@ const OverviewScreen = observer(function OverviewScreen() {
     plan,
     routeDayNumber,
     routeWeekNumber,
+    requiresProgramMaxSetup,
     selectedDayPointer,
     selectionDismissed,
   ]);
@@ -547,43 +555,49 @@ const OverviewScreen = observer(function OverviewScreen() {
 
   return (
     <View style={styles.container}>
-      <ProgramOverviewView
-        plan={plan}
-        unitSystem={model.unitSystem}
-        trainingPlanHistory={model.trainingPlanHistory}
-        onSelectDay={handleSelectDay}
-        completedDays={completedDays}
-        pendingTrainingCheckIn={pendingTrainingCheckIn}
-        onSubmitTrainingCheckIn={handleSubmitTrainingCheckIn}
-        onReadinessInjuryReportChange={handleReadinessInjuryReportChange}
-        trainingCheckInSubmitting={trainingCheckInSubmitting}
-        questionnaire={model.questionnaire}
-        selectedDay={selectedDay}
-        selectedDayPerformanceResults={selectedDayPerformanceResults}
-        selectedDayAssessmentResults={selectedDayAssessmentResults}
-        strengthAssessmentSummary={strengthAssessmentSummary}
-        onClearSelectedDay={handleClearSelectedDay}
-        onReplaceExercise={handleReplaceExercise}
-        onFinishDay={handleFinishDay}
-        onMoveDay={handleMoveDay}
-        getActiveSessionProgress={getActiveSessionProgress}
-        onActiveSessionProgressChange={handleActiveSessionProgressChange}
-        onActiveSessionProgressClear={handleActiveSessionProgressClear}
-        onStrengthAssessmentSave={(weekNumber, dayNumber, exercises, results) =>
-          model.saveStrengthAssessmentResults?.({
-            weekNumber,
-            dayNumber,
-            exercises,
-            results,
-          })
-        }
-        getCompletedSessionProgress={getCompletedSessionProgress}
-        onCompletedSessionProgressSave={handleCompletedSessionProgressSave}
-        onTestSession={handleTestSession}
-        onTestProgramMaxSetup={handleTestProgramMaxSetup}
-        updatingPlan={updatingPlan}
-        initialScrollToTopKey={initialScrollToTopKey}
-      />
+      <View
+        pointerEvents={requiresProgramMaxSetup ? "none" : "auto"}
+        style={styles.planHost}
+      >
+        <ProgramOverviewView
+          plan={plan}
+          unitSystem={model.unitSystem}
+          trainingPlanHistory={model.trainingPlanHistory}
+          onSelectDay={handleSelectDay}
+          completedDays={completedDays}
+          pendingTrainingCheckIn={pendingTrainingCheckIn}
+          onSubmitTrainingCheckIn={handleSubmitTrainingCheckIn}
+          onReadinessInjuryReportChange={handleReadinessInjuryReportChange}
+          trainingCheckInSubmitting={trainingCheckInSubmitting}
+          questionnaire={model.questionnaire}
+          selectedDay={selectedDay}
+          selectedDayPerformanceResults={selectedDayPerformanceResults}
+          selectedDayAssessmentResults={selectedDayAssessmentResults}
+          strengthAssessmentSummary={strengthAssessmentSummary}
+          onClearSelectedDay={handleClearSelectedDay}
+          onReplaceExercise={handleReplaceExercise}
+          onFinishDay={handleFinishDay}
+          onMoveDay={handleMoveDay}
+          getActiveSessionProgress={getActiveSessionProgress}
+          onActiveSessionProgressChange={handleActiveSessionProgressChange}
+          onActiveSessionProgressClear={handleActiveSessionProgressClear}
+          onStrengthAssessmentSave={(weekNumber, dayNumber, exercises, results) =>
+            model.saveStrengthAssessmentResults?.({
+              weekNumber,
+              dayNumber,
+              exercises,
+              results,
+            })
+          }
+          getCompletedSessionProgress={getCompletedSessionProgress}
+          onCompletedSessionProgressSave={handleCompletedSessionProgressSave}
+          onTestSession={handleTestSession}
+          onTestProgramMaxSetup={handleTestProgramMaxSetup}
+          updatingPlan={updatingPlan}
+          initialScrollToTopKey={initialScrollToTopKey}
+          programMaxSetupPending={requiresProgramMaxSetup}
+        />
+      </View>
       <WhiteBottomMenu
         buttonText="Set up Program Maxes"
         description="Before you start your program, add the current maxes you already know. Any lift you leave blank will begin with RPE."
@@ -638,6 +652,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  planHost: { flex: 1 },
   activationList: { gap: 8 },
   activationRow: { alignItems: "center", backgroundColor: "#F3F3F3", borderRadius: 14, flexDirection: "row", minHeight: 62, paddingHorizontal: 14, paddingVertical: 10 },
   activationCopy: { flex: 1 },

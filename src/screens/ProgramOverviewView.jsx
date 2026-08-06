@@ -827,6 +827,7 @@ export default function ProgramOverviewView({
   onTestProgramMaxSetup,
   updatingPlan = false,
   initialScrollToTopKey = "",
+  programMaxSetupPending = false,
 }) {
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [pushBackConfirmVisible, setPushBackConfirmVisible] = useState(false);
@@ -982,7 +983,7 @@ export default function ProgramOverviewView({
   const shouldHideTabBarForCheckIn =
     Boolean(pendingTrainingCheckIn) || Boolean(launchGatePromptKey);
   const shouldHideTabBar =
-    swapEditorVisible || shouldHideTabBarForCheckIn;
+    programMaxSetupPending || swapEditorVisible || shouldHideTabBarForCheckIn;
   const archivedPlanContexts = Array.isArray(trainingPlanHistory)
     ? trainingPlanHistory
         .map((entry = {}) => ({
