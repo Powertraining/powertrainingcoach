@@ -259,7 +259,7 @@ export default function ProgramMaxSetupFlowView({
   onComplete,
 }) {
   const insets = useSafeAreaInsets();
-  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const windowDimensions = useWindowDimensions();
   const scrollRef = useRef(null);
   const focusedInputTargetRef = useRef(null);
   const keyboardVisibleRef = useRef(false);
@@ -269,6 +269,12 @@ export default function ProgramMaxSetupFlowView({
   const [reviewing, setReviewing] = useState(false);
   const [bodyHeight, setBodyHeight] = useState(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [viewportDimensions, setViewportDimensions] = useState({
+    height: 0,
+    width: 0,
+  });
+  const screenHeight = viewportDimensions.height || windowDimensions.height;
+  const screenWidth = viewportDimensions.width || windowDimensions.width;
 
   useEffect(() => {
     setDrafts((current) => ({ ...createDrafts(requiredLifts), ...current }));
@@ -412,7 +418,23 @@ export default function ProgramMaxSetupFlowView({
   }
 
   return (
-    <View style={styles.screen}>
+    <View
+      onLayout={(event) => {
+        const { height, width } = event.nativeEvent.layout;
+        const nextDimensions = {
+          height: Math.round(height),
+          width: Math.round(width),
+        };
+
+        setViewportDimensions((current) =>
+          current.height === nextDimensions.height &&
+          current.width === nextDimensions.width
+            ? current
+            : nextDimensions
+        );
+      }}
+      style={styles.screen}
+    >
       <Animated.View
         style={[
           styles.content,
