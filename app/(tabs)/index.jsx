@@ -15,6 +15,7 @@ import {
   View,
   StyleSheet,
   Alert,
+  Platform,
 } from "react-native";
 
 import { reactiveModel } from "../../src/services/models/mobxReactiveModel.js";
@@ -399,9 +400,21 @@ const HomeScreen = observer(function HomeScreen() {
   }
 
   function resetUserProgressForTesting() {
+    const confirmationMessage =
+      "This permanently clears all programs, workout history, saved maxes, " +
+      "preferences, and saved app data. It also cancels your subscription. " +
+      "Your username, email, and password are preserved.";
+
+    if (Platform.OS === "web") {
+      if (globalThis.confirm?.(`Reset profile?\n\n${confirmationMessage}`)) {
+        void performFullProfileReset();
+      }
+      return;
+    }
+
     Alert.alert(
       "Reset profile?",
-      "This permanently clears all programs, workout history, saved maxes, preferences, and saved app data. It also cancels your subscription. Your username, email, and password are preserved.",
+      confirmationMessage,
       [
         { text: "Cancel", style: "cancel" },
         {
