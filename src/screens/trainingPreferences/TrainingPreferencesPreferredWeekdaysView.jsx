@@ -246,7 +246,7 @@ function DayTypeAssignmentMenu({
       style={[
         styles.dayTypeMenu,
         isOpeningUp ? styles.dayTypeMenuUp : styles.dayTypeMenuDown,
-        { left: anchorLeft.menu },
+        { left: anchorLeft.menu, width: anchorLeft.width },
         {
           opacity: entranceProgress,
           transform: [
@@ -315,9 +315,11 @@ export default function TrainingPreferencesPreferredWeekdaysView({
   enduranceSessionsPerWeek,
   onAssignmentChange,
 }) {
-  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const windowDimensions = useWindowDimensions();
   const [pendingAssignment, setPendingAssignment] = useState(null);
-  const preferenceBoxWidth = screenWidth * 0.9;
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [preferenceBoxWidth, setPreferenceBoxWidth] = useState(0);
+  const screenHeight = viewportHeight || windowDimensions.height;
   const includesEndurance =
     desiredTraining === "endurance" ||
     desiredTraining === "strength_power_endurance";
@@ -368,24 +370,40 @@ export default function TrainingPreferencesPreferredWeekdaysView({
 
   function getMenuAnchorLeft(weekday) {
     const weekdayIndex = WEEKDAY_INDEX_BY_VALUE[weekday] ?? 0;
+    const measuredBoxWidth = preferenceBoxWidth || windowDimensions.width * 0.9;
+    const menuWidth = Math.min(DAY_TYPE_MENU_WIDTH, measuredBoxWidth);
     const totalGapWidth = WEEKDAY_ROW_GAP * (WEEKDAY_CHIP_OPTIONS.length - 1);
     const chipWidth =
-      (preferenceBoxWidth - totalGapWidth) / WEEKDAY_CHIP_OPTIONS.length;
+      (measuredBoxWidth - totalGapWidth) / WEEKDAY_CHIP_OPTIONS.length;
     const anchorCenter =
       weekdayIndex * (chipWidth + WEEKDAY_ROW_GAP) + chipWidth / 2;
     const menuLeft = Math.max(
       0,
-      Math.min(anchorCenter - DAY_TYPE_MENU_WIDTH / 2, preferenceBoxWidth - DAY_TYPE_MENU_WIDTH)
+      Math.min(
+        anchorCenter - menuWidth / 2,
+        measuredBoxWidth - menuWidth
+      )
     );
 
     return {
-      arrow: anchorCenter - menuLeft,
+      arrow: Math.max(
+        DAY_TYPE_MENU_ARROW_SIZE,
+        Math.min(
+          anchorCenter - menuLeft,
+          menuWidth - DAY_TYPE_MENU_ARROW_SIZE
+        )
+      ),
       menu: menuLeft,
+      width: menuWidth,
     };
   }
 
   return (
     <ScrollView
+      onLayout={(event) => {
+        const nextHeight = event.nativeEvent.layout.height;
+        setViewportHeight((current) => current === nextHeight ? current : nextHeight);
+      }}
       style={[styles.section, { maxHeight: screenHeight }]}
       contentContainerStyle={[
         styles.sectionContent,
@@ -406,7 +424,15 @@ export default function TrainingPreferencesPreferredWeekdaysView({
         </FadeInView>
 
 
-        <View style={styles.preferenceBox}>
+        <View
+          onLayout={(event) => {
+            const nextWidth = event.nativeEvent.layout.width;
+            setPreferenceBoxWidth((current) =>
+              current === nextWidth ? current : nextWidth
+            );
+          }}
+          style={styles.preferenceBox}
+        >
           <View style={styles.preferenceGrid}>
             {Array.from({ length: daysPerWeek }, (_, index) => {
               const selectedType = preferredDayTypes[index] || "";
