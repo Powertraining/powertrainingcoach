@@ -7,6 +7,7 @@ import { persistModelImmediately } from "../../src/services/models/firebaseModel
 import ProgramMaxSetupFlowView from "../../src/screens/ProgramMaxSetupFlowView.jsx";
 import { getClosestActiveTrainingDay } from "../../src/services/utils/trainingPlan.js";
 import { getParamValue } from "../../src/services/utils/navigation.js";
+import { isPagesPhonePreview } from "../../src/services/utils/webTestActions.js";
 import {
   getRequiredProgramMaxLifts,
   shouldRequireProgramMaxSetup,
@@ -24,7 +25,8 @@ const ProgramMaxSetupScreen = observer(function ProgramMaxSetupScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const developerPreview =
-    __DEV__ && getParamValue(params.developerPreview) === "1";
+    (__DEV__ || isPagesPhonePreview()) &&
+    getParamValue(params.developerPreview) === "1";
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const strengthAssessmentSummary = useMemo(

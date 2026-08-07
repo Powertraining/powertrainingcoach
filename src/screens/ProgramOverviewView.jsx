@@ -896,6 +896,14 @@ export default function ProgramOverviewView({
           },
         ]
       : []),
+    ...(onTestProgramMaxSetup
+      ? [
+          {
+            label: "Test 1RM setup",
+            onPress: onTestProgramMaxSetup,
+          },
+        ]
+      : []),
     ...LAUNCH_GATE_CHECK_IN_TESTS.map((testPrompt) => ({
       label: testPrompt.label,
       onPress: () => openLaunchGatePrompt(testPrompt.key),
