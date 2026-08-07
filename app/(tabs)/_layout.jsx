@@ -755,6 +755,7 @@ const TabsLayout = observer(function TabsLayout() {
     activeTabName,
     model.forumTabBarHidden ||
       model.forumOverlayVisible ||
+      model.questionnaireTabBarHidden ||
       model.planGenerationTabBarHidden
   );
   const tabBarBottomOffset = getTabBarBottomOffset(insets.bottom);

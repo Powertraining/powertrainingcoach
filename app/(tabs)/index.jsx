@@ -175,6 +175,7 @@ const HomeScreen = observer(function HomeScreen() {
   }
 
   const resumeStep = getSafeResumeStep();
+  const isQuestionnaireActive = step !== STEPS.START;
 
   function setQuestionnaireStep(nextStep) {
     setStep(nextStep);
@@ -251,6 +252,14 @@ const HomeScreen = observer(function HomeScreen() {
       model.setPlanGenerationTabBarHidden?.(false);
     };
   }, [loading, model]);
+
+  useEffect(() => {
+    model.setQuestionnaireTabBarHidden?.(isQuestionnaireActive);
+
+    return () => {
+      model.setQuestionnaireTabBarHidden?.(false);
+    };
+  }, [isQuestionnaireActive, model]);
 
   useAndroidBackHandler(() => {
     if (pushBackConfirmVisible) {

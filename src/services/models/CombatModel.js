@@ -270,6 +270,7 @@ export const model = {
   forumComments: [],
   forumOverlayVisible: false,
   forumTabBarHidden: false,
+  questionnaireTabBarHidden: false,
   planGenerationTabBarHidden: false,
   forumOverlayDismissCount: 0,
   forumFeedPromiseState: {},
@@ -455,6 +456,7 @@ export const model = {
     this.forumComments = [];
     this.forumOverlayVisible = false;
     this.forumTabBarHidden = false;
+    this.questionnaireTabBarHidden = false;
     this.planGenerationTabBarHidden = false;
     this.forumOverlayDismissCount = 0;
     this.forumFeedPromiseState = {};
@@ -477,6 +479,10 @@ export const model = {
 
   setForumTabBarHidden(value) {
     this.forumTabBarHidden = Boolean(value);
+  },
+
+  setQuestionnaireTabBarHidden(value) {
+    this.questionnaireTabBarHidden = Boolean(value);
   },
 
   setPlanGenerationTabBarHidden(value) {
